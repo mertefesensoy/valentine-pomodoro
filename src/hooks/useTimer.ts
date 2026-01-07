@@ -308,11 +308,13 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
 
     // Reset to initial state
     const reset = useCallback(async () => {
+        console.log('Reset triggered in useTimer');
         // Cancel any scheduled notification (fire and forget)
         cancelScheduled(state.scheduledNotificationId).catch(console.warn);
 
         // Reset to initial state BUT with correct duration from settings
         const initialDurationMinutes = settings.durations.focus;
+        console.log('Resetting to duration:', initialDurationMinutes);
         const initialDurationMs = minutesToMs(initialDurationMinutes);
 
         persistState({

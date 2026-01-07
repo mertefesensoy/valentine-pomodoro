@@ -27,20 +27,6 @@ export interface Settings {
     showLoveNotes: boolean;
 }
 
-// Default settings
-export const DEFAULT_SETTINGS: Settings = {
-    durations: {
-        focus: 25,
-        shortBreak: 5,
-        longBreak: 15,
-    },
-    longBreakEvery: 4,
-    notifications: true,
-    sound: true,
-    haptics: true,
-    showLoveNotes: true,
-};
-
 // Stats per day (keyed by YYYY-MM-DD)
 export interface DayStats {
     focusSessions: number;

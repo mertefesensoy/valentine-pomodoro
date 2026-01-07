@@ -13,6 +13,10 @@ const INITIAL_TIMER_STATE: TimerState = {
     scheduledNotificationId: null,
     sessionPlannedMinutes: null,
     lastHandledEndAt: null, // Idempotency: prevent double-completion
+    // Love note state (Phase 5)
+    lastLoveNote: null,
+    lastTransitionId: 0,
+    showLoveNoteCard: false,
 };
 
 interface UseTimerReturn {
@@ -21,6 +25,8 @@ interface UseTimerReturn {
     isRunning: boolean;
     remainingMs: number;
     completedFocusCountInCycle: number;
+    showLoveNoteCard: boolean;  // Phase 5: show love note
+    lastLoveNote: string | null;  // Phase 5: current love note
 
     // Actions
     start: () => void;
@@ -28,9 +34,10 @@ interface UseTimerReturn {
     resume: () => void;
     skip: () => void;
     reset: () => void;
+    dismissLoveNote: () => void;  // Phase 5: dismiss love note card
 }
 
-export function useTimer(settings: Settings): UseTimerReturn {
+export function useTimer(settings: Settings, pickRandomNote: (lastNote: string | null) => string): UseTimerReturn {
     const [state, setState] = useState<TimerState>(INITIAL_TIMER_STATE);
     const tickIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const { scheduleSessionEnd, cancelScheduled } = useNotifications();
@@ -234,16 +241,37 @@ export function useTimer(settings: Settings): UseTimerReturn {
             settings.longBreakEvery
         );
 
-        // TODO: Show love note card here (Phase 5)
+        // Pick love note ONLY on focus completion (not on breaks)
+        let loveNote: string | null = null;
+        let showCard = false;
+        let transitionId = state.lastTransitionId;
+
+        if (wasFocus && settings.showLoveNotes) {
+            loveNote = pickRandomNote(state.lastLoveNote);
+            showCard = true;
+            transitionId = state.lastTransitionId + 1;
+        }
+
         // TODO: Trigger haptics + sound here (Phase 9)
 
         persistState({
             ...INITIAL_TIMER_STATE,
             phase: nextPhase.phase,
             completedFocusCountInCycle: nextPhase.cycleCount,
-            lastHandledEndAt: state.endAt, // Mark this endAt as handled
+            lastHandledEndAt: state.endAt,
+            lastLoveNote: loveNote,
+            lastTransitionId: transitionId,
+            showLoveNoteCard: showCard,
         });
-    }, [state, settings, persistState]);
+    }, [state, settings, persistState, pickRandomNote]);
+
+    // Dismiss love note card
+    const dismissLoveNote = useCallback(() => {
+        persistState({
+            ...state,
+            showLoveNoteCard: false,
+        });
+    }, [state, persistState]);
 
     // Compute displayed remaining time
     const displayedRemainingMs = state.isRunning && state.endAt !== null
@@ -255,11 +283,14 @@ export function useTimer(settings: Settings): UseTimerReturn {
         isRunning: state.isRunning,
         remainingMs: displayedRemainingMs,
         completedFocusCountInCycle: state.completedFocusCountInCycle,
+        showLoveNoteCard: state.showLoveNoteCard,
+        lastLoveNote: state.lastLoveNote,
         start,
         pause,
         resume,
         skip,
         reset,
+        dismissLoveNote,
     };
 }
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Settings } from '../types';
-import { DEFAULT_SETTINGS } from '../types';
+import { DEFAULT_SETTINGS } from '../constants/defaults';
 import { save, load, STORAGE_KEYS } from '../utils/storage';
 
 export function useSettings() {

@@ -214,11 +214,19 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
         const now = Date.now();
         const endAt = now + durationMs;
 
-        // Schedule notification if enabled
+        // Schedule notification if enabled (with timeout to prevent blocking)
         let notificationId: string | null = null;
         if (settings.notifications) {
-            const { title, body } = getNotificationContent(state.phase);
-            notificationId = await scheduleSessionEnd(endAt, title, body);
+            try {
+                const { title, body } = getNotificationContent(state.phase);
+                // Race strict timeout to ensure start() doesn't hang on permissions
+                notificationId = await Promise.race([
+                    scheduleSessionEnd(endAt, title, body),
+                    new Promise<null>(resolve => setTimeout(() => resolve(null), 1000))
+                ]);
+            } catch (e) {
+                console.warn('Failed to schedule notification:', e);
+            }
         }
 
         persistState({

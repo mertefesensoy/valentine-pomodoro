@@ -69,12 +69,12 @@ export default function TimerScreen() {
   const handlePrimaryAction = () => {
     // Light haptic on button press
     if (settings.haptics) {
-      Haptics.selectionAsync();
+      Haptics.selectionAsync().catch(() => { }); // Catch failures (e.g. web)
     }
 
     if (isRunning) {
       pause();
-    } else if (remainingMs < (phase === 'focus' ? settings.durations.focus * 60 * 1000 : settings.durations.shortBreak * 60 * 1000)) {
+    } else if (remainingMs !== null && remainingMs < totalMs) {
       resume();
     } else {
       start();

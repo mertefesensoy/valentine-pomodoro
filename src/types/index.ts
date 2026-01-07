@@ -1,0 +1,59 @@
+// Timer phase types
+export type TimerPhase = 'focus' | 'shortBreak' | 'longBreak';
+
+// Timer state (persisted to AsyncStorage)
+export interface TimerState {
+    phase: TimerPhase;
+    isRunning: boolean;
+    endAt: number | null; // epoch ms when running
+    remainingMs: number | null; // cached when paused
+    completedFocusCountInCycle: number; // 0..N for long break logic
+    scheduledNotificationId: string | null; // ID of scheduled notification
+    sessionPlannedMinutes: number | null; // Actual duration for this session (stats accuracy)
+}
+
+// Settings (persisted to AsyncStorage)
+export interface Settings {
+    durations: {
+        focus: number; // minutes
+        shortBreak: number;
+        longBreak: number;
+    };
+    longBreakEvery: number; // e.g., 4 (long break after every N focus sessions)
+    notifications: boolean;
+    sound: boolean;
+    haptics: boolean;
+    showLoveNotes: boolean;
+}
+
+// Default settings
+export const DEFAULT_SETTINGS: Settings = {
+    durations: {
+        focus: 25,
+        shortBreak: 5,
+        longBreak: 15,
+    },
+    longBreakEvery: 4,
+    notifications: true,
+    sound: true,
+    haptics: true,
+    showLoveNotes: true,
+};
+
+// Stats per day (keyed by YYYY-MM-DD)
+export interface DayStats {
+    focusSessions: number;
+    focusMinutes: number;
+}
+
+export type StatsMap = Record<string, DayStats>; // { "2026-01-07": { focusSessions: 3, focusMinutes: 75 }, ... }
+
+// Gift mode (persisted to AsyncStorage)
+export interface GiftMode {
+    hasSeenGiftMode: boolean;
+}
+
+// Love notes (persisted to AsyncStorage)
+export interface LoveNotes {
+    notes: string[];
+}

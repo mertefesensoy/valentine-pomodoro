@@ -187,6 +187,20 @@ durations: {
 - iOS notifications only work on real devices (not simulator)
 - First-launch gift mode can't be reset without clearing storage
 
+## Privacy
+
+**No account. No data collection. All data stays on your device.**
+
+This app is 100% local-only:
+- No server connections
+- No analytics or tracking
+- No personal data collection
+- All settings, stats, and love notes stored locally in AsyncStorage
+
+## Notifications
+
+iOS notification permission is requested when you first enable notifications in Settings (not at app launch). This keeps the first-launch experience clean and romantic.
+
 ## Tech Stack
 
 - React Native (Expo SDK 54)

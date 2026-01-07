@@ -137,6 +137,7 @@ export default function GiftModeModal({ visible, onDismiss }: GiftModeModalProps
                     <Animated.View style={{ transform: [{ scale: titleScale }] }}>
                         <Text style={styles.title}>made with love 💘</Text>
                         <Text style={styles.subtitle}>for Bengisu</Text>
+                        <Text style={styles.fromText}>from someone who believes in you</Text>
                     </Animated.View>
 
                     <Pressable style={styles.button} onPress={onDismiss}>
@@ -188,7 +189,15 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#D4A5D9',
         textAlign: 'center',
+        marginBottom: 8,
+    },
+    fromText: {
+        fontSize: 14,
+        fontWeight: '400',
+        color: '#6B6B6B',
+        textAlign: 'center',
         marginBottom: 48,
+        fontStyle: 'italic',
     },
     button: {
         backgroundColor: '#E63946',

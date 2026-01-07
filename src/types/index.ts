@@ -10,6 +10,7 @@ export interface TimerState {
     completedFocusCountInCycle: number; // 0..N for long break logic
     scheduledNotificationId: string | null; // ID of scheduled notification
     sessionPlannedMinutes: number | null; // Actual duration for this session (stats accuracy)
+    lastHandledEndAt: number | null; // Idempotency: prevent double-completion
 }
 
 // Settings (persisted to AsyncStorage)

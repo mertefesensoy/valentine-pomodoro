@@ -12,6 +12,7 @@ const INITIAL_TIMER_STATE: TimerState = {
     completedFocusCountInCycle: 0,
     scheduledNotificationId: null,
     sessionPlannedMinutes: null,
+    lastHandledEndAt: null, // Idempotency: prevent double-completion
 };
 
 interface UseTimerReturn {
@@ -214,6 +215,11 @@ export function useTimer(settings: Settings): UseTimerReturn {
 
     // Handle session completion
     const handleSessionComplete = useCallback(() => {
+        // Idempotency check: only handle completion once per endAt
+        if (state.endAt !== null && state.endAt === state.lastHandledEndAt) {
+            return; // Already handled this completion
+        }
+
         const wasFocus = state.phase === 'focus';
 
         // Update stats if focus was completed (not skipped)
@@ -235,6 +241,7 @@ export function useTimer(settings: Settings): UseTimerReturn {
             ...INITIAL_TIMER_STATE,
             phase: nextPhase.phase,
             completedFocusCountInCycle: nextPhase.cycleCount,
+            lastHandledEndAt: state.endAt, // Mark this endAt as handled
         });
     }, [state, settings, persistState]);
 

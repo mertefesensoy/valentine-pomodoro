@@ -10,6 +10,7 @@ import { Colors } from './constants/Colors';
 import { Navigation } from './navigation';
 import { useGiftMode } from './hooks/useGiftMode';
 import GiftModeModal from './components/GiftModeModal';
+import { AppProvider } from './context/AppContext';
 
 // Set up notification handler (shows notifications even when app is in foreground)
 Notifications.setNotificationHandler({
@@ -49,7 +50,7 @@ export function App() {
       };
 
   return (
-    <>
+    <AppProvider>
       <Navigation
         theme={theme}
         linking={{
@@ -68,6 +69,6 @@ export function App() {
       {giftModeReady && !hasSeenGiftMode && (
         <GiftModeModal visible={!hasSeenGiftMode} onDismiss={dismiss} />
       )}
-    </>
+    </AppProvider>
   );
 }

@@ -10,11 +10,12 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import { useSettings } from '../hooks/useSettings';
+import { useApp } from '../context/AppContext';
 import type { Settings } from '../types';
 
 export default function SettingsScreen() {
-    const { settings, updateSettings } = useSettings();
+    const { settings: settingsContext } = useApp();
+    const { settings, updateSettings } = settingsContext;
 
     // Local draft state for number inputs
     const [focusDraft, setFocusDraft] = useState(settings.durations.focus.toString());

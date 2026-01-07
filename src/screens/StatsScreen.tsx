@@ -1,8 +1,9 @@
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useStats } from '../hooks/useStats';
+import { useApp } from '../context/AppContext';
 
 export default function StatsScreen() {
-    const { isReady, today, totals, last7Days } = useStats();
+    const { stats } = useApp();
+    const { isReady, today, totals, last7Days } = stats;
 
     if (!isReady) {
         return (

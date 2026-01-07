@@ -1,19 +1,15 @@
 import { View, Text, Pressable, StyleSheet, Alert, Platform, useWindowDimensions } from "react-native";
 import { useMemo } from "react";
 import { useTimer } from "../hooks/useTimer";
-import { useSettings } from "../hooks/useSettings";
-import { useLoveNotes } from "../hooks/useLoveNotes";
-import { useStats } from "../hooks/useStats";
 import { formatTime } from "../utils/time";
 import LoveNoteCard from "../components/LoveNoteCard";
 import { CircularProgress } from "../components/CircularProgress";
 import * as Haptics from "expo-haptics";
+import { useApp } from "../context/AppContext";
 
 export default function TimerScreen() {
   const { width, height } = useWindowDimensions();
-  const { settings } = useSettings();
-  const { pickRandomNote } = useLoveNotes();
-  const { incrementFocus } = useStats();
+  const { settings, stats, loveNotes } = useApp();
   const {
     phase,
     isRunning,
@@ -27,7 +23,7 @@ export default function TimerScreen() {
     skip,
     reset,
     dismissLoveNote,
-  } = useTimer(settings, pickRandomNote, incrementFocus);
+  } = useTimer(settings.settings, loveNotes.pickRandomNote, stats.incrementFocus);
 
   // Responsive layout detection
   const isLandscape = width > height;
@@ -48,12 +44,12 @@ export default function TimerScreen() {
   const totalMs = useMemo(() => {
     const mins =
       phase === 'focus'
-        ? settings.durations.focus
+        ? settings.settings.durations.focus
         : phase === 'shortBreak'
-          ? settings.durations.shortBreak
-          : settings.durations.longBreak;
+          ? settings.settings.durations.shortBreak
+          : settings.settings.durations.longBreak;
     return mins * 60 * 1000;
-  }, [phase, settings.durations]);
+  }, [phase, settings.settings.durations]);
 
   const progress = useMemo(() => {
     if (remainingMs === null) return 0;
@@ -75,7 +71,7 @@ export default function TimerScreen() {
   // Primary button label
   const getPrimaryButtonLabel = () => {
     if (isRunning) return 'Pause';
-    if (remainingMs < (phase === 'focus' ? settings.durations.focus * 60 * 1000 : settings.durations.shortBreak * 60 * 1000)) {
+    if (remainingMs < (phase === 'focus' ? settings.settings.durations.focus * 60 * 1000 : settings.settings.durations.shortBreak * 60 * 1000)) {
       return 'Resume';
     }
     return 'Start';
@@ -84,7 +80,7 @@ export default function TimerScreen() {
   // Primary button action
   const handlePrimaryAction = () => {
     // Light haptic on button press
-    if (settings.haptics) {
+    if (settings.settings.haptics) {
       Haptics.selectionAsync().catch(() => { }); // Catch failures (e.g. web)
     }
 
@@ -149,7 +145,7 @@ export default function TimerScreen() {
 
       {/* Cycle indicator */}
       <Text style={[styles.cycleText, isTablet && styles.cycleTextTablet]}>
-        Session {completedFocusCountInCycle + 1} of {settings.longBreakEvery}
+        Session {completedFocusCountInCycle + 1} of {settings.settings.longBreakEvery}
       </Text>
     </>
   );

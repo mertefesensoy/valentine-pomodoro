@@ -311,8 +311,16 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
         // Cancel any scheduled notification (fire and forget)
         cancelScheduled(state.scheduledNotificationId).catch(console.warn);
 
-        persistState(INITIAL_TIMER_STATE);
-    }, [persistState, state.scheduledNotificationId, cancelScheduled]);
+        // Reset to initial state BUT with correct duration from settings
+        const initialDurationMinutes = settings.durations.focus;
+        const initialDurationMs = minutesToMs(initialDurationMinutes);
+
+        persistState({
+            ...INITIAL_TIMER_STATE,
+            remainingMs: initialDurationMs, // Explicitly set based on current settings
+            sessionPlannedMinutes: initialDurationMinutes,
+        });
+    }, [persistState, state.scheduledNotificationId, cancelScheduled, settings.durations.focus]);
 
     // handleSessionComplete moved to top of hook (before useEffects that depend on it)
 

@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet, Alert, Platform } from "react-native";
+import { View, Text, Pressable, StyleSheet, Alert, Platform, useWindowDimensions } from "react-native";
 import { useMemo } from "react";
 import { useTimer } from "../hooks/useTimer";
 import { useSettings } from "../hooks/useSettings";
@@ -10,6 +10,7 @@ import { CircularProgress } from "../components/CircularProgress";
 import * as Haptics from "expo-haptics";
 
 export default function TimerScreen() {
+  const { width, height } = useWindowDimensions();
   const { settings } = useSettings();
   const { pickRandomNote } = useLoveNotes();
   const { incrementFocus } = useStats();
@@ -27,6 +28,21 @@ export default function TimerScreen() {
     reset,
     dismissLoveNote,
   } = useTimer(settings, pickRandomNote, incrementFocus);
+
+  // Responsive layout detection
+  const isLandscape = width > height;
+  const isTablet = width >= 768;
+
+  // Dynamic progress ring size
+  const ringSize = useMemo(() => {
+    if (isLandscape) {
+      return Math.min(height * 0.6, 220);
+    }
+    if (isTablet) {
+      return 300;
+    }
+    return 260;
+  }, [isLandscape, isTablet, height]);
 
   // Calculate progress for current phase
   const totalMs = useMemo(() => {
@@ -102,44 +118,56 @@ export default function TimerScreen() {
     }
   };
 
-  return (
-    <View style={styles.container}>
+  // Content components
+  const timerContent = (
+    <>
       {/* Header */}
-      <Text style={styles.header}>Valentine Pomodoro 💗</Text>
+      <Text style={[styles.header, isTablet && styles.headerTablet]}>Valentine Pomodoro 💗</Text>
 
       {/* Status chip */}
       <View style={styles.statusChip}>
-        <Text style={styles.statusText}>{getPhaseLabel()}</Text>
+        <Text style={[styles.statusText, isTablet && styles.statusTextTablet]}>{getPhaseLabel()}</Text>
       </View>
 
       {/* Progress ring + timer display */}
       <View style={styles.progressContainer}>
         <CircularProgress
-          size={260}
+          size={ringSize}
           strokeWidth={14}
           progress={progress}
           trackColor="#FFE8EC"
           progressColor="#E63946"
         />
         <View style={styles.timerOverlay}>
-          <Text style={styles.timer}>{formatTime(remainingMs)}</Text>
+          <Text style={[
+            styles.timer,
+            isTablet && styles.timerTablet,
+            isLandscape && styles.timerLandscape
+          ]}>{formatTime(remainingMs)}</Text>
         </View>
       </View>
 
       {/* Cycle indicator */}
-      <Text style={styles.cycleText}>
+      <Text style={[styles.cycleText, isTablet && styles.cycleTextTablet]}>
         Session {completedFocusCountInCycle + 1} of {settings.longBreakEvery}
       </Text>
+    </>
+  );
 
+  const controlsContent = (
+    <>
       {/* Primary action button */}
       <Pressable
         style={({ pressed }) => [
           styles.primaryButton,
+          isTablet && styles.primaryButtonTablet,
           pressed && { transform: [{ scale: 0.98 }] },
         ]}
         onPress={handlePrimaryAction}
       >
-        <Text style={styles.primaryButtonText}>{getPrimaryButtonLabel()}</Text>
+        <Text style={[styles.primaryButtonText, isTablet && styles.primaryButtonTextTablet]}>
+          {getPrimaryButtonLabel()}
+        </Text>
       </Pressable>
 
       {/* Secondary actions */}
@@ -147,27 +175,57 @@ export default function TimerScreen() {
         <Pressable
           style={({ pressed }) => [
             styles.secondaryButton,
+            isTablet && styles.secondaryButtonTablet,
             pressed && { transform: [{ scale: 0.98 }] },
           ]}
           onPress={skip}
         >
-          <Text style={styles.secondaryButtonText}>Skip</Text>
+          <Text style={[styles.secondaryButtonText, isTablet && styles.secondaryButtonTextTablet]}>Skip</Text>
         </Pressable>
         <Pressable
           style={({ pressed }) => [
             styles.secondaryButton,
+            isTablet && styles.secondaryButtonTablet,
             pressed && { transform: [{ scale: 0.98 }] },
           ]}
           onPress={handleReset}
         >
-          <Text style={styles.secondaryButtonText}>Reset</Text>
+          <Text style={[styles.secondaryButtonText, isTablet && styles.secondaryButtonTextTablet]}>Reset</Text>
         </Pressable>
       </View>
+    </>
+  );
 
-      {/* Love Note Card - appears on focus completion */}
-      {showLoveNoteCard && lastLoveNote && (
-        <LoveNoteCard note={lastLoveNote} onDismiss={dismissLoveNote} />
-      )}
+  return (
+    <View style={styles.container}>
+      <View style={[
+        styles.contentWrapper,
+        isTablet && styles.contentWrapperTablet,
+        isLandscape && styles.contentWrapperLandscape
+      ]}>
+        {isLandscape ? (
+          // Landscape: two-column layout
+          <>
+            <View style={styles.leftPane}>
+              {timerContent}
+            </View>
+            <View style={styles.rightPane}>
+              {controlsContent}
+            </View>
+          </>
+        ) : (
+          // Portrait: stacked layout
+          <>
+            {timerContent}
+            {controlsContent}
+          </>
+        )}
+
+        {/* Love Note Card - appears on focus completion */}
+        {showLoveNoteCard && lastLoveNote && (
+          <LoveNoteCard note={lastLoveNote} onDismiss={dismissLoveNote} />
+        )}
+      </View>
     </View>
   );
 }
@@ -179,6 +237,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+  },
+  contentWrapper: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  contentWrapperTablet: {
+    maxWidth: 900,
+  },
+  contentWrapperLandscape: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    maxWidth: 1200,
+    gap: 40,
+  },
+  leftPane: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  rightPane: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   progressContainer: {
     position: 'relative',
@@ -197,6 +277,9 @@ const styles = StyleSheet.create({
     color: '#2D2D2D',
     marginBottom: 32,
   },
+  headerTablet: {
+    fontSize: 28,
+  },
   statusChip: {
     backgroundColor: '#FFE8EC',
     paddingHorizontal: 24,
@@ -209,6 +292,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#E63946', // cherry red
   },
+  statusTextTablet: {
+    fontSize: 18,
+  },
   timer: {
     fontSize: 72,
     fontWeight: '700',
@@ -216,10 +302,20 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontVariant: ['tabular-nums'],
   },
+  timerTablet: {
+    fontSize: 84,
+  },
+  timerLandscape: {
+    fontSize: 56,
+    marginBottom: 8,
+  },
   cycleText: {
     fontSize: 14,
     color: '#6B6B6B',
     marginBottom: 48,
+  },
+  cycleTextTablet: {
+    fontSize: 16,
   },
   primaryButton: {
     backgroundColor: '#E63946', // cherry red
@@ -230,10 +326,18 @@ const styles = StyleSheet.create({
     minWidth: 200,
     alignItems: 'center',
   },
+  primaryButtonTablet: {
+    paddingHorizontal: 80,
+    paddingVertical: 20,
+    minWidth: 240,
+  },
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 20,
     fontWeight: '600',
+  },
+  primaryButtonTextTablet: {
+    fontSize: 22,
   },
   secondaryActions: {
     flexDirection: 'row',
@@ -246,9 +350,16 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 999,
   },
+  secondaryButtonTablet: {
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+  },
   secondaryButtonText: {
     color: '#D4A5D9',
     fontSize: 16,
     fontWeight: '500',
+  },
+  secondaryButtonTextTablet: {
+    fontSize: 18,
   },
 });

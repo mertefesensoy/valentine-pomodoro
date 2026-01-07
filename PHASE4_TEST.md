@@ -6,10 +6,10 @@
 
 ## Pre-Test Setup
 
-1. Open `src/types/index.ts`
-2. Temporarily change DEFAULT_SETTINGS:
+1. Open `src/constants/defaults.ts` (NOT `src/types/index.ts` - types should be types-only)
+2. Temporarily change `DEFAULT_SETTINGS`:
    ```typescript
-   export const DEFAULT_SETTINGS: Settings = {
+   export const DEFAULT_SETTINGS = {
      durations: {
        focus: 0.1,        // 6 seconds (was 25)
        shortBreak: 0.1,   // 6 seconds (was 5)  
@@ -23,7 +23,9 @@
    };
    ```
 3. Save file (hot reload will update)
-4. **Reset app data**: In Settings screen, tap Reset (or force-close+reopen to clear AsyncStorage)
+4. **Get a clean slate**: Either delete the app and reinstall, OR implement a dev reset that clears AsyncStorage keys
+   - **IMPORTANT**: Force-closing the app does NOT clear AsyncStorage - it only kills the process
+   - If you have a Reset button, it should clear relevant keys: `timer_state`, `stats`, etc.
 
 ---
 
@@ -36,16 +38,19 @@
 4. Wait 6-7 seconds
 
 **Expected** ✅:
-- Notification alert appears (foreground handler)
+- Notification is delivered (banner/alert OR Notification Center entry)
+  - iOS behavior varies: permissions, banner style, Focus mode, Expo Go quirks
+  - **Critical**: Phase advances correctly even if banner doesn't visually appear
 - Phase advances to "Short Break"
 - Timer shows "00:06" and is **not running**
-- Stats increments by 1 focus session
+- Stats increments by 1 focus session (0.1 minutes)
 - No double-increment (idempotency check working)
+- **`scheduledNotificationId` is cleared** (no ghost notification for next phase)
 
 **Fail if**:
 - Stats increments twice
 - Timer auto-starts next phase
-- No notification
+- `scheduledNotificationId` still set (would cause ghost notification)
 
 ---
 
@@ -63,6 +68,7 @@
 - Timer shows "00:06" and is **not running**
 - Stats increments once (only once, not double)
 - `remainingMs` correctly recomputed on resume
+- **`scheduledNotificationId` is cleared**
 
 **Fail if**:
 - Phase didn't advance
@@ -100,15 +106,18 @@
 4. Reopen app
 
 **Expected** ✅:
-- On cold start, timer detects `endAt < now`
+- On cold start, timer initialization detects `endAt < now`
 - Phase advances to "Short Break" **exactly once**
 - Stats increments once (if focus completed)
 - Timer shows "00:06" and is **not running**
+- **`scheduledNotificationId` is cleared**
+- **Critical**: Completion handled during initialization, not deferred to AppState listener
 
 **Fail if**:
 - Phase didn't advance (still shows "Focus")
 - Stats didn't increment
 - Timer is stuck in weird state
+- Completion only triggers if you background+foreground (bad - should handle on load)
 
 ---
 
@@ -130,6 +139,28 @@
 **Fail if**:
 - Timer shows wrong remaining time
 - Phase advanced prematurely
+
+---
+
+## Test F: Settings Change Mid-Session (Validates sessionPlannedMinutes) ✅
+
+**Purpose**: Verify that stats use the duration *when session started*, not current settings
+
+**Steps**:
+1. Start focus session (6s / 0.1 min)
+2. **While running**, open Settings and change focus duration to 12s (0.2 min)
+3. Return to Timer tab
+4. Let session complete naturally
+
+**Expected** ✅:
+- Session completes at **original** `endAt` (6s after start)
+- Stats increments by **0.1 minutes** (not 0.2)
+- Phase advances to Short Break
+- **Proves `sessionPlannedMinutes` is captured at start and used for stats**
+
+**Fail if**:
+- Stats shows 0.2 minutes (wrong - used current settings instead of sessionPlannedMinutes)
+- Session duration changed mid-flight (bad - should complete at original endAt)
 
 ---
 

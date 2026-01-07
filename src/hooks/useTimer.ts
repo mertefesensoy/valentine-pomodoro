@@ -42,12 +42,78 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
     const tickIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const { scheduleSessionEnd, cancelScheduled } = useNotifications();
 
-    // Load persisted state on mount
+    // Handle session completion (refactored to accept state parameter)
+    const handleSessionComplete = useCallback(
+        (s: TimerState) => {
+            // Hard guard: cannot complete without an endAt
+            if (s.endAt === null) return;
+
+            // Idempotency check: only handle completion once per endAt
+            if (s.endAt === s.lastHandledEndAt) {
+                return; // Already handled this completion
+            }
+
+            const wasFocus = s.phase === 'focus';
+
+            // Update stats if focus was completed (not skipped)
+            if (wasFocus && s.sessionPlannedMinutes !== null) {
+                updateStats(s.sessionPlannedMinutes);
+            }
+
+            // Determine next phase
+            const nextPhase = getNextPhase(
+                s.phase,
+                wasFocus ? s.completedFocusCountInCycle + 1 : s.completedFocusCountInCycle,
+                settings.longBreakEvery
+            );
+
+            // Pick love note ONLY on focus completion (not on breaks)
+            let loveNote: string | null = null;
+            let showCard = false;
+            let transitionId = s.lastTransitionId;
+
+            if (wasFocus && settings.showLoveNotes) {
+                loveNote = pickRandomNote(s.lastLoveNote);
+                showCard = true;
+                transitionId = s.lastTransitionId + 1;
+            }
+
+            // TODO: Trigger haptics + sound here (Phase 9)
+
+            persistState({
+                ...INITIAL_TIMER_STATE,
+                phase: nextPhase.phase,
+                completedFocusCountInCycle: nextPhase.cycleCount,
+                lastHandledEndAt: s.endAt,
+                lastLoveNote: loveNote ?? s.lastLoveNote, // Preserve last note even on break completion
+                lastTransitionId: transitionId,
+                showLoveNoteCard: showCard,
+            });
+        },
+        [settings.longBreakEvery, settings.showLoveNotes, persistState, pickRandomNote]
+    );
+
+    // Load persisted state on mount + check for cold-start completion
     useEffect(() => {
-        load<TimerState>(STORAGE_KEYS.TIMER_STATE, INITIAL_TIMER_STATE).then((loaded) => {
+        let cancelled = false;
+
+        (async () => {
+            const loaded = await load<TimerState>(STORAGE_KEYS.TIMER_STATE, INITIAL_TIMER_STATE);
+            if (cancelled) return;
+
+            // If session ended while app was closed, complete immediately using loaded state
+            if (loaded.isRunning && loaded.endAt !== null && loaded.endAt <= Date.now()) {
+                handleSessionComplete(loaded);
+                return;
+            }
+
             setState(loaded);
-        });
-    }, []);
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [handleSessionComplete]);
 
     // Persist state whenever it changes
     const persistState = useCallback((newState: TimerState) => {
@@ -67,9 +133,9 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
                         const remaining = Math.max(0, currentState.endAt - now);
 
                         if (remaining === 0) {
-                            // Session ended while backgrounded - trigger completion ONCE
-                            // We'll let the interval handler detect this on next tick
-                            return { ...currentState, remainingMs: 0 };
+                            // Session ended while backgrounded - complete immediately
+                            handleSessionComplete(currentState);
+                            return currentState; // handleSessionComplete will persist new state
                         } else {
                             // Update remaining time
                             return { ...currentState, remainingMs: remaining };
@@ -83,7 +149,7 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
         return () => {
             subscription.remove();
         };
-    }, []);
+    }, [handleSessionComplete]);
 
     // Compute remaining time from endAt (timestamp-based, no drift)
     useEffect(() => {
@@ -101,8 +167,8 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
             const remaining = Math.max(0, state.endAt! - now);
 
             if (remaining === 0) {
-                // Session complete
-                handleSessionComplete();
+                // Session complete - use current state snapshot
+                handleSessionComplete(state);
             } else {
                 // Update remaining time (for display only, don't persist every tick)
                 setState((prev: TimerState) => ({ ...prev, remainingMs: remaining }));
@@ -220,50 +286,7 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
         persistState(INITIAL_TIMER_STATE);
     }, [persistState, state.scheduledNotificationId, cancelScheduled]);
 
-    // Handle session completion
-    const handleSessionComplete = useCallback(() => {
-        // Idempotency check: only handle completion once per endAt
-        if (state.endAt !== null && state.endAt === state.lastHandledEndAt) {
-            return; // Already handled this completion
-        }
-
-        const wasFocus = state.phase === 'focus';
-
-        // Update stats if focus was completed (not skipped)
-        if (wasFocus && state.sessionPlannedMinutes !== null) {
-            updateStats(state.sessionPlannedMinutes);
-        }
-
-        // Determine next phase
-        const nextPhase = getNextPhase(
-            state.phase,
-            wasFocus ? state.completedFocusCountInCycle + 1 : state.completedFocusCountInCycle,
-            settings.longBreakEvery
-        );
-
-        // Pick love note ONLY on focus completion (not on breaks)
-        let loveNote: string | null = null;
-        let showCard = false;
-        let transitionId = state.lastTransitionId;
-
-        if (wasFocus && settings.showLoveNotes) {
-            loveNote = pickRandomNote(state.lastLoveNote);
-            showCard = true;
-            transitionId = state.lastTransitionId + 1;
-        }
-
-        // TODO: Trigger haptics + sound here (Phase 9)
-
-        persistState({
-            ...INITIAL_TIMER_STATE,
-            phase: nextPhase.phase,
-            completedFocusCountInCycle: nextPhase.cycleCount,
-            lastHandledEndAt: state.endAt,
-            lastLoveNote: loveNote,
-            lastTransitionId: transitionId,
-            showLoveNoteCard: showCard,
-        });
-    }, [state, settings, persistState, pickRandomNote]);
+    // handleSessionComplete moved to top of hook (before useEffects that depend on it)
 
     // Dismiss love note card
     const dismissLoveNote = useCallback(() => {

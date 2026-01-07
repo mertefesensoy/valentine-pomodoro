@@ -3,6 +3,7 @@ import type { TimerState, TimerPhase, Settings } from '../types';
 import { save, load, STORAGE_KEYS } from '../utils/storage';
 import { minutesToMs } from '../utils/time';
 import { useNotifications, getNotificationContent } from './useNotifications';
+import * as Haptics from 'expo-haptics';
 
 const INITIAL_TIMER_STATE: TimerState = {
     phase: 'focus',
@@ -84,7 +85,12 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
                 transitionId = s.lastTransitionId + 1;
             }
 
-            // TODO: Trigger haptics + sound here (Phase 9)
+            // Trigger haptics (Phase 9) - single trigger point
+            if (settings.haptics) {
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            }
+
+            // TODO: Sound will be added later (requires sound asset)
 
             persistState({
                 ...INITIAL_TIMER_STATE,

@@ -1,10 +1,13 @@
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { View, Text, Pressable, StyleSheet, Alert } from "react-native";
+import { useMemo } from "react";
 import { useTimer } from "../hooks/useTimer";
 import { useSettings } from "../hooks/useSettings";
 import { useLoveNotes } from "../hooks/useLoveNotes";
 import { useStats } from "../hooks/useStats";
 import { formatTime } from "../utils/time";
 import LoveNoteCard from "../components/LoveNoteCard";
+import { CircularProgress } from "../components/CircularProgress";
+import * as Haptics from "expo-haptics";
 
 export default function TimerScreen() {
   const { settings } = useSettings();
@@ -24,6 +27,22 @@ export default function TimerScreen() {
     reset,
     dismissLoveNote,
   } = useTimer(settings, pickRandomNote, incrementFocus);
+
+  // Calculate progress for current phase
+  const totalMs = useMemo(() => {
+    const mins =
+      phase === 'focus'
+        ? settings.durations.focus
+        : phase === 'shortBreak'
+          ? settings.durations.shortBreak
+          : settings.durations.longBreak;
+    return mins * 60 * 1000;
+  }, [phase, settings.durations]);
+
+  const progress = useMemo(() => {
+    if (remainingMs === null) return 0;
+    return Math.max(0, Math.min(1, 1 - remainingMs / totalMs));
+  }, [remainingMs, totalMs]);
 
   // Phase label
   const getPhaseLabel = () => {
@@ -48,6 +67,11 @@ export default function TimerScreen() {
 
   // Primary button action
   const handlePrimaryAction = () => {
+    // Light haptic on button press
+    if (settings.haptics) {
+      Haptics.selectionAsync();
+    }
+
     if (isRunning) {
       pause();
     } else if (remainingMs < (phase === 'focus' ? settings.durations.focus * 60 * 1000 : settings.durations.shortBreak * 60 * 1000)) {
@@ -79,8 +103,19 @@ export default function TimerScreen() {
         <Text style={styles.statusText}>{getPhaseLabel()}</Text>
       </View>
 
-      {/* Timer display */}
-      <Text style={styles.timer}>{formatTime(remainingMs)}</Text>
+      {/* Progress ring + timer display */}
+      <View style={styles.progressContainer}>
+        <CircularProgress
+          size={260}
+          strokeWidth={14}
+          progress={progress}
+          trackColor="#FFE8EC"
+          progressColor="#E63946"
+        />
+        <View style={styles.timerOverlay}>
+          <Text style={styles.timer}>{formatTime(remainingMs)}</Text>
+        </View>
+      </View>
 
       {/* Cycle indicator */}
       <Text style={styles.cycleText}>
@@ -88,18 +123,36 @@ export default function TimerScreen() {
       </Text>
 
       {/* Primary action button */}
-      <TouchableOpacity style={styles.primaryButton} onPress={handlePrimaryAction}>
+      <Pressable
+        style={({ pressed }) => [
+          styles.primaryButton,
+          pressed && { transform: [{ scale: 0.98 }] },
+        ]}
+        onPress={handlePrimaryAction}
+      >
         <Text style={styles.primaryButtonText}>{getPrimaryButtonLabel()}</Text>
-      </TouchableOpacity>
+      </Pressable>
 
       {/* Secondary actions */}
       <View style={styles.secondaryActions}>
-        <TouchableOpacity style={styles.secondaryButton} onPress={skip}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.secondaryButton,
+            pressed && { transform: [{ scale: 0.98 }] },
+          ]}
+          onPress={skip}
+        >
           <Text style={styles.secondaryButtonText}>Skip</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.secondaryButton} onPress={handleReset}>
+        </Pressable>
+        <Pressable
+          style={({ pressed }) => [
+            styles.secondaryButton,
+            pressed && { transform: [{ scale: 0.98 }] },
+          ]}
+          onPress={handleReset}
+        >
           <Text style={styles.secondaryButtonText}>Reset</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {/* Love Note Card - appears on focus completion */}
@@ -113,10 +166,21 @@ export default function TimerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
+    backgroundColor: '#FFF8F0',
     justifyContent: 'center',
-    backgroundColor: '#FFF8F0', // warm cream
+    alignItems: 'center',
     padding: 20,
+  },
+  progressContainer: {
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  timerOverlay: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     fontSize: 24,

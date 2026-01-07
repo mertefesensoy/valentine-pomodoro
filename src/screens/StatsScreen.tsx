@@ -19,7 +19,7 @@ export default function StatsScreen() {
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                <Text style={styles.header}>Stats 📊</Text>
+                <Text style={styles.header}>Stats</Text>
 
                 {/* Summary Cards */}
                 <View style={styles.cardsRow}>

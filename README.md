@@ -83,20 +83,27 @@ npm install -g eas-cli
 # Login to Expo account
 eas login
 
+# Configure project (first time)
+eas build:configure
+
 # Build for iOS
 eas build --platform ios
 
-# Build will be available for download/TestFlight
+# Build artifact (.ipa) will be available in EAS dashboard
+# For TestFlight submission:
+eas submit --platform ios
 ```
 
 ### Android
 
 ```bash
-# Build APK
-eas build --platform android --profile preview
+# Configure project (first time)
+eas build:configure
 
-# Or build for Play Store
+# Build APK for testing
 eas build --platform android
+
+# APK will be available in EAS dashboard for download
 ```
 
 ## Customization
@@ -188,6 +195,7 @@ durations: {
 - AsyncStorage (persistence)
 - expo-notifications (local notifications)
 - expo-haptics (tactile feedback)
+- expo-audio (optional, future sound feature)
 - react-native-svg (progress ring)
 
 ## License

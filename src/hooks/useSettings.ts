@@ -9,7 +9,16 @@ export function useSettings() {
     // Load persisted settings on mount
     useEffect(() => {
         load<Settings>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS).then((loaded) => {
-            setSettings(loaded);
+            // Deep merge to handle nested objects (durations) and prevent losing new defaults
+            const merged: Settings = {
+                ...DEFAULT_SETTINGS,
+                ...loaded,
+                durations: {
+                    ...DEFAULT_SETTINGS.durations,
+                    ...(loaded?.durations ?? {}),
+                },
+            };
+            setSettings(merged);
         });
     }, []);
 

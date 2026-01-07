@@ -246,8 +246,8 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
         const now = Date.now();
         const remaining = Math.max(0, state.endAt - now);
 
-        // Cancel scheduled notification
-        await cancelScheduled(state.scheduledNotificationId);
+        // Cancel scheduled notification (fire and forget)
+        cancelScheduled(state.scheduledNotificationId).catch(console.warn);
 
         persistState({
             ...state,
@@ -265,11 +265,18 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
         const now = Date.now();
         const endAt = now + state.remainingMs;
 
-        // Reschedule notification if enabled
+        // Reschedule notification if enabled (with timeout)
         let notificationId: string | null = null;
         if (settings.notifications) {
-            const { title, body } = getNotificationContent(state.phase);
-            notificationId = await scheduleSessionEnd(endAt, title, body);
+            try {
+                const { title, body } = getNotificationContent(state.phase);
+                notificationId = await Promise.race([
+                    scheduleSessionEnd(endAt, title, body),
+                    new Promise<null>(resolve => setTimeout(() => resolve(null), 1000))
+                ]);
+            } catch (e) {
+                console.warn('Failed to reschedule notification:', e);
+            }
         }
 
         persistState({
@@ -278,12 +285,12 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
             endAt,
             scheduledNotificationId: notificationId,
         });
-    }, [state, persistState, settings.notifications, scheduleSessionEnd]);
+    }, [state, settings, scheduleSessionEnd, persistState]);
 
     // Skip to next phase
     const skip = useCallback(async () => {
-        // Cancel any scheduled notification
-        await cancelScheduled(state.scheduledNotificationId);
+        // Cancel any scheduled notification (fire and forget)
+        cancelScheduled(state.scheduledNotificationId).catch(console.warn);
 
         // IMPORTANT: Do NOT increment stats when skipping focus
         const nextPhase = getNextPhase(
@@ -301,8 +308,8 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
 
     // Reset to initial state
     const reset = useCallback(async () => {
-        // Cancel any scheduled notification
-        await cancelScheduled(state.scheduledNotificationId);
+        // Cancel any scheduled notification (fire and forget)
+        cancelScheduled(state.scheduledNotificationId).catch(console.warn);
 
         persistState(INITIAL_TIMER_STATE);
     }, [persistState, state.scheduledNotificationId, cancelScheduled]);

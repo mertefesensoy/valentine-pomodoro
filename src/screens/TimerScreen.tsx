@@ -2,12 +2,14 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useTimer } from "../hooks/useTimer";
 import { useSettings } from "../hooks/useSettings";
 import { useLoveNotes } from "../hooks/useLoveNotes";
+import { useStats } from "../hooks/useStats";
 import { formatTime } from "../utils/time";
 import LoveNoteCard from "../components/LoveNoteCard";
 
 export default function TimerScreen() {
   const { settings } = useSettings();
   const { pickRandomNote } = useLoveNotes();
+  const { incrementFocus } = useStats();
   const {
     phase,
     isRunning,
@@ -21,7 +23,7 @@ export default function TimerScreen() {
     skip,
     reset,
     dismissLoveNote,
-  } = useTimer(settings, pickRandomNote);
+  } = useTimer(settings, pickRandomNote, incrementFocus);
 
   // Phase label
   const getPhaseLabel = () => {

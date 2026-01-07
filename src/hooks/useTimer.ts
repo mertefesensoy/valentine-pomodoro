@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { TimerState, TimerPhase, Settings } from '../types';
 import { save, load, STORAGE_KEYS } from '../utils/storage';
-import { minutesToMs, getTodayKey } from '../utils/time';
+import { minutesToMs } from '../utils/time';
 import { useNotifications, getNotificationContent } from './useNotifications';
 
 const INITIAL_TIMER_STATE: TimerState = {
@@ -37,7 +37,7 @@ interface UseTimerReturn {
     dismissLoveNote: () => void;  // Phase 5: dismiss love note card
 }
 
-export function useTimer(settings: Settings, pickRandomNote: (lastNote: string | null) => string): UseTimerReturn {
+export function useTimer(settings: Settings, pickRandomNote: (lastNote: string | null) => string, incrementFocus: (minutes: number) => void): UseTimerReturn {
     const [state, setState] = useState<TimerState>(INITIAL_TIMER_STATE);
     const tickIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const { scheduleSessionEnd, cancelScheduled } = useNotifications();
@@ -63,7 +63,7 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
 
             // Update stats if focus was completed (not skipped)
             if (wasFocus && s.sessionPlannedMinutes !== null) {
-                updateStats(s.sessionPlannedMinutes);
+                incrementFocus(s.sessionPlannedMinutes);
             }
 
             // Determine next phase
@@ -340,25 +340,4 @@ function getNextPhase(
     }
 }
 
-/**
- * Update stats for completed focus session
- * TODO: Move to useStats hook in Phase 6
- */
-async function updateStats(focusMinutes: number): Promise<void> {
-    try {
-        const todayKey = getTodayKey();
-        const stats = await load<Record<string, { focusSessions: number; focusMinutes: number }>>(
-            STORAGE_KEYS.STATS,
-            {}
-        );
 
-        const todayStats = stats[todayKey] || { focusSessions: 0, focusMinutes: 0 };
-        todayStats.focusSessions += 1;
-        todayStats.focusMinutes += focusMinutes;
-
-        stats[todayKey] = todayStats;
-        await save(STORAGE_KEYS.STATS, stats);
-    } catch (error) {
-        console.error('[useTimer] Failed to update stats:', error);
-    }
-}

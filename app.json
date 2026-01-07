@@ -4,10 +4,18 @@
     "slug": "valentine-pomodoro",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "src/assets/images/icon.png",
+    "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "scheme": "valentinepomodoro",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFF8F0"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.bengisu.valentinepomodoro"
@@ -15,22 +23,15 @@
     "android": {
       "package": "com.bengisu.valentinepomodoro",
       "adaptiveIcon": {
-        "foregroundImage": "src/assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FFF8F0"
       }
     },
     "web": {
-      "favicon": "src/assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "expo-asset",
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#ffffff",
-          "image": "src/assets/images/splash-icon.png"
-        }
-      ],
       "expo-audio"
     ]
   }

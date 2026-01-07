@@ -42,6 +42,12 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
     const tickIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const { scheduleSessionEnd, cancelScheduled } = useNotifications();
 
+    // Persist state whenever it changes (defined early for handleSessionComplete)
+    const persistState = useCallback((newState: TimerState) => {
+        setState(newState);
+        save(STORAGE_KEYS.TIMER_STATE, newState);
+    }, []);
+
     // Handle session completion (refactored to accept state parameter)
     const handleSessionComplete = useCallback(
         (s: TimerState) => {
@@ -115,11 +121,7 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
         };
     }, [handleSessionComplete]);
 
-    // Persist state whenever it changes
-    const persistState = useCallback((newState: TimerState) => {
-        setState(newState);
-        save(STORAGE_KEYS.TIMER_STATE, newState);
-    }, []);
+
 
     // Handle app resume from background
     useEffect(() => {

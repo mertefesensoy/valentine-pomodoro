@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet, Alert } from "react-native";
+import { View, Text, Pressable, StyleSheet, Alert, Platform } from "react-native";
 import { useMemo } from "react";
 import { useTimer } from "../hooks/useTimer";
 import { useSettings } from "../hooks/useSettings";
@@ -83,14 +83,23 @@ export default function TimerScreen() {
 
   // Reset with confirmation
   const handleReset = () => {
-    Alert.alert(
-      'Reset Timer',
-      'Are you sure you want to reset the timer?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Reset', style: 'destructive', onPress: reset },
-      ]
-    );
+    console.log('handleReset called');
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm('Are you sure you want to reset the timer?');
+      if (confirmed) {
+        console.log('Reset confirmed (web)');
+        reset();
+      }
+    } else {
+      Alert.alert(
+        'Reset Timer',
+        'Are you sure you want to reset the timer?',
+        [
+          { text: 'Cancel', style: 'cancel', onPress: () => console.log('Reset cancelled') },
+          { text: 'Reset', style: 'destructive', onPress: () => { console.log('Reset confirmed'); reset(); } },
+        ]
+      );
+    }
   };
 
   return (

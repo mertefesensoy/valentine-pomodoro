@@ -11,6 +11,11 @@ export interface TimerState {
     scheduledNotificationId: string | null; // ID of scheduled notification
     sessionPlannedMinutes: number | null; // Actual duration for this session (stats accuracy)
     lastHandledEndAt: number | null; // Idempotency: prevent double-completion
+
+    // Phase 5: Love notes
+    lastLoveNote: string | null; // Last shown note (for anti-repeat logic)
+    lastTransitionId: number; // Increment on each transition (for uniqueness)
+    showLoveNoteCard: boolean; // If true, show love note card overlay
 }
 
 // Settings (persisted to AsyncStorage)

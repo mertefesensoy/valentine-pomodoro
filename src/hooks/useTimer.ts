@@ -107,13 +107,16 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
             const loaded = await load<TimerState>(STORAGE_KEYS.TIMER_STATE, INITIAL_TIMER_STATE);
             if (cancelled) return;
 
+            // Merge with defaults to handle old persisted state missing new fields
+            const merged: TimerState = { ...INITIAL_TIMER_STATE, ...loaded };
+
             // If session ended while app was closed, complete immediately using loaded state
-            if (loaded.isRunning && loaded.endAt !== null && loaded.endAt <= Date.now()) {
-                handleSessionComplete(loaded);
+            if (merged.isRunning && merged.endAt !== null && merged.endAt <= Date.now()) {
+                handleSessionComplete(merged);
                 return;
             }
 
-            setState(loaded);
+            setState(merged);
         })();
 
         return () => {

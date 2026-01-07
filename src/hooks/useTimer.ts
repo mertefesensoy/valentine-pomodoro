@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import type { TimerState, TimerPhase, Settings } from '../types';
 import { save, load, STORAGE_KEYS } from '../utils/storage';
 import { minutesToMs, getTodayKey } from '../utils/time';
+import { useNotifications, getNotificationContent } from './useNotifications';
 
 const INITIAL_TIMER_STATE: TimerState = {
     phase: 'focus',
@@ -31,6 +32,7 @@ interface UseTimerReturn {
 export function useTimer(settings: Settings): UseTimerReturn {
     const [state, setState] = useState<TimerState>(INITIAL_TIMER_STATE);
     const tickIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const { scheduleSessionEnd, cancelScheduled } = useNotifications();
 
     // Load persisted state on mount
     useEffect(() => {
@@ -43,6 +45,36 @@ export function useTimer(settings: Settings): UseTimerReturn {
     const persistState = useCallback((newState: TimerState) => {
         setState(newState);
         save(STORAGE_KEYS.TIMER_STATE, newState);
+    }, []);
+
+    // Handle app resume from background
+    useEffect(() => {
+        const { AppState } = require('react-native');
+        const subscription = AppState.addEventListener('change', (nextAppState: string) => {
+            if (nextAppState === 'active') {
+                // App came to foreground - check if session ended while backgrounded
+                setState((currentState: TimerState) => {
+                    if (currentState.isRunning && currentState.endAt !== null) {
+                        const now = Date.now();
+                        const remaining = Math.max(0, currentState.endAt - now);
+
+                        if (remaining === 0) {
+                            // Session ended while backgrounded - trigger completion ONCE
+                            // We'll let the interval handler detect this on next tick
+                            return { ...currentState, remainingMs: 0 };
+                        } else {
+                            // Update remaining time
+                            return { ...currentState, remainingMs: remaining };
+                        }
+                    }
+                    return currentState;
+                });
+            }
+        });
+
+        return () => {
+            subscription.remove();
+        };
     }, []);
 
     // Compute remaining time from endAt (timestamp-based, no drift)
@@ -89,55 +121,75 @@ export function useTimer(settings: Settings): UseTimerReturn {
     }, [state.phase, settings]);
 
     // Start a new session
-    const start = useCallback(() => {
+    const start = useCallback(async () => {
         const durationMinutes = getCurrentDuration();
         const durationMs = minutesToMs(durationMinutes);
         const now = Date.now();
+        const endAt = now + durationMs;
+
+        // Schedule notification if enabled
+        let notificationId: string | null = null;
+        if (settings.notifications) {
+            const { title, body } = getNotificationContent(state.phase);
+            notificationId = await scheduleSessionEnd(endAt, title, body);
+        }
 
         persistState({
             ...state,
             isRunning: true,
-            endAt: now + durationMs,
+            endAt,
             remainingMs: durationMs,
-            sessionPlannedMinutes: durationMinutes, // Capture actual duration for stats
-            // TODO: Schedule notification here (Phase 4)
-            // scheduledNotificationId will be set in Phase 4
+            sessionPlannedMinutes: durationMinutes,
+            scheduledNotificationId: notificationId,
         });
-    }, [state, getCurrentDuration, persistState]);
+    }, [state, getCurrentDuration, persistState, settings.notifications, scheduleSessionEnd]);
 
     // Pause the running session
-    const pause = useCallback(() => {
+    const pause = useCallback(async () => {
         if (!state.isRunning || state.endAt === null) return;
 
         const now = Date.now();
         const remaining = Math.max(0, state.endAt - now);
+
+        // Cancel scheduled notification
+        await cancelScheduled(state.scheduledNotificationId);
 
         persistState({
             ...state,
             isRunning: false,
             endAt: null,
             remainingMs: remaining,
-            // TODO: Cancel notification here (Phase 4)
             scheduledNotificationId: null,
         });
-    }, [state, persistState]);
+    }, [state, persistState, cancelScheduled]);
 
     // Resume paused session
-    const resume = useCallback(() => {
+    const resume = useCallback(async () => {
         if (state.isRunning || state.remainingMs === null) return;
 
         const now = Date.now();
+        const endAt = now + state.remainingMs;
+
+        // Reschedule notification if enabled
+        let notificationId: string | null = null;
+        if (settings.notifications) {
+            const { title, body } = getNotificationContent(state.phase);
+            notificationId = await scheduleSessionEnd(endAt, title, body);
+        }
 
         persistState({
             ...state,
             isRunning: true,
-            endAt: now + state.remainingMs,
-            // TODO: Reschedule notification here (Phase 4)
+            endAt,
+            scheduledNotificationId: notificationId,
         });
-    }, [state, persistState]);
+    }, [state, persistState, settings.notifications, scheduleSessionEnd]);
 
     // Skip to next phase
-    const skip = useCallback(() => {
+    const skip = useCallback(async () => {
+        // Cancel any scheduled notification
+        await cancelScheduled(state.scheduledNotificationId);
+
         // IMPORTANT: Do NOT increment stats when skipping focus
         const nextPhase = getNextPhase(
             state.phase,
@@ -150,12 +202,15 @@ export function useTimer(settings: Settings): UseTimerReturn {
             phase: nextPhase.phase,
             completedFocusCountInCycle: nextPhase.cycleCount,
         });
-    }, [state, settings, persistState]);
+    }, [state, settings, persistState, cancelScheduled]);
 
     // Reset to initial state
-    const reset = useCallback(() => {
+    const reset = useCallback(async () => {
+        // Cancel any scheduled notification
+        await cancelScheduled(state.scheduledNotificationId);
+
         persistState(INITIAL_TIMER_STATE);
-    }, [persistState]);
+    }, [persistState, state.scheduledNotificationId, cancelScheduled]);
 
     // Handle session completion
     const handleSessionComplete = useCallback(() => {

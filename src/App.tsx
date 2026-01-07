@@ -2,11 +2,23 @@ import 'react-native-reanimated';
 import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
+import * as Notifications from 'expo-notifications';
 import * as React from 'react';
 import { useColorScheme } from 'react-native';
 
 import { Colors } from './constants/Colors';
 import { Navigation } from './navigation';
+
+// Set up notification handler (shows notifications even when app is in foreground)
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false, // We handle sound separately
+    shouldSetBadge: false,
+    shouldShowBanner: true,  // SDK 54 requires this
+    shouldShowList: true,     // SDK 54 requires this
+  }),
+});
 
 SplashScreen.preventAutoHideAsync();
 
@@ -24,13 +36,13 @@ export function App() {
   const theme =
     colorScheme === 'dark'
       ? {
-          ...DarkTheme,
-          colors: { ...DarkTheme.colors, primary: Colors[colorScheme ?? 'light'].tint },
-        }
+        ...DarkTheme,
+        colors: { ...DarkTheme.colors, primary: Colors[colorScheme ?? 'light'].tint },
+      }
       : {
-          ...DefaultTheme,
-          colors: { ...DefaultTheme.colors, primary: Colors[colorScheme ?? 'light'].tint },
-        };
+        ...DefaultTheme,
+        colors: { ...DefaultTheme.colors, primary: Colors[colorScheme ?? 'light'].tint },
+      };
 
   return (
     <Navigation

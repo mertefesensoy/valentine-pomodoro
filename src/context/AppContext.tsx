@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo } from 'react';
 import { useSettings } from '../hooks/useSettings';
 import { useStats } from '../hooks/useStats';
 import { useLoveNotes } from '../hooks/useLoveNotes';
@@ -17,8 +17,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const stats = useStats();
     const loveNotes = useLoveNotes();
 
+    // ✅ memoize to prevent re-render storm
+    const value = useMemo(
+        () => ({ settings, stats, loveNotes }),
+        [settings, stats, loveNotes]
+    );
+
     return (
-        <AppContext.Provider value={{ settings, stats, loveNotes }}>
+        <AppContext.Provider value={value}>
             {children}
         </AppContext.Provider>
     );

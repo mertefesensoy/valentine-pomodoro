@@ -10,13 +10,14 @@ import {
     View,
     StyleSheet,
 } from 'react-native';
-import { useLoveNotes } from '../hooks/useLoveNotes';
+import { useApp } from '../context/AppContext';
 
 type Mode = { type: 'add' } | { type: 'edit'; index: number; initial: string } | null;
 
 export default function LoveNotesScreen() {
+    const { loveNotes } = useApp();
     const { notes, isReady, addNote, editNote, deleteNote, resetToDefaults, pickRandomNote } =
-        useLoveNotes();
+        loveNotes;
 
     const [mode, setMode] = useState<Mode>(null);
     const [draft, setDraft] = useState('');

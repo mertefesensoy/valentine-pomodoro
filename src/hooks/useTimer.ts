@@ -41,6 +41,7 @@ interface UseTimerReturn {
 export function useTimer(settings: Settings, pickRandomNote: (lastNote: string | null) => string, incrementFocus: (minutes: number) => void): UseTimerReturn {
     const [state, setState] = useState<TimerState>(INITIAL_TIMER_STATE);
     const tickIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const transitionLockRef = useRef(false);
     const { scheduleSessionEnd, cancelScheduled } = useNotifications();
 
     // Persist state whenever it changes (defined early for handleSessionComplete)
@@ -67,10 +68,10 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
                 incrementFocus(s.sessionPlannedMinutes);
             }
 
-            // Determine next phase
-            const nextPhase = getNextPhase(
+            // Determine next phase (completion increments focus count automatically)
+            const nextPhase = nextAfterComplete(
                 s.phase,
-                wasFocus ? s.completedFocusCountInCycle + 1 : s.completedFocusCountInCycle,
+                s.completedFocusCountInCycle,
                 settings.longBreakEvery
             );
 
@@ -97,7 +98,7 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
             persistState({
                 ...INITIAL_TIMER_STATE,
                 phase: nextPhase.phase,
-                completedFocusCountInCycle: nextPhase.cycleCount,
+                completedFocusCountInCycle: nextPhase.focusCountInCycle,
                 lastHandledEndAt: s.endAt,
                 lastLoveNote: loveNote ?? s.lastLoveNote, // Preserve last note even on break completion
                 lastTransitionId: transitionId,
@@ -287,41 +288,54 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
         });
     }, [state, settings, scheduleSessionEnd, persistState]);
 
-    // Skip to next phase
+    // Skip to next phase (with transition lock to prevent spam)
     const skip = useCallback(async () => {
-        // Cancel any scheduled notification (fire and forget)
-        cancelScheduled(state.scheduledNotificationId).catch(console.warn);
+        if (transitionLockRef.current) return;
+        transitionLockRef.current = true;
 
-        // IMPORTANT: Do NOT increment stats when skipping focus
-        const nextPhase = getNextPhase(
-            state.phase,
-            state.completedFocusCountInCycle,
-            settings.longBreakEvery
-        );
+        try {
+            // Cancel any scheduled notification (fire and forget)
+            cancelScheduled(state.scheduledNotificationId).catch(console.warn);
 
-        persistState({
-            ...INITIAL_TIMER_STATE,
-            phase: nextPhase.phase,
-            completedFocusCountInCycle: nextPhase.cycleCount,
-        });
-    }, [state, settings, persistState, cancelScheduled]);
+            // Skip never increments stats or cycle count
+            const nextPhase = nextAfterSkip(
+                state.phase,
+                state.completedFocusCountInCycle
+            );
 
-    // Reset to initial state
+            persistState({
+                ...INITIAL_TIMER_STATE,
+                phase: nextPhase.phase,
+                completedFocusCountInCycle: nextPhase.focusCountInCycle,
+            });
+        } finally {
+            transitionLockRef.current = false;
+        }
+    }, [state, persistState, cancelScheduled]);
+
+    // Reset to initial state (with transition lock)
     const reset = useCallback(async () => {
-        console.log('Reset triggered in useTimer');
-        // Cancel any scheduled notification (fire and forget)
-        cancelScheduled(state.scheduledNotificationId).catch(console.warn);
+        if (transitionLockRef.current) return;
+        transitionLockRef.current = true;
 
-        // Reset to initial state BUT with correct duration from settings
-        const initialDurationMinutes = settings.durations.focus;
-        console.log('Resetting to duration:', initialDurationMinutes);
-        const initialDurationMs = minutesToMs(initialDurationMinutes);
+        try {
+            console.log('Reset triggered in useTimer');
+            // Cancel any scheduled notification (fire and forget)
+            cancelScheduled(state.scheduledNotificationId).catch(console.warn);
 
-        persistState({
-            ...INITIAL_TIMER_STATE,
-            remainingMs: initialDurationMs, // Explicitly set based on current settings
-            sessionPlannedMinutes: initialDurationMinutes,
-        });
+            // Reset to initial state BUT with correct duration from settings
+            const initialDurationMinutes = settings.durations.focus;
+            console.log('Resetting to duration:', initialDurationMinutes);
+            const initialDurationMs = minutesToMs(initialDurationMinutes);
+
+            persistState({
+                ...INITIAL_TIMER_STATE,
+                remainingMs: initialDurationMs, // Explicitly set based on current settings
+                sessionPlannedMinutes: initialDurationMinutes,
+            });
+        } finally {
+            transitionLockRef.current = false;
+        }
     }, [persistState, state.scheduledNotificationId, cancelScheduled, settings.durations.focus]);
 
     // handleSessionComplete moved to top of hook (before useEffects that depend on it)
@@ -356,24 +370,39 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
 }
 
 /**
- * Determine next phase based on current phase and cycle count
+ * Determine next phase after natural completion
+ * Clean state machine: increment focus count, check if earned long break, reset cycle
  */
-function getNextPhase(
-    currentPhase: TimerPhase,
-    cycleCount: number,
+function nextAfterComplete(
+    phase: TimerPhase,
+    focusCountInCycle: number,
     longBreakEvery: number
-): { phase: TimerPhase; cycleCount: number } {
-    if (currentPhase === 'focus') {
-        // After focus: either short break or long break
-        if (cycleCount >= longBreakEvery) {
-            return { phase: 'longBreak', cycleCount: 0 }; // Reset cycle after long break
-        } else {
-            return { phase: 'shortBreak', cycleCount };
+): { phase: TimerPhase; focusCountInCycle: number } {
+    if (phase === 'focus') {
+        const newCount = focusCountInCycle + 1;
+
+        if (newCount >= longBreakEvery) {
+            // ✅ earned long break, start a NEW cycle after it
+            return { phase: 'longBreak', focusCountInCycle: 0 };
         }
-    } else {
-        // After any break: back to focus
-        return { phase: 'focus', cycleCount };
+        return { phase: 'shortBreak', focusCountInCycle: newCount };
     }
+
+    // completing any break returns to focus, counter unchanged
+    return { phase: 'focus', focusCountInCycle };
+}
+
+/**
+ * Determine next phase after skip (never increments cycle count)
+ */
+function nextAfterSkip(
+    phase: TimerPhase,
+    focusCountInCycle: number
+): { phase: TimerPhase; focusCountInCycle: number } {
+    if (phase === 'focus') {
+        return { phase: 'shortBreak', focusCountInCycle };
+    }
+    return { phase: 'focus', focusCountInCycle };
 }
 
 

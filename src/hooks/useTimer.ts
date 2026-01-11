@@ -65,7 +65,10 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
 
             // Update stats if focus was completed (not skipped)
             if (wasFocus && s.sessionPlannedMinutes !== null) {
+                console.log('[useTimer] Focus completed! Incrementing stats with minutes:', s.sessionPlannedMinutes);
                 incrementFocus(s.sessionPlannedMinutes);
+            } else if (wasFocus) {
+                console.warn('[useTimer] Focus completed but sessionPlannedMinutes is null');
             }
 
             // Determine next phase (completion increments focus count automatically)
@@ -105,7 +108,7 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
                 showLoveNoteCard: showCard,
             });
         },
-        [settings.longBreakEvery, settings.showLoveNotes, persistState, pickRandomNote]
+        [settings.longBreakEvery, settings.showLoveNotes, settings.haptics, persistState, pickRandomNote, incrementFocus]
     );
 
     // Load persisted state on mount + check for cold-start completion
@@ -177,16 +180,21 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
 
         // Tick every second to update UI
         tickIntervalRef.current = setInterval(() => {
-            const now = Date.now();
-            const remaining = Math.max(0, state.endAt! - now);
+            setState((prev: TimerState) => {
+                if (!prev.isRunning || prev.endAt === null) return prev;
 
-            if (remaining === 0) {
-                // Session complete - use current state snapshot
-                handleSessionComplete(state);
-            } else {
+                const now = Date.now();
+                const remaining = Math.max(0, prev.endAt - now);
+
+                if (remaining === 0) {
+                    // Session complete - use latest state snapshot for idempotency
+                    handleSessionComplete(prev);
+                    return prev;
+                }
+
                 // Update remaining time (for display only, don't persist every tick)
-                setState((prev: TimerState) => ({ ...prev, remainingMs: remaining }));
-            }
+                return { ...prev, remainingMs: remaining };
+            });
         }, 1000);
 
         return () => {
@@ -194,7 +202,7 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
                 clearInterval(tickIntervalRef.current);
             }
         };
-    }, [state.isRunning, state.endAt]); // handleSessionComplete not in deps to avoid circular dependency
+    }, [state.isRunning, state.endAt, handleSessionComplete]);
 
     // Get duration for current phase
     const getCurrentDuration = useCallback((): number => {

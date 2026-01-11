@@ -14,7 +14,8 @@ export function useStats() {
             try {
                 const loaded = await load<StatsMap>(STORAGE_KEYS.STATS, {});
                 if (cancelled) return;
-                setStats(loaded);
+                // Merge loaded with current state to prevent overwriting increments
+                setStats(prev => ({ ...loaded, ...prev }));
             } finally {
                 if (!cancelled) setIsReady(true);
             }
@@ -24,29 +25,36 @@ export function useStats() {
         };
     }, []);
 
-    // Increment focus session stats
-    const incrementFocus = useCallback(
-        async (minutes: number) => {
-            try {
-                const todayKey = getTodayKey();
-                const todayStats = stats[todayKey] || { focusSessions: 0, focusMinutes: 0 };
+    // Increment focus session stats (functional update to avoid stale closures)
+    const incrementFocus = useCallback((minutes: number) => {
+        console.log('[useStats] incrementFocus called with minutes:', minutes);
+        const todayKey = getTodayKey();
 
-                const updated = {
-                    ...stats,
-                    [todayKey]: {
-                        focusSessions: todayStats.focusSessions + 1,
-                        focusMinutes: todayStats.focusMinutes + minutes,
-                    },
-                };
+        setStats(prev => {
+            const todayStats = prev[todayKey] ?? { focusSessions: 0, focusMinutes: 0 };
 
-                setStats(updated);
-                await save(STORAGE_KEYS.STATS, updated);
-            } catch (error) {
-                console.error('[useStats] Failed to increment focus:', error);
-            }
-        },
-        [stats]
-    );
+            const next: StatsMap = {
+                ...prev,
+                [todayKey]: {
+                    focusSessions: todayStats.focusSessions + 1,
+                    focusMinutes: todayStats.focusMinutes + minutes,
+                },
+            };
+
+            console.log('[useStats] Stats update:', {
+                prev: todayStats,
+                next: next[todayKey],
+                todayKey
+            });
+
+            // Persist the computed "next" (fire and forget)
+            void save(STORAGE_KEYS.STATS, next).catch((error) => {
+                console.error('[useStats] Failed to save stats:', error);
+            });
+
+            return next;
+        });
+    }, []); // No dependencies - functional update is always safe
 
     // Get today's stats
     const getToday = useCallback((): DayStats => {

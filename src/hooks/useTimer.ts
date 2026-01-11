@@ -65,10 +65,14 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
 
             // Update stats if focus was completed (not skipped)
             if (wasFocus && s.sessionPlannedMinutes !== null) {
-                console.log('[useTimer] Focus completed! Incrementing stats with minutes:', s.sessionPlannedMinutes);
+                if (__DEV__) {
+                    console.log('[useTimer] Focus completed! Incrementing stats with minutes:', s.sessionPlannedMinutes);
+                }
                 incrementFocus(s.sessionPlannedMinutes);
             } else if (wasFocus) {
-                console.warn('[useTimer] Focus completed but sessionPlannedMinutes is null');
+                if (__DEV__) {
+                    console.warn('[useTimer] Focus completed but sessionPlannedMinutes is null');
+                }
             }
 
             // Determine next phase (completion increments focus count automatically)

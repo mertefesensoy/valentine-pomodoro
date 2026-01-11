@@ -27,7 +27,9 @@ export function useStats() {
 
     // Increment focus session stats (functional update to avoid stale closures)
     const incrementFocus = useCallback((minutes: number) => {
-        console.log('[useStats] incrementFocus called with minutes:', minutes);
+        if (__DEV__) {
+            console.log('[useStats] incrementFocus called with minutes:', minutes);
+        }
         const todayKey = getTodayKey();
 
         setStats(prev => {
@@ -41,11 +43,13 @@ export function useStats() {
                 },
             };
 
-            console.log('[useStats] Stats update:', {
-                prev: todayStats,
-                next: next[todayKey],
-                todayKey
-            });
+            if (__DEV__) {
+                console.log('[useStats] Stats update:', {
+                    prev: todayStats,
+                    next: next[todayKey],
+                    todayKey
+                });
+            }
 
             // Persist the computed "next" (fire and forget)
             void save(STORAGE_KEYS.STATS, next).catch((error) => {

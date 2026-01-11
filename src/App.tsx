@@ -9,8 +9,12 @@ import { useColorScheme } from 'react-native';
 import { Colors } from './constants/Colors';
 import { Navigation } from './navigation';
 import { useGiftMode } from './hooks/useGiftMode';
+import { useUpdateCheck } from './hooks/useUpdateCheck';
 import GiftModeModal from './components/GiftModeModal';
 import { AppProvider } from './context/AppContext';
+
+// GitHub Pages URL for update.json
+const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
 
 // Set up notification handler (shows notifications even when app is in foreground)
 Notifications.setNotificationHandler({
@@ -32,6 +36,9 @@ export function App() {
   });
 
   const { hasSeenGiftMode, isReady: giftModeReady, dismiss } = useGiftMode();
+
+  // Check for app updates (max once per 24h, offline-safe)
+  useUpdateCheck(UPDATE_JSON_URL);
 
   if (!loaded) {
     // Async font loading only occurs in development.

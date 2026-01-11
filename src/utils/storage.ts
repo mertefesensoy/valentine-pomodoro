@@ -51,4 +51,5 @@ export const STORAGE_KEYS = {
     STATS: 'stats',
     GIFT_MODE: 'gift_mode',
     LOVE_NOTES: 'love_notes',
+    UPDATE_META: 'update_meta', // { lastCheckAt: number, lastPromptedVersion: string | null }
 } as const;

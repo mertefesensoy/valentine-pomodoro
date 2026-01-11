@@ -11,11 +11,15 @@ import {
     View,
 } from 'react-native';
 import { useApp } from '../context/AppContext';
+import { useUpdateCheck } from '../hooks/useUpdateCheck';
 import type { Settings } from '../types';
+
+const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
 
 export default function SettingsScreen() {
     const { settings: settingsContext } = useApp();
     const { settings, updateSettings } = settingsContext;
+    const { checkForUpdates } = useUpdateCheck(UPDATE_JSON_URL);
 
     // Local draft state for number inputs
     const [focusDraft, setFocusDraft] = useState(settings.durations.focus.toString());
@@ -190,6 +194,11 @@ export default function SettingsScreen() {
                     </View>
                 </View>
 
+                {/* Check for Updates Button */}
+                <Pressable style={styles.updateButton} onPress={() => checkForUpdates({ force: true })}>
+                    <Text style={styles.updateButtonText}>Check for Updates</Text>
+                </Pressable>
+
                 {/* Reset Button */}
                 <Pressable style={styles.resetButton} onPress={confirmReset}>
                     <Text style={styles.resetButtonText}>Reset to Defaults</Text>
@@ -260,6 +269,19 @@ const styles = StyleSheet.create({
         marginTop: 12,
     },
     resetButtonText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    updateButton: {
+        backgroundColor: '#D4A5D9',
+        paddingHorizontal: 24,
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        marginTop: 12,
+    },
+    updateButtonText: {
         color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '600',

@@ -41,6 +41,12 @@ interface UseTimerReturn {
 export function useTimer(settings: Settings, pickRandomNote: (lastNote: string | null) => string, incrementFocus: (minutes: number) => void): UseTimerReturn {
     const [state, setState] = useState<TimerState>(INITIAL_TIMER_STATE);
     const tickIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Always hold latest state for interval access (avoids stale closures)
+    const stateRef = useRef(state);
+    useEffect(() => {
+        stateRef.current = state;
+    }, [state]);
     const transitionLockRef = useRef(false);
     const { scheduleSessionEnd, cancelScheduled } = useNotifications();
 
@@ -184,21 +190,18 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
 
         // Tick every second to update UI
         tickIntervalRef.current = setInterval(() => {
-            setState((prev: TimerState) => {
-                if (!prev.isRunning || prev.endAt === null) return prev;
+            const s = stateRef.current;
+            if (!s.isRunning || s.endAt === null) return;
 
-                const now = Date.now();
-                const remaining = Math.max(0, prev.endAt - now);
+            const remaining = Math.max(0, s.endAt - Date.now());
 
-                if (remaining === 0) {
-                    // Session complete - use latest state snapshot for idempotency
-                    handleSessionComplete(prev);
-                    return prev;
-                }
-
-                // Update remaining time (for display only, don't persist every tick)
-                return { ...prev, remainingMs: remaining };
-            });
+            if (remaining === 0) {
+                // ✅ Safe: side effects outside setState updater
+                handleSessionComplete(s);
+            } else {
+                // ✅ Pure updater: only updates remainingMs if still running
+                setState(prev => (prev.isRunning ? { ...prev, remainingMs: remaining } : prev));
+            }
         }, 1000);
 
         return () => {

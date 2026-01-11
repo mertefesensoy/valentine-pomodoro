@@ -188,6 +188,12 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
             return;
         }
 
+        // Clear any existing interval before creating a new one (prevents double intervals)
+        if (tickIntervalRef.current) {
+            clearInterval(tickIntervalRef.current);
+            tickIntervalRef.current = null;
+        }
+
         // Tick every second to update UI
         tickIntervalRef.current = setInterval(() => {
             const s = stateRef.current;
@@ -207,6 +213,7 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
         return () => {
             if (tickIntervalRef.current) {
                 clearInterval(tickIntervalRef.current);
+                tickIntervalRef.current = null; // Belt-and-suspenders: null out ref
             }
         };
     }, [state.isRunning, state.endAt, handleSessionComplete]);

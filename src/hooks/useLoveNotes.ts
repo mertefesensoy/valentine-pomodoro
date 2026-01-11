@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { save, load, STORAGE_KEYS } from '../utils/storage';
 import { DEFAULT_LOVE_NOTES, FALLBACK_LOVE_NOTE } from '../constants/defaults';
 
@@ -10,6 +10,16 @@ function normalizeNote(input: string) {
 export function useLoveNotes() {
     const [notes, setNotes] = useState<string[]>(DEFAULT_LOVE_NOTES);
     const [isReady, setIsReady] = useState(false);
+
+    // Serialize writes to avoid out-of-order AsyncStorage persistence
+    const saveChainRef = useRef(Promise.resolve());
+    const enqueueSave = useCallback((data: string[]) => {
+        saveChainRef.current = saveChainRef.current
+            .then(() => save(STORAGE_KEYS.LOVE_NOTES, data))
+            .catch((e) => {
+                console.error('[useLoveNotes] Failed to save notes:', e);
+            });
+    }, []);
 
     // Load persisted notes on mount
     useEffect(() => {
@@ -38,12 +48,10 @@ export function useLoveNotes() {
             // Prevent exact duplicates
             const exists = prev.includes(v);
             const next = exists ? prev : [v, ...prev];
-            void save(STORAGE_KEYS.LOVE_NOTES, next).catch((error) => {
-                console.error('[useLoveNotes] Failed to save notes:', error);
-            });
+            enqueueSave(next);
             return next;
         });
-    }, []);
+    }, [enqueueSave]);
 
     const editNote = useCallback(async (index: number, text: string) => {
         const v = normalizeNote(text);
@@ -53,31 +61,24 @@ export function useLoveNotes() {
             if (index < 0 || index >= prev.length) return prev;
             const next = [...prev];
             next[index] = v;
-            void save(STORAGE_KEYS.LOVE_NOTES, next).catch((error) => {
-                console.error('[useLoveNotes] Failed to save notes:', error);
-            });
+            enqueueSave(next);
             return next;
         });
-    }, []);
+    }, [enqueueSave]);
 
     const deleteNote = useCallback(async (index: number) => {
         setNotes((prev) => {
             if (index < 0 || index >= prev.length) return prev;
             const next = prev.filter((_, i) => i !== index);
-            // Allow empty list
-            void save(STORAGE_KEYS.LOVE_NOTES, next).catch((error) => {
-                console.error('[useLoveNotes] Failed to save notes:', error);
-            });
+            enqueueSave(next);
             return next;
         });
-    }, []);
+    }, [enqueueSave]);
 
     const resetToDefaults = useCallback(async () => {
         setNotes(DEFAULT_LOVE_NOTES);
-        void save(STORAGE_KEYS.LOVE_NOTES, DEFAULT_LOVE_NOTES).catch((error) => {
-            console.error('[useLoveNotes] Failed to save notes:', error);
-        });
-    }, []);
+        enqueueSave(DEFAULT_LOVE_NOTES);
+    }, [enqueueSave]);
 
     const pickRandomNote = useCallback(
         (last: string | null): string => {

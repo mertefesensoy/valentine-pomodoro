@@ -1,73 +1,94 @@
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { save, load, STORAGE_KEYS } from '../utils/storage';
 import type { StatsMap, DayStats } from '../types';
 import { getTodayKey } from '../utils/time';
+
+function addDay(a?: DayStats, b?: DayStats): DayStats {
+    return {
+        focusSessions: (a?.focusSessions ?? 0) + (b?.focusSessions ?? 0),
+        focusMinutes: (a?.focusMinutes ?? 0) + (b?.focusMinutes ?? 0),
+    };
+}
+
+function mergeStats(loaded: StatsMap, current: StatsMap): StatsMap {
+    // union of keys, add values if overlapping
+    const keys = new Set([...Object.keys(loaded), ...Object.keys(current)]);
+    const next: StatsMap = {};
+    keys.forEach((k) => {
+        next[k] = addDay(loaded[k], current[k]);
+    });
+    return next;
+}
 
 export function useStats() {
     const [stats, setStats] = useState<StatsMap>({});
     const [isReady, setIsReady] = useState(false);
 
-    // Load persisted stats on mount
+    // Serialize writes to avoid out-of-order AsyncStorage persistence
+    const saveChainRef = useRef(Promise.resolve());
+    const enqueueSave = useCallback((data: StatsMap) => {
+        saveChainRef.current = saveChainRef.current
+            .then(() => save(STORAGE_KEYS.STATS, data))
+            .catch((e) => {
+                console.error('[useStats] Failed to save stats:', e);
+            });
+    }, []);
+
     useEffect(() => {
         let cancelled = false;
         (async () => {
             try {
                 const loaded = await load<StatsMap>(STORAGE_KEYS.STATS, {});
                 if (cancelled) return;
-                // Merge loaded with current state to prevent overwriting increments
-                setStats(prev => ({ ...loaded, ...prev }));
+
+                setStats((prev) => {
+                    const merged = mergeStats(loaded, prev);
+                    // Optional: persist merged so disk matches memory
+                    enqueueSave(merged);
+                    return merged;
+                });
             } finally {
                 if (!cancelled) setIsReady(true);
             }
         })();
+
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [enqueueSave]);
 
-    // Increment focus session stats (functional update to avoid stale closures)
-    const incrementFocus = useCallback((minutes: number) => {
-        if (__DEV__) {
-            console.log('[useStats] incrementFocus called with minutes:', minutes);
-        }
-        const todayKey = getTodayKey();
+    const incrementFocus = useCallback(
+        (minutes: number) => {
+            const todayKey = getTodayKey();
 
-        setStats(prev => {
-            const todayStats = prev[todayKey] ?? { focusSessions: 0, focusMinutes: 0 };
+            setStats((prev) => {
+                const today = prev[todayKey] ?? { focusSessions: 0, focusMinutes: 0 };
 
-            const next: StatsMap = {
-                ...prev,
-                [todayKey]: {
-                    focusSessions: todayStats.focusSessions + 1,
-                    focusMinutes: todayStats.focusMinutes + minutes,
-                },
-            };
+                const next: StatsMap = {
+                    ...prev,
+                    [todayKey]: {
+                        focusSessions: today.focusSessions + 1,
+                        focusMinutes: today.focusMinutes + minutes,
+                    },
+                };
 
-            if (__DEV__) {
-                console.log('[useStats] Stats update:', {
-                    prev: todayStats,
-                    next: next[todayKey],
-                    todayKey
-                });
-            }
+                if (__DEV__) {
+                    console.log('[useStats] incrementFocus', { minutes, todayKey, next: next[todayKey] });
+                }
 
-            // Persist the computed "next" (fire and forget)
-            void save(STORAGE_KEYS.STATS, next).catch((error) => {
-                console.error('[useStats] Failed to save stats:', error);
+                enqueueSave(next);
+                return next;
             });
+        },
+        [enqueueSave]
+    );
 
-            return next;
-        });
-    }, []); // No dependencies - functional update is always safe
-
-    // Get today's stats
-    const getToday = useCallback((): DayStats => {
-        const todayKey = getTodayKey();
-        return stats[todayKey] || { focusSessions: 0, focusMinutes: 0 };
+    const today: DayStats = useMemo(() => {
+        const k = getTodayKey();
+        return stats[k] ?? { focusSessions: 0, focusMinutes: 0 };
     }, [stats]);
 
-    // Get all-time totals
-    const getTotals = useCallback((): DayStats => {
+    const totals: DayStats = useMemo(() => {
         return Object.values(stats).reduce(
             (acc, day) => ({
                 focusSessions: acc.focusSessions + day.focusSessions,
@@ -77,39 +98,22 @@ export function useStats() {
         );
     }, [stats]);
 
-    // Get last N days (including today), returns array of [dayKey, DayStats]
-    const getLastNDays = useCallback(
-        (n: number): Array<[string, DayStats]> => {
-            const now = new Date();
-            const result: Array<[string, DayStats]> = [];
+    const last7Days = useMemo((): Array<[string, DayStats]> => {
+        const now = new Date();
+        const result: Array<[string, DayStats]> = [];
 
-            for (let i = n - 1; i >= 0; i--) {
-                const d = new Date(now);
-                d.setDate(now.getDate() - i);
-                const yyyy = d.getFullYear();
-                const mm = String(d.getMonth() + 1).padStart(2, '0');
-                const dd = String(d.getDate()).padStart(2, '0');
-                const dayKey = `${yyyy}-${mm}-${dd}`;
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(now);
+            d.setDate(now.getDate() - i);
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const dayKey = `${yyyy}-${mm}-${dd}`;
+            result.push([dayKey, stats[dayKey] ?? { focusSessions: 0, focusMinutes: 0 }]);
+        }
 
-                result.push([dayKey, stats[dayKey] || { focusSessions: 0, focusMinutes: 0 }]);
-            }
+        return result;
+    }, [stats]);
 
-            return result;
-        },
-        [stats]
-    );
-
-    // Computed values
-    const today = useMemo(() => getToday(), [getToday]);
-    const totals = useMemo(() => getTotals(), [getTotals]);
-    const last7Days = useMemo(() => getLastNDays(7), [getLastNDays]);
-
-    return {
-        stats,
-        isReady,
-        incrementFocus,
-        today,
-        totals,
-        last7Days,
-    };
+    return { stats, isReady, incrementFocus, today, totals, last7Days };
 }

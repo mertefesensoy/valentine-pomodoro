@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Settings } from '../types';
 import { DEFAULT_SETTINGS } from '../constants/defaults';
 import { save, load, STORAGE_KEYS } from '../utils/storage';
@@ -6,6 +6,16 @@ import { save, load, STORAGE_KEYS } from '../utils/storage';
 export function useSettings() {
     const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
     const [isReady, setIsReady] = useState(false);
+
+    // Serialize writes to avoid out-of-order AsyncStorage persistence
+    const saveChainRef = useRef(Promise.resolve());
+    const enqueueSave = useCallback((data: Settings) => {
+        saveChainRef.current = saveChainRef.current
+            .then(() => save(STORAGE_KEYS.SETTINGS, data))
+            .catch((e) => {
+                console.error('[useSettings] Failed to save settings:', e);
+            });
+    }, []);
 
     // Load persisted settings on mount
     useEffect(() => {
@@ -51,7 +61,7 @@ export function useSettings() {
 
             return updated;
         });
-    }, []);
+    }, [enqueueSave]);
 
     return {
         settings,

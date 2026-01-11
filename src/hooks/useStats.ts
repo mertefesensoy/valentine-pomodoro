@@ -55,7 +55,7 @@ export function useStats() {
         return () => {
             cancelled = true;
         };
-    }, [enqueueSave]);
+    }, []); // Empty deps - merge runs exactly once
 
     const incrementFocus = useCallback(
         (minutes: number) => {

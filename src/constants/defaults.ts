@@ -10,6 +10,7 @@ export const DEFAULT_SETTINGS = {
     sound: true,
     haptics: true,
     showLoveNotes: true,
+    themeMode: 'system' as const,
 };
 
 // Default love notes (20 seed notes for Bengisu)

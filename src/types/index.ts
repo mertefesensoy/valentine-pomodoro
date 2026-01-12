@@ -1,6 +1,9 @@
 // Timer phase types
 export type TimerPhase = 'focus' | 'shortBreak' | 'longBreak';
 
+// Theme mode types
+export type ThemeMode = 'system' | 'light' | 'dark';
+
 // Timer state (persisted to AsyncStorage)
 export interface TimerState {
     phase: TimerPhase;
@@ -30,6 +33,7 @@ export interface Settings {
     sound: boolean;
     haptics: boolean;
     showLoveNotes: boolean;
+    themeMode: ThemeMode; // 'system' | 'light' | 'dark'
 }
 
 // Stats per day (keyed by YYYY-MM-DD)

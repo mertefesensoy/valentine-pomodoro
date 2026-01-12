@@ -14,6 +14,8 @@ export const LightTheme = {
     border: '#E0E0E0',       // Light border
     inputBg: '#FFFFFF',      // Input background (distinct from cards)
     surfaceTint: '#FFE8EC',  // Very light pink surface (skip button, segments)
+    gradientA: ['#f3e8ff', '#d8b4fe', '#c4b5fd'], // lilac → lavender → periwinkle
+    gradientB: ['#ede9fe', '#c7d2fe', '#e9d5ff'], // soft violet variation
 };
 
 export const DarkTheme = {
@@ -27,6 +29,8 @@ export const DarkTheme = {
     border: '#404040',       // Dark border
     inputBg: '#3A3A3A',      // Darker input background (distinct from cards)
     surfaceTint: '#2A2A2A',  // Dark tinted surface
+    gradientA: ['#1b0b2e', '#5b21b6', '#c4b5fd'], // deep violet → purple → lilac
+    gradientB: ['#2e1065', '#7c3aed', '#e9d5ff'], // richer “aurora” layer
 };
 
 export type ThemeColors = typeof LightTheme;

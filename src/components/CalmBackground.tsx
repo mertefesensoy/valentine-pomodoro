@@ -37,12 +37,14 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
         };
     }, []);
 
-    // --- NEW: Aurora layers (2 sheets) + pulse ---
+    // --- NEW: Aurora layers (2 sheets) + pulse + Crossfade Shifts ---
     const pulse = useRef(new Animated.Value(0)).current;
     const g1 = useRef(new Animated.Value(0)).current;
     const g2 = useRef(new Animated.Value(0)).current;
+    const shift1 = useRef(new Animated.Value(0)).current;
+    const shift2 = useRef(new Animated.Value(0)).current;
 
-    // Hearts (keep your existing approach; slightly tuned opacities for stronger bg)
+    // Hearts
     const hearts: HeartSpec[] = useMemo(() => {
         const o1 = isDark ? 0.11 : 0.13;
         const o2 = isDark ? 0.09 : 0.11;
@@ -101,6 +103,8 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
             pulse.setValue(0);
             g1.setValue(0);
             g2.setValue(0);
+            shift1.setValue(0);
+            shift2.setValue(0);
             heartProgress.forEach((v) => v.setValue(0));
             return;
         }
@@ -144,7 +148,7 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
                 Animated.timing(g2, {
                     toValue: 1,
                     duration: 34000,
-                    delay: 900, // small phase offset
+                    delay: 900,
                     easing: Easing.inOut(Easing.ease),
                     useNativeDriver: true,
                 }),
@@ -157,6 +161,20 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
             ])
         );
 
+        const shift1Loop = Animated.loop(
+            Animated.sequence([
+                Animated.timing(shift1, { toValue: 1, duration: 42000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+                Animated.timing(shift1, { toValue: 0, duration: 42000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+            ])
+        );
+
+        const shift2Loop = Animated.loop(
+            Animated.sequence([
+                Animated.timing(shift2, { toValue: 1, duration: 56000, delay: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+                Animated.timing(shift2, { toValue: 0, duration: 56000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+            ])
+        );
+
         const heartLoops = hearts.map((h, i) =>
             Animated.loop(
                 Animated.sequence([
@@ -164,13 +182,13 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
                         toValue: 1,
                         duration: h.durationMs,
                         delay: h.delayMs,
-                        easing: Easing.inOut(Easing.sin),
+                        easing: Easing.inOut(Easing.ease),
                         useNativeDriver: true,
                     }),
                     Animated.timing(heartProgress[i], {
                         toValue: 0,
                         duration: h.durationMs,
-                        easing: Easing.inOut(Easing.sin),
+                        easing: Easing.inOut(Easing.ease),
                         useNativeDriver: true,
                     }),
                 ])
@@ -180,27 +198,31 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
         pulseLoop.start();
         g1Loop.start();
         g2Loop.start();
+        shift1Loop.start();
+        shift2Loop.start();
         heartLoops.forEach((l) => l.start());
 
         return () => {
             pulseLoop.stop();
             g1Loop.stop();
             g2Loop.stop();
+            shift1Loop.stop();
+            shift2Loop.stop();
             heartLoops.forEach((l) => l.stop());
         };
-    }, [enabled, reduceMotion, hearts, pulse, g1, g2, heartProgress]);
+    }, [enabled, reduceMotion, hearts, pulse, g1, g2, shift1, shift2, heartProgress]);
 
     if (!enabled || reduceMotion) return null;
 
-    // "Alive" but still readable. Dark can take slightly more intensity.
+    // Reduce intensity slightly as requested to avoid wash
     const pulseOpacity = pulse.interpolate({
         inputRange: [0, 1],
-        outputRange: [isDark ? 0.10 : 0.08, isDark ? 0.22 : 0.18],
+        outputRange: [isDark ? 0.06 : 0.04, isDark ? 0.18 : 0.14],
     });
 
     const g1Opacity = g1.interpolate({
         inputRange: [0, 1],
-        outputRange: [isDark ? 0.22 : 0.16, isDark ? 0.34 : 0.26],
+        outputRange: [isDark ? 0.19 : 0.13, isDark ? 0.31 : 0.23],
     });
 
     const g2Opacity = g2.interpolate({
@@ -218,19 +240,22 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
     const g2Rot = g2.interpolate({ inputRange: [0, 1], outputRange: ['10deg', '-10deg'] });
     const g2Scale = g2.interpolate({ inputRange: [0, 1], outputRange: [1.10, 1.18] });
 
+    const g1FadeOut = shift1.interpolate({ inputRange: [0, 1], outputRange: [1, 0] });
+    const g2FadeOut = shift2.interpolate({ inputRange: [0, 1], outputRange: [1, 0] });
+
     return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-            {/* Pulse veil (adds "breathing" energy) */}
+            {/* Pulse veil */}
             <Animated.View style={[StyleSheet.absoluteFill, { opacity: pulseOpacity }]}>
                 <LinearGradient
-                    colors={colors.gradientA}
+                    colors={colors.gradientA} // Simple pulse uses stable gradient
                     start={{ x: 0.1, y: 0.0 }}
                     end={{ x: 0.9, y: 1.0 }}
                     style={StyleSheet.absoluteFill}
                 />
             </Animated.View>
 
-            {/* Aurora sheet 1 */}
+            {/* Aurora sheet 1 (Crossfading A <-> A2) */}
             <Animated.View
                 style={[
                     styles.auroraSheet,
@@ -240,15 +265,26 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
                     },
                 ]}
             >
-                <LinearGradient
-                    colors={colors.gradientA}
-                    start={{ x: 0.0, y: 0.2 }}
-                    end={{ x: 1.0, y: 0.8 }}
-                    style={StyleSheet.absoluteFill}
-                />
+                <Animated.View style={[StyleSheet.absoluteFill, { opacity: g1FadeOut }]}>
+                    <LinearGradient
+                        colors={colors.gradientA}
+                        start={{ x: 0.0, y: 0.2 }}
+                        end={{ x: 1.0, y: 0.8 }}
+                        style={StyleSheet.absoluteFill}
+                    />
+                </Animated.View>
+
+                <Animated.View style={[StyleSheet.absoluteFill, { opacity: shift1 }]}>
+                    <LinearGradient
+                        colors={colors.gradientA2 || colors.gradientA}
+                        start={{ x: 0.2, y: 0.0 }}
+                        end={{ x: 0.8, y: 1.0 }}
+                        style={StyleSheet.absoluteFill}
+                    />
+                </Animated.View>
             </Animated.View>
 
-            {/* Aurora sheet 2 (opposite direction) */}
+            {/* Aurora sheet 2 (Crossfading B <-> B2) */}
             <Animated.View
                 style={[
                     styles.auroraSheet,
@@ -258,15 +294,26 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
                     },
                 ]}
             >
-                <LinearGradient
-                    colors={colors.gradientB}
-                    start={{ x: 1.0, y: 0.0 }}
-                    end={{ x: 0.0, y: 1.0 }}
-                    style={StyleSheet.absoluteFill}
-                />
+                <Animated.View style={[StyleSheet.absoluteFill, { opacity: g2FadeOut }]}>
+                    <LinearGradient
+                        colors={colors.gradientB}
+                        start={{ x: 1.0, y: 0.0 }}
+                        end={{ x: 0.0, y: 1.0 }}
+                        style={StyleSheet.absoluteFill}
+                    />
+                </Animated.View>
+
+                <Animated.View style={[StyleSheet.absoluteFill, { opacity: shift2 }]}>
+                    <LinearGradient
+                        colors={colors.gradientB2 || colors.gradientB}
+                        start={{ x: 0.9, y: 0.1 }}
+                        end={{ x: 0.1, y: 0.9 }}
+                        style={StyleSheet.absoluteFill}
+                    />
+                </Animated.View>
             </Animated.View>
 
-            {/* Hearts on top */}
+            {/* Hearts on top (Unchanged) */}
             {hearts.map((h, i) => {
                 const p = heartProgress[i];
                 const translateX = p.interpolate({ inputRange: [0, 1], outputRange: [0, h.driftX] });
@@ -311,11 +358,11 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
 const styles = StyleSheet.create({
     auroraSheet: {
         position: 'absolute',
-        // Oversize so motion never reveals edges
-        width: '200%',
-        height: '200%',
-        left: '-50%',
-        top: '-50%',
+        // Reduced to 180% as requested for efficiency
+        width: '180%',
+        height: '180%',
+        left: '-40%',
+        top: '-40%',
     },
     heartWrap: {
         position: 'absolute',

@@ -16,6 +16,10 @@ export const LightTheme = {
     surfaceTint: '#FFE8EC',  // Very light pink surface (skip button, segments)
     gradientA: ['#f3e8ff', '#d8b4fe', '#c4b5fd'], // lilac → lavender → periwinkle
     gradientB: ['#ede9fe', '#c7d2fe', '#e9d5ff'], // soft violet variation
+
+    // NEW: vibrant variants (still pastel, but more alive)
+    gradientA2: ['#f5d0fe', '#a78bfa', '#ddd6fe'],
+    gradientB2: ['#e9d5ff', '#c084fc', '#fbcfe8'],
 };
 
 export const DarkTheme = {
@@ -31,6 +35,10 @@ export const DarkTheme = {
     surfaceTint: '#2A2A2A',  // Dark tinted surface
     gradientA: ['#1b0b2e', '#5b21b6', '#c4b5fd'], // deep violet → purple → lilac
     gradientB: ['#2e1065', '#7c3aed', '#e9d5ff'], // richer “aurora” layer
+
+    // NEW: richer neon-ish aurora (dark-friendly)
+    gradientA2: ['#120726', '#8b5cf6', '#f5d0fe'],
+    gradientB2: ['#1f1147', '#a855f7', '#ddd6fe'],
 };
 
 export type ThemeColors = typeof LightTheme;

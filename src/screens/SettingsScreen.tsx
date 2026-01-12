@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import { useApp } from '../context/AppContext';
 import { useUpdateCheck } from '../hooks/useUpdateCheck';
-import type { Settings } from '../types';
+import { useTheme } from '../theme/useTheme';
+import type { ThemeMode } from '../types';
 
 const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
 
@@ -20,6 +21,7 @@ export default function SettingsScreen() {
     const { settings: settingsContext } = useApp();
     const { settings, updateSettings } = settingsContext;
     const { checkForUpdates } = useUpdateCheck(UPDATE_JSON_URL);
+    const { colors } = useTheme();
 
     // Local draft state for number inputs
     const [focusDraft, setFocusDraft] = useState(settings.durations.focus.toString());
@@ -80,6 +82,7 @@ export default function SettingsScreen() {
                             sound: true,
                             haptics: true,
                             showLoveNotes: true,
+                            themeMode: 'system',
                         });
                         setFocusDraft('25');
                         setShortBreakDraft('5');
@@ -92,18 +95,27 @@ export default function SettingsScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                <Text style={styles.header}>Settings ⚙️</Text>
+                <Text style={[styles.header, { color: colors.text }]}>Settings ⚙️</Text>
 
                 {/* Durations Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Timer Durations (minutes)</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                        Timer Durations (minutes)
+                    </Text>
 
-                    <View style={styles.row}>
-                        <Text style={styles.label}>Focus</Text>
+                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                        <Text style={[styles.label, { color: colors.text }]}>Focus</Text>
                         <TextInput
-                            style={styles.input}
+                            style={[
+                                styles.input,
+                                {
+                                    backgroundColor: colors.inputBg,
+                                    borderColor: colors.accentPurple,
+                                    color: colors.text,
+                                },
+                            ]}
                             value={focusDraft}
                             onChangeText={setFocusDraft}
                             onBlur={handleFocusBlur}
@@ -112,10 +124,17 @@ export default function SettingsScreen() {
                         />
                     </View>
 
-                    <View style={styles.row}>
-                        <Text style={styles.label}>Short Break</Text>
+                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                        <Text style={[styles.label, { color: colors.text }]}>Short Break</Text>
                         <TextInput
-                            style={styles.input}
+                            style={[
+                                styles.input,
+                                {
+                                    backgroundColor: colors.inputBg,
+                                    borderColor: colors.accentPurple,
+                                    color: colors.text,
+                                },
+                            ]}
                             value={shortBreakDraft}
                             onChangeText={setShortBreakDraft}
                             onBlur={handleShortBreakBlur}
@@ -124,10 +143,17 @@ export default function SettingsScreen() {
                         />
                     </View>
 
-                    <View style={styles.row}>
-                        <Text style={styles.label}>Long Break</Text>
+                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                        <Text style={[styles.label, { color: colors.text }]}>Long Break</Text>
                         <TextInput
-                            style={styles.input}
+                            style={[
+                                styles.input,
+                                {
+                                    backgroundColor: colors.inputBg,
+                                    borderColor: colors.accentPurple,
+                                    color: colors.text,
+                                },
+                            ]}
                             value={longBreakDraft}
                             onChangeText={setLongBreakDraft}
                             onBlur={handleLongBreakBlur}
@@ -136,10 +162,19 @@ export default function SettingsScreen() {
                         />
                     </View>
 
-                    <View style={styles.row}>
-                        <Text style={styles.label}>Long break every N sessions</Text>
+                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                        <Text style={[styles.label, { color: colors.text }]}>
+                            Long break every N sessions
+                        </Text>
                         <TextInput
-                            style={styles.input}
+                            style={[
+                                styles.input,
+                                {
+                                    backgroundColor: colors.inputBg,
+                                    borderColor: colors.accentPurple,
+                                    color: colors.text,
+                                },
+                            ]}
                             value={longBreakEveryDraft}
                             onChangeText={setLongBreakEveryDraft}
                             onBlur={handleLongBreakEveryBlur}
@@ -149,64 +184,105 @@ export default function SettingsScreen() {
                     </View>
                 </View>
 
-                {/* Toggles Section */}
+                {/* Appearance Section - Theme Selector */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Preferences</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Appearance</Text>
 
-                    <View style={styles.row}>
-                        <Text style={styles.label}>Notifications</Text>
+                    <View style={styles.themeSelector}>
+                        {(['system', 'light', 'dark'] as const).map((mode) => {
+                            const active = settings.themeMode === mode;
+
+                            return (
+                                <Pressable
+                                    key={mode}
+                                    onPress={() => updateSettings({ themeMode: mode as ThemeMode })}
+                                    style={[
+                                        styles.themeOption,
+                                        {
+                                            borderColor: colors.border,
+                                            backgroundColor: active ? colors.accent : 'transparent',
+                                        },
+                                    ]}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.themeOptionText,
+                                            { color: active ? '#FFFFFF' : colors.text },
+                                        ]}
+                                    >
+                                        {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                                    </Text>
+                                </Pressable>
+                            );
+                        })}
+                    </View>
+                </View>
+
+                {/* Preferences Section */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferences</Text>
+
+                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                        <Text style={[styles.label, { color: colors.text }]}>Notifications</Text>
                         <Switch
                             value={settings.notifications}
                             onValueChange={(val) => updateSettings({ notifications: val })}
-                            trackColor={{ false: '#ddd', true: '#FFB3BA' }}
-                            thumbColor={settings.notifications ? '#E63946' : '#f4f3f4'}
+                            trackColor={{ false: '#ddd', true: colors.accentLight }}
+                            thumbColor={settings.notifications ? colors.accent : '#f4f3f4'}
                         />
                     </View>
 
-                    <View style={styles.row}>
-                        <Text style={styles.label}>Sound</Text>
+                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                        <Text style={[styles.label, { color: colors.text }]}>Sound</Text>
                         <Switch
                             value={settings.sound}
                             onValueChange={(val) => updateSettings({ sound: val })}
-                            trackColor={{ false: '#ddd', true: '#FFB3BA' }}
-                            thumbColor={settings.sound ? '#E63946' : '#f4f3f4'}
+                            trackColor={{ false: '#ddd', true: colors.accentLight }}
+                            thumbColor={settings.sound ? colors.accent : '#f4f3f4'}
                         />
                     </View>
 
-                    <View style={styles.row}>
-                        <Text style={styles.label}>Haptics</Text>
+                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                        <Text style={[styles.label, { color: colors.text }]}>Haptics</Text>
                         <Switch
                             value={settings.haptics}
                             onValueChange={(val) => updateSettings({ haptics: val })}
-                            trackColor={{ false: '#ddd', true: '#FFB3BA' }}
-                            thumbColor={settings.haptics ? '#E63946' : '#f4f3f4'}
+                            trackColor={{ false: '#ddd', true: colors.accentLight }}
+                            thumbColor={settings.haptics ? colors.accent : '#f4f3f4'}
                         />
                     </View>
 
-                    <View style={styles.row}>
-                        <Text style={styles.label}>Show Love Notes</Text>
+                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                        <Text style={[styles.label, { color: colors.text }]}>Show Love Notes</Text>
                         <Switch
                             value={settings.showLoveNotes}
                             onValueChange={(val) => updateSettings({ showLoveNotes: val })}
-                            trackColor={{ false: '#ddd', true: '#FFB3BA' }}
-                            thumbColor={settings.showLoveNotes ? '#E63946' : '#f4f3f4'}
+                            trackColor={{ false: '#ddd', true: colors.accentLight }}
+                            thumbColor={settings.showLoveNotes ? colors.accent : '#f4f3f4'}
                         />
                     </View>
                 </View>
 
                 {/* Check for Updates Button */}
-                <Pressable style={styles.updateButton} onPress={() => checkForUpdates({ force: true })}>
+                <Pressable
+                    style={[styles.updateButton, { backgroundColor: colors.accentPurple }]}
+                    onPress={() => checkForUpdates({ force: true })}
+                >
                     <Text style={styles.updateButtonText}>Check for Updates</Text>
                 </Pressable>
 
                 {/* Reset Button */}
-                <Pressable style={styles.resetButton} onPress={confirmReset}>
+                <Pressable
+                    style={[styles.resetButton, { backgroundColor: colors.accent }]}
+                    onPress={confirmReset}
+                >
                     <Text style={styles.resetButtonText}>Reset to Defaults</Text>
                 </Pressable>
 
                 {/* Info Note */}
-                <Text style={styles.infoText}>
-                    Settings changes apply to your next session. Currently running sessions are not affected.
+                <Text style={[styles.infoText, { color: colors.textMuted }]}>
+                    Settings changes apply to your next session. Currently running sessions are not
+                    affected.
                 </Text>
             </ScrollView>
         </SafeAreaView>
@@ -216,7 +292,7 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF8F0',
+        // backgroundColor removed - now inline
     },
     scrollContent: {
         padding: 16,
@@ -224,7 +300,7 @@ const styles = StyleSheet.create({
     header: {
         fontSize: 24,
         fontWeight: '600',
-        color: '#2D2D2D',
+        // color removed - now inline
         marginBottom: 24,
     },
     section: {
@@ -233,7 +309,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#2D2D2D',
+        // color removed - now inline
         marginBottom: 12,
     },
     row: {
@@ -242,26 +318,44 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
+        // borderBottomColor removed - now inline
     },
     label: {
         fontSize: 16,
-        color: '#2D2D2D',
+        // color removed - now inline
         flex: 1,
     },
     input: {
         borderWidth: 1,
-        borderColor: '#D4A5D9',
+        // borderColor, backgroundColor, color removed - now inline
         borderRadius: 8,
         paddingHorizontal: 12,
         paddingVertical: 8,
         fontSize: 16,
         width: 70,
         textAlign: 'center',
-        backgroundColor: '#FFF',
+    },
+    themeSelector: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 12,
+    },
+    themeOption: {
+        flex: 1,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 10,
+        borderWidth: 2,
+        alignItems: 'center',
+        // borderColor, backgroundColor removed - now inline per button
+    },
+    themeOptionText: {
+        fontSize: 14,
+        fontWeight: '600',
+        // color removed - now inline
     },
     resetButton: {
-        backgroundColor: '#E63946',
+        // backgroundColor removed - now inline
         paddingHorizontal: 24,
         paddingVertical: 14,
         borderRadius: 12,
@@ -274,7 +368,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     updateButton: {
-        backgroundColor: '#D4A5D9',
+        // backgroundColor removed - now inline
         paddingHorizontal: 24,
         paddingVertical: 14,
         borderRadius: 12,
@@ -288,7 +382,7 @@ const styles = StyleSheet.create({
     },
     infoText: {
         fontSize: 14,
-        color: '#6B6B6B',
+        // color removed - now inline
         marginTop: 16,
         textAlign: 'center',
         lineHeight: 20,

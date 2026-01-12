@@ -62,7 +62,7 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
                 durationMs: 28000,
                 delayMs: 0,
                 baseOpacity: o1,
-                emoji: '❤️',
+                emoji: '❤',
                 color: colors.accentLight,
                 glowColor: isDark ? 'rgba(255,154,162,0.22)' : 'rgba(255,179,186,0.22)',
             },
@@ -76,7 +76,7 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
                 durationMs: 32000,
                 delayMs: 600,
                 baseOpacity: o2,
-                emoji: '❤️',
+                emoji: '❤',
                 color: colors.accentPurple,
                 glowColor: isDark ? 'rgba(193,151,210,0.20)' : 'rgba(212,165,217,0.20)',
             },
@@ -90,7 +90,7 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
                 durationMs: 36000,
                 delayMs: 1200,
                 baseOpacity: o3,
-                emoji: '❤️',
+                emoji: '❤',
                 color: colors.accent,
                 glowColor: isDark ? 'rgba(255,107,122,0.18)' : 'rgba(230,57,70,0.16)',
             },
@@ -144,13 +144,13 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
                         toValue: 1,
                         duration: h.durationMs,
                         delay: h.delayMs,
-                        easing: Easing.inOut(Easing.sin),
+                        easing: Easing.inOut(Easing.ease), // SAFE
                         useNativeDriver: true,
                     }),
                     Animated.timing(heartProgress[i], {
                         toValue: 0,
                         duration: h.durationMs,
-                        easing: Easing.inOut(Easing.sin),
+                        easing: Easing.inOut(Easing.ease), // SAFE
                         useNativeDriver: true,
                     }),
                 ])

@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet, Alert, Platform, useWindowDimensions } from "react-native";
+import { View, Text, Pressable, StyleSheet, Alert, Platform, useWindowDimensions, StatusBar } from "react-native";
 import { useMemo } from "react";
 import { useTimer } from "../hooks/useTimer";
 import { formatTime } from "../utils/time";
@@ -6,10 +6,12 @@ import LoveNoteCard from "../components/LoveNoteCard";
 import { CircularProgress } from "../components/CircularProgress";
 import * as Haptics from "expo-haptics";
 import { useApp } from "../context/AppContext";
+import { useTheme } from "../theme/useTheme";
 
 export default function TimerScreen() {
   const { width, height } = useWindowDimensions();
   const { settings, stats, loveNotes } = useApp();
+  const { colors, isDark } = useTheme();
   const {
     phase,
     isRunning,
@@ -117,12 +119,19 @@ export default function TimerScreen() {
   // Content components
   const timerContent = (
     <>
+      {/* Status bar style based on theme */}
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+
       {/* Header */}
-      <Text style={[styles.header, isTablet && styles.headerTablet]}>Valentine Pomodoro 💗</Text>
+      <Text style={[styles.header, isTablet && styles.headerTablet, { color: colors.text }]}>
+        Valentine Pomodoro 💗
+      </Text>
 
       {/* Status chip */}
-      <View style={styles.statusChip}>
-        <Text style={[styles.statusText, isTablet && styles.statusTextTablet]}>{getPhaseLabel()}</Text>
+      <View style={[styles.statusChip, { backgroundColor: colors.surfaceTint }]}>
+        <Text style={[styles.statusText, isTablet && styles.statusTextTablet, { color: colors.accent }]}>
+          {getPhaseLabel()}
+        </Text>
       </View>
 
       {/* Progress ring + timer display */}
@@ -131,20 +140,21 @@ export default function TimerScreen() {
           size={ringSize}
           strokeWidth={14}
           progress={progress}
-          trackColor="#FFE8EC"
-          progressColor="#E63946"
+          trackColor={colors.surfaceTint}
+          progressColor={colors.accent}
         />
         <View style={styles.timerOverlay}>
           <Text style={[
             styles.timer,
             isTablet && styles.timerTablet,
-            isLandscape && styles.timerLandscape
+            isLandscape && styles.timerLandscape,
+            { color: colors.text }
           ]}>{formatTime(remainingMs)}</Text>
         </View>
       </View>
 
       {/* Cycle indicator */}
-      <Text style={[styles.cycleText, isTablet && styles.cycleTextTablet]}>
+      <Text style={[styles.cycleText, isTablet && styles.cycleTextTablet, { color: colors.textMuted }]}>
         Session {completedFocusCountInCycle + 1} of {settings.settings.longBreakEvery}
       </Text>
     </>
@@ -156,6 +166,7 @@ export default function TimerScreen() {
       <Pressable
         style={({ pressed }) => [
           styles.primaryButton,
+          { backgroundColor: colors.accent },
           isTablet && styles.primaryButtonTablet,
           pressed && { transform: [{ scale: 0.98 }] },
         ]}
@@ -171,29 +182,35 @@ export default function TimerScreen() {
         <Pressable
           style={({ pressed }) => [
             styles.secondaryButton,
+            { borderColor: colors.accentPurple },
             isTablet && styles.secondaryButtonTablet,
             pressed && { transform: [{ scale: 0.98 }] },
           ]}
           onPress={skip}
         >
-          <Text style={[styles.secondaryButtonText, isTablet && styles.secondaryButtonTextTablet]}>Skip</Text>
+          <Text style={[styles.secondaryButtonText, isTablet && styles.secondaryButtonTextTablet, { color: colors.accentPurple }]}>
+            Skip
+          </Text>
         </Pressable>
         <Pressable
           style={({ pressed }) => [
             styles.secondaryButton,
+            { borderColor: colors.accentPurple },
             isTablet && styles.secondaryButtonTablet,
             pressed && { transform: [{ scale: 0.98 }] },
           ]}
           onPress={handleReset}
         >
-          <Text style={[styles.secondaryButtonText, isTablet && styles.secondaryButtonTextTablet]}>Reset</Text>
+          <Text style={[styles.secondaryButtonText, isTablet && styles.secondaryButtonTextTablet, { color: colors.accentPurple }]}>
+            Reset
+          </Text>
         </Pressable>
       </View>
     </>
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <View style={[
         styles.contentWrapper,
         isTablet && styles.contentWrapperTablet,
@@ -229,7 +246,7 @@ export default function TimerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8F0',
+    // backgroundColor removed - now inline
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -270,14 +287,14 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#2D2D2D',
+    // color removed - now inline
     marginBottom: 32,
   },
   headerTablet: {
     fontSize: 28,
   },
   statusChip: {
-    backgroundColor: '#FFE8EC',
+    // backgroundColor removed - now inline
     paddingHorizontal: 24,
     paddingVertical: 8,
     borderRadius: 999,
@@ -286,7 +303,7 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#E63946', // cherry red
+    // color removed - now inline
   },
   statusTextTablet: {
     fontSize: 18,
@@ -294,7 +311,7 @@ const styles = StyleSheet.create({
   timer: {
     fontSize: 72,
     fontWeight: '700',
-    color: '#2D2D2D',
+    // color removed - now inline
     marginBottom: 16,
     fontVariant: ['tabular-nums'],
   },
@@ -307,14 +324,14 @@ const styles = StyleSheet.create({
   },
   cycleText: {
     fontSize: 14,
-    color: '#6B6B6B',
+    // color removed - now inline
     marginBottom: 48,
   },
   cycleTextTablet: {
     fontSize: 16,
   },
   primaryButton: {
-    backgroundColor: '#E63946', // cherry red
+    // backgroundColor removed - now inline
     paddingHorizontal: 64,
     paddingVertical: 16,
     borderRadius: 999,
@@ -341,7 +358,7 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     borderWidth: 2,
-    borderColor: '#D4A5D9', // lavender
+    // borderColor removed - now inline
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 999,
@@ -351,7 +368,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   secondaryButtonText: {
-    color: '#D4A5D9',
+    // color removed - now inline
     fontSize: 16,
     fontWeight: '500',
   },

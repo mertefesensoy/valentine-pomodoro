@@ -14,6 +14,8 @@ type HeartSpec = {
     delayMs: number;
     baseOpacity: number; // 0..1
     emoji: string;
+    color: string;
+    glowColor: string;
 };
 
 function clamp(n: number, min: number, max: number) {
@@ -24,22 +26,31 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
     const { colors, isDark } = useTheme();
     const [reduceMotion, setReduceMotion] = useState(false);
 
+    // 1) Reactive Reduce Motion
     useEffect(() => {
         let mounted = true;
-        AccessibilityInfo.isReduceMotionEnabled().then((v) => {
-            if (mounted) setReduceMotion(Boolean(v));
-        });
+        const sync = (v: boolean) => mounted && setReduceMotion(Boolean(v));
+
+        AccessibilityInfo.isReduceMotionEnabled().then(sync);
+
+        // Modern RN support for listener
+        const sub = (AccessibilityInfo as any).addEventListener?.('reduceMotionChanged', sync);
+
         return () => {
             mounted = false;
+            sub?.remove?.();
         };
     }, []);
 
     // Gradient pulse (opacity only)
     const pulse = useRef(new Animated.Value(0)).current;
 
-    // Create a small set of hearts once (stable layout)
+    // 2) Heart specs with Colors & Glow
     const hearts: HeartSpec[] = useMemo(() => {
-        // Keep it subtle: 3 hearts usually feels right
+        const o1 = isDark ? 0.10 : 0.12;
+        const o2 = isDark ? 0.08 : 0.10;
+        const o3 = isDark ? 0.06 : 0.08;
+
         return [
             {
                 id: 'h1',
@@ -50,8 +61,10 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
                 driftY: -22,
                 durationMs: 28000,
                 delayMs: 0,
-                baseOpacity: isDark ? 0.10 : 0.12,
-                emoji: '❤',
+                baseOpacity: o1,
+                emoji: '❤️',
+                color: colors.accentLight,
+                glowColor: isDark ? 'rgba(255,154,162,0.22)' : 'rgba(255,179,186,0.22)',
             },
             {
                 id: 'h2',
@@ -62,8 +75,10 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
                 driftY: -18,
                 durationMs: 32000,
                 delayMs: 600,
-                baseOpacity: isDark ? 0.08 : 0.10,
-                emoji: '❤',
+                baseOpacity: o2,
+                emoji: '❤️',
+                color: colors.accentPurple,
+                glowColor: isDark ? 'rgba(193,151,210,0.20)' : 'rgba(212,165,217,0.20)',
             },
             {
                 id: 'h3',
@@ -74,18 +89,32 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
                 driftY: -14,
                 durationMs: 36000,
                 delayMs: 1200,
-                baseOpacity: isDark ? 0.06 : 0.08,
-                emoji: '❤',
+                baseOpacity: o3,
+                emoji: '❤️',
+                color: colors.accent,
+                glowColor: isDark ? 'rgba(255,107,122,0.18)' : 'rgba(230,57,70,0.16)',
             },
         ];
-    }, [isDark]);
+    }, [isDark, colors.accent, colors.accentLight, colors.accentPurple]);
 
-    // One progress value per heart (0..1) – transforms derive from this
+    // One progress value per heart (0..1)
     const heartProgress = useRef(hearts.map(() => new Animated.Value(0))).current;
 
+    // 3) Theme switch smooth reset handled in existing effect dependencies
+    // But explicit reset helps avoid jumps
+    useEffect(() => {
+        if (!enabled || reduceMotion) return;
+        // Resetting on theme change (implied by hearts usage in dependency) or just letting it flow?
+        // User suggestion: reset values if isDark changes.
+        // However, hearts array changes when isDark changes, so this component re-renders. UseRef values persist.
+        // If we want to reset:
+        heartProgress.forEach(v => v.setValue(0));
+        pulse.setValue(0);
+    }, [isDark]);
+
+    // Main Loop Effect
     useEffect(() => {
         if (!enabled || reduceMotion) {
-            // Reset values so re-enable starts cleanly
             pulse.setValue(0);
             heartProgress.forEach((v) => v.setValue(0));
             return;
@@ -146,7 +175,7 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
 
     return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-            {/* Layer 1: Gradient pulse (opacity only = GPU-safe) */}
+            {/* Layer 1: Gradient pulse */}
             <Animated.View style={[StyleSheet.absoluteFill, { opacity: pulseOpacity }]}>
                 <LinearGradient
                     colors={[colors.accentLight, colors.accentPurple]}
@@ -164,13 +193,17 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
                 // Tiny breathing scale
                 const scale = p.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] });
 
-                // Tiny rotation for organic drift (degrees)
+                // Tiny rotation for organic drift
                 const rotate = p.interpolate({ inputRange: [0, 1], outputRange: ['-3deg', '3deg'] });
 
-                // Slight opacity variation (still very subtle)
+                // Fade in/out loop
                 const opacity = p.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [clamp(h.baseOpacity - 0.02, 0, 0.2), clamp(h.baseOpacity + 0.02, 0, 0.2)],
+                    inputRange: [0, 0.5, 1],
+                    outputRange: [
+                        clamp(h.baseOpacity - 0.02, 0, 0.2),
+                        clamp(h.baseOpacity + 0.02, 0, 0.2),
+                        clamp(h.baseOpacity - 0.02, 0, 0.2),
+                    ],
                 });
 
                 return (
@@ -181,6 +214,9 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
                             {
                                 top: `${h.topPct}%`,
                                 left: `${h.leftPct}%`,
+                                // Center on anchor
+                                marginLeft: -h.size * 0.35,
+                                marginTop: -h.size * 0.55,
                                 opacity,
                                 transform: [{ translateX }, { translateY }, { scale }, { rotate }],
                             },
@@ -191,7 +227,8 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
                                 styles.heartText,
                                 {
                                     fontSize: h.size,
-                                    color: colors.accent, // static color, not animated
+                                    color: h.color,
+                                    textShadowColor: h.glowColor,
                                 },
                             ]}
                         >
@@ -209,9 +246,8 @@ const styles = StyleSheet.create({
         position: 'absolute',
     },
     heartText: {
-        // Softening (static). Keep conservative; too much can look fuzzy.
         textShadowOffset: { width: 0, height: 0 },
         textShadowRadius: 18,
-        textShadowColor: 'rgba(0,0,0,0.15)',
+        // textShadowColor overridden inline
     },
 });

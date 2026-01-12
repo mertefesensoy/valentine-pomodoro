@@ -4,12 +4,11 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 import * as React from 'react';
-import { useColorScheme } from 'react-native';
 
-import { Colors } from './constants/Colors';
 import { Navigation } from './navigation';
 import { useGiftMode } from './hooks/useGiftMode';
 import { useUpdateCheck } from './hooks/useUpdateCheck';
+import { useTheme } from './theme/useTheme';
 import GiftModeModal from './components/GiftModeModal';
 import { AppProvider } from './context/AppContext';
 
@@ -29,37 +28,21 @@ Notifications.setNotificationHandler({
 
 SplashScreen.preventAutoHideAsync();
 
-export function App() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('./assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
+// Inner component that uses theme from context
+function ThemedApp() {
+  const { isDark } = useTheme();
   const { hasSeenGiftMode, isReady: giftModeReady, dismiss } = useGiftMode();
 
   // Check for app updates (max once per 24h, offline-safe)
   useUpdateCheck(UPDATE_JSON_URL);
 
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
-  }
-
-  const theme =
-    colorScheme === 'dark'
-      ? {
-        ...DarkTheme,
-        colors: { ...DarkTheme.colors, primary: Colors[colorScheme ?? 'light'].tint },
-      }
-      : {
-        ...DefaultTheme,
-        colors: { ...DefaultTheme.colors, primary: Colors[colorScheme ?? 'light'].tint },
-      };
+  // Navigation theme based on app theme
+  const navTheme = isDark ? DarkTheme : DefaultTheme;
 
   return (
-    <AppProvider>
+    <>
       <Navigation
-        theme={theme}
+        theme={navTheme}
         linking={{
           enabled: 'auto',
           prefixes: [
@@ -76,6 +59,23 @@ export function App() {
       {giftModeReady && !hasSeenGiftMode && (
         <GiftModeModal visible={!hasSeenGiftMode} onDismiss={dismiss} />
       )}
+    </>
+  );
+}
+
+export function App() {
+  const [loaded] = useFonts({
+    SpaceMono: require('./assets/fonts/SpaceMono-Regular.ttf'),
+  });
+
+  if (!loaded) {
+    // Async font loading only occurs in development.
+    return null;
+  }
+
+  return (
+    <AppProvider>
+      <ThemedApp />
     </AppProvider>
   );
 }

@@ -4,6 +4,7 @@ import { useTimer } from "../hooks/useTimer";
 import { formatTime } from "../utils/time";
 import LoveNoteCard from "../components/LoveNoteCard";
 import { CircularProgress } from "../components/CircularProgress";
+import CalmBackground from "../components/CalmBackground";
 import * as Haptics from "expo-haptics";
 import { useApp } from "../context/AppContext";
 import { useTheme } from "../theme/useTheme";
@@ -211,6 +212,7 @@ export default function TimerScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
+      <CalmBackground enabled={settings.settings.animationsEnabled} />
       <View style={[
         styles.contentWrapper,
         isTablet && styles.contentWrapperTablet,

@@ -34,6 +34,7 @@ export interface Settings {
     haptics: boolean;
     showLoveNotes: boolean;
     themeMode: ThemeMode; // 'system' | 'light' | 'dark'
+    animationsEnabled: boolean; // Background animations toggle
 }
 
 // Stats per day (keyed by YYYY-MM-DD)

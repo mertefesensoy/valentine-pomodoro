@@ -11,6 +11,7 @@ export const DEFAULT_SETTINGS = {
     haptics: true,
     showLoveNotes: true,
     themeMode: 'system' as const,
+    animationsEnabled: true,
 };
 
 // Default love notes (20 seed notes for Bengisu)

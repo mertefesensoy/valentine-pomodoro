@@ -263,6 +263,23 @@ export default function SettingsScreen() {
                     </View>
                 </View>
 
+                {/* Experience Section - Animations */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Experience</Text>
+
+                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                        <Text style={[styles.label, { color: colors.text }]}>
+                            Background Animations
+                        </Text>
+                        <Switch
+                            value={settings.animationsEnabled}
+                            onValueChange={(val) => updateSettings({ animationsEnabled: val })}
+                            trackColor={{ false: '#ddd', true: colors.accentLight }}
+                            thumbColor={settings.animationsEnabled ? colors.accent : '#f4f3f4'}
+                        />
+                    </View>
+                </View>
+
                 {/* Check for Updates Button */}
                 <Pressable
                     style={[styles.updateButton, { backgroundColor: colors.accentPurple }]}

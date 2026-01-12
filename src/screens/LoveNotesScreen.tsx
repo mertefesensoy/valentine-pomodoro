@@ -9,13 +9,16 @@ import {
     TextInput,
     View,
     StyleSheet,
+    StatusBar,
 } from 'react-native';
 import { useApp } from '../context/AppContext';
+import { useTheme } from '../theme/useTheme';
 
 type Mode = { type: 'add' } | { type: 'edit'; index: number; initial: string } | null;
 
 export default function LoveNotesScreen() {
     const { loveNotes } = useApp();
+    const { colors, isDark } = useTheme();
     const { notes, isReady, addNote, editNote, deleteNote, resetToDefaults, pickRandomNote } =
         loveNotes;
 
@@ -62,31 +65,32 @@ export default function LoveNotesScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
+            <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
             <View style={styles.header}>
-                <Text style={styles.title}>{title}</Text>
-                <Pressable onPress={openAdd} style={styles.addButton}>
-                    <Text style={styles.addButtonText}>Add</Text>
+                <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+                <Pressable onPress={openAdd} style={[styles.addButton, { backgroundColor: colors.accent }]}>
+                    <Text style={[styles.addButtonText, { color: '#FFFFFF' }]}>Add</Text>
                 </Pressable>
             </View>
 
             {!isReady ? (
-                <Text style={styles.loadingText}>Loading…</Text>
+                <Text style={[styles.loadingText, { color: colors.textMuted }]}>Loading…</Text>
             ) : (
                 <>
                     <View style={styles.actionRow}>
-                        <Pressable onPress={() => setPreview(pickRandomNote(preview))} style={styles.actionButton}>
-                            <Text style={styles.actionButtonText}>Randomize preview</Text>
+                        <Pressable onPress={() => setPreview(pickRandomNote(preview))} style={[styles.actionButton, { borderColor: colors.accentPurple }]}>
+                            <Text style={[styles.actionButtonText, { color: colors.accentPurple }]}>Randomize preview</Text>
                         </Pressable>
 
-                        <Pressable onPress={confirmReset} style={styles.actionButton}>
-                            <Text style={styles.actionButtonText}>Reset defaults</Text>
+                        <Pressable onPress={confirmReset} style={[styles.actionButton, { borderColor: colors.accentPurple }]}>
+                            <Text style={[styles.actionButtonText, { color: colors.accentPurple }]}>Reset defaults</Text>
                         </Pressable>
                     </View>
 
                     {preview ? (
-                        <View style={styles.previewCard}>
-                            <Text style={styles.previewText}>{preview}</Text>
+                        <View style={[styles.previewCard, { backgroundColor: colors.card, borderColor: colors.surfaceTint }]}>
+                            <Text style={[styles.previewText, { color: colors.text }]}>{preview}</Text>
                         </View>
                     ) : null}
 
@@ -96,15 +100,15 @@ export default function LoveNotesScreen() {
                         keyExtractor={(_, i) => String(i)}
                         ItemSeparatorComponent={() => <View style={styles.separator} />}
                         renderItem={({ item, index }) => (
-                            <View style={styles.noteCard}>
-                                <Text style={styles.noteText}>{item}</Text>
+                            <View style={[styles.noteCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                                <Text style={[styles.noteText, { color: colors.text }]}>{item}</Text>
 
                                 <View style={styles.noteActions}>
                                     <Pressable onPress={() => openEdit(index)} style={styles.noteActionButton}>
-                                        <Text style={styles.noteActionText}>Edit</Text>
+                                        <Text style={[styles.noteActionText, { color: colors.accentPurple }]}>Edit</Text>
                                     </Pressable>
                                     <Pressable onPress={() => confirmDelete(index)} style={styles.noteActionButton}>
-                                        <Text style={styles.noteActionDeleteText}>Delete</Text>
+                                        <Text style={[styles.noteActionDeleteText, { color: colors.accent }]}>Delete</Text>
                                     </Pressable>
                                 </View>
                             </View>
@@ -114,24 +118,25 @@ export default function LoveNotesScreen() {
             )}
 
             <Modal visible={mode !== null} animationType="slide" onRequestClose={closeModal}>
-                <SafeAreaView style={styles.modalContainer}>
-                    <Text style={styles.modalTitle}>{mode?.type === 'add' ? 'Add note' : 'Edit note'}</Text>
+                <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.bg }]}>
+                    <Text style={[styles.modalTitle, { color: colors.text }]}>{mode?.type === 'add' ? 'Add note' : 'Edit note'}</Text>
 
                     <TextInput
                         value={draft}
                         onChangeText={setDraft}
                         placeholder="Write something sweet…"
+                        placeholderTextColor={colors.textMuted}
                         multiline
-                        style={styles.textInput}
+                        style={[styles.textInput, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
                     />
 
                     <View style={styles.modalActions}>
-                        <Pressable onPress={closeModal} style={styles.modalButton}>
-                            <Text style={styles.modalButtonText}>Cancel</Text>
+                        <Pressable onPress={closeModal} style={[styles.modalButton, { borderColor: colors.accentPurple }]}>
+                            <Text style={[styles.modalButtonText, { color: colors.accentPurple }]}>Cancel</Text>
                         </Pressable>
 
-                        <Pressable onPress={onSave} style={[styles.modalButton, styles.modalButtonPrimary]}>
-                            <Text style={styles.modalButtonTextPrimary}>Save</Text>
+                        <Pressable onPress={onSave} style={[styles.modalButton, styles.modalButtonPrimary, { backgroundColor: colors.accent, borderColor: colors.accent }]}>
+                            <Text style={[styles.modalButtonTextPrimary, { color: '#FFFFFF' }]}>Save</Text>
                         </Pressable>
                     </View>
                 </SafeAreaView>
@@ -144,7 +149,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
-        backgroundColor: '#FFF8F0',
+        // backgroundColor removed
     },
     header: {
         flexDirection: 'row',
@@ -154,23 +159,23 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 20,
         fontWeight: '600',
-        color: '#2D2D2D',
+        // color removed
     },
     addButton: {
         paddingHorizontal: 12,
         paddingVertical: 8,
-        backgroundColor: '#E63946',
+        // backgroundColor removed
         borderRadius: 12,
     },
     addButtonText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#FFFFFF',
+        // color removed
     },
     loadingText: {
         marginTop: 16,
         fontSize: 16,
-        color: '#6B6B6B',
+        // color removed
     },
     actionRow: {
         marginTop: 12,
@@ -181,25 +186,24 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         paddingVertical: 10,
         borderWidth: 2,
-        borderColor: '#D4A5D9',
+        // borderColor removed
         borderRadius: 12,
     },
     actionButtonText: {
         fontSize: 14,
         fontWeight: '500',
-        color: '#D4A5D9',
+        // color removed
     },
     previewCard: {
         marginTop: 12,
         padding: 12,
         borderRadius: 16,
         borderWidth: 2,
-        borderColor: '#FFE8EC',
-        backgroundColor: '#FFF',
+        // borderColor, backgroundColor removed
     },
     previewText: {
         fontSize: 16,
-        color: '#2D2D2D',
+        // color removed
     },
     list: {
         marginTop: 12,
@@ -211,12 +215,11 @@ const styles = StyleSheet.create({
         padding: 12,
         borderRadius: 16,
         borderWidth: 1,
-        borderColor: '#E0E0E0',
-        backgroundColor: '#FFF',
+        // borderColor, backgroundColor removed
     },
     noteText: {
         fontSize: 16,
-        color: '#2D2D2D',
+        // color removed
     },
     noteActions: {
         marginTop: 10,
@@ -229,33 +232,32 @@ const styles = StyleSheet.create({
     noteActionText: {
         fontSize: 14,
         fontWeight: '500',
-        color: '#D4A5D9',
+        // color removed
     },
     noteActionDeleteText: {
         fontSize: 14,
         fontWeight: '500',
-        color: '#E63946',
+        // color removed
     },
     modalContainer: {
         flex: 1,
         padding: 16,
-        backgroundColor: '#FFF8F0',
+        // backgroundColor removed
     },
     modalTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#2D2D2D',
+        // color removed
     },
     textInput: {
         marginTop: 12,
         minHeight: 140,
         borderWidth: 1,
         borderRadius: 12,
-        borderColor: '#E0E0E0',
+        // borderColor, backgroundColor removed
         padding: 12,
         textAlignVertical: 'top',
         fontSize: 16,
-        backgroundColor: '#FFF',
     },
     modalActions: {
         marginTop: 16,
@@ -266,21 +268,20 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         paddingVertical: 10,
         borderWidth: 2,
-        borderColor: '#D4A5D9',
+        // borderColor removed
         borderRadius: 12,
     },
     modalButtonPrimary: {
-        backgroundColor: '#E63946',
-        borderColor: '#E63946',
+        // backgroundColor, borderColor removed
     },
     modalButtonText: {
         fontSize: 16,
         fontWeight: '500',
-        color: '#D4A5D9',
+        // color removed
     },
     modalButtonTextPrimary: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#FFFFFF',
+        // color removed
     },
 });

@@ -1,13 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
 import { useApp } from '../context/AppContext';
+import { useTheme } from '../theme/useTheme';
 
 type Metric = 'sessions' | 'minutes';
 
 function parseLocalDateKey(dayKey: string) {
     // dayKey format: YYYY-MM-DD
     const [y, m, d] = dayKey.split('-').map(Number);
-    return new Date(y, (m ?? 1) - 1, d ?? 1); // local time, avoids UTC parsing bugs
+    return new Date(y, (m ?? 1) - 1, d ?? 1); // ✅ local time, avoids UTC parsing bugs
 }
 
 function formatNumber(n: number) {
@@ -20,13 +21,14 @@ function formatNumber(n: number) {
 export default function StatsScreen() {
     const { stats } = useApp();
     const { isReady, today, totals, last7Days } = stats;
+    const { colors } = useTheme();
 
     const [metric, setMetric] = useState<Metric>('minutes');
 
     if (!isReady) {
         return (
-            <SafeAreaView style={styles.container}>
-                <Text style={styles.loadingText}>Loading stats…</Text>
+            <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
+                <Text style={[styles.loadingText, { color: colors.textMuted }]}>Loading stats…</Text>
             </SafeAreaView>
         );
     }
@@ -60,56 +62,85 @@ export default function StatsScreen() {
     const chartTitle = metric === 'sessions' ? 'Last 7 Days (Sessions)' : 'Last 7 Days (Minutes)';
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                <Text style={styles.header}>Stats</Text>
+                <Text style={[styles.header, { color: colors.text }]}>Stats</Text>
 
                 {/* Summary Cards */}
                 <View style={styles.cardsRow}>
-                    <View style={styles.card}>
-                        <Text style={styles.cardValue}>{today.focusSessions}</Text>
-                        <Text style={styles.cardLabel}>Today Sessions</Text>
+                    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                        <Text style={[styles.cardValue, { color: colors.accent }]}>{today.focusSessions}</Text>
+                        <Text style={[styles.cardLabel, { color: colors.textMuted }]}>Today Sessions</Text>
                     </View>
 
-                    <View style={styles.card}>
-                        <Text style={styles.cardValue}>{formatNumber(today.focusMinutes)}</Text>
-                        <Text style={styles.cardLabel}>Today Minutes</Text>
+                    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                        <Text style={[styles.cardValue, { color: colors.accent }]}>
+                            {formatNumber(today.focusMinutes)}
+                        </Text>
+                        <Text style={[styles.cardLabel, { color: colors.textMuted }]}>Today Minutes</Text>
                     </View>
                 </View>
 
                 <View style={styles.cardsRow}>
-                    <View style={styles.card}>
-                        <Text style={styles.cardValue}>{totals.focusSessions}</Text>
-                        <Text style={styles.cardLabel}>All-Time Sessions</Text>
+                    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                        <Text style={[styles.cardValue, { color: colors.accent }]}>{totals.focusSessions}</Text>
+                        <Text style={[styles.cardLabel, { color: colors.textMuted }]}>All-Time Sessions</Text>
                     </View>
 
-                    <View style={styles.card}>
-                        <Text style={styles.cardValue}>{formatNumber(totals.focusMinutes)}</Text>
-                        <Text style={styles.cardLabel}>All-Time Minutes</Text>
+                    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                        <Text style={[styles.cardValue, { color: colors.accent }]}>
+                            {formatNumber(totals.focusMinutes)}
+                        </Text>
+                        <Text style={[styles.cardLabel, { color: colors.textMuted }]}>All-Time Minutes</Text>
                     </View>
                 </View>
 
                 {/* Last 7 Days Chart */}
-                <View style={styles.chartContainer}>
+                <View
+                    style={[
+                        styles.chartContainer,
+                        { backgroundColor: colors.card, borderColor: colors.border },
+                    ]}
+                >
                     <View style={styles.chartHeaderRow}>
-                        <Text style={styles.chartTitle}>{chartTitle}</Text>
+                        <Text style={[styles.chartTitle, { color: colors.text }]}>{chartTitle}</Text>
 
                         {/* Metric Toggle */}
-                        <View style={styles.segment}>
+                        <View style={[styles.segment, { backgroundColor: colors.surfaceTint }]}>
                             <Pressable
                                 onPress={() => setMetric('minutes')}
-                                style={[styles.segmentItem, metric === 'minutes' && styles.segmentItemActive]}
+                                style={[
+                                    styles.segmentItem,
+                                    metric === 'minutes' && {
+                                        backgroundColor: colors.accent,
+                                    },
+                                ]}
                             >
-                                <Text style={[styles.segmentText, metric === 'minutes' && styles.segmentTextActive]}>
+                                <Text
+                                    style={[
+                                        styles.segmentText,
+                                        { color: metric === 'minutes' ? '#FFFFFF' : colors.textMuted },
+                                    ]}
+                                >
                                     Minutes
                                 </Text>
                             </Pressable>
 
                             <Pressable
                                 onPress={() => setMetric('sessions')}
-                                style={[styles.segmentItem, metric === 'sessions' && styles.segmentItemActive]}
+                                style={[
+                                    styles.segmentItem,
+                                    metric === 'sessions' && {
+                                        backgroundColor: colors.accent,
+                                    },
+                                ]}
                             >
-                                <Text style={[styles.segmentText, metric === 'sessions' && styles.segmentTextActive]}>
+                                <Text
+                                    style={[
+                                        styles.segmentText,
+                                        { color: metric === 'sessions' ? '#FFFFFF' : colors.textMuted },
+                                    ]}
+                                >
                                     Sessions
                                 </Text>
                             </Pressable>
@@ -118,18 +149,22 @@ export default function StatsScreen() {
 
                     {/* Weekly rollups */}
                     <View style={styles.weekSummaryRow}>
-                        <Text style={styles.weekSummaryText}>
-                            This week: {weekTotals.focusSessions} sessions • {formatNumber(weekTotals.focusMinutes)} minutes
+                        <Text style={[styles.weekSummaryText, { color: colors.text }]}>
+                            This week: {weekTotals.focusSessions} sessions •{' '}
+                            {formatNumber(weekTotals.focusMinutes)} minutes
                         </Text>
-                        <Text style={styles.weekSummarySubtext}>
-                            Avg/day: {formatNumber(avgPerDay.focusMinutes)} min • {formatNumber(avgPerDay.focusSessions)} sessions
+                        <Text style={[styles.weekSummarySubtext, { color: colors.textMuted }]}>
+                            Avg/day: {formatNumber(avgPerDay.focusMinutes)} min •{' '}
+                            {formatNumber(avgPerDay.focusSessions)} sessions
                         </Text>
                     </View>
 
                     {!hasStats ? (
                         <View style={styles.emptyState}>
-                            <Text style={styles.emptyText}>No stats yet</Text>
-                            <Text style={styles.emptySubtext}>Complete a focus session to see your progress.</Text>
+                            <Text style={[styles.emptyText, { color: colors.textMuted }]}>No stats yet</Text>
+                            <Text style={[styles.emptySubtext, { color: colors.textMuted }]}>
+                                Complete a focus session to see your progress.
+                            </Text>
                         </View>
                     ) : (
                         <View style={styles.chart}>
@@ -146,7 +181,7 @@ export default function StatsScreen() {
                                         <View key={dayKey} style={styles.barColumn}>
                                             <View style={styles.barContainer}>
                                                 {value > 0 && (
-                                                    <Text style={styles.barValue}>
+                                                    <Text style={[styles.barValue, { color: colors.text }]}>
                                                         {metric === 'sessions' ? value : formatNumber(value)}
                                                     </Text>
                                                 )}
@@ -155,12 +190,16 @@ export default function StatsScreen() {
                                                         styles.bar,
                                                         {
                                                             height: Math.max(height, 4),
-                                                            backgroundColor: isToday ? '#E63946' : '#D4A5D9',
+                                                            backgroundColor: isToday
+                                                                ? colors.accent
+                                                                : colors.accentPurple,
                                                         },
                                                     ]}
                                                 />
                                             </View>
-                                            <Text style={styles.barLabel}>{weekday}</Text>
+                                            <Text style={[styles.barLabel, { color: colors.textMuted }]}>
+                                                {weekday}
+                                            </Text>
                                         </View>
                                     );
                                 })}
@@ -174,40 +213,75 @@ export default function StatsScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#FFF8F0' },
-    scrollContent: { padding: 16 },
-    loadingText: { fontSize: 16, color: '#6B6B6B', textAlign: 'center', marginTop: 24 },
+    container: {
+        flex: 1,
+        // backgroundColor removed - now inline
+    },
+    scrollContent: {
+        padding: 16,
+    },
+    loadingText: {
+        fontSize: 16,
+        // color removed - now inline
+        textAlign: 'center',
+        marginTop: 24,
+    },
 
-    header: { fontSize: 24, fontWeight: '600', color: '#2D2D2D', marginBottom: 24 },
+    header: {
+        fontSize: 24,
+        fontWeight: '600',
+        // color removed - now inline
+        marginBottom: 24,
+    },
 
-    cardsRow: { flexDirection: 'row', gap: 12, marginBottom: 12 },
+    cardsRow: {
+        flexDirection: 'row',
+        gap: 12,
+        marginBottom: 12,
+    },
     card: {
         flex: 1,
-        backgroundColor: '#FFF',
+        // backgroundColor, borderColor removed - now inline
         borderRadius: 16,
         padding: 20,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#E0E0E0',
     },
-    cardValue: { fontSize: 32, fontWeight: '700', color: '#E63946', marginBottom: 4 },
-    cardLabel: { fontSize: 12, fontWeight: '500', color: '#6B6B6B', textAlign: 'center' },
+    cardValue: {
+        fontSize: 32,
+        fontWeight: '700',
+        // color removed - now inline
+        marginBottom: 4,
+    },
+    cardLabel: {
+        fontSize: 12,
+        fontWeight: '500',
+        // color removed - now inline
+        textAlign: 'center',
+    },
 
     chartContainer: {
         marginTop: 12,
-        backgroundColor: '#FFF',
+        // backgroundColor, borderColor removed - now inline
         borderRadius: 16,
         padding: 20,
         borderWidth: 1,
-        borderColor: '#E0E0E0',
     },
 
-    chartHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    chartTitle: { fontSize: 16, fontWeight: '600', color: '#2D2D2D' },
+    chartHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    chartTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        // color removed - now inline
+    },
 
     segment: {
         flexDirection: 'row',
-        backgroundColor: '#FFE8EC',
+        // backgroundColor removed - now inline
         borderRadius: 999,
         padding: 2,
     },
@@ -215,31 +289,79 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         paddingHorizontal: 10,
         borderRadius: 999,
+        // backgroundColor removed - now inline per item
     },
-    segmentItemActive: {
-        backgroundColor: '#E63946',
+    segmentText: {
+        fontSize: 12,
+        fontWeight: '600',
+        // color removed - now inline
     },
-    segmentText: { fontSize: 12, fontWeight: '600', color: '#6B6B6B' },
-    segmentTextActive: { color: '#FFF' },
 
-    weekSummaryRow: { marginTop: 14, marginBottom: 10 },
-    weekSummaryText: { fontSize: 13, fontWeight: '600', color: '#2D2D2D' },
-    weekSummarySubtext: { fontSize: 12, color: '#6B6B6B', marginTop: 4 },
+    weekSummaryRow: {
+        marginTop: 14,
+        marginBottom: 10,
+    },
+    weekSummaryText: {
+        fontSize: 13,
+        fontWeight: '600',
+        // color removed - now inline
+    },
+    weekSummarySubtext: {
+        fontSize: 12,
+        // color removed - now inline
+        marginTop: 4,
+    },
 
-    emptyState: { paddingVertical: 40, alignItems: 'center' },
-    emptyText: { fontSize: 18, fontWeight: '600', color: '#6B6B6B', marginBottom: 8 },
-    emptySubtext: { fontSize: 14, color: '#6B6B6B', textAlign: 'center' },
+    emptyState: {
+        paddingVertical: 40,
+        alignItems: 'center',
+    },
+    emptyText: {
+        fontSize: 18,
+        fontWeight: '600',
+        // color removed - now inline
+        marginBottom: 8,
+    },
+    emptySubtext: {
+        fontSize: 14,
+        // color removed - now inline
+        textAlign: 'center',
+    },
 
-    chart: { height: 180, marginTop: 8 },
+    chart: {
+        height: 180,
+        marginTop: 8,
+    },
     bars: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-end',
         height: 150,
     },
-    barColumn: { flex: 1, alignItems: 'center' },
-    barContainer: { flex: 1, justifyContent: 'flex-end', alignItems: 'center', width: '100%' },
-    barValue: { fontSize: 12, fontWeight: '600', color: '#2D2D2D', marginBottom: 4 },
-    bar: { width: 24, borderRadius: 4 },
-    barLabel: { fontSize: 10, color: '#6B6B6B', marginTop: 8 },
+    barColumn: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    barContainer: {
+        flex: 1,
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        width: '100%',
+    },
+    barValue: {
+        fontSize: 12,
+        fontWeight: '600',
+        // color removed - now inline
+        marginBottom: 4,
+    },
+    bar: {
+        width: 24,
+        borderRadius: 4,
+        // backgroundColor removed - now inline
+    },
+    barLabel: {
+        fontSize: 10,
+        // color removed - now inline
+        marginTop: 8,
+    },
 });

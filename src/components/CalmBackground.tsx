@@ -1,66 +1,96 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, AppState, AccessibilityInfo, Easing, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../theme/useTheme';
 
-type Props = { enabled: boolean };
+type HeartSpec = {
+    id: string;
+    topPct: number;   // 0..100
+    leftPct: number;  // 0..100
+    size: number;     // fontSize
+    driftX: number;   // px
+    driftY: number;   // px
+    durationMs: number;
+    delayMs: number;
+    baseOpacity: number; // 0..1
+    emoji: string;
+};
 
-export default function CalmBackground({ enabled }: Props) {
-    const { colors } = useTheme();
+function clamp(n: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, n));
+}
+
+export default function CalmBackground({ enabled }: { enabled: boolean }) {
+    const { colors, isDark } = useTheme();
     const [reduceMotion, setReduceMotion] = useState(false);
 
-    // Animation values
-    const pulse = useRef(new Animated.Value(0)).current;
-
-    const blob1X = useRef(new Animated.Value(0)).current;
-    const blob1Y = useRef(new Animated.Value(0)).current;
-
-    const blob2X = useRef(new Animated.Value(0)).current;
-    const blob2Y = useRef(new Animated.Value(0)).current;
-
-    const loopsRef = useRef<Animated.CompositeAnimation[]>([]);
-    const appStateRef = useRef(AppState.currentState);
-
-    // Read + subscribe reduce motion
     useEffect(() => {
         let mounted = true;
-
-        AccessibilityInfo.isReduceMotionEnabled()
-            .then((v) => mounted && setReduceMotion(v))
-            .catch(() => { });
-
-        // RN versions differ; keep it defensive
-        const sub: any =
-            (AccessibilityInfo as any).addEventListener?.('reduceMotionChanged', (v: boolean) => {
-                setReduceMotion(v);
-            });
-
+        AccessibilityInfo.isReduceMotionEnabled().then((v) => {
+            if (mounted) setReduceMotion(Boolean(v));
+        });
         return () => {
             mounted = false;
-            sub?.remove?.();
         };
     }, []);
 
-    const isActive = enabled && !reduceMotion;
+    // Gradient pulse (opacity only)
+    const pulse = useRef(new Animated.Value(0)).current;
 
-    const stopAll = () => {
-        loopsRef.current.forEach((a) => a.stop());
-        loopsRef.current = [];
-    };
+    // Create a small set of hearts once (stable layout)
+    const hearts: HeartSpec[] = useMemo(() => {
+        // Keep it subtle: 3 hearts usually feels right
+        return [
+            {
+                id: 'h1',
+                topPct: 22,
+                leftPct: 14,
+                size: 84,
+                driftX: 18,
+                driftY: -22,
+                durationMs: 28000,
+                delayMs: 0,
+                baseOpacity: isDark ? 0.10 : 0.12,
+                emoji: '❤',
+            },
+            {
+                id: 'h2',
+                topPct: 58,
+                leftPct: 70,
+                size: 72,
+                driftX: -16,
+                driftY: -18,
+                durationMs: 32000,
+                delayMs: 600,
+                baseOpacity: isDark ? 0.08 : 0.10,
+                emoji: '❤',
+            },
+            {
+                id: 'h3',
+                topPct: 40,
+                leftPct: 40,
+                size: 110,
+                driftX: 10,
+                driftY: -14,
+                durationMs: 36000,
+                delayMs: 1200,
+                baseOpacity: isDark ? 0.06 : 0.08,
+                emoji: '❤',
+            },
+        ];
+    }, [isDark]);
 
-    const resetValues = () => {
-        pulse.setValue(0);
-        blob1X.setValue(0);
-        blob1Y.setValue(0);
-        blob2X.setValue(0);
-        blob2Y.setValue(0);
-    };
+    // One progress value per heart (0..1) – transforms derive from this
+    const heartProgress = useRef(hearts.map(() => new Animated.Value(0))).current;
 
-    const startAll = () => {
-        stopAll();
-        resetValues();
+    useEffect(() => {
+        if (!enabled || reduceMotion) {
+            // Reset values so re-enable starts cleanly
+            pulse.setValue(0);
+            heartProgress.forEach((v) => v.setValue(0));
+            return;
+        }
 
-        // Pulse: 18s breath (opacity via interpolation)
         const pulseLoop = Animated.loop(
             Animated.sequence([
                 Animated.timing(pulse, {
@@ -78,168 +108,110 @@ export default function CalmBackground({ enabled }: Props) {
             ])
         );
 
-        // Blob 1: 25s diagonal drift
-        const b1 = Animated.loop(
-            Animated.parallel([
+        const heartLoops = hearts.map((h, i) =>
+            Animated.loop(
                 Animated.sequence([
-                    Animated.timing(blob1X, {
-                        toValue: 50,
-                        duration: 12500,
-                        easing: Easing.inOut(Easing.ease),
+                    Animated.timing(heartProgress[i], {
+                        toValue: 1,
+                        duration: h.durationMs,
+                        delay: h.delayMs,
+                        easing: Easing.inOut(Easing.sin),
                         useNativeDriver: true,
                     }),
-                    Animated.timing(blob1X, {
-                        toValue: -50,
-                        duration: 12500,
-                        easing: Easing.inOut(Easing.ease),
+                    Animated.timing(heartProgress[i], {
+                        toValue: 0,
+                        duration: h.durationMs,
+                        easing: Easing.inOut(Easing.sin),
                         useNativeDriver: true,
                     }),
-                ]),
-                Animated.sequence([
-                    Animated.timing(blob1Y, {
-                        toValue: 30,
-                        duration: 12500,
-                        easing: Easing.inOut(Easing.ease),
-                        useNativeDriver: true,
-                    }),
-                    Animated.timing(blob1Y, {
-                        toValue: -30,
-                        duration: 12500,
-                        easing: Easing.inOut(Easing.ease),
-                        useNativeDriver: true,
-                    }),
-                ]),
-            ])
+                ])
+            )
         );
 
-        // Blob 2: 30s opposite drift (slightly different amplitudes)
-        const b2 = Animated.loop(
-            Animated.parallel([
-                Animated.sequence([
-                    Animated.timing(blob2X, {
-                        toValue: -45,
-                        duration: 15000,
-                        easing: Easing.inOut(Easing.ease),
-                        useNativeDriver: true,
-                    }),
-                    Animated.timing(blob2X, {
-                        toValue: 45,
-                        duration: 15000,
-                        easing: Easing.inOut(Easing.ease),
-                        useNativeDriver: true,
-                    }),
-                ]),
-                Animated.sequence([
-                    Animated.timing(blob2Y, {
-                        toValue: -28,
-                        duration: 15000,
-                        easing: Easing.inOut(Easing.ease),
-                        useNativeDriver: true,
-                    }),
-                    Animated.timing(blob2Y, {
-                        toValue: 28,
-                        duration: 15000,
-                        easing: Easing.inOut(Easing.ease),
-                        useNativeDriver: true,
-                    }),
-                ]),
-            ])
-        );
+        pulseLoop.start();
+        heartLoops.forEach((l) => l.start());
 
-        loopsRef.current = [pulseLoop, b1, b2];
-        loopsRef.current.forEach((a) => a.start());
-    };
+        return () => {
+            pulseLoop.stop();
+            heartLoops.forEach((l) => l.stop());
+        };
+    }, [enabled, reduceMotion, hearts, pulse, heartProgress]);
 
-    // Start/stop based on enabled + reduce motion
-    useEffect(() => {
-        if (!isActive) {
-            stopAll();
-            resetValues();
-            return;
-        }
-        startAll();
-        return () => stopAll();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isActive]);
+    if (!enabled || reduceMotion) return null;
 
-    // Optional: pause animations when app backgrounded (battery)
-    useEffect(() => {
-        const sub = AppState.addEventListener('change', (next) => {
-            const prev = appStateRef.current;
-            appStateRef.current = next;
-
-            if (!isActive) return;
-
-            if (prev === 'active' && next !== 'active') {
-                stopAll();
-            } else if (prev !== 'active' && next === 'active') {
-                startAll();
-            }
-        });
-
-        return () => sub.remove();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isActive]);
-
-    const pulseOpacity = useMemo(
-        () =>
-            pulse.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.08, 0.15],
-            }),
-        [pulse]
-    );
-
-    if (!isActive) return null;
+    const pulseOpacity = pulse.interpolate({
+        inputRange: [0, 1],
+        outputRange: [isDark ? 0.06 : 0.08, isDark ? 0.11 : 0.14],
+    });
 
     return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-            {/* Gradient pulse */}
+            {/* Layer 1: Gradient pulse (opacity only = GPU-safe) */}
             <Animated.View style={[StyleSheet.absoluteFill, { opacity: pulseOpacity }]}>
                 <LinearGradient
                     colors={[colors.accentLight, colors.accentPurple]}
-                    start={{ x: 0.2, y: 0.2 }}
-                    end={{ x: 0.8, y: 0.8 }}
                     style={StyleSheet.absoluteFill}
                 />
             </Animated.View>
 
-            {/* Blob 1 */}
-            <Animated.View
-                style={[
-                    styles.blob,
-                    {
-                        top: '28%',
-                        left: '15%',
-                        backgroundColor: colors.accentLight,
-                        opacity: 0.12,
-                        transform: [{ translateX: blob1X }, { translateY: blob1Y }],
-                    },
-                ]}
-            />
+            {/* Layer 2: Heart bokeh */}
+            {hearts.map((h, i) => {
+                const p = heartProgress[i];
 
-            {/* Blob 2 */}
-            <Animated.View
-                style={[
-                    styles.blob,
-                    {
-                        top: '62%',
-                        right: '18%',
-                        backgroundColor: colors.accentPurple,
-                        opacity: 0.10,
-                        transform: [{ translateX: blob2X }, { translateY: blob2Y }],
-                    },
-                ]}
-            />
+                const translateX = p.interpolate({ inputRange: [0, 1], outputRange: [0, h.driftX] });
+                const translateY = p.interpolate({ inputRange: [0, 1], outputRange: [0, h.driftY] });
+
+                // Tiny breathing scale
+                const scale = p.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] });
+
+                // Tiny rotation for organic drift (degrees)
+                const rotate = p.interpolate({ inputRange: [0, 1], outputRange: ['-3deg', '3deg'] });
+
+                // Slight opacity variation (still very subtle)
+                const opacity = p.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [clamp(h.baseOpacity - 0.02, 0, 0.2), clamp(h.baseOpacity + 0.02, 0, 0.2)],
+                });
+
+                return (
+                    <Animated.View
+                        key={h.id}
+                        style={[
+                            styles.heartWrap,
+                            {
+                                top: `${h.topPct}%`,
+                                left: `${h.leftPct}%`,
+                                opacity,
+                                transform: [{ translateX }, { translateY }, { scale }, { rotate }],
+                            },
+                        ]}
+                    >
+                        <Text
+                            style={[
+                                styles.heartText,
+                                {
+                                    fontSize: h.size,
+                                    color: colors.accent, // static color, not animated
+                                },
+                            ]}
+                        >
+                            {h.emoji}
+                        </Text>
+                    </Animated.View>
+                );
+            })}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    blob: {
+    heartWrap: {
         position: 'absolute',
-        width: 140,
-        height: 140,
-        borderRadius: 999,
+    },
+    heartText: {
+        // Softening (static). Keep conservative; too much can look fuzzy.
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 18,
+        textShadowColor: 'rgba(0,0,0,0.15)',
     },
 });

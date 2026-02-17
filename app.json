@@ -2,7 +2,7 @@
   "expo": {
     "name": "Valentine Pomodoro",
     "slug": "valentine-pomodoro",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
@@ -19,7 +19,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.bengisu.valentinepomodoro",
-      "buildNumber": "2",
+      "buildNumber": "3",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { TimerState, TimerPhase, Settings } from '../types';
 import { save, load, STORAGE_KEYS } from '../utils/storage';
-import { minutesToMs } from '../utils/time';
+import { minutesToMs, getDayKeyFromDate, getTodayKey } from '../utils/time';
 import { useNotifications, getNotificationContent } from './useNotifications';
 import * as Haptics from 'expo-haptics';
 
@@ -14,6 +14,8 @@ const INITIAL_TIMER_STATE: TimerState = {
     scheduledNotificationId: null,
     sessionPlannedMinutes: null,
     lastHandledEndAt: null, // Idempotency: prevent double-completion
+    sessionStartedAt: null, // NEW: for midnight attribution
+    sessionId: null, // NEW: for double-counting prevention
     // Love note state (Phase 5)
     lastLoveNote: null,
     lastTransitionId: 0,
@@ -38,7 +40,7 @@ interface UseTimerReturn {
     dismissLoveNote: () => void;  // Phase 5: dismiss love note card
 }
 
-export function useTimer(settings: Settings, pickRandomNote: (lastNote: string | null) => string, incrementFocus: (minutes: number) => void): UseTimerReturn {
+export function useTimer(settings: Settings, pickRandomNote: (lastNote: string | null) => string, incrementFocus: (minutes: number, dayKey?: string, sessionId?: string) => void): UseTimerReturn {
     const [state, setState] = useState<TimerState>(INITIAL_TIMER_STATE);
     const tickIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -71,10 +73,20 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
 
             // Update stats if focus was completed (not skipped)
             if (wasFocus && s.sessionPlannedMinutes !== null) {
+                // ✅ Credit the day the session STARTED (midnight attribution)
+                const dayKey = s.sessionStartedAt
+                    ? getDayKeyFromDate(s.sessionStartedAt)
+                    : getTodayKey(); // fallback for old sessions
+
                 if (__DEV__) {
-                    console.log('[useTimer] Focus completed! Incrementing stats with minutes:', s.sessionPlannedMinutes);
+                    console.log('[useTimer] Focus completed! Incrementing stats:', {
+                        minutes: s.sessionPlannedMinutes,
+                        dayKey,
+                        sessionId: s.sessionId,
+                    });
                 }
-                incrementFocus(s.sessionPlannedMinutes);
+
+                incrementFocus(s.sessionPlannedMinutes, dayKey, s.sessionId ?? undefined);
             } else if (wasFocus) {
                 if (__DEV__) {
                     console.warn('[useTimer] Focus completed but sessionPlannedMinutes is null');
@@ -252,6 +264,9 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
             }
         }
 
+        // Generate unique session ID for idempotency
+        const sessionId = `${now}-${Math.random().toString(36).slice(2, 11)}`;
+
         persistState({
             ...state,
             isRunning: true,
@@ -259,6 +274,8 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
             remainingMs: durationMs,
             sessionPlannedMinutes: durationMinutes,
             scheduledNotificationId: notificationId,
+            sessionStartedAt: now, // ✅ Capture start time for midnight attribution
+            sessionId, // ✅ Unique ID for double-counting prevention
         });
     }, [state, getCurrentDuration, persistState, settings.notifications, scheduleSessionEnd]);
 

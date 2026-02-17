@@ -1,8 +1,9 @@
 import { View, Text, Pressable, StyleSheet, Alert, Platform, useWindowDimensions, StatusBar } from "react-native";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTimer } from "../hooks/useTimer";
 import { formatTime } from "../utils/time";
 import LoveNoteCard from "../components/LoveNoteCard";
+import GoalReachedPopup from "../components/GoalReachedPopup";
 import { CircularProgress } from "../components/CircularProgress";
 import CalmBackground from "../components/CalmBackground";
 import * as Haptics from "expo-haptics";
@@ -27,6 +28,25 @@ export default function TimerScreen() {
     reset,
     dismissLoveNote,
   } = useTimer(settings.settings, loveNotes.pickRandomNote, stats.incrementFocus);
+
+  // Goal celebration popup state
+  const [goalPopup, setGoalPopup] = useState<null | { dayKey: string; newStreak: number }>(null);
+  const lastCelebratedDayKeyRef = useRef<string | null>(null);
+
+  // Listen for goal hit pulse
+  useEffect(() => {
+    const pulse = stats.goalHitPulse;
+    if (!pulse) return;
+
+    // Prevent double celebration for same day
+    if (lastCelebratedDayKeyRef.current === pulse.dayKey) {
+      stats.clearGoalHitPulse();
+      return;
+    }
+
+    lastCelebratedDayKeyRef.current = pulse.dayKey;
+    setGoalPopup(pulse);
+  }, [stats.goalHitPulse, stats.clearGoalHitPulse]);
 
   // Responsive layout detection
   const isLandscape = width > height;
@@ -236,10 +256,22 @@ export default function TimerScreen() {
           </>
         )}
 
-        {/* Love Note Card - appears on focus completion */}
-        {showLoveNoteCard && lastLoveNote && (
+        {/* Love Note Card - appears on focus completion (but not when goal popup is showing) */}
+        {showLoveNoteCard && lastLoveNote && !goalPopup && (
           <LoveNoteCard note={lastLoveNote} onDismiss={dismissLoveNote} />
         )}
+
+        {/* Goal Reached Popup - Duolingo-style celebration */}
+        <GoalReachedPopup
+          visible={!!goalPopup}
+          newStreak={goalPopup?.newStreak ?? 0}
+          animationsEnabled={settings.settings.animationsEnabled}
+          autoDismissMs={1400} // Auto-dismiss after 1.4s for snappy feel
+          onClose={() => {
+            setGoalPopup(null);
+            stats.clearGoalHitPulse(); // Clear pulse only after popup closes
+          }}
+        />
       </View>
     </View>
   );

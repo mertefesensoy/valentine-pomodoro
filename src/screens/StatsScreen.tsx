@@ -5,6 +5,13 @@ import { useTheme } from '../theme/useTheme';
 
 type Metric = 'sessions' | 'minutes';
 
+function clamp(n: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, n));
+}
+
+const BAR_MAX = 120;       // keep your existing scale (you already use 120)
+const BAR_AREA = 150;      // matches styles.bars height
+
 function parseLocalDateKey(dayKey: string) {
     // dayKey format: YYYY-MM-DD
     const [y, m, d] = dayKey.split('-').map(Number);
@@ -20,7 +27,7 @@ function formatNumber(n: number) {
 
 export default function StatsScreen() {
     const { stats } = useApp();
-    const { isReady, today, totals, last7Days } = stats;
+    const { isReady, today, totals, last7Days, goalMinutes, streak } = stats;
     const { colors } = useTheme();
 
     const [metric, setMetric] = useState<Metric>('minutes');
@@ -52,12 +59,30 @@ export default function StatsScreen() {
         };
     }, [weekTotals]);
 
+    const showGoalLine = metric === 'minutes' && goalMinutes > 0;
+
+    // Per-day goal snapshots (truthful chart)
+    const dayGoals = useMemo(() => {
+        return last7Days.map(([, day]) => day.goalMinutes ?? goalMinutes);
+    }, [last7Days, goalMinutes]);
+
     const maxValue = useMemo(() => {
         const values = last7Days.map(([, day]) =>
             metric === 'sessions' ? day.focusSessions : day.focusMinutes
         );
-        return Math.max(...values, 1);
-    }, [last7Days, metric]);
+        const baseMax = Math.max(...values, 1);
+
+        if (showGoalLine) {
+            const maxGoal = Math.max(...dayGoals, 1);
+            return Math.max(baseMax, maxGoal);
+        }
+
+        return baseMax;
+    }, [last7Days, metric, dayGoals, showGoalLine]);
+
+    // Remove single goalLabelBottom - now per-day
+
+    const leftToday = useMemo(() => Math.max(goalMinutes - today.focusMinutes, 0), [goalMinutes, today.focusMinutes]);
 
     const chartTitle = metric === 'sessions' ? 'Last 7 Days (Sessions)' : 'Last 7 Days (Minutes)';
 
@@ -92,6 +117,28 @@ export default function StatsScreen() {
                             {formatNumber(totals.focusMinutes)}
                         </Text>
                         <Text style={[styles.cardLabel, { color: colors.textMuted }]}>All-Time Minutes</Text>
+                    </View>
+                </View>
+
+                <View style={styles.cardsRow}>
+                    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                        <Text style={[styles.cardValue, { color: colors.accent }]}>
+                            {formatNumber(goalMinutes)}
+                        </Text>
+                        <Text style={[styles.cardLabel, { color: colors.textMuted }]}>Daily Goal (min)</Text>
+                        <Text style={[styles.cardHint, { color: colors.textMuted }]}>
+                            Left today: {formatNumber(leftToday)}
+                        </Text>
+                    </View>
+
+                    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                        <Text style={[styles.cardValue, { color: colors.accent }]}>
+                            {streak.current}
+                        </Text>
+                        <Text style={[styles.cardLabel, { color: colors.textMuted }]}>Love Streak</Text>
+                        <Text style={[styles.cardHint, { color: colors.textMuted }]}>
+                            Best: {streak.best}
+                        </Text>
                     </View>
                 </View>
 
@@ -168,41 +215,70 @@ export default function StatsScreen() {
                         </View>
                     ) : (
                         <View style={styles.chart}>
-                            <View style={styles.bars}>
-                                {last7Days.map(([dayKey, day], idx) => {
-                                    const value = metric === 'sessions' ? day.focusSessions : day.focusMinutes;
-                                    const height = (value / maxValue) * 120;
+                            <View style={styles.barArea}>
+                                {/* Per-day goal markers (truthful chart) */}
+                                {showGoalLine && last7Days.map(([dayKey, day], idx) => {
+                                    const dayGoal = day.goalMinutes ?? goalMinutes;
+                                    const goalBottom = (dayGoal / maxValue) * BAR_MAX;
 
-                                    const isToday = idx === last7Days.length - 1;
-                                    const labelDate = parseLocalDateKey(dayKey);
-                                    const weekday = labelDate.toLocaleDateString('en', { weekday: 'short' });
+                                    const barWidth = 100 / last7Days.length;
+                                    const xPosition = idx * barWidth;
 
                                     return (
-                                        <View key={dayKey} style={styles.barColumn}>
-                                            <View style={styles.barContainer}>
-                                                {value > 0 && (
-                                                    <Text style={[styles.barValue, { color: colors.text }]}>
-                                                        {metric === 'sessions' ? value : formatNumber(value)}
-                                                    </Text>
-                                                )}
-                                                <View
-                                                    style={[
-                                                        styles.bar,
-                                                        {
-                                                            height: Math.max(height, 4),
-                                                            backgroundColor: isToday
-                                                                ? colors.accent
-                                                                : colors.accentPurple,
-                                                        },
-                                                    ]}
-                                                />
-                                            </View>
-                                            <Text style={[styles.barLabel, { color: colors.textMuted }]}>
-                                                {weekday}
-                                            </Text>
-                                        </View>
+                                        <View
+                                            key={`goal-${dayKey}`}
+                                            pointerEvents="none"
+                                            style={{
+                                                position: 'absolute',
+                                                left: `${xPosition}%`,
+                                                width: `${barWidth}%`,
+                                                bottom: clamp(goalBottom, 0, BAR_MAX),
+                                                height: 1,
+                                                borderTopWidth: 1,
+                                                borderTopColor: colors.textMuted,
+                                                borderStyle: 'dashed',
+                                                opacity: 0.45,
+                                            }}
+                                        />
                                     );
                                 })}
+
+                                <View style={styles.bars}>
+                                    {last7Days.map(([dayKey, day], idx) => {
+                                        const value = metric === 'sessions' ? day.focusSessions : day.focusMinutes;
+                                        const height = (value / maxValue) * BAR_MAX;
+
+                                        const isToday = idx === last7Days.length - 1;
+                                        const labelDate = parseLocalDateKey(dayKey);
+                                        const weekday = labelDate.toLocaleDateString('en', { weekday: 'short' });
+
+                                        return (
+                                            <View key={dayKey} style={styles.barColumn}>
+                                                <View style={styles.barContainer}>
+                                                    {value > 0 && (
+                                                        <Text style={[styles.barValue, { color: colors.text }]}>
+                                                            {metric === 'sessions' ? value : formatNumber(value)}
+                                                        </Text>
+                                                    )}
+                                                    <View
+                                                        style={[
+                                                            styles.bar,
+                                                            {
+                                                                height: Math.max(height, 4),
+                                                                backgroundColor: isToday
+                                                                    ? colors.accent
+                                                                    : colors.accentPurple,
+                                                            },
+                                                        ]}
+                                                    />
+                                                </View>
+                                                <Text style={[styles.barLabel, { color: colors.textMuted }]}>
+                                                    {weekday}
+                                                </Text>
+                                            </View>
+                                        );
+                                    })}
+                                </View>
                             </View>
                         </View>
                     )}
@@ -258,6 +334,10 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         // color removed - now inline
         textAlign: 'center',
+    },
+    cardHint: {
+        fontSize: 11,
+        marginTop: 6,
     },
 
     chartContainer: {
@@ -332,11 +412,31 @@ const styles = StyleSheet.create({
         height: 180,
         marginTop: 8,
     },
+    barArea: {
+        position: 'relative',
+        height: BAR_AREA, // 150
+        justifyContent: 'flex-end',
+    },
     bars: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-end',
         height: 150,
+    },
+    goalLine: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        borderTopWidth: 1,
+        borderStyle: 'dashed',
+        opacity: 0.45,
+    },
+    goalLabel: {
+        position: 'absolute',
+        right: 0,
+        fontSize: 10,
+        fontWeight: '600',
+        opacity: 0.6,
     },
     barColumn: {
         flex: 1,

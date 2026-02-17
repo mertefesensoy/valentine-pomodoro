@@ -2,11 +2,13 @@ import React, { createContext, useContext, ReactNode, useMemo } from 'react';
 import { useSettings } from '../hooks/useSettings';
 import { useStats } from '../hooks/useStats';
 import { useLoveNotes } from '../hooks/useLoveNotes';
+import { useReminder } from '../hooks/useReminder';
 
 type AppContextValue = {
     settings: ReturnType<typeof useSettings>;
     stats: ReturnType<typeof useStats>;
     loveNotes: ReturnType<typeof useLoveNotes>;
+    reminder: ReturnType<typeof useReminder>;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -16,11 +18,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const settings = useSettings();
     const stats = useStats();
     const loveNotes = useLoveNotes();
+    const reminder = useReminder();
 
     // ✅ memoize to prevent re-render storm
     const value = useMemo(
-        () => ({ settings, stats, loveNotes }),
-        [settings, stats, loveNotes]
+        () => ({ settings, stats, loveNotes, reminder }),
+        [settings, stats, loveNotes, reminder]
     );
 
     return (

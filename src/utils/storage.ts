@@ -49,7 +49,9 @@ export const STORAGE_KEYS = {
     TIMER_STATE: 'timer_state',
     SETTINGS: 'settings',
     STATS: 'stats',
+    STATS_V2: 'stats_v2',
     GIFT_MODE: 'gift_mode',
     LOVE_NOTES: 'love_notes',
     UPDATE_META: 'update_meta', // { lastCheckAt: number, lastPromptedVersion: string | null }
+    REMINDER_V1: 'reminder_v1',
 } as const;

@@ -32,9 +32,26 @@ SplashScreen.preventAutoHideAsync();
 function ThemedApp() {
   const { isDark } = useTheme();
   const { hasSeenGiftMode, isReady: giftModeReady, dismiss } = useGiftMode();
+  const navigationRef = React.useRef<any>(null);
 
   // Check for app updates (max once per 24h, offline-safe)
   useUpdateCheck(UPDATE_JSON_URL);
+
+  // Phase 7: Notification tap routing - navigate to Timer screen
+  React.useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+      if (__DEV__) {
+        console.log('[App] Notification tapped:', response.notification.request.content);
+      }
+
+      // Navigate to Timer screen when notification is tapped
+      if (navigationRef.current) {
+        navigationRef.current.navigate('HomeTabs', { screen: 'Timer' });
+      }
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   // Navigation theme based on app theme
   const navTheme = isDark ? DarkTheme : DefaultTheme;
@@ -42,6 +59,7 @@ function ThemedApp() {
   return (
     <>
       <Navigation
+        ref={navigationRef}
         theme={navTheme}
         linking={{
           enabled: 'auto',

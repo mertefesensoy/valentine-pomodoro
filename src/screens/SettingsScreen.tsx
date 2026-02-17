@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
     Alert,
+    Platform,
     Pressable,
     SafeAreaView,
     ScrollView,
@@ -10,15 +11,21 @@ import {
     TextInput,
     View,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useApp } from '../context/AppContext';
 import { useUpdateCheck } from '../hooks/useUpdateCheck';
 import { useTheme } from '../theme/useTheme';
 import type { ThemeMode } from '../types';
 
 const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
+const GOAL_PRESETS = [25, 50, 75, 100];
+
+function isValidHHMM(s: string) {
+    return /^\d{2}:\d{2}$/.test(s);
+}
 
 export default function SettingsScreen() {
-    const { settings: settingsContext } = useApp();
+    const { settings: settingsContext, stats, reminder } = useApp();
     const { settings, updateSettings } = settingsContext;
     const { checkForUpdates } = useUpdateCheck(UPDATE_JSON_URL);
     const { colors } = useTheme();
@@ -28,6 +35,13 @@ export default function SettingsScreen() {
     const [shortBreakDraft, setShortBreakDraft] = useState(settings.durations.shortBreak.toString());
     const [longBreakDraft, setLongBreakDraft] = useState(settings.durations.longBreak.toString());
     const [longBreakEveryDraft, setLongBreakEveryDraft] = useState(settings.longBreakEvery.toString());
+    const [goalDraft, setGoalDraft] = useState(stats.goalMinutes.toString());
+    const [statusText, setStatusText] = useState('');
+
+    // Phase 7: Native time picker state
+    const [showReminderTimePicker, setShowReminderTimePicker] = useState(false);
+    const [showQuietStartPicker, setShowQuietStartPicker] = useState(false);
+    const [showQuietEndPicker, setShowQuietEndPicker] = useState(false);
 
     const handleFocusBlur = () => {
         const val = parseInt(focusDraft, 10);
@@ -280,6 +294,273 @@ export default function SettingsScreen() {
                     </View>
                 </View>
 
+                {/* Goals & Streaks Section */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Goals & Streaks</Text>
+
+                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                        <Text style={[styles.label, { color: colors.text }]}>Enable Daily Goal</Text>
+                        <Switch
+                            value={stats.goalMinutes > 0}
+                            onValueChange={(on) => {
+                                if (on) {
+                                    const n = parseInt(goalDraft, 10);
+                                    stats.setGoalMinutes(Number.isFinite(n) && n > 0 ? n : 50);
+                                } else {
+                                    stats.setGoalMinutes(0);
+                                }
+                            }}
+                            trackColor={{ false: '#ddd', true: colors.accentLight }}
+                            thumbColor={stats.goalMinutes > 0 ? colors.accent : '#f4f3f4'}
+                        />
+                    </View>
+
+                    {stats.goalMinutes > 0 && (
+                        <>
+                            <View style={styles.presetRow}>
+                                {GOAL_PRESETS.map((preset) => (
+                                    <Pressable
+                                        key={preset}
+                                        onPress={() => {
+                                            setGoalDraft(preset.toString());
+                                            stats.setGoalMinutes(preset);
+                                        }}
+                                        style={[
+                                            styles.presetButton,
+                                            {
+                                                backgroundColor:
+                                                    stats.goalMinutes === preset
+                                                        ? colors.accent
+                                                        : colors.surfaceTint,
+                                            },
+                                        ]}
+                                    >
+                                        <Text
+                                            style={{
+                                                color: stats.goalMinutes === preset ? '#fff' : colors.text,
+                                                fontWeight: '600',
+                                            }}
+                                        >
+                                            {preset}m
+                                        </Text>
+                                    </Pressable>
+                                ))}
+                            </View>
+
+                            <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                                <Text style={[styles.label, { color: colors.text }]}>Custom Goal (minutes)</Text>
+                                <TextInput
+                                    style={[
+                                        styles.input,
+                                        {
+                                            backgroundColor: colors.inputBg,
+                                            borderColor: colors.accentPurple,
+                                            color: colors.text,
+                                        },
+                                    ]}
+                                    value={goalDraft}
+                                    onChangeText={setGoalDraft}
+                                    onBlur={() => {
+                                        const n = parseInt(goalDraft, 10);
+                                        if (Number.isFinite(n) && n >= 0 && n <= 1440) {
+                                            stats.setGoalMinutes(n);
+                                        } else {
+                                            setGoalDraft(stats.goalMinutes.toString());
+                                        }
+                                    }}
+                                    keyboardType="number-pad"
+                                    maxLength={4}
+                                />
+                            </View>
+                        </>
+                    )}
+
+                    <Text style={[styles.infoText, { color: colors.textMuted }]}>
+                        Current streak: {stats.streak.current} days (best: {stats.streak.best})
+                    </Text>
+                </View>
+
+                {/* Daily Reminders Section */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Daily Reminders</Text>
+
+                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                        <Text style={[styles.label, { color: colors.text }]}>Enable Reminders</Text>
+                        <Switch
+                            value={reminder.reminder.enabled}
+                            onValueChange={async (on) => {
+                                setStatusText('');
+                                if (on) {
+                                    const ok = await reminder.enableDailyReminder();
+                                    if (!ok) {
+                                        setStatusText('Permission denied. Please enable notifications in settings.');
+                                    }
+                                } else {
+                                    await reminder.disableDailyReminder();
+                                }
+                            }}
+                            trackColor={{ false: '#ddd', true: colors.accentLight }}
+                            thumbColor={reminder.reminder.enabled ? colors.accent : '#f4f3f4'}
+                        />
+                    </View>
+
+                    {reminder.reminder.enabled && (
+                        <>
+                            <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                                <Text style={[styles.label, { color: colors.text }]}>Time</Text>
+                                <Pressable
+                                    style={[
+                                        styles.input,
+                                        {
+                                            backgroundColor: colors.inputBg,
+                                            borderColor: colors.accentPurple,
+                                            justifyContent: 'center',
+                                        },
+                                    ]}
+                                    onPress={() => setShowReminderTimePicker(true)}
+                                >
+                                    <Text style={{ color: colors.text, fontSize: 16 }}>
+                                        {reminder.reminder.timeHHMM}
+                                    </Text>
+                                </Pressable>
+                                {showReminderTimePicker && (
+                                    <DateTimePicker
+                                        value={(() => {
+                                            const [h, m] = reminder.reminder.timeHHMM.split(':').map(Number);
+                                            const date = new Date();
+                                            date.setHours(h, m, 0, 0);
+                                            return date;
+                                        })()}
+                                        mode="time"
+                                        is24Hour={true}
+                                        onChange={(event, selectedDate) => {
+                                            setShowReminderTimePicker(Platform.OS === 'ios');
+                                            if (event.type === 'set' && selectedDate) {
+                                                const hh = selectedDate.getHours().toString().padStart(2, '0');
+                                                const mm = selectedDate.getMinutes().toString().padStart(2, '0');
+                                                reminder.setReminderTimeHHMM(`${hh}:${mm}`);
+                                            }
+                                        }}
+                                    />
+                                )}
+                            </View>
+
+                            <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                                <Text style={[styles.label, { color: colors.text }]}>Quiet Hours</Text>
+                                <Switch
+                                    value={reminder.reminder.quietHours.enabled}
+                                    onValueChange={(on) =>
+                                        reminder.setQuietHours({
+                                            ...reminder.reminder.quietHours,
+                                            enabled: on,
+                                        })
+                                    }
+                                    trackColor={{ false: '#ddd', true: colors.accentLight }}
+                                    thumbColor={reminder.reminder.quietHours.enabled ? colors.accent : '#f4f3f4'}
+                                />
+                            </View>
+
+                            {reminder.reminder.quietHours.enabled && (
+                                <>
+                                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                                        <Text style={[styles.label, { color: colors.text }]}>Quiet Start</Text>
+                                        <Pressable
+                                            style={[
+                                                styles.input,
+                                                {
+                                                    backgroundColor: colors.inputBg,
+                                                    borderColor: colors.accentPurple,
+                                                    justifyContent: 'center',
+                                                },
+                                            ]}
+                                            onPress={() => setShowQuietStartPicker(true)}
+                                        >
+                                            <Text style={{ color: colors.text, fontSize: 16 }}>
+                                                {reminder.reminder.quietHours.startHHMM}
+                                            </Text>
+                                        </Pressable>
+                                        {showQuietStartPicker && (
+                                            <DateTimePicker
+                                                value={(() => {
+                                                    const [h, m] = reminder.reminder.quietHours.startHHMM.split(':').map(Number);
+                                                    const date = new Date();
+                                                    date.setHours(h, m, 0, 0);
+                                                    return date;
+                                                })()}
+                                                mode="time"
+                                                is24Hour={true}
+                                                onChange={(event, selectedDate) => {
+                                                    setShowQuietStartPicker(Platform.OS === 'ios');
+                                                    if (event.type === 'set' && selectedDate) {
+                                                        const hh = selectedDate.getHours().toString().padStart(2, '0');
+                                                        const mm = selectedDate.getMinutes().toString().padStart(2, '0');
+                                                        reminder.setQuietHours({
+                                                            ...reminder.reminder.quietHours,
+                                                            startHHMM: `${hh}:${mm}`,
+                                                        });
+                                                    }
+                                                }}
+                                            />
+                                        )}
+                                    </View>
+
+                                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                                        <Text style={[styles.label, { color: colors.text }]}>Quiet End</Text>
+                                        <Pressable
+                                            style={[
+                                                styles.input,
+                                                {
+                                                    backgroundColor: colors.inputBg,
+                                                    borderColor: colors.accentPurple,
+                                                    justifyContent: 'center',
+                                                },
+                                            ]}
+                                            onPress={() => setShowQuietEndPicker(true)}
+                                        >
+                                            <Text style={{ color: colors.text, fontSize: 16 }}>
+                                                {reminder.reminder.quietHours.endHHMM}
+                                            </Text>
+                                        </Pressable>
+                                        {showQuietEndPicker && (
+                                            <DateTimePicker
+                                                value={(() => {
+                                                    const [h, m] = reminder.reminder.quietHours.endHHMM.split(':').map(Number);
+                                                    const date = new Date();
+                                                    date.setHours(h, m, 0, 0);
+                                                    return date;
+                                                })()}
+                                                mode="time"
+                                                is24Hour={true}
+                                                onChange={(event, selectedDate) => {
+                                                    setShowQuietEndPicker(Platform.OS === 'ios');
+                                                    if (event.type === 'set' && selectedDate) {
+                                                        const hh = selectedDate.getHours().toString().padStart(2, '0');
+                                                        const mm = selectedDate.getMinutes().toString().padStart(2, '0');
+                                                        reminder.setQuietHours({
+                                                            ...reminder.reminder.quietHours,
+                                                            endHHMM: `${hh}:${mm}`,
+                                                        });
+                                                    }
+                                                }}
+                                            />
+                                        )}
+                                    </View>
+
+                                    <Text style={[styles.infoText, { color: colors.textMuted }]}>
+                                        Reminder will be shifted to quiet-end if it falls inside quiet hours.
+                                    </Text>
+                                </>
+                            )}
+
+                            {!!statusText && (
+                                <Text style={[styles.infoText, { color: colors.textMuted, marginTop: 8 }]}>
+                                    {statusText}
+                                </Text>
+                            )}
+                        </>
+                    )}
+                </View>
+
                 {/* Check for Updates Button */}
                 <Pressable
                     style={[styles.updateButton, { backgroundColor: colors.accentPurple }]}
@@ -403,5 +684,19 @@ const styles = StyleSheet.create({
         marginTop: 16,
         textAlign: 'center',
         lineHeight: 20,
+    },
+    presetRow: {
+        flexDirection: 'row',
+        gap: 8,
+        marginTop: 12,
+        marginBottom: 12,
+        flexWrap: 'wrap',
+    },
+    presetButton: {
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 999,
+        minWidth: 60,
+        alignItems: 'center',
     },
 });

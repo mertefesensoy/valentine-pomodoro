@@ -16,6 +16,7 @@ import { useApp } from '../context/AppContext';
 import { useUpdateCheck } from '../hooks/useUpdateCheck';
 import { useTheme } from '../theme/useTheme';
 import type { ThemeMode } from '../types';
+import { showPrivacyOptionsForm } from '../ads/AdConsentManager';
 
 const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
 const GOAL_PRESETS = [25, 50, 75, 100];
@@ -566,6 +567,27 @@ export default function SettingsScreen() {
                             )}
                         </>
                     )}
+                </View>
+
+                {/* Ads & Privacy Section */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Ads & Privacy</Text>
+
+                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                        <View style={{ flex: 1 }}>
+                            <Text style={[styles.label, { color: colors.text }]}>Remove Ads</Text>
+                            <Text style={[styles.infoText, { color: colors.textMuted }]}>Coming soon</Text>
+                        </View>
+                        <Text style={{ color: colors.textMuted, fontSize: 16 }}>›</Text>
+                    </View>
+
+                    <Pressable
+                        style={[styles.row, { borderBottomColor: colors.border }]}
+                        onPress={() => showPrivacyOptionsForm().catch(() => { })}
+                    >
+                        <Text style={[styles.label, { color: colors.text }]}>Privacy Options</Text>
+                        <Text style={{ color: colors.textMuted, fontSize: 16 }}>›</Text>
+                    </Pressable>
                 </View>
 
                 {/* Check for Updates Button */}

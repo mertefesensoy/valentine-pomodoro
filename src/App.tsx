@@ -11,6 +11,8 @@ import { useUpdateCheck } from './hooks/useUpdateCheck';
 import { useTheme } from './theme/useTheme';
 import GiftModeModal from './components/GiftModeModal';
 import { AppProvider } from './context/AppContext';
+import { initConsent } from './ads/AdConsentManager';
+import { InterstitialAdManager } from './ads/InterstitialAdManager';
 
 // GitHub Pages URL for update.json
 const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
@@ -36,6 +38,13 @@ function ThemedApp() {
 
   // Check for app updates (max once per 24h, offline-safe)
   useUpdateCheck(UPDATE_JSON_URL);
+
+  // Init AdMob consent (UMP + ATT) and load frequency caps from storage
+  React.useEffect(() => {
+    initConsent().catch(() => { });
+    InterstitialAdManager.init().catch(() => { });
+  }, []);
+
 
   // Phase 7: Notification tap routing - navigate to Timer screen
   React.useEffect(() => {

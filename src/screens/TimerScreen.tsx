@@ -9,6 +9,24 @@ import CalmBackground from "../components/CalmBackground";
 import * as Haptics from "expo-haptics";
 import { useApp } from "../context/AppContext";
 import { useTheme } from "../theme/useTheme";
+import { useOverlayQueue } from "../hooks/useOverlayQueue";
+import { InterstitialAdManager } from "../ads/InterstitialAdManager";
+
+/**
+ * Render-effect component: calls InterstitialAdManager.show() on mount.
+ * If ad isn't loaded, calls onClose immediately so the queue advances.
+ */
+function InterstitialAdShim({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    const shown = InterstitialAdManager.show(onClose);
+    if (!shown) {
+      // Ad not loaded — skip silently
+      onClose();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  return null;
+}
+
 
 export default function TimerScreen() {
   const { width, height } = useWindowDimensions();
@@ -29,41 +47,52 @@ export default function TimerScreen() {
     dismissLoveNote,
   } = useTimer(settings.settings, loveNotes.pickRandomNote, stats.incrementFocus);
 
-  // Goal celebration popup state
-  const [goalPopup, setGoalPopup] = useState<null | { dayKey: string; newStreak: number }>(null);
-  const [queuedLoveNote, setQueuedLoveNote] = useState<typeof lastLoveNote | null>(null);
+  // OverlayQueue: serializes goal celebration → love note → interstitial
+  const overlayQueue = useOverlayQueue();
   const lastCelebratedDayKeyRef = useRef<string | null>(null);
 
-  // 1) When goalHitPulse arrives -> show popup.
-  // If a love note is currently showing, queue it and dismiss it so overlays never overlap.
+  // Preload interstitial during focus phase so it's ready at transition
+  useEffect(() => {
+    if (phase === 'focus' && isRunning) {
+      InterstitialAdManager.preload();
+    }
+  }, [phase, isRunning]);
+
+  // When goalHitPulse arrives → enqueue GOAL_CELEBRATION (deduplicated by dayKey)
   useEffect(() => {
     const pulse = stats.goalHitPulse;
     if (!pulse) return;
-
-    // Prevent double celebration for same day
     if (lastCelebratedDayKeyRef.current === pulse.dayKey) {
       stats.clearGoalHitPulse();
       return;
     }
     lastCelebratedDayKeyRef.current = pulse.dayKey;
+    overlayQueue.enqueue({ type: 'GOAL_CELEBRATION', dayKey: pulse.dayKey, newStreak: pulse.newStreak });
+  }, [stats.goalHitPulse]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // If love note is visible now, queue + dismiss it
+  // When love note becomes available → enqueue LOVE_NOTE
+  useEffect(() => {
     if (showLoveNoteCard && lastLoveNote) {
-      setQueuedLoveNote((prev) => prev ?? lastLoveNote);
+      overlayQueue.enqueue({ type: 'LOVE_NOTE', note: lastLoveNote });
+      // Dismiss the timer-side flag so it doesn't re-trigger
       dismissLoveNote();
     }
+  }, [showLoveNoteCard, lastLoveNote]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    setGoalPopup(pulse);
-  }, [stats.goalHitPulse, stats.clearGoalHitPulse, showLoveNoteCard, lastLoveNote, dismissLoveNote]);
-
-  // 2) If a love note tries to show while goal popup is already visible, queue + dismiss it.
+  // After a focus session completes, record session for ad frequency caps
+  const prevPhaseRef = useRef(phase);
   useEffect(() => {
-    if (!goalPopup) return;
-    if (!showLoveNoteCard || !lastLoveNote) return;
+    if (prevPhaseRef.current === 'focus' && phase !== 'focus') {
+      // Session just completed — record for cap tracking
+      InterstitialAdManager.recordSession().catch(() => { });
+      // Enqueue interstitial if eligible
+      if (InterstitialAdManager.canShow()) {
+        overlayQueue.enqueue({ type: 'INTERSTITIAL_AD' });
+      }
+    }
+    prevPhaseRef.current = phase;
+  }, [phase]);
 
-    setQueuedLoveNote((prev) => prev ?? lastLoveNote);
-    dismissLoveNote();
-  }, [goalPopup, showLoveNoteCard, lastLoveNote, dismissLoveNote]);
 
   // Responsive layout detection
   const isLandscape = width > height;
@@ -273,29 +302,35 @@ export default function TimerScreen() {
           </>
         )}
 
-        {/* Goal reached popup - takes priority, never overlaps */}
-        <GoalReachedPopup
-          visible={!!goalPopup}
-          newStreak={goalPopup?.newStreak ?? 0}
-          animationsEnabled={settings.settings.animationsEnabled}
-          autoDismissMs={1400}
-          onClose={() => {
-            setGoalPopup(null);
-            stats.clearGoalHitPulse();
-          }}
-        />
+        {/* Overlay layer — only one visible at a time, driven by OverlayQueue */}
+        {overlayQueue.current?.type === 'GOAL_CELEBRATION' && (
+          <GoalReachedPopup
+            visible
+            newStreak={overlayQueue.current.newStreak}
+            animationsEnabled={settings.settings.animationsEnabled}
+            autoDismissMs={1400}
+            onClose={() => {
+              stats.clearGoalHitPulse();
+              overlayQueue.dismiss();
+            }}
+          />
+        )}
 
-        {/* Love Note Card - show only when goal popup is NOT visible */}
-        {!goalPopup && (
-          <>
-            {queuedLoveNote ? (
-              <LoveNoteCard note={queuedLoveNote} onDismiss={() => setQueuedLoveNote(null)} />
-            ) : (
-              showLoveNoteCard && lastLoveNote && (
-                <LoveNoteCard note={lastLoveNote} onDismiss={dismissLoveNote} />
-              )
-            )}
-          </>
+        {overlayQueue.current?.type === 'LOVE_NOTE' && (
+          <LoveNoteCard
+            note={overlayQueue.current.note}
+            onDismiss={overlayQueue.dismiss}
+          />
+        )}
+
+        {overlayQueue.current?.type === 'INTERSTITIAL_AD' && (
+          // Show the native interstitial; dismiss queue entry when it closes
+          <InterstitialAdShim
+            onClose={() => {
+              InterstitialAdManager.recordShown().catch(() => { });
+              overlayQueue.dismiss();
+            }}
+          />
         )}
       </View>
     </View>

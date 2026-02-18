@@ -1,4 +1,9 @@
 import 'react-native-reanimated';
+import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
+
+// Surface worklet warnings before they become fatal crashes in release builds
+configureReanimatedLogger({ level: ReanimatedLogLevel.warn, strict: false });
+
 import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';

@@ -70,10 +70,14 @@ export function useReminder() {
                 quietHours: reminder.quietHours,
             });
 
-            // Fix 3: Debug probe — confirm scheduling actually happened
+            // Debug probe must NEVER affect logic
             if (__DEV__) {
-                const all = await Notifications.getAllScheduledNotificationsAsync();
-                console.log('[useReminder] scheduled count:', all.length, all.map(n => n.identifier));
+                try {
+                    const all = await Notifications.getAllScheduledNotificationsAsync();
+                    console.log('[useReminder] scheduled count:', all.length, all.map(n => n.identifier));
+                } catch (e) {
+                    console.warn('[useReminder] debug getAllScheduledNotificationsAsync failed (ignored):', e);
+                }
             }
 
             // ✅ Only mark enabled if scheduling succeeded
@@ -84,6 +88,7 @@ export function useReminder() {
             console.error('[useReminder] enableDailyReminder failed:', e);
             // Ensure state stays OFF if scheduling fails
             setReminder((prev) => ({ ...prev, enabled: false, notificationId: null }));
+            setSaveVersion(v => v + 1);
             return false;
         }
     }, [reminder.timeHHMM, reminder.quietHours]);

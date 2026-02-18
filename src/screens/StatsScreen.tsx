@@ -59,28 +59,21 @@ export default function StatsScreen() {
         };
     }, [weekTotals]);
 
-    const showGoalLine = metric === 'minutes' && goalMinutes > 0;
-
-    // Per-day goal snapshots (truthful chart)
-    const dayGoals = useMemo(() => {
-        return last7Days.map(([, day]) => day.goalMinutes ?? goalMinutes);
-    }, [last7Days, goalMinutes]);
+    const showGoalLine = metric === 'minutes' && (goalMinutes ?? 0) > 0;
 
     const maxValue = useMemo(() => {
         const values = last7Days.map(([, day]) =>
             metric === 'sessions' ? day.focusSessions : day.focusMinutes
         );
         const baseMax = Math.max(...values, 1);
+        return showGoalLine ? Math.max(baseMax, goalMinutes ?? 0, 1) : baseMax;
+    }, [last7Days, metric, showGoalLine, goalMinutes]);
 
-        if (showGoalLine) {
-            const maxGoal = Math.max(...dayGoals, 1);
-            return Math.max(baseMax, maxGoal);
-        }
-
-        return baseMax;
-    }, [last7Days, metric, dayGoals, showGoalLine]);
-
-    // Remove single goalLabelBottom - now per-day
+    const goalLineBottom = useMemo(() => {
+        if (!showGoalLine) return 0;
+        const px = ((goalMinutes ?? 0) / maxValue) * BAR_MAX;
+        return clamp(px, 0, BAR_MAX);
+    }, [showGoalLine, goalMinutes, maxValue]);
 
     const leftToday = useMemo(() => Math.max(goalMinutes - today.focusMinutes, 0), [goalMinutes, today.focusMinutes]);
 
@@ -216,32 +209,16 @@ export default function StatsScreen() {
                     ) : (
                         <View style={styles.chart}>
                             <View style={styles.barArea}>
-                                {/* Per-day goal markers (truthful chart) */}
-                                {showGoalLine && last7Days.map(([dayKey, day], idx) => {
-                                    const dayGoal = day.goalMinutes ?? goalMinutes;
-                                    const goalBottom = (dayGoal / maxValue) * BAR_MAX;
-
-                                    const barWidth = 100 / last7Days.length;
-                                    const xPosition = idx * barWidth;
-
-                                    return (
-                                        <View
-                                            key={`goal-${dayKey}`}
-                                            pointerEvents="none"
-                                            style={{
-                                                position: 'absolute',
-                                                left: `${xPosition}%`,
-                                                width: `${barWidth}%`,
-                                                bottom: clamp(goalBottom, 0, BAR_MAX),
-                                                height: 1,
-                                                borderTopWidth: 1,
-                                                borderTopColor: colors.textMuted,
-                                                borderStyle: 'dashed',
-                                                opacity: 0.45,
-                                            }}
-                                        />
-                                    );
-                                })}
+                                {/* Dashed goal line spanning full chart width */}
+                                {showGoalLine && (
+                                    <View
+                                        pointerEvents="none"
+                                        style={[
+                                            styles.goalLine,
+                                            { bottom: goalLineBottom, borderTopColor: colors.textMuted },
+                                        ]}
+                                    />
+                                )}
 
                                 <View style={styles.bars}>
                                     {last7Days.map(([dayKey, day], idx) => {

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
 import { load, save, STORAGE_KEYS } from '../utils/storage';
 import type { ReminderSettings } from '../types';
 import {
@@ -53,23 +55,37 @@ export function useReminder() {
 
     // --- public API: explicit enable/disable (gated) ---
     const enableDailyReminder = useCallback(async (): Promise<boolean> => {
+        if (Platform.OS === 'web') {
+            console.warn('[useReminder] Web does not support scheduled notifications.');
+            return false;
+        }
+
         const ok = await ensureNotificationPermission();
         if (!ok) return false;
 
-        // schedule fresh
-        const id = await scheduleDailyReminder({
-            timeHHMM: reminder.timeHHMM,
-            quietHours: reminder.quietHours,
-        });
+        try {
+            // schedule fresh
+            const id = await scheduleDailyReminder({
+                timeHHMM: reminder.timeHHMM,
+                quietHours: reminder.quietHours,
+            });
 
-        setReminder((prev) => {
-            const next = { ...prev, enabled: true, notificationId: id };
-            // ✅ Pure: trigger save outside updater
-            return next;
-        });
+            // Fix 3: Debug probe — confirm scheduling actually happened
+            if (__DEV__) {
+                const all = await Notifications.getAllScheduledNotificationsAsync();
+                console.log('[useReminder] scheduled count:', all.length, all.map(n => n.identifier));
+            }
 
-        setSaveVersion(v => v + 1);
-        return true;
+            // ✅ Only mark enabled if scheduling succeeded
+            setReminder((prev) => ({ ...prev, enabled: true, notificationId: id }));
+            setSaveVersion(v => v + 1);
+            return true;
+        } catch (e) {
+            console.error('[useReminder] enableDailyReminder failed:', e);
+            // Ensure state stays OFF if scheduling fails
+            setReminder((prev) => ({ ...prev, enabled: false, notificationId: null }));
+            return false;
+        }
     }, [reminder.timeHHMM, reminder.quietHours]);
 
     const disableDailyReminder = useCallback(async () => {

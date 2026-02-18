@@ -31,9 +31,11 @@ export default function TimerScreen() {
 
   // Goal celebration popup state
   const [goalPopup, setGoalPopup] = useState<null | { dayKey: string; newStreak: number }>(null);
+  const [queuedLoveNote, setQueuedLoveNote] = useState<typeof lastLoveNote | null>(null);
   const lastCelebratedDayKeyRef = useRef<string | null>(null);
 
-  // Listen for goal hit pulse
+  // 1) When goalHitPulse arrives -> show popup.
+  // If a love note is currently showing, queue it and dismiss it so overlays never overlap.
   useEffect(() => {
     const pulse = stats.goalHitPulse;
     if (!pulse) return;
@@ -43,10 +45,25 @@ export default function TimerScreen() {
       stats.clearGoalHitPulse();
       return;
     }
-
     lastCelebratedDayKeyRef.current = pulse.dayKey;
+
+    // If love note is visible now, queue + dismiss it
+    if (showLoveNoteCard && lastLoveNote) {
+      setQueuedLoveNote((prev) => prev ?? lastLoveNote);
+      dismissLoveNote();
+    }
+
     setGoalPopup(pulse);
-  }, [stats.goalHitPulse, stats.clearGoalHitPulse]);
+  }, [stats.goalHitPulse, stats.clearGoalHitPulse, showLoveNoteCard, lastLoveNote, dismissLoveNote]);
+
+  // 2) If a love note tries to show while goal popup is already visible, queue + dismiss it.
+  useEffect(() => {
+    if (!goalPopup) return;
+    if (!showLoveNoteCard || !lastLoveNote) return;
+
+    setQueuedLoveNote((prev) => prev ?? lastLoveNote);
+    dismissLoveNote();
+  }, [goalPopup, showLoveNoteCard, lastLoveNote, dismissLoveNote]);
 
   // Responsive layout detection
   const isLandscape = width > height;
@@ -256,22 +273,30 @@ export default function TimerScreen() {
           </>
         )}
 
-        {/* Love Note Card - appears on focus completion (but not when goal popup is showing) */}
-        {showLoveNoteCard && lastLoveNote && !goalPopup && (
-          <LoveNoteCard note={lastLoveNote} onDismiss={dismissLoveNote} />
-        )}
-
-        {/* Goal Reached Popup - Duolingo-style celebration */}
+        {/* Goal reached popup - takes priority, never overlaps */}
         <GoalReachedPopup
           visible={!!goalPopup}
           newStreak={goalPopup?.newStreak ?? 0}
           animationsEnabled={settings.settings.animationsEnabled}
-          autoDismissMs={1400} // Auto-dismiss after 1.4s for snappy feel
+          autoDismissMs={1400}
           onClose={() => {
             setGoalPopup(null);
-            stats.clearGoalHitPulse(); // Clear pulse only after popup closes
+            stats.clearGoalHitPulse();
           }}
         />
+
+        {/* Love Note Card - show only when goal popup is NOT visible */}
+        {!goalPopup && (
+          <>
+            {queuedLoveNote ? (
+              <LoveNoteCard note={queuedLoveNote} onDismiss={() => setQueuedLoveNote(null)} />
+            ) : (
+              showLoveNoteCard && lastLoveNote && (
+                <LoveNoteCard note={lastLoveNote} onDismiss={dismissLoveNote} />
+              )
+            )}
+          </>
+        )}
       </View>
     </View>
   );

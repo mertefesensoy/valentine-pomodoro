@@ -42,6 +42,7 @@ export default function SettingsScreen() {
     const [showReminderTimePicker, setShowReminderTimePicker] = useState(false);
     const [showQuietStartPicker, setShowQuietStartPicker] = useState(false);
     const [showQuietEndPicker, setShowQuietEndPicker] = useState(false);
+    const [reminderBusy, setReminderBusy] = useState(false); // Fix 1: busy flag
 
     const handleFocusBlur = () => {
         const val = parseInt(focusDraft, 10);
@@ -388,15 +389,21 @@ export default function SettingsScreen() {
                         <Text style={[styles.label, { color: colors.text }]}>Enable Reminders</Text>
                         <Switch
                             value={reminder.reminder.enabled}
+                            disabled={!reminder.isReady || reminderBusy}
                             onValueChange={async (on) => {
                                 setStatusText('');
-                                if (on) {
-                                    const ok = await reminder.enableDailyReminder();
-                                    if (!ok) {
-                                        setStatusText('Permission denied. Please enable notifications in settings.');
+                                setReminderBusy(true);
+                                try {
+                                    if (on) {
+                                        const ok = await reminder.enableDailyReminder();
+                                        if (!ok) {
+                                            setStatusText('Permission denied. Please enable notifications in settings.');
+                                        }
+                                    } else {
+                                        await reminder.disableDailyReminder();
                                     }
-                                } else {
-                                    await reminder.disableDailyReminder();
+                                } finally {
+                                    setReminderBusy(false);
                                 }
                             }}
                             trackColor={{ false: '#ddd', true: colors.accentLight }}

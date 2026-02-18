@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../theme/useTheme';
+import WaveLines from './WaveLines';
 
 type HeartSpec = {
     id: string;
@@ -312,6 +313,9 @@ export default function CalmBackground({ enabled }: { enabled: boolean }) {
                     />
                 </Animated.View>
             </Animated.View>
+
+            {/* Wave lines — subtle contour layer between aurora and hearts */}
+            <WaveLines color={colors.textMuted} />
 
             {/* Hearts on top (Unchanged) */}
             {hearts.map((h, i) => {

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
+import Svg, { Line } from 'react-native-svg';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../theme/useTheme';
 
@@ -31,6 +32,7 @@ export default function StatsScreen() {
     const { colors } = useTheme();
 
     const [metric, setMetric] = useState<Metric>('minutes');
+    const [barAreaWidth, setBarAreaWidth] = useState(0);
 
     if (!isReady) {
         return (
@@ -69,10 +71,12 @@ export default function StatsScreen() {
         return showGoalLine ? Math.max(baseMax, goalMinutes ?? 0, 1) : baseMax;
     }, [last7Days, metric, showGoalLine, goalMinutes]);
 
-    const goalLineBottom = useMemo(() => {
+    // SVG uses y-from-top; BAR_AREA is the container height (150px)
+    const goalLineY = useMemo(() => {
         if (!showGoalLine) return 0;
-        const px = ((goalMinutes ?? 0) / maxValue) * BAR_MAX;
-        return clamp(px, 0, BAR_MAX);
+        const yFromBottom = ((goalMinutes ?? 0) / maxValue) * BAR_AREA;
+        const clampedFromBottom = clamp(yFromBottom, 0, BAR_AREA);
+        return BAR_AREA - clampedFromBottom;
     }, [showGoalLine, goalMinutes, maxValue]);
 
     const leftToday = useMemo(() => Math.max(goalMinutes - today.focusMinutes, 0), [goalMinutes, today.focusMinutes]);
@@ -208,18 +212,10 @@ export default function StatsScreen() {
                         </View>
                     ) : (
                         <View style={styles.chart}>
-                            <View style={styles.barArea}>
-                                {/* Dashed goal line spanning full chart width */}
-                                {showGoalLine && (
-                                    <View
-                                        pointerEvents="none"
-                                        style={[
-                                            styles.goalLine,
-                                            { bottom: goalLineBottom, borderTopColor: colors.textMuted },
-                                        ]}
-                                    />
-                                )}
-
+                            <View
+                                style={styles.barArea}
+                                onLayout={(e) => setBarAreaWidth(e.nativeEvent.layout.width)}
+                            >
                                 <View style={styles.bars}>
                                     {last7Days.map(([dayKey, day], idx) => {
                                         const value = metric === 'sessions' ? day.focusSessions : day.focusMinutes;
@@ -256,12 +252,33 @@ export default function StatsScreen() {
                                         );
                                     })}
                                 </View>
+
+                                {/* SVG dashed goal line — reliable on all iOS/Android */}
+                                {showGoalLine && barAreaWidth > 0 && (
+                                    <Svg
+                                        pointerEvents="none"
+                                        width={barAreaWidth}
+                                        height={BAR_AREA}
+                                        style={styles.goalOverlay}
+                                    >
+                                        <Line
+                                            x1={0}
+                                            y1={goalLineY}
+                                            x2={barAreaWidth}
+                                            y2={goalLineY}
+                                            stroke={colors.textMuted}
+                                            strokeWidth={2}
+                                            strokeDasharray="6 6"
+                                            opacity={0.75}
+                                        />
+                                    </Svg>
+                                )}
                             </View>
                         </View>
                     )}
                 </View>
             </ScrollView>
-        </SafeAreaView>
+        </SafeAreaView >
     );
 }
 
@@ -400,20 +417,12 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
         height: 150,
     },
-    goalLine: {
+    goalOverlay: {
         position: 'absolute',
         left: 0,
-        right: 0,
-        borderTopWidth: 1,
-        borderStyle: 'dashed',
-        opacity: 0.45,
-    },
-    goalLabel: {
-        position: 'absolute',
-        right: 0,
-        fontSize: 10,
-        fontWeight: '600',
-        opacity: 0.6,
+        top: 0,
+        zIndex: 50,
+        elevation: 50,
     },
     barColumn: {
         flex: 1,

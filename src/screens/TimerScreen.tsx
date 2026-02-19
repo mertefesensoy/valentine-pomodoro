@@ -9,6 +9,8 @@ import CalmBackground from "../components/CalmBackground";
 import * as Haptics from "expo-haptics";
 import { useApp } from "../context/AppContext";
 import { useTheme } from "../theme/useTheme";
+import { AdManager } from "../ads/AdManager";
+import { AdPolicy } from "../ads/AdPolicy";
 
 export default function TimerScreen() {
   const { width, height } = useWindowDimensions();
@@ -27,7 +29,26 @@ export default function TimerScreen() {
     skip,
     reset,
     dismissLoveNote,
-  } = useTimer(settings.settings, loveNotes.pickRandomNote, stats.incrementFocus);
+  } = useTimer(
+    settings.settings,
+    loveNotes.pickRandomNote,
+    // Wrapper to hook into completion for Ads
+    (minutes, dayKey, sessionId) => {
+      stats.incrementFocus(minutes, dayKey, sessionId);
+      handleTimerComplete();
+    }
+  );
+
+  // Ad State
+  const [isAdPending, setIsAdPending] = useState(false);
+
+  // Helper: check ad policy when session ends
+  const handleTimerComplete = async () => {
+    await AdPolicy.recordSessionCompletion();
+    if (AdPolicy.shouldShowAd()) {
+      setIsAdPending(true);
+    }
+  };
 
   // Goal celebration popup state
   const [goalPopup, setGoalPopup] = useState<null | { dayKey: string; newStreak: number }>(null);
@@ -64,6 +85,22 @@ export default function TimerScreen() {
     setQueuedLoveNote((prev) => prev ?? lastLoveNote);
     dismissLoveNote();
   }, [goalPopup, showLoveNoteCard, lastLoveNote, dismissLoveNote]);
+
+  // 3) Interstitial Ad Queue
+  // Only show if: Ad is pending AND Goal Popup is gone AND Love Note is gone
+  useEffect(() => {
+    if (!isAdPending) return;
+
+    // Waiting for overlays to clear...
+    if (goalPopup || showLoveNoteCard || queuedLoveNote) return;
+
+    // Ready to show!
+    setIsAdPending(false); // Clear pending flag strictly before attempting show to avoid loops
+    AdManager.showIfReady(() => {
+      // Callback after ad is closed (or if it failed/skipped)
+      // We could resume music or do other cleanup here if needed
+    });
+  }, [isAdPending, goalPopup, showLoveNoteCard, queuedLoveNote]);
 
   // Responsive layout detection
   const isLandscape = width > height;

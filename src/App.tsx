@@ -16,6 +16,7 @@ import { useUpdateCheck } from './hooks/useUpdateCheck';
 import { useTheme } from './theme/useTheme';
 import GiftModeModal from './components/GiftModeModal';
 import { AppProvider } from './context/AppContext';
+import { AdManager } from './ads/AdManager';
 
 // GitHub Pages URL for update.json
 const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
@@ -44,6 +45,9 @@ function ThemedApp() {
 
   // Phase 7: Notification tap routing - navigate to Timer screen
   React.useEffect(() => {
+    // Initialize Ads
+    AdManager.init();
+
     const subscription = Notifications.addNotificationResponseReceivedListener(response => {
       if (__DEV__) {
         console.log('[App] Notification tapped:', response.notification.request.content);

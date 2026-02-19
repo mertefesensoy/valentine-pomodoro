@@ -2,7 +2,7 @@
   "expo": {
     "name": "Valentine Pomodoro",
     "slug": "valentine-pomodoro",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
@@ -37,12 +37,23 @@
     },
     "plugins": [
       "expo-asset",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511",
+          "userTrackingUsageDescription": "We use this to show you personalized ads that support the app.",
+          "skAdNetworkItems": []
+        }
+      ]
     ],
     "extra": {
       "eas": {
         "projectId": "a0599a9f-4e3f-41a3-8942-a00d37847444"
-      }
+      },
+      "admobInterstitialIdIos": "ca-app-pub-3940256099942544/4411468910",
+      "admobInterstitialIdAndroid": "ca-app-pub-3940256099942544/1033173712"
     }
   }
 }

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Valentine Pomodoro",
     "slug": "valentine-pomodoro",
-    "version": "1.2.3",
+    "version": "1.2.4",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
@@ -19,14 +19,14 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.bengisu.valentinepomodoro",
-      "buildNumber": "4",
+      "buildNumber": "5",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "com.bengisu.valentinepomodoro",
-      "versionCode": 1,
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FFF8F0"
@@ -39,12 +39,54 @@
       "expo-asset",
       "@react-native-community/datetimepicker",
       [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
+      [
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-3940256099942544~3347511713",
-          "iosAppId": "ca-app-pub-3940256099942544~1458002511",
+          "iosAppId": "ca-app-pub-9990246025309322~6796045738",
           "userTrackingUsageDescription": "We use this to show you personalized ads that support the app.",
-          "skAdNetworkItems": []
+          "skAdNetworkItems": [
+            "cstr6suwn9.skadnetwork",
+            "4fzdc2evr5.skadnetwork",
+            "2fnua5tdw4.skadnetwork",
+            "ydx93a7ass.skadnetwork",
+            "5a6flpkh64.skadnetwork",
+            "p78axxw29g.skadnetwork",
+            "v72qych5uu.skadnetwork",
+            "c6k4g5qg8m.skadnetwork",
+            "s39g8kddlt.skadnetwork",
+            "3qy4746246.skadnetwork",
+            "3sh42y64q3.skadnetwork",
+            "f38h382jlk.skadnetwork",
+            "hs6bdukanm.skadnetwork",
+            "prcb7njmu6.skadnetwork",
+            "wzmmz9fp6w.skadnetwork",
+            "yclnxrl5pm.skadnetwork",
+            "4468km3ulz.skadnetwork",
+            "t38b2kh725.skadnetwork",
+            "7ug5zh24hu.skadnetwork",
+            "9rd848q2bz.skadnetwork",
+            "n6fk4nfna4.skadnetwork",
+            "kbd757ywx3.skadnetwork",
+            "9t245vhmpl.skadnetwork",
+            "2u9pt9hc89.skadnetwork",
+            "8s468mfl3y.skadnetwork",
+            "av6w8kgt66.skadnetwork",
+            "klf5c3l5u5.skadnetwork",
+            "ppxm28t8ap.skadnetwork",
+            "424m5254lk.skadnetwork",
+            "uw77j35x4d.skadnetwork",
+            "e5fvkxwrpn.skadnetwork",
+            "zq492l623r.skadnetwork",
+            "3qcr597p9d.skadnetwork"
+          ]
         }
       ]
     ],
@@ -52,7 +94,7 @@
       "eas": {
         "projectId": "a0599a9f-4e3f-41a3-8942-a00d37847444"
       },
-      "admobInterstitialIdIos": "ca-app-pub-3940256099942544/4411468910",
+      "admobInterstitialIdIos": "ca-app-pub-9990246025309322/6160253938",
       "admobInterstitialIdAndroid": "ca-app-pub-3940256099942544/1033173712"
     }
   }

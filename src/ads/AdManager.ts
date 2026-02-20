@@ -33,7 +33,7 @@ export const AdManager = {
 
         _isLoading = true;
         _interstitial = InterstitialAd.createForAdRequest(INTERSTITIAL_ID, {
-            requestNonPersonalizedAdsOnly: false,
+            requestNonPersonalizedAdsOnly: true,
         });
 
         const unsubscribeLoaded = _interstitial.addAdEventListener(AdEventType.LOADED, () => {

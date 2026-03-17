@@ -579,7 +579,7 @@ export default function SettingsScreen() {
                         <Text style={styles.updateButtonText}>Visit Developer Website</Text>
                     </Pressable>
                     <Text style={[styles.infoText, { color: colors.textMuted }]}>
-                        Made with ❤️ by Merte Fesen Soy
+                        Made with ❤️ by Mert Efe Sensoy
                     </Text>
                 </View>
 

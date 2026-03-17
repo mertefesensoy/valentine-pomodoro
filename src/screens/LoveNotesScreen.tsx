@@ -11,6 +11,7 @@ import {
     StyleSheet,
     StatusBar,
 } from 'react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../theme/useTheme';
 
@@ -19,6 +20,7 @@ type Mode = { type: 'add' } | { type: 'edit'; index: number; initial: string } |
 export default function LoveNotesScreen() {
     const { loveNotes } = useApp();
     const { colors, isDark } = useTheme();
+    const tabBarHeight = useBottomTabBarHeight();
     const { notes, isReady, addNote, editNote, deleteNote, resetToDefaults, pickRandomNote } =
         loveNotes;
 
@@ -96,6 +98,7 @@ export default function LoveNotesScreen() {
 
                     <FlatList
                         style={styles.list}
+                        contentContainerStyle={{ paddingBottom: tabBarHeight + 8 }}
                         data={notes}
                         keyExtractor={(_, i) => String(i)}
                         ItemSeparatorComponent={() => <View style={styles.separator} />}

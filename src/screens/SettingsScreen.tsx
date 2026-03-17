@@ -16,6 +16,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useApp } from '../context/AppContext';
 import { useUpdateCheck } from '../hooks/useUpdateCheck';
 import { useTheme } from '../theme/useTheme';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import type { ThemeMode } from '../types';
 
 const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
@@ -30,6 +31,7 @@ export default function SettingsScreen() {
     const { settings, updateSettings } = settingsContext;
     const { checkForUpdates } = useUpdateCheck(UPDATE_JSON_URL);
     const { colors } = useTheme();
+    const tabBarHeight = useBottomTabBarHeight();
 
     // Local draft state for number inputs
     const [focusDraft, setFocusDraft] = useState(settings.durations.focus.toString());
@@ -112,7 +114,7 @@ export default function SettingsScreen() {
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+            <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight }]}>
                 <Text style={[styles.header, { color: colors.text }]}>Settings ⚙️</Text>
 
                 {/* Durations Section */}
@@ -244,7 +246,7 @@ export default function SettingsScreen() {
                             value={settings.notifications}
                             onValueChange={(val) => updateSettings({ notifications: val })}
                             trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={settings.notifications ? colors.accent : '#f4f3f4'}
+                            thumbColor={settings.notifications ? colors.accent : '#9e9e9e'}
                         />
                     </View>
 
@@ -254,7 +256,7 @@ export default function SettingsScreen() {
                             value={settings.sound}
                             onValueChange={(val) => updateSettings({ sound: val })}
                             trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={settings.sound ? colors.accent : '#f4f3f4'}
+                            thumbColor={settings.sound ? colors.accent : '#9e9e9e'}
                         />
                     </View>
 
@@ -264,7 +266,7 @@ export default function SettingsScreen() {
                             value={settings.haptics}
                             onValueChange={(val) => updateSettings({ haptics: val })}
                             trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={settings.haptics ? colors.accent : '#f4f3f4'}
+                            thumbColor={settings.haptics ? colors.accent : '#9e9e9e'}
                         />
                     </View>
 
@@ -274,7 +276,7 @@ export default function SettingsScreen() {
                             value={settings.showLoveNotes}
                             onValueChange={(val) => updateSettings({ showLoveNotes: val })}
                             trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={settings.showLoveNotes ? colors.accent : '#f4f3f4'}
+                            thumbColor={settings.showLoveNotes ? colors.accent : '#9e9e9e'}
                         />
                     </View>
                 </View>
@@ -291,7 +293,7 @@ export default function SettingsScreen() {
                             value={settings.animationsEnabled}
                             onValueChange={(val) => updateSettings({ animationsEnabled: val })}
                             trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={settings.animationsEnabled ? colors.accent : '#f4f3f4'}
+                            thumbColor={settings.animationsEnabled ? colors.accent : '#9e9e9e'}
                         />
                     </View>
                 </View>
@@ -313,7 +315,7 @@ export default function SettingsScreen() {
                                 }
                             }}
                             trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={stats.goalMinutes > 0 ? colors.accent : '#f4f3f4'}
+                            thumbColor={stats.goalMinutes > 0 ? colors.accent : '#9e9e9e'}
                         />
                     </View>
 
@@ -408,7 +410,7 @@ export default function SettingsScreen() {
                                 }
                             }}
                             trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={reminder.reminder.enabled ? colors.accent : '#f4f3f4'}
+                            thumbColor={reminder.reminder.enabled ? colors.accent : '#9e9e9e'}
                         />
                     </View>
 
@@ -464,7 +466,7 @@ export default function SettingsScreen() {
                                         })
                                     }
                                     trackColor={{ false: '#ddd', true: colors.accentLight }}
-                                    thumbColor={reminder.reminder.quietHours.enabled ? colors.accent : '#f4f3f4'}
+                                    thumbColor={reminder.reminder.quietHours.enabled ? colors.accent : '#9e9e9e'}
                                 />
                             </View>
 

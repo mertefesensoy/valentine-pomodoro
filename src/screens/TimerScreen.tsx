@@ -1,4 +1,5 @@
 import { View, Text, Pressable, StyleSheet, Alert, Platform, useWindowDimensions, StatusBar } from "react-native";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTimer } from "../hooks/useTimer";
 import { formatTime } from "../utils/time";
@@ -16,6 +17,7 @@ export default function TimerScreen() {
   const { width, height } = useWindowDimensions();
   const { settings, stats, loveNotes } = useApp();
   const { colors, isDark } = useTheme();
+  const tabBarHeight = useBottomTabBarHeight();
   const {
     phase,
     isRunning,
@@ -285,7 +287,7 @@ export default function TimerScreen() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg }]}>
+    <View style={[styles.container, { backgroundColor: colors.bg, paddingBottom: tabBarHeight }]}>
       <CalmBackground enabled={settings.settings.animationsEnabled} />
       <View style={[
         styles.contentWrapper,

@@ -433,7 +433,9 @@ export default function SettingsScreen() {
                                         {reminder.reminder.timeHHMM}
                                     </Text>
                                 </Pressable>
-                                {showReminderTimePicker && (
+                            </View>
+                            {showReminderTimePicker && (
+                                <>
                                     <DateTimePicker
                                         value={(() => {
                                             const [h, m] = reminder.reminder.timeHHMM.split(':').map(Number);
@@ -443,8 +445,11 @@ export default function SettingsScreen() {
                                         })()}
                                         mode="time"
                                         is24Hour={true}
+                                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                                         onChange={(event, selectedDate) => {
-                                            setShowReminderTimePicker(Platform.OS === 'ios');
+                                            if (Platform.OS !== 'ios') {
+                                                setShowReminderTimePicker(false);
+                                            }
                                             if (event.type === 'set' && selectedDate) {
                                                 const hh = selectedDate.getHours().toString().padStart(2, '0');
                                                 const mm = selectedDate.getMinutes().toString().padStart(2, '0');
@@ -452,8 +457,16 @@ export default function SettingsScreen() {
                                             }
                                         }}
                                     />
-                                )}
-                            </View>
+                                    {Platform.OS === 'ios' && (
+                                        <Pressable
+                                            onPress={() => setShowReminderTimePicker(false)}
+                                            style={{ alignSelf: 'flex-end', paddingHorizontal: 16, paddingVertical: 8 }}
+                                        >
+                                            <Text style={{ color: colors.accent, fontWeight: '600', fontSize: 16 }}>Done</Text>
+                                        </Pressable>
+                                    )}
+                                </>
+                            )}
 
                             <View style={[styles.row, { borderBottomColor: colors.border }]}>
                                 <Text style={[styles.label, { color: colors.text }]}>Quiet Hours</Text>
@@ -489,7 +502,9 @@ export default function SettingsScreen() {
                                                 {reminder.reminder.quietHours.startHHMM}
                                             </Text>
                                         </Pressable>
-                                        {showQuietStartPicker && (
+                                    </View>
+                                    {showQuietStartPicker && (
+                                        <>
                                             <DateTimePicker
                                                 value={(() => {
                                                     const [h, m] = reminder.reminder.quietHours.startHHMM.split(':').map(Number);
@@ -499,8 +514,11 @@ export default function SettingsScreen() {
                                                 })()}
                                                 mode="time"
                                                 is24Hour={true}
+                                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                                                 onChange={(event, selectedDate) => {
-                                                    setShowQuietStartPicker(Platform.OS === 'ios');
+                                                    if (Platform.OS !== 'ios') {
+                                                        setShowQuietStartPicker(false);
+                                                    }
                                                     if (event.type === 'set' && selectedDate) {
                                                         const hh = selectedDate.getHours().toString().padStart(2, '0');
                                                         const mm = selectedDate.getMinutes().toString().padStart(2, '0');
@@ -511,8 +529,16 @@ export default function SettingsScreen() {
                                                     }
                                                 }}
                                             />
-                                        )}
-                                    </View>
+                                            {Platform.OS === 'ios' && (
+                                                <Pressable
+                                                    onPress={() => setShowQuietStartPicker(false)}
+                                                    style={{ alignSelf: 'flex-end', paddingHorizontal: 16, paddingVertical: 8 }}
+                                                >
+                                                    <Text style={{ color: colors.accent, fontWeight: '600', fontSize: 16 }}>Done</Text>
+                                                </Pressable>
+                                            )}
+                                        </>
+                                    )}
 
                                     <View style={[styles.row, { borderBottomColor: colors.border }]}>
                                         <Text style={[styles.label, { color: colors.text }]}>Quiet End</Text>
@@ -531,7 +557,9 @@ export default function SettingsScreen() {
                                                 {reminder.reminder.quietHours.endHHMM}
                                             </Text>
                                         </Pressable>
-                                        {showQuietEndPicker && (
+                                    </View>
+                                    {showQuietEndPicker && (
+                                        <>
                                             <DateTimePicker
                                                 value={(() => {
                                                     const [h, m] = reminder.reminder.quietHours.endHHMM.split(':').map(Number);
@@ -541,8 +569,11 @@ export default function SettingsScreen() {
                                                 })()}
                                                 mode="time"
                                                 is24Hour={true}
+                                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                                                 onChange={(event, selectedDate) => {
-                                                    setShowQuietEndPicker(Platform.OS === 'ios');
+                                                    if (Platform.OS !== 'ios') {
+                                                        setShowQuietEndPicker(false);
+                                                    }
                                                     if (event.type === 'set' && selectedDate) {
                                                         const hh = selectedDate.getHours().toString().padStart(2, '0');
                                                         const mm = selectedDate.getMinutes().toString().padStart(2, '0');
@@ -553,8 +584,16 @@ export default function SettingsScreen() {
                                                     }
                                                 }}
                                             />
-                                        )}
-                                    </View>
+                                            {Platform.OS === 'ios' && (
+                                                <Pressable
+                                                    onPress={() => setShowQuietEndPicker(false)}
+                                                    style={{ alignSelf: 'flex-end', paddingHorizontal: 16, paddingVertical: 8 }}
+                                                >
+                                                    <Text style={{ color: colors.accent, fontWeight: '600', fontSize: 16 }}>Done</Text>
+                                                </Pressable>
+                                            )}
+                                        </>
+                                    )}
 
                                     <Text style={[styles.infoText, { color: colors.textMuted }]}>
                                         Reminder will be shifted to quiet-end if it falls inside quiet hours.

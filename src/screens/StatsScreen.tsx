@@ -282,10 +282,17 @@ export default function StatsScreen() {
                     )}
                 </View>
             </ScrollView>
-            <View style={{ marginBottom: tabBarHeight }}>
+            <View style={{
+                marginBottom: tabBarHeight,
+                backgroundColor: colors.card,
+                borderTopWidth: 1,
+                borderTopColor: colors.border,
+                alignItems: 'center',
+                paddingVertical: 8,
+            }}>
                 <BannerAd
                     unitId={BANNER_ID}
-                    size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+                    size={BannerAdSize.LARGE_BANNER}
                     requestOptions={{ requestNonPersonalizedAdsOnly: true }}
                 />
             </View>

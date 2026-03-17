@@ -151,13 +151,16 @@ export default function LoveNotesScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 16,
+        paddingHorizontal: 20,
+        paddingTop: 16,
+        paddingBottom: 0,
         // backgroundColor removed
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        marginTop: 8,
     },
     title: {
         fontSize: 20,

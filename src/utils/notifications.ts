@@ -100,9 +100,9 @@ export async function scheduleDailyReminder(opts: {
             ...(Platform.OS === 'android' ? { channelId: 'daily-reminder' } : {}),
         },
         trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DAILY,
             hour: h,
             minute: m,
-            repeats: true,
         } as any,
     });
 

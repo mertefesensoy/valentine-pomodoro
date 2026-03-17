@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEY = 'ad_policy_v1';
-const MIN_SESSIONS_BETWEEN_ADS = 3;
+const MIN_SESSIONS_BETWEEN_ADS = 2;
 const MIN_INTERVAL_SECONDS = 120; // 2 minutes
 
 type AdState = {

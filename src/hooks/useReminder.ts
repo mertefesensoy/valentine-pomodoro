@@ -113,29 +113,36 @@ export function useReminder() {
 
         let cancelled = false;
         (async () => {
-            const ok = await ensureNotificationPermission();
-            if (!ok) return;
+            try {
+                const ok = await ensureNotificationPermission();
+                if (!ok) return;
 
-            // cancel old -> schedule new
-            await cancelScheduled(reminder.notificationId);
+                // cancel old -> schedule new
+                await cancelScheduled(reminder.notificationId);
 
-            const id = await scheduleDailyReminder({
-                timeHHMM: reminder.timeHHMM,
-                quietHours: reminder.quietHours,
-            });
+                const id = await scheduleDailyReminder({
+                    timeHHMM: reminder.timeHHMM,
+                    quietHours: reminder.quietHours,
+                });
 
-            if (cancelled) return;
+                if (cancelled) return;
 
-            setReminder((prev) => {
-                // only update if still enabled
-                if (!prev.enabled) return prev;
-                const next = { ...prev, notificationId: id };
-                // ✅ Pure: trigger save outside updater
-                return next;
-            });
+                setReminder((prev) => {
+                    // only update if still enabled
+                    if (!prev.enabled) return prev;
+                    const next = { ...prev, notificationId: id };
+                    return next;
+                });
 
-            if (!cancelled) {
-                setSaveVersion(v => v + 1);
+                if (!cancelled) {
+                    setSaveVersion(v => v + 1);
+                }
+            } catch (e) {
+                console.error('[useReminder] reschedule failed:', e);
+                if (!cancelled) {
+                    setReminder((prev) => ({ ...prev, enabled: false, notificationId: null }));
+                    setSaveVersion(v => v + 1);
+                }
             }
         })();
 

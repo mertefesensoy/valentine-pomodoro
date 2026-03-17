@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 
 const extra = Constants.expoConfig?.extra ?? {};
 
-const productionId = Platform.select({
+const productionInterstitialId = Platform.select({
     ios: extra.admobInterstitialIdIos,
     android: extra.admobInterstitialIdAndroid,
 });
@@ -12,4 +12,14 @@ const productionId = Platform.select({
 // Fallback to TestIds.INTERSTITIAL if production ID is missing
 export const INTERSTITIAL_ID = __DEV__
     ? TestIds.INTERSTITIAL
-    : (productionId ?? TestIds.INTERSTITIAL);
+    : (productionInterstitialId ?? TestIds.INTERSTITIAL);
+
+const productionBannerId = Platform.select({
+    ios: extra.admobBannerIdIos,
+    android: extra.admobBannerIdAndroid,
+});
+
+// Fallback to TestIds.BANNER if production ID is missing
+export const BANNER_ID = __DEV__
+    ? TestIds.BANNER
+    : (productionBannerId ?? TestIds.BANNER);

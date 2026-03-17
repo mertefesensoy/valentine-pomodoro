@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
     Alert,
+    Linking,
     Platform,
     Pressable,
     SafeAreaView,
@@ -566,6 +567,20 @@ export default function SettingsScreen() {
                             )}
                         </>
                     )}
+                </View>
+
+                {/* About Section */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>About</Text>
+                    <Pressable
+                        style={[styles.updateButton, { backgroundColor: colors.accentPurple }]}
+                        onPress={() => Linking.openURL('https://valentine-pomodoro-developer-websit.vercel.app/')}
+                    >
+                        <Text style={styles.updateButtonText}>Visit Developer Website</Text>
+                    </Pressable>
+                    <Text style={[styles.infoText, { color: colors.textMuted }]}>
+                        Made with ❤️ by Merte Fesen Soy
+                    </Text>
                 </View>
 
                 {/* Check for Updates Button */}

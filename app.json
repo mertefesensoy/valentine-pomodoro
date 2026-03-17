@@ -36,6 +36,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "expo-notifications",
       "expo-asset",
       "@react-native-community/datetimepicker",
       [
@@ -94,7 +95,9 @@
         "projectId": "a0599a9f-4e3f-41a3-8942-a00d37847444"
       },
       "admobInterstitialIdIos": "ca-app-pub-9990246025309322/6160253938",
-      "admobInterstitialIdAndroid": "ca-app-pub-3940256099942544/1033173712"
+      "admobInterstitialIdAndroid": "ca-app-pub-3940256099942544/1033173712",
+      "admobBannerIdIos": "ca-app-pub-9990246025309322/9961240442",
+      "admobBannerIdAndroid": "REPLACE_WITH_ANDROID_BANNER_UNIT_ID"
     }
   }
 }

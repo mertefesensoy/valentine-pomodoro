@@ -73,8 +73,7 @@ function ThemedApp() {
         linking={{
           enabled: 'auto',
           prefixes: [
-            // Change the scheme to match your app's scheme defined in app.json
-            'helloworld://',
+            'valentinepomodoro://',
           ],
         }}
         onReady={() => {

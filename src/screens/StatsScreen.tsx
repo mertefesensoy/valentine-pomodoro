@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
+import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../theme/useTheme';
+import { BANNER_ID } from '../ads/AdConfig';
 
 type Metric = 'sessions' | 'minutes';
 
@@ -278,6 +280,11 @@ export default function StatsScreen() {
                     )}
                 </View>
             </ScrollView>
+            <BannerAd
+                unitId={BANNER_ID}
+                size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+                requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+            />
         </SafeAreaView >
     );
 }

@@ -21,7 +21,8 @@
       "bundleIdentifier": "com.bengisu.valentinepomodoro",
       "buildNumber": "5",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSUserTrackingUsageDescription": "This app uses tracking to provide personalized ads. You can opt out at any time."
       }
     },
     "android": {

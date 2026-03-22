@@ -1,14 +1,18 @@
-import React, { createContext, useContext, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { useSettings } from '../hooks/useSettings';
 import { useStats } from '../hooks/useStats';
 import { useLoveNotes } from '../hooks/useLoveNotes';
 import { useReminder } from '../hooks/useReminder';
+import { AppMode } from '../types';
+import { save, load, STORAGE_KEYS } from '../utils/storage';
 
 type AppContextValue = {
     settings: ReturnType<typeof useSettings>;
     stats: ReturnType<typeof useStats>;
     loveNotes: ReturnType<typeof useLoveNotes>;
     reminder: ReturnType<typeof useReminder>;
+    activeMode: AppMode;
+    setActiveMode: (mode: AppMode) => void;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -20,10 +24,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const loveNotes = useLoveNotes();
     const reminder = useReminder();
 
+    // Mode state — persisted so the user's last choice survives restarts
+    const [activeMode, setActiveModeState] = useState<AppMode>('default');
+
+    useEffect(() => {
+        load<AppMode>(STORAGE_KEYS.APP_MODE, 'default').then(setActiveModeState);
+    }, []);
+
+    const setActiveMode = (mode: AppMode) => {
+        setActiveModeState(mode);
+        save(STORAGE_KEYS.APP_MODE, mode);
+    };
+
     // ✅ memoize to prevent re-render storm
     const value = useMemo(
-        () => ({ settings, stats, loveNotes, reminder }),
-        [settings, stats, loveNotes, reminder]
+        () => ({ settings, stats, loveNotes, reminder, activeMode, setActiveMode }),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [settings, stats, loveNotes, reminder, activeMode]
     );
 
     return (

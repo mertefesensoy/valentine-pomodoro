@@ -247,7 +247,9 @@ const styles = StyleSheet.create({
     },
     modalContainer: {
         flex: 1,
-        padding: 16,
+        paddingHorizontal: 24,
+        paddingTop: 24,
+        paddingBottom: 32,
         // backgroundColor removed
     },
     modalTitle: {
@@ -256,7 +258,7 @@ const styles = StyleSheet.create({
         // color removed
     },
     textInput: {
-        marginTop: 12,
+        marginTop: 20,
         minHeight: 140,
         borderWidth: 1,
         borderRadius: 12,
@@ -266,11 +268,13 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     modalActions: {
-        marginTop: 16,
+        marginTop: 20,
         flexDirection: 'row',
         gap: 12,
     },
     modalButton: {
+        flex: 1,
+        alignItems: 'center',
         paddingHorizontal: 14,
         paddingVertical: 10,
         borderWidth: 2,

@@ -54,4 +54,5 @@ export const STORAGE_KEYS = {
     LOVE_NOTES: 'love_notes',
     UPDATE_META: 'update_meta', // { lastCheckAt: number, lastPromptedVersion: string | null }
     REMINDER_V1: 'reminder_v1',
+    APP_MODE: 'app_mode',
 } as const;

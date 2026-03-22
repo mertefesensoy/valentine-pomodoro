@@ -52,6 +52,7 @@ export interface Settings {
     showLoveNotes: boolean;
     themeMode: ThemeMode; // 'system' | 'light' | 'dark'
     animationsEnabled: boolean; // Background animations toggle
+    flyModeSound: boolean; // Ambient cabin sound during Fly Mode sessions
 }
 
 // Stats per day (keyed by YYYY-MM-DD)
@@ -90,3 +91,6 @@ export interface GiftMode {
 export interface LoveNotes {
     notes: string[];
 }
+
+// App mode — which timer experience is active
+export type AppMode = 'default' | 'fly';

@@ -7,6 +7,8 @@ import LoveNoteCard from "../components/LoveNoteCard";
 import GoalReachedPopup from "../components/GoalReachedPopup";
 import { CircularProgress } from "../components/CircularProgress";
 import CalmBackground from "../components/CalmBackground";
+import ModeSwitcher from "../components/ModeSwitcher";
+import FlyModeScreen from "./FlyModeScreen";
 import * as Haptics from "expo-haptics";
 import { useApp } from "../context/AppContext";
 import { useTheme } from "../theme/useTheme";
@@ -15,7 +17,7 @@ import { AdPolicy } from "../ads/AdPolicy";
 
 export default function TimerScreen() {
   const { width, height } = useWindowDimensions();
-  const { settings, stats, loveNotes } = useApp();
+  const { settings, stats, loveNotes, activeMode, setActiveMode } = useApp();
   const { colors, isDark } = useTheme();
   const tabBarHeight = useBottomTabBarHeight();
   const {
@@ -196,9 +198,6 @@ export default function TimerScreen() {
   // Content components
   const timerContent = (
     <>
-      {/* Status bar style based on theme */}
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-
       {/* Header */}
       <Text style={[styles.header, isTablet && styles.headerTablet, { color: colors.text }]}>
         Valentine Pomodoro 💗
@@ -287,56 +286,79 @@ export default function TimerScreen() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg, paddingBottom: tabBarHeight }]}>
-      <CalmBackground enabled={settings.settings.animationsEnabled} />
-      <View style={[
-        styles.contentWrapper,
-        isTablet && styles.contentWrapperTablet,
-        isLandscape && styles.contentWrapperLandscape
-      ]}>
-        {isLandscape ? (
-          // Landscape: two-column layout
-          <>
-            <View style={styles.leftPane}>
-              {timerContent}
-            </View>
-            <View style={styles.rightPane}>
-              {controlsContent}
-            </View>
-          </>
-        ) : (
-          // Portrait: stacked layout
-          <>
-            {timerContent}
-            {controlsContent}
-          </>
-        )}
+    <View style={[
+      styles.container,
+      activeMode === 'fly' ? styles.containerFly : { backgroundColor: colors.bg },
+      { paddingBottom: tabBarHeight },
+    ]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
-        {/* Goal reached popup - takes priority, never overlaps */}
-        <GoalReachedPopup
-          visible={!!goalPopup}
-          newStreak={goalPopup?.newStreak ?? 0}
-          animationsEnabled={settings.settings.animationsEnabled}
-          autoDismissMs={1400}
-          onClose={() => {
-            setGoalPopup(null);
-            stats.clearGoalHitPulse();
-          }}
-        />
+      {activeMode === 'fly' ? (
+        // ── Fly Mode ─────────────────────────────────────────────────────────
+        // FlyModeScreen fills all space; ModeSwitcher floats over the map.
+        <View style={styles.flyContainer}>
+          <FlyModeScreen />
+          <View style={styles.flyModeSwitcherBar}>
+            <ModeSwitcher activeMode={activeMode} onModeChange={setActiveMode} />
+          </View>
+        </View>
+      ) : (
+        // ── Default Mode ──────────────────────────────────────────────────────
+        <>
+          <CalmBackground enabled={settings.settings.animationsEnabled} />
+          <View style={[
+            styles.contentWrapper,
+            isTablet && styles.contentWrapperTablet,
+            isLandscape && styles.contentWrapperLandscape,
+          ]}>
+            {/* Mode switcher — sits above the header */}
+            <ModeSwitcher activeMode={activeMode} onModeChange={setActiveMode} />
 
-        {/* Love Note Card - show only when goal popup is NOT visible */}
-        {!goalPopup && (
-          <>
-            {queuedLoveNote ? (
-              <LoveNoteCard note={queuedLoveNote} onDismiss={() => setQueuedLoveNote(null)} />
+            {isLandscape ? (
+              // Landscape: two-column layout
+              <>
+                <View style={styles.leftPane}>
+                  {timerContent}
+                </View>
+                <View style={styles.rightPane}>
+                  {controlsContent}
+                </View>
+              </>
             ) : (
-              showLoveNoteCard && lastLoveNote && (
-                <LoveNoteCard note={lastLoveNote} onDismiss={dismissLoveNote} />
-              )
+              // Portrait: stacked layout
+              <>
+                {timerContent}
+                {controlsContent}
+              </>
             )}
-          </>
-        )}
-      </View>
+
+            {/* Goal reached popup - takes priority, never overlaps */}
+            <GoalReachedPopup
+              visible={!!goalPopup}
+              newStreak={goalPopup?.newStreak ?? 0}
+              animationsEnabled={settings.settings.animationsEnabled}
+              autoDismissMs={1400}
+              onClose={() => {
+                setGoalPopup(null);
+                stats.clearGoalHitPulse();
+              }}
+            />
+
+            {/* Love Note Card - show only when goal popup is NOT visible */}
+            {!goalPopup && (
+              <>
+                {queuedLoveNote ? (
+                  <LoveNoteCard note={queuedLoveNote} onDismiss={() => setQueuedLoveNote(null)} />
+                ) : (
+                  showLoveNoteCard && lastLoveNote && (
+                    <LoveNoteCard note={lastLoveNote} onDismiss={dismissLoveNote} />
+                  )
+                )}
+              </>
+            )}
+          </View>
+        </>
+      )}
     </View>
   );
 }
@@ -344,10 +366,27 @@ export default function TimerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor removed - now inline
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+  },
+  // Fly mode overrides: no padding/centering so the map fills the space
+  containerFly: {
+    padding: 0,
+    justifyContent: 'flex-start',
+    alignItems: 'stretch',
+  },
+  // Fly mode: map + overlaid mode switcher
+  flyContainer: {
+    flex: 1,
+  },
+  flyModeSwitcherBar: {
+    position: 'absolute',
+    top: 52,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 100,
   },
   contentWrapper: {
     width: '100%',

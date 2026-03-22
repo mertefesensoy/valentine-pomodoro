@@ -12,6 +12,7 @@ export const DEFAULT_SETTINGS = {
     showLoveNotes: true,
     themeMode: 'system' as const,
     animationsEnabled: true,
+    flyModeSound: true, // Ambient cabin sound during Fly Mode sessions
 };
 
 // Default love notes (20 seed notes for Bengisu)

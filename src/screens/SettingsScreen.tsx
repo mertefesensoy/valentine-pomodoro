@@ -246,7 +246,7 @@ export default function SettingsScreen() {
                             value={settings.notifications}
                             onValueChange={(val) => updateSettings({ notifications: val })}
                             trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={settings.notifications ? colors.accent : '#9e9e9e'}
+                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (settings.notifications ? colors.accent : '#9e9e9e')}
                         />
                     </View>
 
@@ -256,7 +256,7 @@ export default function SettingsScreen() {
                             value={settings.sound}
                             onValueChange={(val) => updateSettings({ sound: val })}
                             trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={settings.sound ? colors.accent : '#9e9e9e'}
+                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (settings.sound ? colors.accent : '#9e9e9e')}
                         />
                     </View>
 
@@ -266,7 +266,7 @@ export default function SettingsScreen() {
                             value={settings.haptics}
                             onValueChange={(val) => updateSettings({ haptics: val })}
                             trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={settings.haptics ? colors.accent : '#9e9e9e'}
+                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (settings.haptics ? colors.accent : '#9e9e9e')}
                         />
                     </View>
 
@@ -276,7 +276,7 @@ export default function SettingsScreen() {
                             value={settings.showLoveNotes}
                             onValueChange={(val) => updateSettings({ showLoveNotes: val })}
                             trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={settings.showLoveNotes ? colors.accent : '#9e9e9e'}
+                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (settings.showLoveNotes ? colors.accent : '#9e9e9e')}
                         />
                     </View>
                 </View>
@@ -293,7 +293,22 @@ export default function SettingsScreen() {
                             value={settings.animationsEnabled}
                             onValueChange={(val) => updateSettings({ animationsEnabled: val })}
                             trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={settings.animationsEnabled ? colors.accent : '#9e9e9e'}
+                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (settings.animationsEnabled ? colors.accent : '#9e9e9e')}
+                        />
+                    </View>
+                </View>
+
+                {/* Fly Mode Section */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Fly Mode ✈️</Text>
+
+                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
+                        <Text style={[styles.label, { color: colors.text }]}>Ambient Sounds</Text>
+                        <Switch
+                            value={settings.flyModeSound}
+                            onValueChange={(val) => updateSettings({ flyModeSound: val })}
+                            trackColor={{ false: '#ddd', true: colors.accentLight }}
+                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (settings.flyModeSound ? colors.accent : '#9e9e9e')}
                         />
                     </View>
                 </View>
@@ -315,7 +330,7 @@ export default function SettingsScreen() {
                                 }
                             }}
                             trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={stats.goalMinutes > 0 ? colors.accent : '#9e9e9e'}
+                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (stats.goalMinutes > 0 ? colors.accent : '#9e9e9e')}
                         />
                     </View>
 
@@ -410,7 +425,7 @@ export default function SettingsScreen() {
                                 }
                             }}
                             trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={reminder.reminder.enabled ? colors.accent : '#9e9e9e'}
+                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (reminder.reminder.enabled ? colors.accent : '#9e9e9e')}
                         />
                     </View>
 
@@ -479,7 +494,7 @@ export default function SettingsScreen() {
                                         })
                                     }
                                     trackColor={{ false: '#ddd', true: colors.accentLight }}
-                                    thumbColor={reminder.reminder.quietHours.enabled ? colors.accent : '#9e9e9e'}
+                                    thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (reminder.reminder.quietHours.enabled ? colors.accent : '#9e9e9e')}
                                 />
                             </View>
 

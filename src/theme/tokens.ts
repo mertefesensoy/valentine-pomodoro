@@ -41,6 +41,19 @@ export const DarkTheme = {
     gradientB2: ['#1f1147', '#a855f7', '#ddd6fe'] as const,
 };
 
+/**
+ * Valentine Spec Tokens — used exclusively in Fly Mode components.
+ * These are the canonical hex codes from the architectural spec.
+ * Default Mode continues to use LightTheme/DarkTheme tokens above.
+ */
+export const ValentineSpec = {
+    backgroundPrimary: '#F7F3F0',    // Cozy Cream — map overlay backgrounds
+    backgroundSecondary: '#F9C2D1',  // Blush Pink — card surfaces
+    textPrimary: '#7A3DAF',           // Rich Purple — timer digits & headings
+    accentPrimary: '#FF4F8B',         // Hot Pink — markers, MapKit tintColor, buttons
+    accentSecondary: '#C8102E',       // Deep Romance Red — geodesic polyline
+} as const;
+
 // Type helper to widen readonly tuples while preserving structure
 type WidenGradients<T> = T extends readonly [infer A, infer B, infer C]
     ? readonly [A, B, C]

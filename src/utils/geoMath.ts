@@ -9,7 +9,6 @@ export interface LatLng {
 }
 
 const EARTH_RADIUS_KM = 6371;
-const AVG_FLIGHT_SPEED_KMH = 800;
 
 /**
  * Haversine formula — computes the great-circle distance (km) between two
@@ -42,18 +41,39 @@ export function haversineDistance(
 /**
  * Converts a great-circle distance to a scaled Pomodoro duration in seconds.
  *
- * Real flight time (hours) = distance / AVG_FLIGHT_SPEED_KMH
- * Scaled Pomodoro time applies a 10:1 ratio:
- *   10 real flight minutes → 1 Pomodoro minute
+ * Uses 900 km/h modern jet cruising speed plus realistic per-band overhead
+ * (taxi + takeoff/climb + descent):
+ *   • short haul  < 1,500 km  → +45 min overhead
+ *   • medium haul < 5,000 km  → +60 min overhead
+ *   • long haul   ≥ 5,000 km  → +75 min overhead
  *
- * Example: JFK→LHR ≈ 5,570 km
- *   Real flight ≈ 6.96 hours = 417.5 min
- *   Scaled Pomodoro = 417.5 / 10 ≈ 41.75 min = 2,505 seconds
+ * Scaled 10:1 (10 real flight minutes = 1 Pomodoro minute).
+ * Clamped to a minimum of 5 min and maximum of 90 min.
+ *
+ * Examples:
+ *   LHR→CDG  (340 km):  ~6.7 min Pomodoro  (was 2.6 min with old formula)
+ *   JFK→LHR  (5,570 km): ~46 min Pomodoro
+ *   SYD→LAX  (12,074 km): 90 min (capped)
  */
 export function flightDurationToSeconds(distanceKm: number, scaleFactor = 10): number {
-    const realFlightMinutes = (distanceKm / AVG_FLIGHT_SPEED_KMH) * 60;
+    const CRUISE_SPEED_KMH = 900;
+
+    // Realistic taxi + takeoff/climb + descent overhead per distance band
+    let overheadMinutes: number;
+    if (distanceKm < 1500) {
+        overheadMinutes = 45;   // short haul
+    } else if (distanceKm < 5000) {
+        overheadMinutes = 60;   // medium haul
+    } else {
+        overheadMinutes = 75;   // long haul
+    }
+
+    const cruiseMinutes = (distanceKm / CRUISE_SPEED_KMH) * 60;
+    const realFlightMinutes = cruiseMinutes + overheadMinutes;
     const pomodoroMinutes = realFlightMinutes / scaleFactor;
-    return Math.round(pomodoroMinutes * 60);
+
+    // Clamp: 5 min minimum (short hops), 90 min maximum
+    return Math.round(Math.max(5 * 60, Math.min(90 * 60, pomodoroMinutes * 60)));
 }
 
 /**

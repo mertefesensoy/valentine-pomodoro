@@ -27,7 +27,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker, Polyline, MapType, Camera, Region } from 'react-native-maps';
 import Animated, {
     useSharedValue, useAnimatedStyle, withTiming,
-    useAnimatedReaction, runOnJS,
+    useAnimatedReaction, runOnJS, cancelAnimation,
 } from 'react-native-reanimated';
 import { ValentineSpec } from '../theme/tokens';
 import AirportPicker, { Airport } from '../components/AirportPicker';
@@ -114,6 +114,17 @@ export default function FlyModeScreen() {
     // Tracks the scheduled "flight landed" notification so we can cancel it on reset/pause
     const notifIdRef = useRef<string | null>(null);
 
+    // Unmount guard — prevents state updates firing after FlyModeScreen unmounts
+    const isMountedRef = useRef(true);
+    useEffect(() => { return () => { isMountedRef.current = false; }; }, []);
+
+    // Heading update throttle — live compass during map rotation (10fps max)
+    const headingThrottleRef = useRef(0);
+
+    // User pan interaction flag — suppresses camera following for 4s after pan
+    const userInteractingRef = useRef(false);
+    const interactionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     // Airport selection
     const [origin, setOrigin] = useState<Airport | null>(null);
     const [destination, setDestination] = useState<Airport | null>(null);
@@ -172,10 +183,11 @@ export default function FlyModeScreen() {
     const [markerCoord, setMarkerCoord] = useState<LatLng | null>(null);
     const [bearingDeg, setBearingDeg] = useState(0);
 
-    // Smooth bearing animation — 60fps on UI thread
+    // Bearing — snaps instantly (at 10fps updates, 600ms smoothing caused
+    // the plane SVG to visually lag behind the map heading in chase mode).
     const bearingSV = useSharedValue(0);
     useEffect(() => {
-        bearingSV.value = withTiming(bearingDeg, { duration: 600 });
+        bearingSV.value = bearingDeg;
     }, [bearingDeg, bearingSV]);
 
     const markerAnimatedStyle = useAnimatedStyle(() => ({
@@ -189,6 +201,9 @@ export default function FlyModeScreen() {
     }, [flightData]);
 
     const updateMarkerFromProgress = useCallback((progress: number) => {
+        // Guard: do not update state on an unmounted component
+        if (!isMountedRef.current) return;
+
         const wps = waypointsRef.current;
         if (wps.length < 2) return;
 
@@ -200,9 +215,16 @@ export default function FlyModeScreen() {
         const upperIdx = lowerIdx + 1;
         const fraction = exactIdx - lowerIdx; // 0.0 → 1.0 between adjacent waypoints
 
+        // Normalise longitude difference to the short path across ±180°.
+        // Without this, Pacific routes (e.g. SYD→LAX) briefly teleport the
+        // marker to the prime meridian when interpolating lon=+179 → lon=-179.
+        let lonDiff = wps[upperIdx].longitude - wps[lowerIdx].longitude;
+        if (lonDiff > 180) lonDiff -= 360;
+        if (lonDiff < -180) lonDiff += 360;
+
         setMarkerCoord({
             latitude:  wps[lowerIdx].latitude  + fraction * (wps[upperIdx].latitude  - wps[lowerIdx].latitude),
-            longitude: wps[lowerIdx].longitude + fraction * (wps[upperIdx].longitude - wps[lowerIdx].longitude),
+            longitude: wps[lowerIdx].longitude + fraction * lonDiff,
         });
         setBearingDeg(calculateBearing(wps[lowerIdx], wps[upperIdx]));
     }, []);
@@ -326,6 +348,7 @@ export default function FlyModeScreen() {
     // ── Reset
     const handleReset = useCallback(() => {
         if (tickRef.current) clearInterval(tickRef.current);
+        waypointsRef.current = []; // clear first — prevents stale reaction re-setting marker
         setTimerRunning(false);
         setPaused(false);
         setRemainingMs(null);
@@ -338,6 +361,17 @@ export default function FlyModeScreen() {
         // Cancel any pending landing notification
         cancelScheduled(notifIdRef.current).then(() => { notifIdRef.current = null; });
     }, [progressSV, cancelScheduled]);
+
+    // ── Pan gesture: sets a flag that suppresses camera following for 4 s.
+    // This allows the user to freely explore the map during chase/route modes
+    // without the camera snapping back every 100ms.
+    const handlePanDrag = useCallback(() => {
+        userInteractingRef.current = true;
+        if (interactionTimerRef.current) clearTimeout(interactionTimerRef.current);
+        interactionTimerRef.current = setTimeout(() => {
+            userInteractingRef.current = false;
+        }, 4000);
+    }, []);
 
     // ── Compass: snap map heading to north
     const handleNorthUp = useCallback(() => {
@@ -392,18 +426,26 @@ export default function FlyModeScreen() {
         });
     }, [viewMode, flightData, height, insets.top]);
 
-    // ── View mode: 'chase' / 'route' → camera follows plane continuously
+    // ── View mode: 'chase' / 'route' → camera follows plane
+    // • Chase: instant setCamera so the plane never lags behind its heading
+    // • Route: gentle 300ms animation (slower-moving overview)
+    // • Skipped entirely while the user is panning (userInteractingRef guard)
     useEffect(() => {
         if (!markerCoord || viewMode === 'overview') return;
-        mapRef.current?.animateCamera(
-            {
-                center: markerCoord,
-                heading: bearingDeg,
-                pitch: viewMode === 'chase' ? 50 : 20,
-                altitude: viewMode === 'chase' ? 500_000 : 2_500_000,
-            },
-            { duration: 900 }
-        );
+        if (userInteractingRef.current) return; // user is panning — let them explore
+
+        const cam = {
+            center: markerCoord,
+            heading: bearingDeg,
+            pitch: viewMode === 'chase' ? 50 : 20,
+            altitude: viewMode === 'chase' ? 500_000 : 2_500_000,
+        };
+
+        if (viewMode === 'chase') {
+            mapRef.current?.setCamera(cam);          // instant — no lag
+        } else {
+            mapRef.current?.animateCamera(cam, { duration: 300 }); // route: gentle
+        }
     }, [markerCoord, viewMode, bearingDeg]);
 
     // ── Show interstitial ad after flight completion
@@ -419,8 +461,16 @@ export default function FlyModeScreen() {
         });
     }, [isAdPending, timerRunning, paused, landingLoveNote]);
 
-    // ── Cleanup on unmount
-    useEffect(() => () => { if (tickRef.current) clearInterval(tickRef.current); }, []);
+    // ── Cleanup on unmount — cancel Reanimated animations so their UI-thread
+    // callbacks don't fire after the component is gone (crash prevention).
+    useEffect(() => {
+        return () => {
+            cancelAnimation(progressSV);
+            cancelAnimation(bearingSV);
+            if (tickRef.current) clearInterval(tickRef.current);
+            if (interactionTimerRef.current) clearTimeout(interactionTimerRef.current);
+        };
+    }, [progressSV, bearingSV]);
 
     // ── Ambient sound: plays during active (running, not paused) sessions
     useFlyModeAudio(
@@ -449,16 +499,23 @@ export default function FlyModeScreen() {
     const isSessionActive = timerRunning || paused;
 
     // ── Zoom-based airport markers ───────────────────────────────────────────
-    // Only shown in flat mode when no session is running.
-    // Tier threshold scales with zoom: world → tier 1 only; country → all tiers.
+    // Shown when no session is running (both flat and globe modes).
+    // Globe mode: tier-1 airports worldwide (no bounds check).
+    // Flat mode: tier-threshold scales with zoom; bounded by viewport.
     // Capped at 120 to keep the bridge happy (sorted best-first before capping).
     const visibleAirportMarkers = useMemo(() => {
-        if (isSessionActive || isGlobe) return [];
+        if (isSessionActive) return []; // hidden during active flights
+
+        // Globe mode: show tier-1 airports across the whole world
+        if (isGlobe) {
+            return AIRPORTS.filter(a => (a.tier ?? 1) === 1);
+        }
 
         const { latitude, longitude, latitudeDelta, longitudeDelta } = mapRegion;
 
-        // Determine which tiers to show based on zoom level
-        const maxTier = latitudeDelta >= 60 ? 1 : latitudeDelta >= 20 ? 2 : 3;
+        // Only 2 tiers exist now (tier-3 stripped from data).
+        // Show tier-1 only at world/continent zoom; both tiers when zoomed in.
+        const maxTier = latitudeDelta >= 40 ? 1 : 2;
 
         // Viewport bounding box with a 5% buffer
         const latBuffer = latitudeDelta * 0.05;
@@ -507,12 +564,27 @@ export default function FlyModeScreen() {
                 ref={mapRef}
                 style={styles.map}
                 mapType={mapType}
-                // tintColor applies the Valentine accent to MapKit native controls (compass, etc.)
+                // tintColor applies the Valentine accent to MapKit native controls
                 tintColor={ValentineSpec.accentPrimary}
+                // Explicit interaction permissions — rotateEnabled ensures the user
+                // can freely rotate the map (we hide the native compass; use our own)
+                rotateEnabled={true}
+                pitchEnabled={true}
+                showsCompass={false}  // hide MapKit's compass; CompassRose overlay replaces it
                 camera={isGlobe ? globeCamera : undefined}
                 initialRegion={isGlobe ? undefined : {
                     latitude: 20, longitude: 0,
                     latitudeDelta: 120, longitudeDelta: 120,
+                }}
+                // Live heading update during rotation gesture (throttled to ~10fps).
+                // onRegionChangeComplete fires only after the gesture settles; this
+                // fires continuously so the CompassRose needle rotates in real-time.
+                onRegionChange={async () => {
+                    const now = Date.now();
+                    if (now - headingThrottleRef.current < 100) return;
+                    headingThrottleRef.current = now;
+                    const cam = await mapRef.current?.getCamera();
+                    if (cam?.heading !== undefined) setMapHeading(cam.heading);
                 }}
                 // Clamp latitude (globe) + track region for airport markers + compass
                 onRegionChangeComplete={async (region) => {
@@ -526,12 +598,12 @@ export default function FlyModeScreen() {
                     }
                     // Update visible region for zoom-based airport dot rendering
                     setMapRegion(region);
-                    // Update compass needle after any pan/rotate/zoom
+                    // Final heading sync after gesture settles
                     const cam = await mapRef.current?.getCamera();
-                    if (cam?.heading !== undefined) {
-                        setMapHeading(cam.heading);
-                    }
+                    if (cam?.heading !== undefined) setMapHeading(cam.heading);
                 }}
+                // Detect user pan — suppresses camera following for 4 s
+                onPanDrag={handlePanDrag}
                 // Map tap → nearest-airport selection (only when no session is active)
                 onPress={isSessionActive ? undefined : handleMapPress}
             >
@@ -569,7 +641,7 @@ export default function FlyModeScreen() {
                 {markerCoord && (
                     <Marker coordinate={markerCoord} anchor={{ x: 0.5, y: 0.5 }} flat>
                         <Animated.View style={[styles.airplane, markerAnimatedStyle]}>
-                            <AirplaneSVG size={32} color={ValentineSpec.accentPrimary} />
+                            <AirplaneSVG size={32} color="#FFFFFF" />
                         </Animated.View>
                     </Marker>
                 )}

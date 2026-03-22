@@ -5,32 +5,20 @@
  * Uses expo-audio's useAudioPlayer hook.
  *
  * ── How to add a sound ───────────────────────────────────────────────────────
- * 1. Place your .mp3 file in src/assets/sounds/
+ * 1. Place your .m4a / .mp3 file in src/assets/sounds/
  * 2. Add a key to SOUND_SOURCES below with require(...)
  * 3. Pass the new key as `soundKey` where you call useFlyModeAudio()
- *
- * ── Audio file setup ─────────────────────────────────────────────────────────
- * Place a looping cabin ambient MP3 at:
- *   src/assets/sounds/fly-ambient.mp3
- *
- * Recommended: ~30s seamlessly loopable airplane cabin hum, ~30–60 KB
- * Free sources: freesound.org (search "airplane cabin ambient"), zapsplat.com
- *
- * Until the file is added, SOUND_SOURCES.flyAmbient is null and no sound
- * plays (graceful no-op).
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
 import { useEffect, useRef } from 'react';
-import { useAudioPlayer } from 'expo-audio';
+import { useAudioPlayer, setAudioModeAsync } from 'expo-audio';
 
 // ─── Sound registry ───────────────────────────────────────────────────────────
-// Set to null until the user provides the audio file.
-// To activate: replace null with require('../assets/sounds/fly-ambient.mp3')
 
 const SOUND_SOURCES = {
     flyAmbient: require('../assets/sounds/fly-ambient.m4a'),
-    // Example of adding more sounds in the future:
+    // Future sounds:
     // takeoff: require('../assets/sounds/takeoff.mp3'),
     // landing: require('../assets/sounds/landing.mp3'),
 } as const;
@@ -57,9 +45,23 @@ export function useFlyModeAudio(
     const player = useAudioPlayer(source);
     const hasPlayedRef = useRef(false);
 
+    // Configure the audio session once on mount:
+    // • playsInSilentMode — sound plays even when the iOS hardware mute switch
+    //   is flipped on. Without this, the cabin hum is completely silent on muted
+    //   devices (the most common reason ambient sounds aren't heard).
+    // • mixWithOthers — the cabin hum layers over the user's music rather than
+    //   pausing it when playback starts.
+    useEffect(() => {
+        setAudioModeAsync({
+            playsInSilentMode: true,
+            interruptionMode: 'mixWithOthers',
+        }).catch(() => {}); // non-fatal
+    }, []);
+
     useEffect(() => {
         if (active && enabled) {
             player.loop = true;
+            player.volume = 1.0;  // explicit full volume
             player.play();
             hasPlayedRef.current = true;
         } else {
@@ -70,17 +72,11 @@ export function useFlyModeAudio(
         }
     }, [active, enabled, source, player]);
 
-    // Reset the "has played" flag when session resets (active goes false → true)
-    useEffect(() => {
-        if (!active) {
-            // Will be set back to true next time we actually play
-        }
-    }, [active]);
-
-    // Cleanup: release the player when the component unmounts
+    // Cleanup: pause first to avoid a play/remove race, then release player
     useEffect(() => {
         return () => {
-            player.remove();
+            try { player.pause(); } catch { /* ignore */ }
+            try { player.remove(); } catch { /* ignore */ }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

@@ -30,6 +30,7 @@ import Animated, {
     useAnimatedReaction, runOnJS, cancelAnimation,
 } from 'react-native-reanimated';
 import { ValentineSpec } from '../theme/tokens';
+import { useTheme } from '../theme/useTheme';
 import AirportPicker, { Airport } from '../components/AirportPicker';
 import {
     haversineDistance, flightDurationToSeconds, formatFlightDuration,
@@ -117,6 +118,7 @@ const VIEW_MODE_ICONS: Record<ViewMode, string> = {
 export default function FlyModeScreen() {
     const { height } = useWindowDimensions();
     const insets = useSafeAreaInsets();
+    const { colors, isDark } = useTheme();
     const { settings, stats, loveNotes } = useApp();
     const { scheduleSessionEnd, cancelScheduled } = useNotifications();
 
@@ -700,6 +702,7 @@ export default function FlyModeScreen() {
                 rotateEnabled={true}
                 pitchEnabled={true}
                 showsCompass={false}  // hide MapKit's compass; CompassRose overlay replaces it
+                userInterfaceStyle={isDark ? 'dark' : 'light'}
                 camera={isGlobe ? globeCamera : undefined}
                 initialRegion={isGlobe ? undefined : {
                     latitude: 20, longitude: 0,
@@ -815,7 +818,10 @@ export default function FlyModeScreen() {
             >
                 {/* Compass — always visible; tap to snap north */}
                 <Pressable
-                    style={styles.mapControlBtn}
+                    style={[styles.mapControlBtn, {
+                        backgroundColor: isDark ? 'rgba(45,45,45,0.95)' : 'rgba(247,243,240,0.95)',
+                        borderColor: `${ValentineSpec.accentPrimary}30`,
+                    }]}
                     onPress={handleNorthUp}
                     accessibilityLabel="Reset map to north"
                     accessibilityRole="button"
@@ -826,7 +832,10 @@ export default function FlyModeScreen() {
                 {/* View mode — only visible during active session */}
                 {isSessionActive && markerCoord && (
                     <Pressable
-                        style={[styles.mapControlBtn, styles.mapControlBtnGap]}
+                        style={[styles.mapControlBtn, styles.mapControlBtnGap, {
+                            backgroundColor: isDark ? 'rgba(45,45,45,0.95)' : 'rgba(247,243,240,0.95)',
+                            borderColor: `${ValentineSpec.accentPrimary}30`,
+                        }]}
                         onPress={cycleViewMode}
                         accessibilityLabel={`Map view: ${viewMode}`}
                         accessibilityRole="button"
@@ -848,14 +857,19 @@ export default function FlyModeScreen() {
             )}
 
             {/* ── Bottom overlay card ──────────────────────────────────────── */}
-            <View style={[styles.card, { maxHeight: height * 0.45 }]}>
+            <View style={[styles.card, { maxHeight: height * 0.45, backgroundColor: colors.card }]}>
                 {/* Card header: map type toggle — accessible inside the bottom card */}
                 <View style={styles.cardHeader}>
                     <Pressable
-                        style={styles.globeToggle}
+                        style={[styles.globeToggle, {
+                            backgroundColor: isDark
+                                ? `${colors.card}CC`
+                                : `${ValentineSpec.backgroundSecondary}80`,
+                            borderColor: `${ValentineSpec.accentPrimary}40`,
+                        }]}
                         onPress={() => setIsGlobe((v) => !v)}
                     >
-                        <Text style={styles.globeToggleText}>
+                        <Text style={[styles.globeToggleText, { color: colors.text }]}>
                             {isGlobe ? '🗺 Flat' : '🌍 Globe'}
                         </Text>
                     </Pressable>
@@ -883,7 +897,7 @@ export default function FlyModeScreen() {
                 {/* Flight info */}
                 {flightData && (
                     <View style={styles.flightInfo}>
-                        <Text style={styles.flightInfoText}>
+                        <Text style={[styles.flightInfoText, { color: colors.textMuted }]}>
                             {Math.round(flightData.distanceKm).toLocaleString()} km
                             {'  ·  '}
                             {formatFlightDuration(flightData.totalSeconds)} focus
@@ -919,7 +933,7 @@ export default function FlyModeScreen() {
                                 <Text style={styles.secondaryButtonText}>Pause</Text>
                             </Pressable>
                             <Pressable style={styles.ghostButton} onPress={handleReset}>
-                                <Text style={styles.ghostButtonText}>Reset</Text>
+                                <Text style={[styles.ghostButtonText, { color: colors.text }]}>Reset</Text>
                             </Pressable>
                         </View>
                     )}
@@ -929,7 +943,7 @@ export default function FlyModeScreen() {
                                 <Text style={styles.primaryButtonText}>Resume</Text>
                             </Pressable>
                             <Pressable style={styles.ghostButton} onPress={handleReset}>
-                                <Text style={styles.ghostButtonText}>Reset</Text>
+                                <Text style={[styles.ghostButtonText, { color: colors.text }]}>Reset</Text>
                             </Pressable>
                         </View>
                     )}
@@ -962,18 +976,17 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     // Globe / flat toggle button — now lives inside the bottom card
+    // backgroundColor + borderColor supplied inline (dark mode adaptive)
     globeToggle: {
-        backgroundColor: ValentineSpec.backgroundSecondary + '80',
         borderRadius: 20,
         paddingHorizontal: 14,
         paddingVertical: 6,
         borderWidth: 1,
-        borderColor: ValentineSpec.accentPrimary + '40',
     },
+    // color supplied inline (dark mode adaptive)
     globeToggleText: {
         fontSize: 13,
         fontWeight: '600',
-        color: ValentineSpec.textPrimary,
     },
     // Airplane marker wrapper (Reanimated rotation applied here)
     airplane: {
@@ -1002,13 +1015,12 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '600',
     },
-    // Bottom info card
+    // Bottom info card — backgroundColor supplied inline (dark mode adaptive)
     card: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: ValentineSpec.backgroundPrimary,
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         paddingHorizontal: 20,
@@ -1038,9 +1050,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 8,
     },
+    // color supplied inline (dark mode adaptive via colors.textMuted)
     flightInfoText: {
         fontSize: 13,
-        color: ValentineSpec.textPrimary + 'AA',
         fontWeight: '500',
     },
     timerRow: {
@@ -1100,8 +1112,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
         paddingVertical: 12,
     },
+    // color supplied inline (dark mode adaptive via colors.text)
     ghostButtonText: {
-        color: ValentineSpec.textPrimary,
         fontSize: 15,
         fontWeight: '600',
     },
@@ -1113,11 +1125,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         // top is set inline via insets
     },
+    // backgroundColor + borderColor supplied inline (dark mode adaptive)
     mapControlBtn: {
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: 'rgba(247, 243, 240, 0.95)',
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: '#000',
@@ -1126,7 +1138,6 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 4,
         borderWidth: 1,
-        borderColor: ValentineSpec.accentPrimary + '30',
     },
     mapControlBtnGap: {
         marginTop: 8,

@@ -4,6 +4,7 @@ import {
     StyleSheet, SafeAreaView, TextInput,
 } from 'react-native';
 import { ValentineSpec } from '../theme/tokens';
+import { useTheme } from '../theme/useTheme';
 
 export interface Airport {
     iata: string;
@@ -27,6 +28,7 @@ interface AirportPickerProps {
 }
 
 export default function AirportPicker({ label, airports, selected, onSelect }: AirportPickerProps) {
+    const { colors, isDark } = useTheme();
     const [modalVisible, setModalVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -56,9 +58,12 @@ export default function AirportPicker({ label, airports, selected, onSelect }: A
     return (
         <>
             <View style={styles.wrapper}>
-                <Text style={styles.label}>{label}</Text>
+                <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
                 <Pressable
-                    style={styles.button}
+                    style={[styles.button, {
+                        backgroundColor: colors.card,
+                        borderColor: `${ValentineSpec.accentPrimary}50`,
+                    }]}
                     onPress={() => setModalVisible(true)}
                     accessibilityRole="button"
                     accessibilityLabel={`Select ${label} airport`}
@@ -66,10 +71,10 @@ export default function AirportPicker({ label, airports, selected, onSelect }: A
                     {selected ? (
                         <>
                             <Text style={styles.iata}>{selected.iata}</Text>
-                            <Text style={styles.city}>{selected.city}</Text>
+                            <Text style={[styles.city, { color: colors.text }]}>{selected.city}</Text>
                         </>
                     ) : (
-                        <Text style={styles.placeholder}>Select airport</Text>
+                        <Text style={[styles.placeholder, { color: `${colors.text}70` }]}>Select airport</Text>
                     )}
                     <Text style={styles.chevron}>›</Text>
                 </Pressable>
@@ -81,21 +86,30 @@ export default function AirportPicker({ label, airports, selected, onSelect }: A
                 presentationStyle="pageSheet"
                 onRequestClose={() => setModalVisible(false)}
             >
-                <SafeAreaView style={styles.modalContainer}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Select {label}</Text>
+                <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.card }]}>
+                    <View style={[styles.modalHeader, {
+                        backgroundColor: isDark ? colors.card : ValentineSpec.backgroundSecondary,
+                        borderBottomColor: `${ValentineSpec.accentPrimary}30`,
+                    }]}>
+                        <Text style={[styles.modalTitle, { color: colors.text }]}>Select {label}</Text>
                         <Pressable onPress={() => { setSearchQuery(''); setModalVisible(false); }} style={styles.closeButton}>
                             <Text style={styles.closeText}>Done</Text>
                         </Pressable>
                     </View>
 
-                    <View style={styles.searchContainer}>
+                    <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
                         <TextInput
-                            style={styles.searchInput}
+                            style={[styles.searchInput, {
+                                backgroundColor: isDark
+                                    ? colors.inputBg
+                                    : `${ValentineSpec.backgroundSecondary}50`,
+                                color: colors.text,
+                                borderColor: `${ValentineSpec.accentPrimary}30`,
+                            }]}
                             value={searchQuery}
                             onChangeText={setSearchQuery}
                             placeholder="Search airports…"
-                            placeholderTextColor={ValentineSpec.textPrimary + '60'}
+                            placeholderTextColor={`${colors.text}60`}
                             autoCorrect={false}
                             clearButtonMode="while-editing"
                         />
@@ -121,15 +135,19 @@ export default function AirportPicker({ label, airports, selected, onSelect }: A
                             const isSelected = selected?.iata === item.iata;
                             return (
                                 <Pressable
-                                    style={[styles.airportRow, isSelected && styles.airportRowSelected]}
+                                    style={[
+                                        styles.airportRow,
+                                        { borderBottomColor: `${ValentineSpec.accentPrimary}20` },
+                                        isSelected && styles.airportRowSelected,
+                                    ]}
                                     onPress={() => handleSelect(item)}
                                 >
                                     <View style={[styles.iataTag, item.tier === 2 && styles.iataTagTier2, item.tier === 3 && styles.iataTagTier3]}>
                                         <Text style={styles.iataTagText}>{item.iata}</Text>
                                     </View>
                                     <View style={styles.airportInfo}>
-                                        <Text style={styles.airportCity}>{item.city}, {item.country}</Text>
-                                        <Text style={styles.airportName} numberOfLines={1}>{item.name}</Text>
+                                        <Text style={[styles.airportCity, { color: colors.text }]}>{item.city}, {item.country}</Text>
+                                        <Text style={[styles.airportName, { color: `${colors.text}80` }]} numberOfLines={1}>{item.name}</Text>
                                     </View>
                                     {isSelected && <Text style={styles.checkmark}>✓</Text>}
                                 </Pressable>
@@ -146,23 +164,22 @@ const styles = StyleSheet.create({
     wrapper: {
         flex: 1,
     },
+    // color supplied inline (dark mode adaptive)
     label: {
         fontSize: 11,
         fontWeight: '600',
-        color: ValentineSpec.textPrimary,
         textTransform: 'uppercase',
         letterSpacing: 0.8,
         marginBottom: 6,
     },
+    // backgroundColor + borderColor supplied inline (dark mode adaptive)
     button: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: ValentineSpec.backgroundPrimary,
         borderRadius: 14,
         paddingHorizontal: 14,
         paddingVertical: 12,
         borderWidth: 1.5,
-        borderColor: ValentineSpec.accentPrimary + '50',
     },
     iata: {
         fontSize: 18,
@@ -170,15 +187,15 @@ const styles = StyleSheet.create({
         color: ValentineSpec.accentPrimary,
         marginRight: 6,
     },
+    // color supplied inline (dark mode adaptive)
     city: {
         fontSize: 13,
-        color: ValentineSpec.textPrimary,
         flex: 1,
         fontWeight: '500',
     },
+    // color supplied inline (dark mode adaptive)
     placeholder: {
         fontSize: 14,
-        color: ValentineSpec.textPrimary + '70',
         flex: 1,
     },
     chevron: {
@@ -186,25 +203,23 @@ const styles = StyleSheet.create({
         color: ValentineSpec.accentPrimary,
         fontWeight: '300',
     },
-    // Modal
+    // Modal — backgroundColor supplied inline (dark mode adaptive)
     modalContainer: {
         flex: 1,
-        backgroundColor: ValentineSpec.backgroundPrimary,
     },
+    // backgroundColor + borderBottomColor supplied inline (dark mode adaptive)
     modalHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
         paddingVertical: 16,
-        backgroundColor: ValentineSpec.backgroundSecondary,
         borderBottomWidth: 1,
-        borderBottomColor: ValentineSpec.accentPrimary + '30',
     },
+    // color supplied inline (dark mode adaptive)
     modalTitle: {
         fontSize: 17,
         fontWeight: '700',
-        color: ValentineSpec.textPrimary,
     },
     closeButton: {
         paddingHorizontal: 8,
@@ -215,33 +230,31 @@ const styles = StyleSheet.create({
         color: ValentineSpec.accentPrimary,
         fontWeight: '600',
     },
+    // backgroundColor supplied inline (dark mode adaptive)
     searchContainer: {
         paddingHorizontal: 16,
         paddingVertical: 10,
-        backgroundColor: ValentineSpec.backgroundPrimary,
         borderBottomWidth: StyleSheet.hairlineWidth,
         borderBottomColor: ValentineSpec.accentPrimary + '20',
     },
+    // backgroundColor + color + borderColor supplied inline (dark mode adaptive)
     searchInput: {
-        backgroundColor: ValentineSpec.backgroundSecondary + '50',
         borderRadius: 10,
         paddingHorizontal: 14,
         paddingVertical: 9,
         fontSize: 15,
-        color: ValentineSpec.textPrimary,
         borderWidth: 1,
-        borderColor: ValentineSpec.accentPrimary + '30',
     },
     list: {
         paddingVertical: 8,
     },
+    // borderBottomColor supplied inline (dark mode adaptive)
     airportRow: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingVertical: 14,
         borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: ValentineSpec.accentPrimary + '20',
     },
     airportRowSelected: {
         backgroundColor: ValentineSpec.accentPrimary + '12',
@@ -264,14 +277,14 @@ const styles = StyleSheet.create({
     airportInfo: {
         flex: 1,
     },
+    // color supplied inline (dark mode adaptive)
     airportCity: {
         fontSize: 15,
         fontWeight: '600',
-        color: ValentineSpec.textPrimary,
     },
+    // color supplied inline (dark mode adaptive)
     airportName: {
         fontSize: 12,
-        color: ValentineSpec.textPrimary + '80',
         marginTop: 2,
     },
     checkmark: {

@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { useEffect, useRef } from 'react';
+import { useTheme } from '../theme/useTheme';
 
 interface LoveNoteCardProps {
     note: string;
@@ -7,6 +8,7 @@ interface LoveNoteCardProps {
 }
 
 export default function LoveNoteCard({ note, onDismiss }: LoveNoteCardProps) {
+    const { colors } = useTheme();
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
@@ -48,11 +50,12 @@ export default function LoveNoteCard({ note, onDismiss }: LoveNoteCardProps) {
                     styles.card,
                     {
                         transform: [{ scale: scaleAnim }],
+                        backgroundColor: colors.card,
                     },
                 ]}
             >
                 <Text style={styles.heartIcon}>💗</Text>
-                <Text style={styles.noteText}>{note}</Text>
+                <Text style={[styles.noteText, { color: colors.text }]}>{note}</Text>
                 <TouchableOpacity style={styles.closeButton} onPress={onDismiss}>
                     <Text style={styles.closeButtonText}>Close</Text>
                 </TouchableOpacity>
@@ -73,8 +76,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 20,
     },
+    // backgroundColor supplied inline (dark mode adaptive)
     card: {
-        backgroundColor: '#FFFFFF',
         borderRadius: 24,
         padding: 32,
         alignItems: 'center',
@@ -89,10 +92,10 @@ const styles = StyleSheet.create({
         fontSize: 48,
         marginBottom: 16,
     },
+    // color supplied inline (dark mode adaptive)
     noteText: {
         fontSize: 20,
         fontWeight: '600',
-        color: '#2D2D2D',
         textAlign: 'center',
         lineHeight: 28,
         marginBottom: 24,

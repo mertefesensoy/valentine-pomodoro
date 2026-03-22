@@ -273,8 +273,22 @@ export default function FlyModeScreen() {
         bearingSV.value = bearingDeg;
     }, [bearingDeg, bearingSV]);
 
+    // mapHeadingSV mirrors mapHeading so the animated style can read it on the UI thread.
+    // Keeping it as a shared value prevents a stale-closure issue where useAnimatedStyle
+    // captures the JS-thread mapHeading value at render time and doesn't update until
+    // the next re-render.
+    const mapHeadingSV = useSharedValue(0);
+    useEffect(() => {
+        mapHeadingSV.value = mapHeading;
+    }, [mapHeading, mapHeadingSV]);
+
+    // Plane rotation is *relative to the screen*, not absolute from north.
+    // Formula:  bearingDeg − mapHeading
+    //   • Chase mode (mapHeading = bearingDeg):  result = 0  → plane points straight up ✓
+    //   • North-up   (mapHeading = 0):           result = bearingDeg              ✓
+    //   • Free rotation:                         correctly relative to the screen  ✓
     const markerAnimatedStyle = useAnimatedStyle(() => ({
-        transform: [{ rotate: `${bearingSV.value}deg` }],
+        transform: [{ rotate: `${bearingSV.value - mapHeadingSV.value}deg` }],
     }));
 
     // ── Animated reaction: progress → marker coordinate (JS thread via runOnJS)
@@ -531,6 +545,9 @@ export default function FlyModeScreen() {
 
         if (viewMode === 'chase') {
             mapRef.current?.setCamera(cam);          // instant — no lag
+            // Immediately sync mapHeading so the compass and plane-rotation formula
+            // don't have to wait for the async onRegionChange → getCamera() round-trip.
+            setMapHeading(bearingDeg);
         } else {
             mapRef.current?.animateCamera(cam, { duration: 300 }); // route: gentle
         }

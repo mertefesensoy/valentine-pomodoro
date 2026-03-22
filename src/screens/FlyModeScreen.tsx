@@ -37,6 +37,7 @@ import {
 } from '../utils/geoMath';
 import airportData from '../assets/data/airports.json';
 import { formatTime } from '../utils/time';
+import { save, load, STORAGE_KEYS } from '../utils/storage';
 import { useFlyModeAudio } from '../hooks/useFlyModeAudio';
 import { useApp } from '../context/AppContext';
 import { AdManager } from '../ads/AdManager';
@@ -52,8 +53,16 @@ type AirportRecord = {
     city: string;
     country: string;
     coordinates: { latitude: number; longitude: number };
-    /** 1 = large, 2 = medium, 3 = small — used for zoom-based marker visibility */
+    /** 1 = large, 2 = medium — used for zoom-based marker visibility */
     tier?: number;
+};
+
+/** Persisted to AsyncStorage when the user switches modes mid-flight.
+ *  Restored when FlyModeScreen remounts so the session can be resumed. */
+type FlySessionSave = {
+    originIata: string;
+    destinationIata: string;
+    remainingMs: number;
 };
 
 const AIRPORTS: Airport[] = Object.entries(airportData as Record<string, AirportRecord>).map(
@@ -118,6 +127,19 @@ export default function FlyModeScreen() {
     const isMountedRef = useRef(true);
     useEffect(() => { return () => { isMountedRef.current = false; }; }, []);
 
+    // Snapshot ref — always holds the latest reactive values so the
+    // save-on-unmount cleanup effect can read them without stale closures.
+    const snapshotRef = useRef<{
+        timerRunning: boolean;
+        paused: boolean;
+        origin: Airport | null;
+        destination: Airport | null;
+    }>({ timerRunning: false, paused: false, origin: null, destination: null });
+
+    // Populated on mount when a saved session is restored; consumed once
+    // flightData becomes available to reposition the plane at the correct point.
+    const restoredRemainingRef = useRef<number | null>(null);
+
     // Heading update throttle — live compass during map rotation (10fps max)
     const headingThrottleRef = useRef(0);
 
@@ -172,6 +194,67 @@ export default function FlyModeScreen() {
     // Ref so async handleFlightComplete can read flightData without deps
     const flightDataRef = useRef(flightData);
     useEffect(() => { flightDataRef.current = flightData; }, [flightData]);
+
+    // Keep snapshot in sync so the unmount cleanup always reads fresh values
+    useEffect(() => {
+        snapshotRef.current = { timerRunning, paused, origin, destination };
+    }, [timerRunning, paused, origin, destination]);
+
+    // ── Restore saved session on mount ─────────────────────────────────────
+    // Runs once. If a mid-flight session was saved (mode switch while active),
+    // pre-load the airports, mark as paused, and store remaining time.
+    // After flightData is computed (below), the plane is repositioned correctly.
+    useEffect(() => {
+        load<FlySessionSave | null>(STORAGE_KEYS.FLY_SESSION, null).then(saved => {
+            if (!saved || saved.remainingMs <= 0) return;
+            const orig = AIRPORTS.find(a => a.iata === saved.originIata);
+            const dest = AIRPORTS.find(a => a.iata === saved.destinationIata);
+            if (!orig || !dest) return;
+
+            setOrigin(orig);
+            setDestination(dest);
+            setPaused(true);
+            pausedRemainingRef.current = saved.remainingMs;
+            setRemainingMs(saved.remainingMs);
+            restoredRemainingRef.current = saved.remainingMs; // triggers position restore
+
+            save(STORAGE_KEYS.FLY_SESSION, null).catch(() => {}); // clear immediately
+        });
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // ── Marker + bearing restore after flightData is computed ──────────────
+    // When a session is restored, flightData isn't available yet on mount.
+    // This effect fires once flightData is ready and positions the plane at
+    // the exact saved progress point with the correct bearing.
+    // This also fixes Issue 1: the nose always faces the right direction
+    // when chase view is opened on a restored session.
+    useEffect(() => {
+        if (!flightData || restoredRemainingRef.current === null) return;
+
+        const wps = flightData.waypoints;
+        const totalMs = flightData.totalSeconds * 1000;
+        const progress = Math.max(0, Math.min(1, 1 - (restoredRemainingRef.current / totalMs)));
+
+        waypointsRef.current = wps;
+        progressSV.value = progress;
+
+        if (wps.length >= 2) {
+            const exactIdx = Math.min(progress * (wps.length - 1), wps.length - 1);
+            const lowerIdx = Math.min(Math.floor(exactIdx), wps.length - 2);
+            const upperIdx = lowerIdx + 1;
+            const fraction = exactIdx - lowerIdx;
+            let lonDiff = wps[upperIdx].longitude - wps[lowerIdx].longitude;
+            if (lonDiff > 180)  lonDiff -= 360;
+            if (lonDiff < -180) lonDiff += 360;
+            setMarkerCoord({
+                latitude:  wps[lowerIdx].latitude  + fraction * (wps[upperIdx].latitude  - wps[lowerIdx].latitude),
+                longitude: wps[lowerIdx].longitude + fraction * lonDiff,
+            });
+            setBearingDeg(calculateBearing(wps[lowerIdx], wps[upperIdx]));
+        }
+
+        restoredRemainingRef.current = null; // consumed — won't run again
+    }, [flightData, progressSV]);
 
     const targetEndTimeRef = useRef<number>(0);
     const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -246,6 +329,8 @@ export default function FlyModeScreen() {
     const handleFlightComplete = useCallback(async () => {
         setFlightComplete(true);
         notifIdRef.current = null; // notification already fired (or flight ended in foreground)
+        // Clear saved session — flight completed naturally, not paused mid-way
+        save(STORAGE_KEYS.FLY_SESSION, null).catch(() => {});
 
         // Impact haptic on landing (respects user setting)
         if (settings.settings.haptics) {
@@ -358,6 +443,9 @@ export default function FlyModeScreen() {
         setLandingLoveNote(null);
         setViewMode('overview');
         progressSV.value = 0;
+        restoredRemainingRef.current = null; // discard any pending restore
+        // Clear saved session — user explicitly abandoned the flight
+        save(STORAGE_KEYS.FLY_SESSION, null).catch(() => {});
         // Cancel any pending landing notification
         cancelScheduled(notifIdRef.current).then(() => { notifIdRef.current = null; });
     }, [progressSV, cancelScheduled]);
@@ -471,6 +559,30 @@ export default function FlyModeScreen() {
             if (interactionTimerRef.current) clearTimeout(interactionTimerRef.current);
         };
     }, [progressSV, bearingSV]);
+
+    // ── Save session on unmount if flight is active ────────────────────────
+    // When the user switches modes mid-flight, FlyModeScreen unmounts.
+    // We save origin/destination/remainingMs so the session can be resumed
+    // next time FlyModeScreen mounts (mode switch back to Fly Mode).
+    // Uses snapshotRef (always current) — empty deps so this only fires on unmount.
+    useEffect(() => {
+        return () => {
+            const { timerRunning, paused, origin, destination } = snapshotRef.current;
+            if (!timerRunning && !paused) return;
+            if (!origin || !destination) return;
+            const remaining = paused
+                ? pausedRemainingRef.current
+                : Math.max(0, targetEndTimeRef.current - Date.now());
+            if (remaining <= 0) return;
+            save(STORAGE_KEYS.FLY_SESSION, {
+                originIata: origin.iata,
+                destinationIata: destination.iata,
+                remainingMs: remaining,
+            } as FlySessionSave).catch(() => {});
+            cancelScheduled(notifIdRef.current).catch(() => {});
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // ── Ambient sound: plays during active (running, not paused) sessions
     useFlyModeAudio(

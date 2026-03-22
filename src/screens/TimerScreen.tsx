@@ -54,6 +54,17 @@ export default function TimerScreen() {
     }
   };
 
+  // ── Auto-pause Pomodoro when user switches to Fly Mode ─────────────────
+  // Mirrors the fly session save-on-unmount pattern: the user shouldn't lose
+  // their Pomodoro session just because they glanced at the map.
+  const prevActiveModeRef = useRef(activeMode);
+  useEffect(() => {
+    if (prevActiveModeRef.current !== 'fly' && activeMode === 'fly') {
+      if (isRunning) pause();
+    }
+    prevActiveModeRef.current = activeMode;
+  }, [activeMode, isRunning, pause]);
+
   // Goal celebration popup state
   const [goalPopup, setGoalPopup] = useState<null | { dayKey: string; newStreak: number }>(null);
   const [queuedLoveNote, setQueuedLoveNote] = useState<typeof lastLoveNote | null>(null);

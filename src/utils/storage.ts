@@ -55,4 +55,5 @@ export const STORAGE_KEYS = {
     UPDATE_META: 'update_meta', // { lastCheckAt: number, lastPromptedVersion: string | null }
     REMINDER_V1: 'reminder_v1',
     APP_MODE: 'app_mode',
+    FLY_SESSION: 'fly_session',  // paused mid-flight session snapshot (origin/dest/remainingMs)
 } as const;

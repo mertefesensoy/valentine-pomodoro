@@ -55,7 +55,7 @@ export function haversineDistance(
  *   JFK→LHR  (5,570 km): ~46 min Pomodoro
  *   SYD→LAX  (12,074 km): 90 min (capped)
  */
-export function flightDurationToSeconds(distanceKm: number, scaleFactor = 10): number {
+export function flightDurationToSeconds(distanceKm: number, scaleFactor = 5): number {
     const CRUISE_SPEED_KMH = 900;
 
     // Realistic taxi + takeoff/climb + descent overhead per distance band
@@ -72,8 +72,8 @@ export function flightDurationToSeconds(distanceKm: number, scaleFactor = 10): n
     const realFlightMinutes = cruiseMinutes + overheadMinutes;
     const pomodoroMinutes = realFlightMinutes / scaleFactor;
 
-    // Clamp: 5 min minimum (short hops), 90 min maximum
-    return Math.round(Math.max(5 * 60, Math.min(90 * 60, pomodoroMinutes * 60)));
+    // Clamp: 5 min minimum (short hops), 180 min maximum
+    return Math.round(Math.max(5 * 60, Math.min(180 * 60, pomodoroMinutes * 60)));
 }
 
 /**

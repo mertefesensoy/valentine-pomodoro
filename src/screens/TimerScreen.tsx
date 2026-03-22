@@ -187,11 +187,9 @@ export default function TimerScreen() {
 
   // Reset with confirmation
   const handleReset = () => {
-    console.log('handleReset called');
     if (Platform.OS === 'web') {
       const confirmed = window.confirm('Are you sure you want to reset the timer?');
       if (confirmed) {
-        console.log('Reset confirmed (web)');
         reset();
       }
     } else {
@@ -199,8 +197,8 @@ export default function TimerScreen() {
         'Reset Timer',
         'Are you sure you want to reset the timer?',
         [
-          { text: 'Cancel', style: 'cancel', onPress: () => console.log('Reset cancelled') },
-          { text: 'Reset', style: 'destructive', onPress: () => { console.log('Reset confirmed'); reset(); } },
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Reset', style: 'destructive', onPress: () => reset() },
         ]
       );
     }

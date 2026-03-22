@@ -116,10 +116,6 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             }
 
-            // TODO(optional-feature): Add completion sound when sound asset is available
-            // Requires: src/assets/sounds/complete.mp3 (0.5-1s chime)
-            // Implementation: expo-audio v1.1.1 (NOT expo-av)
-
             persistState({
                 ...INITIAL_TIMER_STATE,
                 phase: nextPhase.phase,

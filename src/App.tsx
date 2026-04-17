@@ -42,7 +42,7 @@ function ThemedApp() {
   const { hasSeenGiftMode, isReady: giftModeReady, dismiss } = useGiftMode();
   const navigationRef = React.useRef<any>(null);
 
-  // Check for app updates (max once per 24h, offline-safe)
+  // Check for app updates (once per cold launch; iTunes Lookup on iOS, self-hosted JSON on Android)
   useUpdateCheck(UPDATE_JSON_URL);
 
   // Phase 7: Notification tap routing - navigate to Timer screen

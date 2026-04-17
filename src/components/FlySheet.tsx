@@ -170,7 +170,7 @@ const FlySheet = forwardRef<FlySheetRef, FlySheetProps>((props, ref) => {
     const dragStart = useSharedValue(0);
 
     const portraitGesture = Gesture.Pan()
-        .activeOffsetY([-5, 5])
+        .activeOffsetY([-2, 2])
         .failOffsetX([-10, 10])
         .onBegin(() => { dragStart.value = translation.value; })
         .onUpdate((e) => {
@@ -188,7 +188,7 @@ const FlySheet = forwardRef<FlySheetRef, FlySheetProps>((props, ref) => {
         });
 
     const landscapeGesture = Gesture.Pan()
-        .activeOffsetX([-5, 5])
+        .activeOffsetX([-2, 2])
         .failOffsetY([-10, 10])
         .onBegin(() => { dragStart.value = translation.value; })
         .onUpdate((e) => {
@@ -231,6 +231,7 @@ const FlySheet = forwardRef<FlySheetRef, FlySheetProps>((props, ref) => {
         return (
             <GestureDetector gesture={gesture}>
                 <Animated.View
+                    collapsable={false}
                     style={[
                         styles.sidePanel,
                         { width: panelW, backgroundColor: cardBgColor },
@@ -259,6 +260,7 @@ const FlySheet = forwardRef<FlySheetRef, FlySheetProps>((props, ref) => {
     return (
         <GestureDetector gesture={gesture}>
             <Animated.View
+                collapsable={false}
                 style={[
                     styles.sheet,
                     {

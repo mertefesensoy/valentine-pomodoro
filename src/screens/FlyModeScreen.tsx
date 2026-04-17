@@ -402,6 +402,10 @@ export default function FlyModeScreen() {
     // ── Start
     const handleStart = useCallback(() => {
         if (!flightData) return;
+        // Clear any stale pause/restore state so this is always a fresh flight.
+        pausedRemainingRef.current = 0;
+        restoredRemainingRef.current = null;
+        setPaused(false);
         const totalMs = flightData.totalSeconds * 1000;
         const endAt = Date.now() + totalMs;
         targetEndTimeRef.current = endAt;
@@ -444,6 +448,7 @@ export default function FlyModeScreen() {
         const endAt = Date.now() + pausedRemainingRef.current;
         targetEndTimeRef.current = endAt;
         setPaused(false);
+        setTimerRunning(true);
         startTick(totalMs);
         // Reschedule the notification with the new end time
         if (settings.settings.notifications) {

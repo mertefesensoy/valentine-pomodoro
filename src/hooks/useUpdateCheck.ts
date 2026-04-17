@@ -1,34 +1,31 @@
 /**
  * Soft Update Prompt Hook
- * Checks for app updates from a remote JSON file, respects 24h throttle,
- * and shows dismissible prompts only once per version.
+ *
+ * iOS     — fetches the latest published version from the iTunes Lookup API
+ *           (free, no auth, always reflects the live App Store listing).
+ * Android — fetches from the self-hosted update.json on GitHub Pages.
+ *
+ * Shows a dismissible Alert once per cold-start when the installed build is
+ * behind the latest release. Every launch where the app is out-of-date gets
+ * a prompt, so users are never quietly stuck on an old build.
  */
 
 import { useEffect, useCallback } from 'react';
 import { Alert, Linking, Platform } from 'react-native';
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
-import { load, save, STORAGE_KEYS } from '../utils/storage';
 import { compareSemver } from '../utils/semver';
 
-type UpdatePayload = {
-    latestVersion: string;
-    title?: string;
-    message?: string;
-    iosUrl?: string;
-    androidUrl?: string;
-};
+// Module-level session guard: resets on process restart (cold launch),
+// so the check fires exactly once per app open — never twice in one session.
+let sessionChecked = false;
 
-type UpdateMeta = {
-    lastCheckAt: number;
-    lastPromptedVersion: string | null;
-};
-
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-const FETCH_TIMEOUT_MS = 4000;
+const IOS_BUNDLE_ID = 'com.bengisu.valentinepomodoro';
+const IOS_FALLBACK_STORE_URL = 'https://apps.apple.com/app/id6757491918';
+const FETCH_TIMEOUT_MS = 5000;
 
 function getCurrentVersion(): string {
-    return Application.nativeApplicationVersion || Constants.expoConfig?.version || '0.0.0';
+    return Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? '0.0.0';
 }
 
 async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
@@ -41,82 +38,84 @@ async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
     }
 }
 
+type VersionInfo = { version: string; storeUrl: string };
+
+// iTunes Lookup API — free, unauthenticated, always returns the live App Store version.
+async function fetchLatestIos(): Promise<VersionInfo | null> {
+    const url = `https://itunes.apple.com/lookup?bundleId=${IOS_BUNDLE_ID}`;
+    const res = await fetchWithTimeout(url, FETCH_TIMEOUT_MS);
+    if (!res.ok) return null;
+    const json = await res.json() as {
+        resultCount: number;
+        results: Array<{ version?: string; trackViewUrl?: string }>;
+    };
+    if (!json.resultCount || !json.results[0]?.version) return null;
+    return {
+        version: json.results[0].version,
+        storeUrl: json.results[0].trackViewUrl ?? IOS_FALLBACK_STORE_URL,
+    };
+}
+
+// Android: self-hosted JSON keeps parity with the Play Store listing.
+async function fetchLatestAndroid(updateJsonUrl: string): Promise<VersionInfo | null> {
+    const res = await fetchWithTimeout(updateJsonUrl, FETCH_TIMEOUT_MS);
+    if (!res.ok) return null;
+    const json = await res.json() as { latestVersion?: string; androidUrl?: string };
+    if (!json.latestVersion || !json.androidUrl) return null;
+    return { version: json.latestVersion, storeUrl: json.androidUrl };
+}
+
 export function useUpdateCheck(updateJsonUrl: string) {
     const check = useCallback(
         async (opts?: { force?: boolean }) => {
             const force = opts?.force ?? false;
 
-            const meta = await load<UpdateMeta>(STORAGE_KEYS.UPDATE_META, {
-                lastCheckAt: 0,
-                lastPromptedVersion: null,
-            });
+            // Prevent double-fire within a single session; reset happens on cold launch.
+            if (!force && sessionChecked) return;
+            sessionChecked = true;
 
-            const now = Date.now();
-
-            // Respect 24h throttle unless forced
-            if (!force && meta.lastCheckAt && now - meta.lastCheckAt < ONE_DAY_MS) {
-                return;
-            }
-
-            // Record check time early to avoid repeated checks if user relaunches quickly
-            await save(STORAGE_KEYS.UPDATE_META, { ...meta, lastCheckAt: now });
-
-            let payload: UpdatePayload | null = null;
+            let latest: VersionInfo | null = null;
             try {
-                const res = await fetchWithTimeout(updateJsonUrl, FETCH_TIMEOUT_MS);
-                if (!res.ok) return;
-                payload = (await res.json()) as UpdatePayload;
+                latest = Platform.OS === 'ios'
+                    ? await fetchLatestIos()
+                    : await fetchLatestAndroid(updateJsonUrl);
             } catch {
-                // Offline or timeout -> fail silently, no UX impact
+                // Offline or timed out — never block the user
                 return;
             }
 
-            if (!payload?.latestVersion) return;
+            if (!latest) return;
 
             const current = getCurrentVersion();
-            const isNewer = compareSemver(payload.latestVersion, current) === 1;
+            const isNewer = compareSemver(latest.version, current) === 1;
 
             if (!isNewer) {
-                // If forced (manual check), show up-to-date message
                 if (force) {
-                    Alert.alert('You are up to date', `You have the latest version (${current}).`);
+                    Alert.alert(
+                        "You're up to date",
+                        `You have the latest version (${current}).`
+                    );
                 }
                 return;
             }
 
-            // Avoid prompting repeatedly for the same latest version
-            if (!force && meta.lastPromptedVersion === payload.latestVersion) {
-                return;
-            }
-
-            const storeUrl = Platform.OS === 'ios' ? payload.iosUrl : payload.androidUrl;
-            if (!storeUrl) return;
-
-            // Save prompted version to prevent repeat prompts
-            await save(STORAGE_KEYS.UPDATE_META, {
-                lastCheckAt: now,
-                lastPromptedVersion: payload.latestVersion,
-            });
-
             Alert.alert(
-                payload.title ?? 'Update available',
-                payload.message ?? 'A newer version is available.',
+                '✨ Update available',
+                `Version ${latest.version} is available on the App Store with the latest improvements and fixes.`,
                 [
                     { text: 'Not now', style: 'cancel' },
                     {
                         text: 'Update',
-                        onPress: () => {
-                            void Linking.openURL(storeUrl);
-                        },
+                        onPress: () => void Linking.openURL(latest!.storeUrl),
                     },
-                ]
+                ],
+                { cancelable: true }
             );
         },
         [updateJsonUrl]
     );
 
     useEffect(() => {
-        // Run once on app start
         void check();
     }, [check]);
 

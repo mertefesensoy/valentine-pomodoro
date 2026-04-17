@@ -2,9 +2,12 @@ import { useMemo, useState } from 'react';
 import {
     Alert,
     FlatList,
+    KeyboardAvoidingView,
     Modal,
+    Platform,
     Pressable,
     SafeAreaView,
+    ScrollView,
     Text,
     TextInput,
     View,
@@ -14,12 +17,14 @@ import {
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../theme/useTheme';
+import { useResponsive } from '../hooks/useResponsive';
 
 type Mode = { type: 'add' } | { type: 'edit'; index: number; initial: string } | null;
 
 export default function LoveNotesScreen() {
     const { loveNotes } = useApp();
     const { colors, isDark } = useTheme();
+    const { isTablet } = useResponsive();
     const tabBarHeight = useBottomTabBarHeight();
     const { notes, isReady, addNote, editNote, deleteNote, resetToDefaults, pickRandomNote } =
         loveNotes;
@@ -69,6 +74,7 @@ export default function LoveNotesScreen() {
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
             <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+            <View style={[styles.content, isTablet && styles.contentTablet]}>
             <View style={styles.header}>
                 <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
                 <Pressable onPress={openAdd} style={[styles.addButton, { backgroundColor: colors.accent }]}>
@@ -120,28 +126,37 @@ export default function LoveNotesScreen() {
                 </>
             )}
 
+            </View>
+
             <Modal visible={mode !== null} animationType="slide" onRequestClose={closeModal}>
                 <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.bg }]}>
-                    <Text style={[styles.modalTitle, { color: colors.text }]}>{mode?.type === 'add' ? 'Add note' : 'Edit note'}</Text>
+                    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+                        <ScrollView
+                            contentContainerStyle={[styles.modalInner, isTablet && styles.modalInnerTablet]}
+                            keyboardShouldPersistTaps="handled"
+                        >
+                            <Text style={[styles.modalTitle, { color: colors.text }]}>{mode?.type === 'add' ? 'Add note' : 'Edit note'}</Text>
 
-                    <TextInput
-                        value={draft}
-                        onChangeText={setDraft}
-                        placeholder="Write something sweet…"
-                        placeholderTextColor={colors.textMuted}
-                        multiline
-                        style={[styles.textInput, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
-                    />
+                            <TextInput
+                                value={draft}
+                                onChangeText={setDraft}
+                                placeholder="Write something sweet…"
+                                placeholderTextColor={colors.textMuted}
+                                multiline
+                                style={[styles.textInput, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
+                            />
 
-                    <View style={styles.modalActions}>
-                        <Pressable onPress={closeModal} style={[styles.modalButton, { borderColor: colors.accentPurple }]}>
-                            <Text style={[styles.modalButtonText, { color: colors.accentPurple }]}>Cancel</Text>
-                        </Pressable>
+                            <View style={styles.modalActions}>
+                                <Pressable onPress={closeModal} style={[styles.modalButton, { borderColor: colors.accentPurple }]}>
+                                    <Text style={[styles.modalButtonText, { color: colors.accentPurple }]}>Cancel</Text>
+                                </Pressable>
 
-                        <Pressable onPress={onSave} style={[styles.modalButton, styles.modalButtonPrimary, { backgroundColor: colors.accent, borderColor: colors.accent }]}>
-                            <Text style={[styles.modalButtonTextPrimary, { color: '#FFFFFF' }]}>Save</Text>
-                        </Pressable>
-                    </View>
+                                <Pressable onPress={onSave} style={[styles.modalButton, styles.modalButtonPrimary, { backgroundColor: colors.accent, borderColor: colors.accent }]}>
+                                    <Text style={[styles.modalButtonTextPrimary, { color: '#FFFFFF' }]}>Save</Text>
+                                </Pressable>
+                            </View>
+                        </ScrollView>
+                    </KeyboardAvoidingView>
                 </SafeAreaView>
             </Modal>
         </SafeAreaView>
@@ -151,10 +166,17 @@ export default function LoveNotesScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        // backgroundColor removed
+    },
+    content: {
+        flex: 1,
         paddingHorizontal: 20,
         paddingTop: 16,
-        paddingBottom: 0,
-        // backgroundColor removed
+    },
+    contentTablet: {
+        maxWidth: 720,
+        alignSelf: 'center',
+        width: '100%',
     },
     header: {
         flexDirection: 'row',
@@ -247,10 +269,18 @@ const styles = StyleSheet.create({
     },
     modalContainer: {
         flex: 1,
+        // backgroundColor removed
+    },
+    modalInner: {
         paddingHorizontal: 24,
         paddingTop: 24,
         paddingBottom: 32,
-        // backgroundColor removed
+        flexGrow: 1,
+    },
+    modalInnerTablet: {
+        maxWidth: 600,
+        alignSelf: 'center',
+        width: '100%',
     },
     modalTitle: {
         fontSize: 18,

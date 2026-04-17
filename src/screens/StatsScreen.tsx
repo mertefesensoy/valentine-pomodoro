@@ -5,6 +5,7 @@ import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../theme/useTheme';
+import { useResponsive } from '../hooks/useResponsive';
 import { BANNER_ID } from '../ads/AdConfig';
 
 type Metric = 'sessions' | 'minutes';
@@ -33,6 +34,7 @@ export default function StatsScreen() {
     const { stats } = useApp();
     const { isReady, today, totals, last7Days, goalMinutes, streak } = stats;
     const { colors } = useTheme();
+    const { isTablet } = useResponsive();
     const tabBarHeight = useBottomTabBarHeight();
 
     const [metric, setMetric] = useState<Metric>('minutes');
@@ -89,7 +91,7 @@ export default function StatsScreen() {
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+            <ScrollView contentContainerStyle={[styles.scrollContent, isTablet && styles.scrollContentTablet]}>
                 <Text style={[styles.header, { color: colors.text }]}>Stats</Text>
 
                 {/* Summary Cards */}
@@ -292,7 +294,7 @@ export default function StatsScreen() {
             }}>
                 <BannerAd
                     unitId={BANNER_ID}
-                    size={BannerAdSize.LARGE_BANNER}
+                    size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
                     requestOptions={{ requestNonPersonalizedAdsOnly: true }}
                 />
             </View>
@@ -307,6 +309,11 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         padding: 16,
+    },
+    scrollContentTablet: {
+        maxWidth: 720,
+        alignSelf: 'center',
+        width: '100%',
     },
     loadingText: {
         fontSize: 16,

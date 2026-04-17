@@ -19,8 +19,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    View, Text, Pressable, StyleSheet, AppState, AppStateStatus,
-    useWindowDimensions, Platform,
+    View, Text, Pressable, StyleSheet, AppState, AppStateStatus, Platform,
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,7 +27,11 @@ import MapView, { Marker, Polyline, MapType, Camera, Region } from 'react-native
 import Animated, {
     useSharedValue, useAnimatedStyle, withTiming,
     useAnimatedReaction, runOnJS, cancelAnimation,
+    interpolate, Extrapolation,
 } from 'react-native-reanimated';
+import FlySheet, { FlySheetRef } from '../components/FlySheet';
+import FlyTimerPill from '../components/FlyTimerPill';
+import { useResponsive } from '../hooks/useResponsive';
 import { ValentineSpec } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 import AirportPicker, { Airport } from '../components/AirportPicker';
@@ -116,9 +119,13 @@ const VIEW_MODE_ICONS: Record<ViewMode, string> = {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function FlyModeScreen() {
-    const { height } = useWindowDimensions();
+    const { width, height, isLandscape } = useResponsive();
     const insets = useSafeAreaInsets();
     const { colors, isDark } = useTheme();
+
+    // Sheet animation state — sheetProgress 0=peek, 1=full
+    const sheetProgress = useSharedValue(1);
+    const flySheetRef = useRef<FlySheetRef>(null);
     const { settings, stats, loveNotes } = useApp();
     const { scheduleSessionEnd, cancelScheduled } = useNotifications();
 
@@ -519,11 +526,12 @@ export default function FlyModeScreen() {
     useEffect(() => {
         if (viewMode !== 'overview') return;
         if (!flightData?.waypoints || flightData.waypoints.length < 2) return;
+        const panelW = Math.min(width * 0.42, 400);
         mapRef.current?.fitToCoordinates(flightData.waypoints, {
             edgePadding: {
                 top: insets.top + 60,
-                right: 40,
-                bottom: height * 0.50,
+                right: isLandscape ? panelW + 24 : 40,
+                bottom: isLandscape ? 40 : height * 0.58,
                 left: 40,
             },
             animated: true,
@@ -625,6 +633,21 @@ export default function FlyModeScreen() {
         : 'mutedStandard';
 
     const displayMs = remainingMs ?? (flightData ? flightData.totalSeconds * 1000 : null);
+
+    // Picker row fades in from mid snap upward (progress ≈0.49 at mid)
+    const pickerAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: interpolate(sheetProgress.value, [0.38, 0.58], [0, 1], Extrapolation.CLAMP),
+        pointerEvents: sheetProgress.value > 0.45 ? 'auto' : 'none',
+    } as any));
+
+    // mapHint floats just above the top of the sheet
+    const mapHintAnimatedStyle = useAnimatedStyle(() => {
+        const portraitBottom = interpolate(
+            sheetProgress.value, [0, 1], [height * 0.08, height * 0.57],
+            Extrapolation.CLAMP,
+        );
+        return { bottom: portraitBottom };
+    });
 
     // ── Map tap selection: disabled during active sessions
     const isSessionActive = timerRunning || paused;
@@ -845,21 +868,51 @@ export default function FlyModeScreen() {
                 )}
             </View>
 
-            {/* ── Map tap hint banner — shown when no session is active ────── */}
+            {/* ── Map tap hint banner — position tracks sheet in portrait ──── */}
             {!isSessionActive && (!origin || !destination) && (
-                <View style={styles.mapHint} pointerEvents="none">
-                    <Text style={styles.mapHintText}>
-                        {!origin
-                            ? '✈️  Tap an airport dot to pick origin'
-                            : '📍 Tap an airport dot to pick destination'}
-                    </Text>
-                </View>
+                isLandscape ? (
+                    <View
+                        style={[styles.mapHint, {
+                            bottom: undefined,
+                            top: '40%',
+                            right: Math.min(width * 0.42, 400) + 16,
+                            alignSelf: undefined,
+                        }]}
+                        pointerEvents="none"
+                    >
+                        <Text style={styles.mapHintText}>
+                            {!origin ? '✈️  Tap an airport dot to pick origin' : '📍 Tap an airport dot to pick destination'}
+                        </Text>
+                    </View>
+                ) : (
+                    <Animated.View style={[styles.mapHint, mapHintAnimatedStyle]} pointerEvents="none">
+                        <Text style={styles.mapHintText}>
+                            {!origin ? '✈️  Tap an airport dot to pick origin' : '📍 Tap an airport dot to pick destination'}
+                        </Text>
+                    </Animated.View>
+                )
             )}
 
-            {/* ── Bottom overlay card ──────────────────────────────────────── */}
-            <View style={[styles.card, { maxHeight: height * 0.45, backgroundColor: colors.card }]}>
-                {/* Card header: map type toggle — accessible inside the bottom card */}
-                <View style={styles.cardHeader}>
+            {/* ── Floating timer pill — fades in at peek snap ──────────────── */}
+            <FlyTimerPill
+                sheetProgress={sheetProgress}
+                displayMs={displayMs}
+                onTap={() => flySheetRef.current?.expandTo(isLandscape ? 'full' : 'mid')}
+                topInset={insets.top}
+                isLandscape={isLandscape}
+                isDark={isDark}
+            />
+
+            {/* ── Swipeable dashboard ───────────────────────────────────────── */}
+            <FlySheet
+                ref={flySheetRef}
+                sheetProgress={sheetProgress}
+                isLandscape={isLandscape}
+                viewportWidth={width}
+                viewportHeight={height}
+                bottomInset={insets.bottom}
+                cardBgColor={colors.card}
+                headerControl={
                     <Pressable
                         style={[styles.globeToggle, {
                             backgroundColor: isDark
@@ -873,39 +926,40 @@ export default function FlyModeScreen() {
                             {isGlobe ? '🗺 Flat' : '🌍 Globe'}
                         </Text>
                     </Pressable>
-                </View>
-
-                {/* Airport pickers */}
-                <View style={styles.pickerRow}>
-                    <AirportPicker
-                        label="From"
-                        airports={AIRPORTS}
-                        selected={origin}
-                        onSelect={setOrigin}
-                    />
-                    <View style={styles.arrowSpacer}>
-                        <Text style={styles.arrow}>→</Text>
+                }
+            >
+                {/* Airport pickers + flight info — fade out below mid snap */}
+                <Animated.View style={pickerAnimatedStyle}>
+                    <View style={styles.pickerRow}>
+                        <AirportPicker
+                            label="From"
+                            airports={AIRPORTS}
+                            selected={origin}
+                            onSelect={setOrigin}
+                        />
+                        <View style={styles.arrowSpacer}>
+                            <Text style={styles.arrow}>→</Text>
+                        </View>
+                        <AirportPicker
+                            label="To"
+                            airports={AIRPORTS}
+                            selected={destination}
+                            onSelect={setDestination}
+                        />
                     </View>
-                    <AirportPicker
-                        label="To"
-                        airports={AIRPORTS}
-                        selected={destination}
-                        onSelect={setDestination}
-                    />
-                </View>
 
-                {/* Flight info */}
-                {flightData && (
-                    <View style={styles.flightInfo}>
-                        <Text style={[styles.flightInfoText, { color: colors.textMuted }]}>
-                            {Math.round(flightData.distanceKm).toLocaleString()} km
-                            {'  ·  '}
-                            {formatFlightDuration(flightData.totalSeconds)} focus
-                        </Text>
-                    </View>
-                )}
+                    {flightData && (
+                        <View style={styles.flightInfo}>
+                            <Text style={[styles.flightInfoText, { color: colors.textMuted }]}>
+                                {Math.round(flightData.distanceKm).toLocaleString()} km
+                                {'  ·  '}
+                                {formatFlightDuration(flightData.totalSeconds)} focus
+                            </Text>
+                        </View>
+                    )}
+                </Animated.View>
 
-                {/* Timer display */}
+                {/* Timer display — always visible */}
                 <View style={styles.timerRow}>
                     {flightComplete && !timerRunning ? (
                         <Text style={styles.landedText}>✈️  Landed!</Text>
@@ -916,7 +970,7 @@ export default function FlyModeScreen() {
                     )}
                 </View>
 
-                {/* Controls */}
+                {/* Controls — always visible */}
                 <View style={styles.controls}>
                     {!timerRunning && !paused && (
                         <Pressable
@@ -948,7 +1002,8 @@ export default function FlyModeScreen() {
                         </View>
                     )}
                 </View>
-            </View>
+            </FlySheet>
+
             {/* ── Love note — shown after landing if enabled ───────────────── */}
             {landingLoveNote && (
                 <LoveNoteCard
@@ -969,13 +1024,7 @@ const styles = StyleSheet.create({
     map: {
         flex: 1,
     },
-    // Card header row — holds the globe/flat toggle right-aligned
-    cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        marginBottom: 8,
-    },
-    // Globe / flat toggle button — now lives inside the bottom card
+    // Globe / flat toggle button — lives inside FlySheet's header control slot
     // backgroundColor + borderColor supplied inline (dark mode adaptive)
     globeToggle: {
         borderRadius: 20,
@@ -995,10 +1044,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    // Map tap hint banner — floats above the bottom card
+    // Map tap hint banner — portrait position driven by mapHintAnimatedStyle; landscape uses inline overrides
     mapHint: {
         position: 'absolute',
-        bottom: '46%',
         alignSelf: 'center',
         backgroundColor: ValentineSpec.accentPrimary + 'CC',
         borderRadius: 20,
@@ -1014,23 +1062,6 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 13,
         fontWeight: '600',
-    },
-    // Bottom info card — backgroundColor supplied inline (dark mode adaptive)
-    card: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        paddingHorizontal: 20,
-        paddingTop: 20,
-        paddingBottom: 32,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.12,
-        shadowRadius: 16,
-        elevation: 12,
     },
     pickerRow: {
         flexDirection: 'row',

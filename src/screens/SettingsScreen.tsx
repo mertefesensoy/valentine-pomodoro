@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
     Alert,
+    KeyboardAvoidingView,
     Linking,
     Platform,
     Pressable,
@@ -16,6 +17,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useApp } from '../context/AppContext';
 import { useUpdateCheck } from '../hooks/useUpdateCheck';
 import { useTheme } from '../theme/useTheme';
+import { useResponsive } from '../hooks/useResponsive';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import type { ThemeMode } from '../types';
 
@@ -31,6 +33,7 @@ export default function SettingsScreen() {
     const { settings, updateSettings } = settingsContext;
     const { checkForUpdates } = useUpdateCheck(UPDATE_JSON_URL);
     const { colors } = useTheme();
+    const { isTablet } = useResponsive();
     const tabBarHeight = useBottomTabBarHeight();
 
     // Local draft state for number inputs
@@ -114,7 +117,15 @@ export default function SettingsScreen() {
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-            <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight }]}>
+            <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            <ScrollView
+                contentContainerStyle={[
+                    styles.scrollContent,
+                    isTablet && styles.scrollContentTablet,
+                    { paddingBottom: tabBarHeight },
+                ]}
+                keyboardShouldPersistTaps="handled"
+            >
                 <Text style={[styles.header, { color: colors.text }]}>Settings ⚙️</Text>
 
                 {/* Durations Section */}
@@ -661,6 +672,7 @@ export default function SettingsScreen() {
                     affected.
                 </Text>
             </ScrollView>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
@@ -672,6 +684,11 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         padding: 16,
+    },
+    scrollContentTablet: {
+        maxWidth: 720,
+        alignSelf: 'center',
+        width: '100%',
     },
     header: {
         fontSize: 24,

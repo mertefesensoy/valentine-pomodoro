@@ -4,7 +4,7 @@ import Svg, { Circle } from 'react-native-svg';
 
 interface CircularProgressProps {
     size: number;
-    strokeWidth: number;
+    strokeWidth?: number;
     progress: number; // 0..1
     trackColor: string;
     progressColor: string;
@@ -12,7 +12,7 @@ interface CircularProgressProps {
 
 export function CircularProgress({
     size,
-    strokeWidth,
+    strokeWidth = Math.round(size * 0.055),
     progress,
     trackColor,
     progressColor,

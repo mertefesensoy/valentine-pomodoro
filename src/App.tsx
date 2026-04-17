@@ -9,6 +9,8 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 import * as React from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Navigation } from './navigation';
 import { useGiftMode } from './hooks/useGiftMode';
@@ -100,8 +102,12 @@ export function App() {
   }
 
   return (
-    <AppProvider>
-      <ThemedApp />
-    </AppProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <AppProvider>
+          <ThemedApp />
+        </AppProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

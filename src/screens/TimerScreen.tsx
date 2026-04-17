@@ -1,5 +1,6 @@
-import { View, Text, Pressable, StyleSheet, Alert, Platform, useWindowDimensions, StatusBar } from "react-native";
+import { View, Text, Pressable, StyleSheet, Alert, Platform, ScrollView, StatusBar } from "react-native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTimer } from "../hooks/useTimer";
 import { formatTime } from "../utils/time";
@@ -12,11 +13,13 @@ import FlyModeScreen from "./FlyModeScreen";
 import * as Haptics from "expo-haptics";
 import { useApp } from "../context/AppContext";
 import { useTheme } from "../theme/useTheme";
+import { useResponsive } from "../hooks/useResponsive";
 import { AdManager } from "../ads/AdManager";
 import { AdPolicy } from "../ads/AdPolicy";
 
 export default function TimerScreen() {
-  const { width, height } = useWindowDimensions();
+  const { height, isLandscape, isTablet, isShortViewport } = useResponsive();
+  const insets = useSafeAreaInsets();
   const { settings, stats, loveNotes, activeMode, setActiveMode } = useApp();
   const { colors, isDark } = useTheme();
   const tabBarHeight = useBottomTabBarHeight();
@@ -117,14 +120,13 @@ export default function TimerScreen() {
     });
   }, [isAdPending, goalPopup, showLoveNoteCard, queuedLoveNote]);
 
-  // Responsive layout detection
-  const isLandscape = width > height;
-  const isTablet = width >= 768;
+  // Compact spacing flag — reduce margins on small landscape viewports
+  const tightSpacing = isLandscape || isShortViewport;
 
   // Dynamic progress ring size
   const ringSize = useMemo(() => {
     if (isLandscape) {
-      return Math.min(height * 0.6, 220);
+      return isTablet ? 320 : Math.min(height * 0.7, 280);
     }
     if (isTablet) {
       return 300;
@@ -208,22 +210,30 @@ export default function TimerScreen() {
   const timerContent = (
     <>
       {/* Header */}
-      <Text style={[styles.header, isTablet && styles.headerTablet, { color: colors.text }]}>
+      <Text style={[
+        styles.header,
+        isTablet && styles.headerTablet,
+        tightSpacing && styles.headerTight,
+        { color: colors.text }
+      ]}>
         Valentine Pomodoro 💗
       </Text>
 
       {/* Status chip */}
-      <View style={[styles.statusChip, { backgroundColor: colors.surfaceTint }]}>
+      <View style={[
+        styles.statusChip,
+        tightSpacing && styles.statusChipTight,
+        { backgroundColor: colors.surfaceTint }
+      ]}>
         <Text style={[styles.statusText, isTablet && styles.statusTextTablet, { color: colors.accent }]}>
           {getPhaseLabel()}
         </Text>
       </View>
 
       {/* Progress ring + timer display */}
-      <View style={styles.progressContainer}>
+      <View style={[styles.progressContainer, tightSpacing && styles.progressContainerTight]}>
         <CircularProgress
           size={ringSize}
-          strokeWidth={14}
           progress={progress}
           trackColor={colors.surfaceTint}
           progressColor={colors.accent}
@@ -239,7 +249,12 @@ export default function TimerScreen() {
       </View>
 
       {/* Cycle indicator */}
-      <Text style={[styles.cycleText, isTablet && styles.cycleTextTablet, { color: colors.textMuted }]}>
+      <Text style={[
+        styles.cycleText,
+        isTablet && styles.cycleTextTablet,
+        tightSpacing && styles.cycleTextTight,
+        { color: colors.textMuted }
+      ]}>
         Session {completedFocusCountInCycle + 1} of {settings.settings.longBreakEvery}
       </Text>
     </>
@@ -307,19 +322,27 @@ export default function TimerScreen() {
         // FlyModeScreen fills all space; ModeSwitcher floats over the map.
         <View style={styles.flyContainer}>
           <FlyModeScreen />
-          <View style={styles.flyModeSwitcherBar}>
+          <View style={[styles.flyModeSwitcherBar, { top: insets.top + 8 }]}>
             <ModeSwitcher activeMode={activeMode} onModeChange={setActiveMode} />
           </View>
         </View>
       ) : (
         // ── Default Mode ──────────────────────────────────────────────────────
-        <>
+        // Wrapper holds both the scrollable content and absolute overlays.
+        <View style={styles.defaultModeWrapper}>
           <CalmBackground enabled={settings.settings.animationsEnabled} />
-          <View style={[
-            styles.contentWrapper,
-            isTablet && styles.contentWrapperTablet,
-            isLandscape && styles.contentWrapperLandscape,
-          ]}>
+
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={[
+              styles.contentWrapper,
+              isTablet && styles.contentWrapperTablet,
+              isLandscape && styles.contentWrapperLandscape,
+              { paddingTop: insets.top + 20 },
+            ]}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             {/* Mode switcher — sits above the header */}
             <ModeSwitcher activeMode={activeMode} onModeChange={setActiveMode} />
 
@@ -340,33 +363,31 @@ export default function TimerScreen() {
                 {controlsContent}
               </>
             )}
+          </ScrollView>
 
-            {/* Goal reached popup - takes priority, never overlaps */}
-            <GoalReachedPopup
-              visible={!!goalPopup}
-              newStreak={goalPopup?.newStreak ?? 0}
-              animationsEnabled={settings.settings.animationsEnabled}
-              autoDismissMs={1400}
-              onClose={() => {
-                setGoalPopup(null);
-                stats.clearGoalHitPulse();
-              }}
-            />
-
-            {/* Love Note Card - show only when goal popup is NOT visible */}
-            {!goalPopup && (
-              <>
-                {queuedLoveNote ? (
-                  <LoveNoteCard note={queuedLoveNote} onDismiss={() => setQueuedLoveNote(null)} />
-                ) : (
-                  showLoveNoteCard && lastLoveNote && (
-                    <LoveNoteCard note={lastLoveNote} onDismiss={dismissLoveNote} />
-                  )
-                )}
-              </>
-            )}
-          </View>
-        </>
+          {/* Overlays — rendered outside the scroll so they always fill the screen */}
+          <GoalReachedPopup
+            visible={!!goalPopup}
+            newStreak={goalPopup?.newStreak ?? 0}
+            animationsEnabled={settings.settings.animationsEnabled}
+            autoDismissMs={1400}
+            onClose={() => {
+              setGoalPopup(null);
+              stats.clearGoalHitPulse();
+            }}
+          />
+          {!goalPopup && (
+            <>
+              {queuedLoveNote ? (
+                <LoveNoteCard note={queuedLoveNote} onDismiss={() => setQueuedLoveNote(null)} />
+              ) : (
+                showLoveNoteCard && lastLoveNote && (
+                  <LoveNoteCard note={lastLoveNote} onDismiss={dismissLoveNote} />
+                )
+              )}
+            </>
+          )}
+        </View>
       )}
     </View>
   );
@@ -375,9 +396,6 @@ export default function TimerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
   },
   // Fly mode overrides: no padding/centering so the map fills the space
   containerFly: {
@@ -391,15 +409,28 @@ const styles = StyleSheet.create({
   },
   flyModeSwitcherBar: {
     position: 'absolute',
-    top: 52,
+    // top is inset-aware and set inline
     left: 0,
     right: 0,
     alignItems: 'center',
     zIndex: 100,
   },
+  // Default mode: fills available space, hosts scrollable content + absolute overlays
+  defaultModeWrapper: {
+    flex: 1,
+    width: '100%',
+  },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+  },
   contentWrapper: {
     width: '100%',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   contentWrapperTablet: {
     maxWidth: 900,
@@ -425,6 +456,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 20,
   },
+  progressContainerTight: {
+    marginVertical: 8,
+  },
   timerOverlay: {
     position: 'absolute',
     justifyContent: 'center',
@@ -439,12 +473,18 @@ const styles = StyleSheet.create({
   headerTablet: {
     fontSize: 28,
   },
+  headerTight: {
+    marginBottom: 10,
+  },
   statusChip: {
     // backgroundColor removed - now inline
     paddingHorizontal: 24,
     paddingVertical: 8,
     borderRadius: 999,
     marginBottom: 24,
+  },
+  statusChipTight: {
+    marginBottom: 10,
   },
   statusText: {
     fontSize: 16,
@@ -475,6 +515,9 @@ const styles = StyleSheet.create({
   },
   cycleTextTablet: {
     fontSize: 16,
+  },
+  cycleTextTight: {
+    marginBottom: 16,
   },
   primaryButton: {
     // backgroundColor removed - now inline

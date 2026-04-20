@@ -3,6 +3,7 @@ import { useSettings } from '../hooks/useSettings';
 import { useStats } from '../hooks/useStats';
 import { useLoveNotes } from '../hooks/useLoveNotes';
 import { useReminder } from '../hooks/useReminder';
+import { useSessionClock, UseSessionClockReturn } from '../hooks/useSessionClock';
 import { AppMode } from '../types';
 import { save, load, STORAGE_KEYS } from '../utils/storage';
 
@@ -13,6 +14,7 @@ type AppContextValue = {
     reminder: ReturnType<typeof useReminder>;
     activeMode: AppMode;
     setActiveMode: (mode: AppMode) => void;
+    session: UseSessionClockReturn;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -23,6 +25,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const stats = useStats();
     const loveNotes = useLoveNotes();
     const reminder = useReminder();
+    const session = useSessionClock();
 
     // Mode state — persisted so the user's last choice survives restarts
     const [activeMode, setActiveModeState] = useState<AppMode>('default');
@@ -38,9 +41,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     // ✅ memoize to prevent re-render storm
     const value = useMemo(
-        () => ({ settings, stats, loveNotes, reminder, activeMode, setActiveMode }),
+        () => ({ settings, stats, loveNotes, reminder, activeMode, setActiveMode, session }),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [settings, stats, loveNotes, reminder, activeMode]
+        [settings, stats, loveNotes, reminder, activeMode, session]
     );
 
     return (

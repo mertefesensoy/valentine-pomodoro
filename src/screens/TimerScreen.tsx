@@ -20,7 +20,7 @@ import { AdPolicy } from "../ads/AdPolicy";
 export default function TimerScreen() {
   const { height, isLandscape, isTablet, isShortViewport } = useResponsive();
   const insets = useSafeAreaInsets();
-  const { settings, stats, loveNotes, activeMode, setActiveMode } = useApp();
+  const { settings, stats, loveNotes, activeMode, setActiveMode, session } = useApp();
   const { colors, isDark } = useTheme();
   const tabBarHeight = useBottomTabBarHeight();
   const {
@@ -43,7 +43,8 @@ export default function TimerScreen() {
     (minutes, dayKey, sessionId) => {
       stats.incrementFocus(minutes, dayKey, sessionId);
       handleTimerComplete();
-    }
+    },
+    session,
   );
 
   // Ad State
@@ -57,16 +58,20 @@ export default function TimerScreen() {
     }
   };
 
-  // ── Auto-pause Pomodoro when user switches to Fly Mode ─────────────────
-  // Mirrors the fly session save-on-unmount pattern: the user shouldn't lose
-  // their Pomodoro session just because they glanced at the map.
+  // ── Mode switching — delegate to session clock ──────────────────────────
+  // session.switchTo auto-pauses the running slot and saves its remainingMs.
+  // useTimer's internal effect cancels the scheduled notification when
+  // session.state.activeKind changes away from 'pomodoro'.
   const prevActiveModeRef = useRef(activeMode);
   useEffect(() => {
-    if (prevActiveModeRef.current !== 'fly' && activeMode === 'fly') {
-      if (isRunning) pause();
-    }
+    const prev = prevActiveModeRef.current;
     prevActiveModeRef.current = activeMode;
-  }, [activeMode, isRunning, pause]);
+    if (prev !== 'fly' && activeMode === 'fly') {
+      session.switchTo('fly');
+    } else if (prev === 'fly' && activeMode !== 'fly') {
+      session.switchTo('pomodoro');
+    }
+  }, [activeMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Goal celebration popup state
   const [goalPopup, setGoalPopup] = useState<null | { dayKey: string; newStreak: number }>(null);

@@ -3,10 +3,9 @@
  *
  * A snap-to-point container for the Fly Mode dashboard.
  *
- * Portrait: bottom sheet with 3 snap points (full / mid / peek).
+ * Portrait: bottom sheet with 2 snap points (full / peek).
  *   - full = 55 % of viewport height
- *   - mid  = 30 % of viewport height  (pickers hidden, timer+controls visible)
- *   - peek = 6 % of viewport height   (handle only; FlyTimerPill floats at top)
+ *   - peek = thin strip: handle + timer row + mode-indicator (~10 % of viewport, min 80 px)
  *
  * Landscape: right-side panel with 2 snap points (full / peek).
  *   - full = min(42 % of viewport width, 400 px)
@@ -21,10 +20,13 @@
  *
  * Snap velocity threshold: |v| > 600 pt/s snaps in the fling direction.
  * Otherwise we find the nearest snap via projected position (0.15 s lookahead).
+ *
+ * Double-tap anywhere on the sheet toggles between full and peek.
+ * Rotating the device preserves the current snap (no force-reset to full).
  */
 
 import React, {
-    forwardRef, useCallback, useEffect,
+    forwardRef, useCallback, useEffect, useRef,
     useImperativeHandle,
 } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -41,7 +43,7 @@ import { ValentineSpec } from '../theme/tokens';
 
 // ─── Public types ─────────────────────────────────────────────────────────────
 
-export type FlySnapPoint = 'full' | 'mid' | 'peek';
+export type FlySnapPoint = 'full' | 'peek';
 
 export interface FlySheetRef {
     expandTo(snap: FlySnapPoint): void;
@@ -56,8 +58,8 @@ interface FlySheetProps {
     /** Bottom safe-area inset (portrait only) */
     bottomInset: number;
     onSnapChange?: (snap: FlySnapPoint) => void;
-    /** Slot for the Globe/Flat toggle — rendered in the drag-handle row. */
-    headerControl?: React.ReactNode;
+    /** When true, a haptic fires on each snap. */
+    hapticsEnabled?: boolean;
     /** Background colour of the card surface. */
     cardBgColor: string;
     children: React.ReactNode;
@@ -72,8 +74,7 @@ const PEEK_STRIP = 32; // landscape: visible width when peeked
 function portraitSnaps(h: number) {
     return {
         full: 0,
-        mid: h * 0.55 - h * 0.30, // (fullH - midH)
-        peek: h * 0.55 - Math.max(h * 0.06, 52), // (fullH - peekH)
+        peek: h * 0.55 - Math.max(h * 0.10, 80), // (fullH − peekVisibleH); shows handle + timer + mode strip
         fullH: h * 0.55,
     };
 }
@@ -92,7 +93,7 @@ function landscapeSnaps(w: number) {
 const FlySheet = forwardRef<FlySheetRef, FlySheetProps>((props, ref) => {
     const {
         sheetProgress, isLandscape, viewportWidth, viewportHeight,
-        bottomInset, onSnapChange, headerControl, cardBgColor, children,
+        bottomInset, onSnapChange, hapticsEnabled, cardBgColor, children,
     } = props;
 
     // Primary animation value (translateY portrait / translateX landscape)
@@ -100,73 +101,65 @@ const FlySheet = forwardRef<FlySheetRef, FlySheetProps>((props, ref) => {
 
     // Dimension SharedValues so worklets stay fresh across rotations
     const fullTransSV = useSharedValue(0);
-    const midTransSV = useSharedValue(0);
     const peekTransSV = useSharedValue(0);
     const maxTransSV = useSharedValue(1);
     const isLandscapeSV = useSharedValue(isLandscape);
     const panelWSV = useSharedValue(0);
 
-    // Recalculate snap targets & reset to full on dimension/orientation change
+    // JS-side tracking of current snap — used to preserve position across rotation
+    const currentSnapRef = useRef<FlySnapPoint>('full');
+
+    // JS-side snap callback: updates tracking ref, fires haptic, notifies parent
+    const onSnap = useCallback((snap: FlySnapPoint) => {
+        currentSnapRef.current = snap;
+        if (hapticsEnabled) Haptics.selectionAsync().catch(() => {});
+        onSnapChange?.(snap);
+    }, [hapticsEnabled, onSnapChange]);
+
+    // ── snapToTarget (worklet) ──────────────────────────────────────────────
+    const snapToTarget = useCallback((snap: FlySnapPoint) => {
+        'worklet';
+        const target = snap === 'peek' ? peekTransSV.value : fullTransSV.value;
+        translation.value = withSpring(target, SPRING);
+
+        // sheetProgress: 0 = peek, 1 = full — also spring-driven for smooth pill fade
+        const progress = maxTransSV.value > 0
+            ? 1 - target / maxTransSV.value
+            : 1;
+        sheetProgress.value = withSpring(Math.max(0, Math.min(1, progress)), SPRING);
+    }, [fullTransSV, peekTransSV, maxTransSV, translation, sheetProgress]);
+
+    // ── Recalculate snap targets on dimension / orientation change ──────────
+    // Preserves the current snap name instead of force-resetting to full.
     useEffect(() => {
         isLandscapeSV.value = isLandscape;
         if (isLandscape) {
             const s = landscapeSnaps(viewportWidth);
             fullTransSV.value = s.full;
-            midTransSV.value = s.full; // no mid in landscape
             peekTransSV.value = s.peek;
             maxTransSV.value = s.peek;
             panelWSV.value = s.panelW;
         } else {
             const s = portraitSnaps(viewportHeight);
             fullTransSV.value = s.full;
-            midTransSV.value = s.mid;
             peekTransSV.value = s.peek;
             maxTransSV.value = s.peek;
         }
-        // Reset sheet to full on every rotate/resize
-        translation.value = withSpring(0, SPRING);
-        sheetProgress.value = 1;
-    }, [isLandscape, viewportWidth, viewportHeight]);
+        // Re-apply the preserved snap (not force-to-full)
+        snapToTarget(currentSnapRef.current);
+    }, [isLandscape, viewportWidth, viewportHeight]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // JS-side snap tracking for haptics + callback
-    const onSnap = useCallback((snap: FlySnapPoint) => {
-        Haptics.selectionAsync().catch(() => {});
-        onSnapChange?.(snap);
-    }, [onSnapChange]);
-
-    // Convert translation → nearest snap
+    // ── resolveSnap (worklet) ───────────────────────────────────────────────
     const resolveSnap = useCallback((pos: number, velocity: number): FlySnapPoint => {
         'worklet';
         const fling = Math.abs(velocity) > VELOCITY_THRESHOLD;
         const projected = fling ? pos + velocity * 0.15 : pos;
+        return Math.abs(projected - fullTransSV.value) < Math.abs(projected - peekTransSV.value)
+            ? 'full'
+            : 'peek';
+    }, [fullTransSV, peekTransSV]);
 
-        const full = fullTransSV.value;
-        const mid = midTransSV.value;
-        const peek = peekTransSV.value;
-
-        const dFull = Math.abs(projected - full);
-        const dMid = Math.abs(projected - mid);
-        const dPeek = Math.abs(projected - peek);
-
-        if (!isLandscapeSV.value && dMid < dFull && dMid < dPeek) return 'mid';
-        return dPeek < dFull ? 'peek' : 'full';
-    }, [fullTransSV, midTransSV, peekTransSV, isLandscapeSV]);
-
-    const snapToTarget = useCallback((snap: FlySnapPoint) => {
-        'worklet';
-        let target = 0;
-        if (snap === 'mid') target = midTransSV.value;
-        else if (snap === 'peek') target = peekTransSV.value;
-        translation.value = withSpring(target, SPRING);
-
-        // Update progress: 0 = peek, 1 = full
-        const progress = maxTransSV.value > 0
-            ? 1 - target / maxTransSV.value
-            : 1;
-        sheetProgress.value = Math.max(0, Math.min(1, progress));
-    }, [midTransSV, peekTransSV, maxTransSV, translation, sheetProgress]);
-
-    // Gesture — pan starts at last position
+    // ── Gestures ────────────────────────────────────────────────────────────
     const dragStart = useSharedValue(0);
 
     const portraitGesture = Gesture.Pan()
@@ -205,7 +198,21 @@ const FlySheet = forwardRef<FlySheetRef, FlySheetProps>((props, ref) => {
             runOnJS(onSnap)(snap);
         });
 
-    const gesture = isLandscape ? landscapeGesture : portraitGesture;
+    // Double-tap toggles between full and peek
+    const doubleTap = Gesture.Tap()
+        .numberOfTaps(2)
+        .onEnd((_e, success) => {
+            'worklet';
+            if (!success) return;
+            const nearPeek = Math.abs(translation.value - peekTransSV.value) <
+                             Math.abs(translation.value - fullTransSV.value);
+            const nextSnap: FlySnapPoint = nearPeek ? 'full' : 'peek';
+            snapToTarget(nextSnap);
+            runOnJS(onSnap)(nextSnap);
+        });
+
+    const panGesture = isLandscape ? landscapeGesture : portraitGesture;
+    const gesture = Gesture.Race(doubleTap, panGesture);
 
     // Expose imperative API
     useImperativeHandle(ref, () => ({
@@ -245,10 +252,6 @@ const FlySheet = forwardRef<FlySheetRef, FlySheetProps>((props, ref) => {
 
                     {/* Panel content */}
                     <View style={styles.sidePanelContent}>
-                        {/* Header control slot (globe toggle) */}
-                        {headerControl && (
-                            <View style={styles.landscapeHeaderControl}>{headerControl}</View>
-                        )}
                         {children}
                     </View>
                 </Animated.View>
@@ -274,13 +277,9 @@ const FlySheet = forwardRef<FlySheetRef, FlySheetProps>((props, ref) => {
                 {/* Drag handle row */}
                 <View style={styles.dragHandleRow}>
                     <View style={[styles.handleBar, { backgroundColor: `${ValentineSpec.accentPrimary}55` }]} />
-                    {/* Header control (globe toggle) — reachable at all snap points */}
-                    {headerControl && (
-                        <View style={styles.headerControlSlot}>{headerControl}</View>
-                    )}
                 </View>
 
-                {/* Scrollable-ish content area */}
+                {/* Sheet content */}
                 <View style={styles.sheetBody}>
                     {children}
                 </View>
@@ -322,12 +321,6 @@ const styles = StyleSheet.create({
         borderRadius: 2,
         marginBottom: 2,
     },
-    headerControlSlot: {
-        width: '100%',
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        paddingTop: 4,
-    },
     sheetBody: {
         flex: 1,
     },
@@ -362,10 +355,5 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         paddingTop: 12,
         paddingBottom: 20,
-    },
-    landscapeHeaderControl: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        marginBottom: 8,
     },
 });

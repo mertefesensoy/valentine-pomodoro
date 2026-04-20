@@ -1,400 +1,259 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { TimerState, TimerPhase, Settings } from '../types';
+import type { TimerPhase, Settings, SessionSlot } from '../types';
 import { save, load, STORAGE_KEYS } from '../utils/storage';
 import { minutesToMs, getDayKeyFromDate, getTodayKey } from '../utils/time';
 import { useNotifications, getNotificationContent } from './useNotifications';
 import * as Haptics from 'expo-haptics';
+import type { UseSessionClockReturn } from './useSessionClock';
 
-const INITIAL_TIMER_STATE: TimerState = {
+// ─── Pomodoro-specific persistent state ───────────────────────────────────────
+// Clock state (endAt, remainingMs, isRunning) lives in useSessionClock.
+// This type holds only what's specific to the Pomodoro experience.
+
+interface PomodoroState {
+    phase: TimerPhase;
+    completedFocusCountInCycle: number;
+    lastLoveNote: string | null;
+}
+
+const INITIAL_POMODORO: PomodoroState = {
     phase: 'focus',
-    isRunning: false,
-    endAt: null,
-    remainingMs: null,
     completedFocusCountInCycle: 0,
-    scheduledNotificationId: null,
-    sessionPlannedMinutes: null,
-    lastHandledEndAt: null, // Idempotency: prevent double-completion
-    sessionStartedAt: null, // NEW: for midnight attribution
-    sessionId: null, // NEW: for double-counting prevention
-    // Love note state (Phase 5)
     lastLoveNote: null,
-    lastTransitionId: 0,
-    showLoveNoteCard: false,
 };
 
 interface UseTimerReturn {
-    // State
     phase: TimerPhase;
     isRunning: boolean;
     remainingMs: number;
     completedFocusCountInCycle: number;
-    showLoveNoteCard: boolean;  // Phase 5: show love note
-    lastLoveNote: string | null;  // Phase 5: current love note
-
-    // Actions
+    showLoveNoteCard: boolean;
+    lastLoveNote: string | null;
     start: () => void;
     pause: () => void;
     resume: () => void;
     skip: () => void;
     reset: () => void;
-    dismissLoveNote: () => void;  // Phase 5: dismiss love note card
+    dismissLoveNote: () => void;
 }
 
-export function useTimer(settings: Settings, pickRandomNote: (lastNote: string | null) => string, incrementFocus: (minutes: number, dayKey?: string, sessionId?: string) => void): UseTimerReturn {
-    const [state, setState] = useState<TimerState>(INITIAL_TIMER_STATE);
-    const tickIntervalRef = useRef<NodeJS.Timeout | null>(null);
+export function useTimer(
+    settings: Settings,
+    pickRandomNote: (lastNote: string | null) => string,
+    incrementFocus: (minutes: number, dayKey?: string, sessionId?: string) => void,
+    session: UseSessionClockReturn,
+): UseTimerReturn {
+    const [pomodoroState, setPomodoroState] = useState<PomodoroState>(INITIAL_POMODORO);
+    const pomodoroStateRef = useRef(pomodoroState);
+    useEffect(() => { pomodoroStateRef.current = pomodoroState; }, [pomodoroState]);
 
-    // Always hold latest state for interval access (avoids stale closures)
-    const stateRef = useRef(state);
-    useEffect(() => {
-        stateRef.current = state;
-    }, [state]);
-    const transitionLockRef = useRef(false);
+    const [showLoveNoteCard, setShowLoveNoteCard] = useState(false);
+
     const { scheduleSessionEnd, cancelScheduled } = useNotifications();
 
-    // Persist state whenever it changes (defined early for handleSessionComplete)
-    const persistState = useCallback((newState: TimerState) => {
-        setState(newState);
-        save(STORAGE_KEYS.TIMER_STATE, newState);
+    // Persist pomodoro state (phase/count/lastLoveNote)
+    const persistPomodoro = useCallback((state: PomodoroState) => {
+        setPomodoroState(state);
+        save(STORAGE_KEYS.TIMER_STATE, state).catch(() => {});
     }, []);
 
-    // Handle session completion (refactored to accept state parameter)
-    const handleSessionComplete = useCallback(
-        (s: TimerState) => {
-            // Hard guard: cannot complete without an endAt
-            if (s.endAt === null) return;
+    // ── Load persisted pomodoro state on mount (migration-safe) ────────────
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            // Read old TIMER_STATE — may have both clock fields (ignored) and
+            // Pomodoro-specific fields (migrated).
+            const old = await load<Partial<PomodoroState & { phase?: TimerPhase; completedFocusCountInCycle?: number; lastLoveNote?: string | null }>>(
+                STORAGE_KEYS.TIMER_STATE,
+                {}
+            );
+            if (cancelled) return;
+            setPomodoroState({
+                phase: old.phase ?? 'focus',
+                completedFocusCountInCycle: old.completedFocusCountInCycle ?? 0,
+                lastLoveNote: old.lastLoveNote ?? null,
+            });
+        })();
+        return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-            // Idempotency check: only handle completion once per endAt
-            if (s.endAt === s.lastHandledEndAt) {
-                return; // Already handled this completion
+    // ── Cancel Pomodoro notification when mode switches away ─────────────────
+    // switchTo() auto-pauses the clock but doesn't know about notification IDs.
+    // This effect watches activeKind and cancels the notif when Pomodoro goes dormant.
+    const prevActiveKindRef = useRef(session.state.activeKind);
+    useEffect(() => {
+        const prev = prevActiveKindRef.current;
+        const curr = session.state.activeKind;
+        prevActiveKindRef.current = curr;
+
+        if (prev === 'pomodoro' && curr !== 'pomodoro') {
+            const notifId = session.state.pomodoro?.scheduledNotificationId ?? null;
+            if (notifId) {
+                cancelScheduled(notifId).catch(console.warn);
+                session.setSlotExtras('pomodoro', { scheduledNotificationId: null });
+            }
+        }
+    }, [session.state.activeKind]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // ── onComplete subscriber ────────────────────────────────────────────────
+    useEffect(() => {
+        return session.onComplete((slot: SessionSlot, kind: string) => {
+            if (kind !== 'pomodoro') return;
+
+            const wasFocus = slot.phase === 'focus';
+            const fCount = slot.completedFocusCountInCycle ?? pomodoroStateRef.current.completedFocusCountInCycle;
+
+            if (wasFocus && slot.sessionPlannedMinutes) {
+                const dayKey = slot.sessionStartedAt
+                    ? getDayKeyFromDate(slot.sessionStartedAt)
+                    : getTodayKey();
+                incrementFocus(slot.sessionPlannedMinutes, dayKey, slot.sessionId ?? undefined);
             }
 
-            const wasFocus = s.phase === 'focus';
-
-            // Update stats if focus was completed (not skipped)
-            if (wasFocus && s.sessionPlannedMinutes !== null) {
-                // ✅ Credit the day the session STARTED (midnight attribution)
-                const dayKey = s.sessionStartedAt
-                    ? getDayKeyFromDate(s.sessionStartedAt)
-                    : getTodayKey(); // fallback for old sessions
-
-                if (__DEV__) {
-                    console.log('[useTimer] Focus completed! Incrementing stats:', {
-                        minutes: s.sessionPlannedMinutes,
-                        dayKey,
-                        sessionId: s.sessionId,
-                    });
-                }
-
-                incrementFocus(s.sessionPlannedMinutes, dayKey, s.sessionId ?? undefined);
-            } else if (wasFocus) {
-                if (__DEV__) {
-                    console.warn('[useTimer] Focus completed but sessionPlannedMinutes is null');
-                }
-            }
-
-            // Determine next phase (completion increments focus count automatically)
             const nextPhase = nextAfterComplete(
-                s.phase,
-                s.completedFocusCountInCycle,
+                slot.phase ?? pomodoroStateRef.current.phase,
+                fCount,
                 settings.longBreakEvery
             );
 
-            // Pick love note ONLY on focus completion (not on breaks)
             let loveNote: string | null = null;
-            let showCard = false;
-            let transitionId = s.lastTransitionId;
-
             if (wasFocus && settings.showLoveNotes) {
-                loveNote = pickRandomNote(s.lastLoveNote);
-                showCard = true;
-                transitionId = s.lastTransitionId + 1;
+                loveNote = pickRandomNote(pomodoroStateRef.current.lastLoveNote);
             }
 
-            // Trigger haptics (Phase 9) - single trigger point
             if (settings.haptics) {
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
             }
 
-            persistState({
-                ...INITIAL_TIMER_STATE,
+            const newPomodoro: PomodoroState = {
                 phase: nextPhase.phase,
                 completedFocusCountInCycle: nextPhase.focusCountInCycle,
-                lastHandledEndAt: s.endAt,
-                lastLoveNote: loveNote ?? s.lastLoveNote, // Preserve last note even on break completion
-                lastTransitionId: transitionId,
-                showLoveNoteCard: showCard,
-            });
-        },
-        [settings.longBreakEvery, settings.showLoveNotes, settings.haptics, persistState, pickRandomNote, incrementFocus]
-    );
+                lastLoveNote: loveNote ?? pomodoroStateRef.current.lastLoveNote,
+            };
+            persistPomodoro(newPomodoro);
 
-    // Load persisted state on mount + check for cold-start completion
-    useEffect(() => {
-        let cancelled = false;
-
-        (async () => {
-            const loaded = await load<TimerState>(STORAGE_KEYS.TIMER_STATE, INITIAL_TIMER_STATE);
-            if (cancelled) return;
-
-            // Merge with defaults to handle old persisted state missing new fields
-            const merged: TimerState = { ...INITIAL_TIMER_STATE, ...loaded };
-
-            // If session ended while app was closed, complete immediately using loaded state
-            if (merged.isRunning && merged.endAt !== null && merged.endAt <= Date.now()) {
-                handleSessionComplete(merged);
-                return;
-            }
-
-            setState(merged);
-        })();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [handleSessionComplete]);
-
-
-
-    // Handle app resume from background
-    useEffect(() => {
-        const { AppState } = require('react-native');
-        const subscription = AppState.addEventListener('change', (nextAppState: string) => {
-            if (nextAppState === 'active') {
-                // App came to foreground - check if session ended while backgrounded
-                setState((currentState: TimerState) => {
-                    if (currentState.isRunning && currentState.endAt !== null) {
-                        const now = Date.now();
-                        const remaining = Math.max(0, currentState.endAt - now);
-
-                        if (remaining === 0) {
-                            // Session ended while backgrounded - complete immediately
-                            handleSessionComplete(currentState);
-                            return currentState; // handleSessionComplete will persist new state
-                        } else {
-                            // Update remaining time
-                            return { ...currentState, remainingMs: remaining };
-                        }
-                    }
-                    return currentState;
-                });
+            if (wasFocus && settings.showLoveNotes) {
+                setShowLoveNoteCard(true);
             }
         });
+    }, [session.onComplete, settings, pickRandomNote, incrementFocus, persistPomodoro]);
 
-        return () => {
-            subscription.remove();
-        };
-    }, [handleSessionComplete]);
-
-    // Compute remaining time from endAt (timestamp-based, no drift)
-    useEffect(() => {
-        if (!state.isRunning || state.endAt === null) {
-            if (tickIntervalRef.current) {
-                clearInterval(tickIntervalRef.current);
-                tickIntervalRef.current = null;
-            }
-            return;
-        }
-
-        // Clear any existing interval before creating a new one (prevents double intervals)
-        if (tickIntervalRef.current) {
-            clearInterval(tickIntervalRef.current);
-            tickIntervalRef.current = null;
-        }
-
-        // Tick every second to update UI
-        tickIntervalRef.current = setInterval(() => {
-            const s = stateRef.current;
-            if (!s.isRunning || s.endAt === null) return;
-
-            const remaining = Math.max(0, s.endAt - Date.now());
-
-            if (remaining === 0) {
-                // ✅ Safe: side effects outside setState updater
-                handleSessionComplete(s);
-            } else {
-                // ✅ Pure updater: only updates remainingMs if still running
-                setState(prev => (prev.isRunning ? { ...prev, remainingMs: remaining } : prev));
-            }
-        }, 1000);
-
-        return () => {
-            if (tickIntervalRef.current) {
-                clearInterval(tickIntervalRef.current);
-                tickIntervalRef.current = null; // Belt-and-suspenders: null out ref
-            }
-        };
-    }, [state.isRunning, state.endAt, handleSessionComplete]);
-
-    // Get duration for current phase
+    // ── getDuration helper ───────────────────────────────────────────────────
     const getCurrentDuration = useCallback((): number => {
-        switch (state.phase) {
-            case 'focus':
-                return settings.durations.focus;
-            case 'shortBreak':
-                return settings.durations.shortBreak;
-            case 'longBreak':
-                return settings.durations.longBreak;
+        switch (pomodoroState.phase) {
+            case 'focus': return settings.durations.focus;
+            case 'shortBreak': return settings.durations.shortBreak;
+            case 'longBreak': return settings.durations.longBreak;
         }
-    }, [state.phase, settings]);
+    }, [pomodoroState.phase, settings.durations]);
 
-    // Start a new session
+    // ── Actions ──────────────────────────────────────────────────────────────
+
     const start = useCallback(async () => {
         const durationMinutes = getCurrentDuration();
         const durationMs = minutesToMs(durationMinutes);
         const now = Date.now();
-        const endAt = now + durationMs;
 
-        // Schedule notification if enabled (with timeout to prevent blocking)
         let notificationId: string | null = null;
         if (settings.notifications) {
             try {
-                const { title, body } = getNotificationContent(state.phase);
-                // Race strict timeout to ensure start() doesn't hang on permissions
+                const { title, body } = getNotificationContent(pomodoroStateRef.current.phase);
                 notificationId = await Promise.race([
-                    scheduleSessionEnd(endAt, title, body),
-                    new Promise<null>(resolve => setTimeout(() => resolve(null), 1000))
+                    scheduleSessionEnd(now + durationMs, title, body),
+                    new Promise<null>(resolve => setTimeout(() => resolve(null), 1000)),
                 ]);
             } catch (e) {
                 console.warn('Failed to schedule notification:', e);
             }
         }
 
-        // Generate unique session ID for idempotency
-        const sessionId = `${now}-${Math.random().toString(36).slice(2, 11)}`;
-
-        persistState({
-            ...state,
-            isRunning: true,
-            endAt,
-            remainingMs: durationMs,
-            sessionPlannedMinutes: durationMinutes,
-            scheduledNotificationId: notificationId,
-            sessionStartedAt: now, // ✅ Capture start time for midnight attribution
-            sessionId, // ✅ Unique ID for double-counting prevention
+        session.start({
+            kind: 'pomodoro',
+            durationMs,
+            extras: {
+                phase: pomodoroStateRef.current.phase,
+                completedFocusCountInCycle: pomodoroStateRef.current.completedFocusCountInCycle,
+                sessionPlannedMinutes: durationMinutes,
+                scheduledNotificationId: notificationId,
+            },
         });
-    }, [state, getCurrentDuration, persistState, settings.notifications, scheduleSessionEnd]);
+    }, [getCurrentDuration, settings.notifications, scheduleSessionEnd, session]);
 
-    // Pause the running session
     const pause = useCallback(async () => {
-        if (!state.isRunning || state.endAt === null) return;
+        const notifId = session.state.pomodoro?.scheduledNotificationId ?? null;
+        if (notifId) {
+            cancelScheduled(notifId).catch(console.warn);
+            session.setSlotExtras('pomodoro', { scheduledNotificationId: null });
+        }
+        session.pause();
+    }, [session, cancelScheduled]);
 
-        const now = Date.now();
-        const remaining = Math.max(0, state.endAt - now);
-
-        // Cancel scheduled notification (fire and forget)
-        cancelScheduled(state.scheduledNotificationId).catch(console.warn);
-
-        persistState({
-            ...state,
-            isRunning: false,
-            endAt: null,
-            remainingMs: remaining,
-            scheduledNotificationId: null,
-        });
-    }, [state, persistState, cancelScheduled]);
-
-    // Resume paused session
     const resume = useCallback(async () => {
-        if (state.isRunning || state.remainingMs === null) return;
+        const slot = session.state.pomodoro;
+        if (!slot || slot.isRunning || slot.pausedRemainingMs === null) return;
 
-        const now = Date.now();
-        const endAt = now + state.remainingMs;
+        session.resume();
 
-        // Reschedule notification if enabled (with timeout)
-        let notificationId: string | null = null;
         if (settings.notifications) {
+            const endAt = Date.now() + slot.pausedRemainingMs;
             try {
-                const { title, body } = getNotificationContent(state.phase);
-                notificationId = await Promise.race([
+                const { title, body } = getNotificationContent(pomodoroStateRef.current.phase);
+                const notifId = await Promise.race([
                     scheduleSessionEnd(endAt, title, body),
-                    new Promise<null>(resolve => setTimeout(() => resolve(null), 1000))
+                    new Promise<null>(resolve => setTimeout(() => resolve(null), 1000)),
                 ]);
+                session.setSlotExtras('pomodoro', { scheduledNotificationId: notifId });
             } catch (e) {
                 console.warn('Failed to reschedule notification:', e);
             }
         }
+    }, [session, settings.notifications, scheduleSessionEnd]);
 
-        persistState({
-            ...state,
-            isRunning: true,
-            endAt,
-            scheduledNotificationId: notificationId,
-        });
-    }, [state, settings, scheduleSessionEnd, persistState]);
+    const skip = useCallback(() => {
+        const notifId = session.state.pomodoro?.scheduledNotificationId ?? null;
+        if (notifId) cancelScheduled(notifId).catch(console.warn);
+        session.stop();
 
-    // Skip to next phase (with transition lock to prevent spam)
-    const skip = useCallback(async () => {
-        if (transitionLockRef.current) return;
-        transitionLockRef.current = true;
+        const next = nextAfterSkip(
+            pomodoroStateRef.current.phase,
+            pomodoroStateRef.current.completedFocusCountInCycle
+        );
+        persistPomodoro({ ...pomodoroStateRef.current, phase: next.phase, completedFocusCountInCycle: next.focusCountInCycle });
+    }, [session, cancelScheduled, persistPomodoro]);
 
-        try {
-            // Cancel any scheduled notification (fire and forget)
-            cancelScheduled(state.scheduledNotificationId).catch(console.warn);
+    const reset = useCallback(() => {
+        const notifId = session.state.pomodoro?.scheduledNotificationId ?? null;
+        if (notifId) cancelScheduled(notifId).catch(console.warn);
+        session.stop();
+        persistPomodoro(INITIAL_POMODORO);
+        setShowLoveNoteCard(false);
+    }, [session, cancelScheduled, persistPomodoro]);
 
-            // Skip never increments stats or cycle count
-            const nextPhase = nextAfterSkip(
-                state.phase,
-                state.completedFocusCountInCycle
-            );
-
-            persistState({
-                ...INITIAL_TIMER_STATE,
-                phase: nextPhase.phase,
-                completedFocusCountInCycle: nextPhase.focusCountInCycle,
-            });
-        } finally {
-            transitionLockRef.current = false;
-        }
-    }, [state, persistState, cancelScheduled]);
-
-    // Reset to initial state (with transition lock)
-    const reset = useCallback(async () => {
-        if (transitionLockRef.current) return;
-        transitionLockRef.current = true;
-
-        try {
-            console.log('Reset triggered in useTimer');
-            // Cancel any scheduled notification (fire and forget)
-            cancelScheduled(state.scheduledNotificationId).catch(console.warn);
-
-            // Reset to initial state BUT with correct duration from settings
-            const initialDurationMinutes = settings.durations.focus;
-            console.log('Resetting to duration:', initialDurationMinutes);
-            const initialDurationMs = minutesToMs(initialDurationMinutes);
-
-            persistState({
-                ...INITIAL_TIMER_STATE,
-                remainingMs: initialDurationMs, // Explicitly set based on current settings
-                sessionPlannedMinutes: initialDurationMinutes,
-            });
-        } finally {
-            transitionLockRef.current = false;
-        }
-    }, [persistState, state.scheduledNotificationId, cancelScheduled, settings.durations.focus]);
-
-    // handleSessionComplete moved to top of hook (before useEffects that depend on it)
-
-    // Dismiss love note card
     const dismissLoveNote = useCallback(() => {
-        persistState({
-            ...state,
-            showLoveNoteCard: false,
-        });
-    }, [state, persistState]);
+        setShowLoveNoteCard(false);
+    }, []);
 
-    // Compute displayed remaining time
-    const displayedRemainingMs = state.isRunning && state.endAt !== null
-        ? Math.max(0, state.endAt - Date.now())
-        : (state.remainingMs ?? minutesToMs(getCurrentDuration()));
+    // ── Derived values ────────────────────────────────────────────────────────
+
+    const pomodoroSlot = session.state.pomodoro;
+    const isRunning = pomodoroSlot?.isRunning === true;
+
+    const remainingMs = (() => {
+        if (!pomodoroSlot) return minutesToMs(getCurrentDuration());
+        if (pomodoroSlot.isRunning && pomodoroSlot.endAt) {
+            return Math.max(0, pomodoroSlot.endAt - Date.now());
+        }
+        return pomodoroSlot.pausedRemainingMs ?? minutesToMs(getCurrentDuration());
+    })();
 
     return {
-        phase: state.phase,
-        isRunning: state.isRunning,
-        remainingMs: displayedRemainingMs,
-        completedFocusCountInCycle: state.completedFocusCountInCycle,
-        showLoveNoteCard: state.showLoveNoteCard,
-        lastLoveNote: state.lastLoveNote,
+        phase: pomodoroState.phase,
+        isRunning,
+        remainingMs,
+        completedFocusCountInCycle: pomodoroState.completedFocusCountInCycle,
+        showLoveNoteCard,
+        lastLoveNote: pomodoroState.lastLoveNote,
         start,
         pause,
         resume,
@@ -404,10 +263,8 @@ export function useTimer(settings: Settings, pickRandomNote: (lastNote: string |
     };
 }
 
-/**
- * Determine next phase after natural completion
- * Clean state machine: increment focus count, check if earned long break, reset cycle
- */
+// ─── Phase state machines (unchanged logic) ───────────────────────────────────
+
 function nextAfterComplete(
     phase: TimerPhase,
     focusCountInCycle: number,
@@ -415,21 +272,14 @@ function nextAfterComplete(
 ): { phase: TimerPhase; focusCountInCycle: number } {
     if (phase === 'focus') {
         const newCount = focusCountInCycle + 1;
-
         if (newCount >= longBreakEvery) {
-            // ✅ earned long break, start a NEW cycle after it
             return { phase: 'longBreak', focusCountInCycle: 0 };
         }
         return { phase: 'shortBreak', focusCountInCycle: newCount };
     }
-
-    // completing any break returns to focus, counter unchanged
     return { phase: 'focus', focusCountInCycle };
 }
 
-/**
- * Determine next phase after skip (never increments cycle count)
- */
 function nextAfterSkip(
     phase: TimerPhase,
     focusCountInCycle: number
@@ -439,5 +289,3 @@ function nextAfterSkip(
     }
     return { phase: 'focus', focusCountInCycle };
 }
-
-

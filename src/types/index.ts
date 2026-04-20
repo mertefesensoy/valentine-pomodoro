@@ -94,3 +94,34 @@ export interface LoveNotes {
 
 // App mode — which timer experience is active
 export type AppMode = 'default' | 'fly';
+
+// Camera mode for Fly Mode map view
+export type CameraMode = 'global' | 'flat' | 'followPlane' | 'followPath' | 'seeAll';
+
+// ─── Session clock ─────────────────────────────────────────────────────────
+
+export type SessionKind = 'pomodoro' | 'fly';
+
+/** One timer slot in the two-slot session clock. */
+export interface SessionSlot {
+    isRunning: boolean;
+    endAt: number | null;           // epoch ms (Date.now basis) when running
+    pausedRemainingMs: number | null; // set when paused, null otherwise
+    durationMs: number | null;
+    sessionStartedAt: number | null;
+    sessionId: string | null;
+    // Pomodoro extras
+    scheduledNotificationId?: string | null;
+    sessionPlannedMinutes?: number | null;
+    phase?: TimerPhase;
+    completedFocusCountInCycle?: number;
+    // Fly extras
+    originIata?: string | null;
+    destinationIata?: string | null;
+}
+
+export interface SessionClockState {
+    activeKind: SessionKind | null;
+    pomodoro: SessionSlot | null;
+    fly: SessionSlot | null;
+}

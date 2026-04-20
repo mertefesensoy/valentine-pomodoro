@@ -186,6 +186,63 @@ export function findNearestAirport<T extends { coordinates: { latitude: number; 
 }
 
 /**
+ * Interpolates a position along a pre-computed waypoints array at progress [0, 1].
+ *
+ * Returns the coordinate and the instantaneous bearing (lower→upper waypoint).
+ * Uses sub-waypoint linear interpolation with Pacific-crossing normalisation so
+ * lon=+179 → lon=-179 routes stay on the short path (no teleportation).
+ *
+ * This is the canonical interpolation function used by both the plane marker and
+ * the camera effects. Keep this in sync with any change to FlyModeScreen's
+ * `updateMarkerFromProgress`.
+ */
+export function interpolateAlongPath(
+    waypoints: LatLng[],
+    progress: number
+): { coord: LatLng; bearing: number } {
+    if (waypoints.length === 0) return { coord: { latitude: 0, longitude: 0 }, bearing: 0 };
+    if (waypoints.length === 1) return { coord: waypoints[0], bearing: 0 };
+
+    const clamped = Math.max(0, Math.min(1, progress));
+    const exactIdx = clamped * (waypoints.length - 1);
+    const lowerIdx = Math.min(Math.floor(exactIdx), waypoints.length - 2);
+    const upperIdx = lowerIdx + 1;
+    const fraction = exactIdx - lowerIdx;
+
+    let lonDiff = waypoints[upperIdx].longitude - waypoints[lowerIdx].longitude;
+    if (lonDiff > 180) lonDiff -= 360;
+    if (lonDiff < -180) lonDiff += 360;
+
+    const coord: LatLng = {
+        latitude:  waypoints[lowerIdx].latitude  + fraction * (waypoints[upperIdx].latitude  - waypoints[lowerIdx].latitude),
+        longitude: waypoints[lowerIdx].longitude + fraction * lonDiff,
+    };
+    return { coord, bearing: calculateBearing(waypoints[lowerIdx], waypoints[upperIdx]) };
+}
+
+/**
+ * Computes the forward tangent bearing of the path at `progress` by looking
+ * `lookAhead` fraction of the total route ahead (e.g. 0.015 = 1.5%).
+ *
+ * Use this for "follow-path" camera heading so the screen's up direction aligns
+ * with where the path is about to go, rather than the plane's instantaneous heading.
+ * This keeps the upcoming curve visible in front of the plane icon on screen.
+ */
+export function pathTangentBearing(
+    waypoints: LatLng[],
+    progress: number,
+    lookAhead: number
+): number {
+    const ahead = Math.min(1, progress + lookAhead);
+    const { coord: coordA } = interpolateAlongPath(waypoints, progress);
+    const { coord: coordB } = interpolateAlongPath(waypoints, ahead);
+    if (Math.abs(ahead - progress) < 1e-6) {
+        return interpolateAlongPath(waypoints, progress).bearing;
+    }
+    return calculateBearing(coordA, coordB);
+}
+
+/**
  * Calculates the forward azimuth (bearing in degrees, 0–360) from one
  * coordinate to another along the great circle path.
  *

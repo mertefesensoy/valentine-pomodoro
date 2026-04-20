@@ -55,5 +55,7 @@ export const STORAGE_KEYS = {
     UPDATE_META: 'update_meta', // { lastCheckAt: number, lastPromptedVersion: string | null }
     REMINDER_V1: 'reminder_v1',
     APP_MODE: 'app_mode',
-    FLY_SESSION: 'fly_session',  // paused mid-flight session snapshot (origin/dest/remainingMs)
+    FLY_SESSION: 'fly_session',  // deprecated — clock state now in SESSION_CLOCK
+    SESSION_CLOCK: 'session_clock',  // unified two-slot clock state (pomodoro + fly)
+    FLY_PREFS: 'fly_prefs',         // user camera-mode preference (survives resets)
 } as const;

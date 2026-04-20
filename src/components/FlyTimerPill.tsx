@@ -30,16 +30,17 @@ export default function FlyTimerPill({
     const { colors } = useTheme();
 
     const pillStyle = useAnimatedStyle(() => {
-        // Visible at peek (progress=0), invisible above mid (progress>0.35)
+        // Fully visible at peek (progress=0) and through mid-drag (≤0.5).
+        // Fades out as sheet approaches full (progress→1) to prevent overlap.
         const opacity = interpolate(
             sheetProgress.value,
-            [0, 0.25, 0.35],
-            [1, 0.5, 0],
+            [0, 0.5, 1],
+            [1, 1, 0],
             Extrapolation.CLAMP,
         );
         const translateY = interpolate(
             sheetProgress.value,
-            [0, 0.35],
+            [0, 1],
             [0, -6],
             Extrapolation.CLAMP,
         );

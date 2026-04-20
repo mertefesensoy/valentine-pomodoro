@@ -9,24 +9,25 @@
  * Architecture notes:
  * - react-native-maps Marker does NOT accept Reanimated animated values for
  *   the `coordinate` prop. Instead:
- *     • `useSharedValue` holds the progress (0→1)
- *     • `useAnimatedReaction` watches for changes and calls runOnJS to update
- *       React state (marker coordinate + bearing) ~once per second
+ *     • `useFrameCallback` drives progress + bearingSV at 60fps on the UI thread
+ *     • `runOnJS` at MARKER_HZ (15 Hz) updates React state (markerCoord, bearingDeg)
+ *       for the Marker coordinate prop and camera effects
  *     • The airplane ROTATION uses `useAnimatedStyle` — fully 60fps on UI thread
- * - Timer is driven by a fixed `targetEndTime` UNIX timestamp so backgrounding
- *   the app has zero effect on accuracy
+ * - Timer state lives in `useSessionClock` (via AppContext `session`). The fly
+ *   slot's `endAt` is a `Date.now()` wall-clock epoch, so backgrounding has no
+ *   effect on accuracy.
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    View, Text, Pressable, StyleSheet, AppState, AppStateStatus, Platform,
+    View, Text, Pressable, StyleSheet,
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import MapView, { Marker, Polyline, MapType, Camera, Region } from 'react-native-maps';
+import MapView, { Marker, Polyline, MapType, Region } from 'react-native-maps';
 import Animated, {
-    useSharedValue, useAnimatedStyle, withTiming,
-    useAnimatedReaction, runOnJS, cancelAnimation,
+    useSharedValue, useAnimatedStyle,
+    runOnJS, useFrameCallback,
     interpolate, Extrapolation,
 } from 'react-native-reanimated';
 import FlySheet, { FlySheetRef } from '../components/FlySheet';
@@ -38,17 +39,20 @@ import AirportPicker, { Airport } from '../components/AirportPicker';
 import {
     haversineDistance, flightDurationToSeconds, formatFlightDuration,
     generateGreatCircleWaypoints, calculateBearing, findNearestAirport, LatLng,
+    interpolateAlongPath, pathTangentBearing,
 } from '../utils/geoMath';
+import { save, load, STORAGE_KEYS } from '../utils/storage';
 import airportData from '../assets/data/airports.json';
 import { formatTime } from '../utils/time';
-import { save, load, STORAGE_KEYS } from '../utils/storage';
 import { useFlyModeAudio } from '../hooks/useFlyModeAudio';
 import { useApp } from '../context/AppContext';
 import { AdManager } from '../ads/AdManager';
 import { AdPolicy } from '../ads/AdPolicy';
 import { useNotifications } from '../hooks/useNotifications';
 import LoveNoteCard from '../components/LoveNoteCard';
+import CameraModeSwitcher from '../components/CameraModeSwitcher';
 import * as Haptics from 'expo-haptics';
+import type { CameraMode } from '../types';
 
 // ─── Airport data ────────────────────────────────────────────────────────────
 
@@ -61,13 +65,6 @@ type AirportRecord = {
     tier?: number;
 };
 
-/** Persisted to AsyncStorage when the user switches modes mid-flight.
- *  Restored when FlyModeScreen remounts so the session can be resumed. */
-type FlySessionSave = {
-    originIata: string;
-    destinationIata: string;
-    remainingMs: number;
-};
 
 const AIRPORTS: Airport[] = Object.entries(airportData as Record<string, AirportRecord>).map(
     ([iata, data]) => ({ iata, ...data })
@@ -105,16 +102,56 @@ function CompassRose({ heading }: { heading: number }) {
     );
 }
 
-// ─── View mode ───────────────────────────────────────────────────────────────
+// ─── Camera mode default ─────────────────────────────────────────────────────
 
-type ViewMode = 'overview' | 'chase' | 'route';
+const DEFAULT_CAMERA_MODE: CameraMode = 'seeAll';
 
-const VIEW_MODE_CYCLE: ViewMode[] = ['overview', 'chase', 'route'];
-const VIEW_MODE_ICONS: Record<ViewMode, string> = {
-    overview: '🗺',
-    chase: '✈️',
-    route: '🛣',
-};
+// ─── Plane animation constants ───────────────────────────────────────────────
+
+// runOnJS cadence for react-native-maps Marker coordinate updates.
+// Camera effects fire at the same cadence (they depend on markerCoord state).
+// Reduce MARKER_HZ to 10 if the native bridge stalls on low-end devices.
+const MARKER_HZ = 15;
+
+// ─── UI-thread interpolation worklet ─────────────────────────────────────────
+// Mirror of geoMath.ts:interpolateAlongPath — keep in sync with that function.
+// Defined at module scope so the Reanimated Babel plugin instruments it before
+// any useFrameCallback closure captures it.
+
+function interpolateAlongPathWorklet(
+    waypoints: LatLng[],
+    progress: number,
+): { coord: LatLng; bearing: number } {
+    'worklet';
+    if (waypoints.length === 0) return { coord: { latitude: 0, longitude: 0 }, bearing: 0 };
+    if (waypoints.length === 1) return { coord: waypoints[0], bearing: 0 };
+
+    const clamped = Math.max(0, Math.min(1, progress));
+    const exactIdx = clamped * (waypoints.length - 1);
+    const lowerIdx = Math.min(Math.floor(exactIdx), waypoints.length - 2);
+    const upperIdx = lowerIdx + 1;
+    const fraction = exactIdx - lowerIdx;
+
+    let lonDiff = waypoints[upperIdx].longitude - waypoints[lowerIdx].longitude;
+    if (lonDiff > 180) lonDiff -= 360;
+    if (lonDiff < -180) lonDiff += 360;
+
+    const lat = waypoints[lowerIdx].latitude + fraction * (waypoints[upperIdx].latitude - waypoints[lowerIdx].latitude);
+    const lon = waypoints[lowerIdx].longitude + fraction * lonDiff;
+
+    const toRad = (d: number) => (d * Math.PI) / 180;
+    const toDeg = (r: number) => (r * 180) / Math.PI;
+    const lat1 = toRad(waypoints[lowerIdx].latitude);
+    const lat2 = toRad(waypoints[upperIdx].latitude);
+    const dLon = toRad(waypoints[upperIdx].longitude - waypoints[lowerIdx].longitude);
+    const sinDLon = Math.sin(dLon);
+    const cosLat2 = Math.cos(lat2);
+    const y = sinDLon * cosLat2;
+    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * cosLat2 * Math.cos(dLon);
+    const bearing = (toDeg(Math.atan2(y, x)) + 360) % 360;
+
+    return { coord: { latitude: lat, longitude: lon }, bearing };
+}
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -126,24 +163,8 @@ export default function FlyModeScreen() {
     // Sheet animation state — sheetProgress 0=peek, 1=full
     const sheetProgress = useSharedValue(1);
     const flySheetRef = useRef<FlySheetRef>(null);
-    const { settings, stats, loveNotes } = useApp();
+    const { settings, stats, loveNotes, session } = useApp();
     const { scheduleSessionEnd, cancelScheduled } = useNotifications();
-
-    // Tracks the scheduled "flight landed" notification so we can cancel it on reset/pause
-    const notifIdRef = useRef<string | null>(null);
-
-    // Unmount guard — prevents state updates firing after FlyModeScreen unmounts
-    const isMountedRef = useRef(true);
-    useEffect(() => { return () => { isMountedRef.current = false; }; }, []);
-
-    // Snapshot ref — always holds the latest reactive values so the
-    // save-on-unmount cleanup effect can read them without stale closures.
-    const snapshotRef = useRef<{
-        timerRunning: boolean;
-        paused: boolean;
-        origin: Airport | null;
-        destination: Airport | null;
-    }>({ timerRunning: false, paused: false, origin: null, destination: null });
 
     // Populated on mount when a saved session is restored; consumed once
     // flightData becomes available to reposition the plane at the correct point.
@@ -161,7 +182,6 @@ export default function FlyModeScreen() {
     const [destination, setDestination] = useState<Airport | null>(null);
 
     // Map view state
-    const [isGlobe, setIsGlobe] = useState(false);
     const mapRef = useRef<MapView>(null);
 
     // Visible map region — used for zoom-based airport marker culling
@@ -184,9 +204,18 @@ export default function FlyModeScreen() {
         return { distanceKm, totalSeconds, waypoints };
     }, [origin, destination]);
 
-    // Timer state
-    const [timerRunning, setTimerRunning] = useState(false);
-    const [remainingMs, setRemainingMs] = useState<number | null>(null);
+    // Timer state — derived from session clock (no local timer state)
+    const flySlot = session.state.fly;
+    const timerRunning = flySlot?.isRunning === true;
+    const paused = flySlot !== null && flySlot !== undefined && !flySlot.isRunning;
+    const isSessionActive = timerRunning || paused;
+
+    // Display ms — live remaining for the fly slot
+    const displayMs: number | null = flySlot
+        ? (flySlot.isRunning && flySlot.endAt
+            ? Math.max(0, flySlot.endAt - Date.now())
+            : flySlot.pausedRemainingMs ?? (flightData ? flightData.totalSeconds * 1000 : null))
+        : (flightData ? flightData.totalSeconds * 1000 : null);
 
     // Ad state
     const [isAdPending, setIsAdPending] = useState(false);
@@ -198,89 +227,72 @@ export default function FlyModeScreen() {
 
     // Map overlay state
     const [mapHeading, setMapHeading] = useState(0);
-    const [viewMode, setViewMode] = useState<ViewMode>('overview');
+    const [cameraMode, setCameraMode] = useState<CameraMode>(DEFAULT_CAMERA_MODE);
 
-    // Ref so async handleFlightComplete can read flightData without deps
-    const flightDataRef = useRef(flightData);
-    useEffect(() => { flightDataRef.current = flightData; }, [flightData]);
-
-    // Keep snapshot in sync so the unmount cleanup always reads fresh values
+    // ── Restore airports from session clock on mount ───────────────────────
+    // SESSION_CLOCK carries originIata/destinationIata in the fly slot extras.
+    // Runs once when the slot loads (async from AsyncStorage).
+    const flySlotRestoredRef = useRef(false);
     useEffect(() => {
-        snapshotRef.current = { timerRunning, paused, origin, destination };
-    }, [timerRunning, paused, origin, destination]);
+        if (flySlotRestoredRef.current) return;
+        const slot = session.state.fly;
+        if (!slot?.originIata || !slot?.destinationIata) return;
 
-    // ── Restore saved session on mount ─────────────────────────────────────
-    // Runs once. If a mid-flight session was saved (mode switch while active),
-    // pre-load the airports, mark as paused, and store remaining time.
-    // After flightData is computed (below), the plane is repositioned correctly.
-    useEffect(() => {
-        load<FlySessionSave | null>(STORAGE_KEYS.FLY_SESSION, null).then(saved => {
-            if (!saved || saved.remainingMs <= 0) return;
-            const orig = AIRPORTS.find(a => a.iata === saved.originIata);
-            const dest = AIRPORTS.find(a => a.iata === saved.destinationIata);
-            if (!orig || !dest) return;
+        flySlotRestoredRef.current = true;
+        const orig = AIRPORTS.find(a => a.iata === slot.originIata);
+        const dest = AIRPORTS.find(a => a.iata === slot.destinationIata);
+        if (orig) setOrigin(orig);
+        if (dest) setDestination(dest);
 
-            setOrigin(orig);
-            setDestination(dest);
-            setPaused(true);
-            pausedRemainingRef.current = saved.remainingMs;
-            setRemainingMs(saved.remainingMs);
-            restoredRemainingRef.current = saved.remainingMs; // triggers position restore
-
-            save(STORAGE_KEYS.FLY_SESSION, null).catch(() => {}); // clear immediately
-        });
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-    // ── Marker + bearing restore after flightData is computed ──────────────
-    // When a session is restored, flightData isn't available yet on mount.
-    // This effect fires once flightData is ready and positions the plane at
-    // the exact saved progress point with the correct bearing.
-    // This also fixes Issue 1: the nose always faces the right direction
-    // when chase view is opened on a restored session.
-    useEffect(() => {
-        if (!flightData || restoredRemainingRef.current === null) return;
-
-        const wps = flightData.waypoints;
-        const totalMs = flightData.totalSeconds * 1000;
-        const progress = Math.max(0, Math.min(1, 1 - (restoredRemainingRef.current / totalMs)));
-
-        waypointsRef.current = wps;
-        progressSV.value = progress;
-
-        if (wps.length >= 2) {
-            const exactIdx = Math.min(progress * (wps.length - 1), wps.length - 1);
-            const lowerIdx = Math.min(Math.floor(exactIdx), wps.length - 2);
-            const upperIdx = lowerIdx + 1;
-            const fraction = exactIdx - lowerIdx;
-            let lonDiff = wps[upperIdx].longitude - wps[lowerIdx].longitude;
-            if (lonDiff > 180)  lonDiff -= 360;
-            if (lonDiff < -180) lonDiff += 360;
-            setMarkerCoord({
-                latitude:  wps[lowerIdx].latitude  + fraction * (wps[upperIdx].latitude  - wps[lowerIdx].latitude),
-                longitude: wps[lowerIdx].longitude + fraction * lonDiff,
-            });
-            setBearingDeg(calculateBearing(wps[lowerIdx], wps[upperIdx]));
+        // Store paused remaining for marker restore below
+        if (!slot.isRunning && slot.pausedRemainingMs != null) {
+            restoredRemainingRef.current = slot.pausedRemainingMs;
         }
+    }, [session.state.fly]); // eslint-disable-line react-hooks/exhaustive-deps
 
-        restoredRemainingRef.current = null; // consumed — won't run again
-    }, [flightData, progressSV]);
+    // Persist camera mode in FLY_PREFS (independent of SESSION_CLOCK)
+    useEffect(() => {
+        load<{ cameraMode?: CameraMode }>(STORAGE_KEYS.FLY_PREFS, {}).then(prefs => {
+            if (prefs.cameraMode) setCameraMode(prefs.cameraMode);
+        }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    const targetEndTimeRef = useRef<number>(0);
-    const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    useEffect(() => {
+        save(STORAGE_KEYS.FLY_PREFS, { cameraMode }).catch(() => {});
+    }, [cameraMode]);
+
+    // Mirror cameraMode into a SharedValue so Task 4's UI-thread frame callback
+    // can read the current mode without a runOnJS round-trip per frame.
+    // Written here on the JS thread whenever cameraMode state changes.
+    const cameraModeSV = useSharedValue<string>(DEFAULT_CAMERA_MODE);
+    useEffect(() => {
+        cameraModeSV.value = cameraMode;
+    }, [cameraMode, cameraModeSV]);
 
     // Reanimated progress (0 = origin, 1 = destination)
     const progressSV = useSharedValue(0);
 
-    // Marker state (updated via runOnJS from Reanimated reaction)
+    // Waypoints on the UI thread — written from JS when flightData changes.
+    // The frame callback reads this directly without a runOnJS round-trip.
+    const waypointsSV = useSharedValue<LatLng[]>([]);
+
+    // Fly-slot SharedValues — mirror only the fly slot's clock fields so the frame
+    // callback never accidentally reads Pomodoro's endAt when both slots coexist.
+    const flyEndAtSV = useSharedValue<number>(Number.NEGATIVE_INFINITY);
+    const flyDurationSV = useSharedValue<number>(0);
+    const flyIsRunningSV = useSharedValue<boolean>(false);
+
+    // Delta-time accumulator (ms) for the MARKER_HZ runOnJS throttle.
+    const markerUpdateAccSV = useSharedValue(0);
+
+    // Marker state (updated via runOnJS from the frame callback at MARKER_HZ)
     const [markerCoord, setMarkerCoord] = useState<LatLng | null>(null);
     const [bearingDeg, setBearingDeg] = useState(0);
 
-    // Bearing — snaps instantly (at 10fps updates, 600ms smoothing caused
-    // the plane SVG to visually lag behind the map heading in chase mode).
+    // bearingSV: written directly by the frame callback at 60fps for smooth rotation.
+    // No JS-thread bridge effect — the frame callback owns it.
     const bearingSV = useSharedValue(0);
-    useEffect(() => {
-        bearingSV.value = bearingDeg;
-    }, [bearingDeg, bearingSV]);
 
     // mapHeadingSV mirrors mapHeading so the animated style can read it on the UI thread.
     // Keeping it as a shared value prevents a stale-closure issue where useAnimatedStyle
@@ -300,183 +312,207 @@ export default function FlyModeScreen() {
         transform: [{ rotate: `${bearingSV.value - mapHeadingSV.value}deg` }],
     }));
 
-    // ── Animated reaction: progress → marker coordinate (JS thread via runOnJS)
-    const waypointsRef = useRef<LatLng[]>([]);
+    // Sync waypoints to UI thread whenever flight changes
     useEffect(() => {
-        waypointsRef.current = flightData?.waypoints ?? [];
-    }, [flightData]);
+        waypointsSV.value = flightData?.waypoints ?? [];
+    }, [flightData, waypointsSV]);
 
-    const updateMarkerFromProgress = useCallback((progress: number) => {
-        // Guard: do not update state on an unmounted component
-        if (!isMountedRef.current) return;
+    // ── Marker + bearing restore after flightData is computed ──────────────
+    // The frame callback does not run while paused (flyIsRunningSV === false), so
+    // we write bearingSV directly here to position the plane icon immediately.
+    useEffect(() => {
+        if (!flightData || restoredRemainingRef.current === null) return;
 
-        const wps = waypointsRef.current;
+        const totalMs = flightData.totalSeconds * 1000;
+        const progress = Math.max(0, Math.min(1, 1 - (restoredRemainingRef.current / totalMs)));
+        progressSV.value = progress;
+
+        const { coord, bearing } = interpolateAlongPath(flightData.waypoints, progress);
+        setMarkerCoord(coord);
+        setBearingDeg(bearing);
+        bearingSV.value = bearing;
+
+        restoredRemainingRef.current = null;
+    }, [flightData, progressSV, bearingSV]);
+
+    // ── Sync fly-slot clock fields to UI-thread SharedValues ─────────────────
+    // The frame callback reads flyEndAtSV / flyDurationSV / flyIsRunningSV so it
+    // never accidentally reads the Pomodoro slot's endAt when both slots coexist.
+    useEffect(() => {
+        if (flySlot?.isRunning && flySlot.endAt && flySlot.durationMs) {
+            flyEndAtSV.value = flySlot.endAt;
+            flyDurationSV.value = flySlot.durationMs;
+            flyIsRunningSV.value = true;
+        } else {
+            flyEndAtSV.value = Number.NEGATIVE_INFINITY;
+            flyIsRunningSV.value = false;
+            if (flySlot?.durationMs) flyDurationSV.value = flySlot.durationMs;
+        }
+    }, [flySlot, flyEndAtSV, flyDurationSV, flyIsRunningSV]);
+
+    // ── Frame callback: plane position as a pure function of the clock ────────
+    // Runs on the UI thread at 60fps. Computes progress from the fly slot's
+    // wall-clock endAt, writes bearingSV instantly (60fps rotation), and calls
+    // runOnJS at MARKER_HZ to update the Marker coordinate on the JS thread.
+    //
+    // Date.now() is used (not info.timestamp) because flyEndAtSV was written
+    // with a Date.now() basis — they must share the same clock source.
+    useFrameCallback((info) => {
+        'worklet';
+        if (!flyIsRunningSV.value || flyEndAtSV.value === Number.NEGATIVE_INFINITY || flyDurationSV.value <= 0) return;
+
+        const now = Date.now();
+        const remaining = Math.max(0, flyEndAtSV.value - now);
+        const progress = Math.min(1, Math.max(0, (flyDurationSV.value - remaining) / flyDurationSV.value));
+        progressSV.value = progress;
+
+        const wps = waypointsSV.value;
         if (wps.length < 2) return;
 
-        // Sub-waypoint linear interpolation — exactIdx is fractional (e.g. 42.7)
-        // so the marker position is always precisely correct between waypoints,
-        // giving continuous movement rather than discrete jumps every ~24 s.
-        const exactIdx = Math.min(progress * (wps.length - 1), wps.length - 1);
-        const lowerIdx = Math.min(Math.floor(exactIdx), wps.length - 2);
-        const upperIdx = lowerIdx + 1;
-        const fraction = exactIdx - lowerIdx; // 0.0 → 1.0 between adjacent waypoints
+        const { coord, bearing } = interpolateAlongPathWorklet(wps, progress);
+        bearingSV.value = bearing;
 
-        // Normalise longitude difference to the short path across ±180°.
-        // Without this, Pacific routes (e.g. SYD→LAX) briefly teleport the
-        // marker to the prime meridian when interpolating lon=+179 → lon=-179.
-        let lonDiff = wps[upperIdx].longitude - wps[lowerIdx].longitude;
-        if (lonDiff > 180) lonDiff -= 360;
-        if (lonDiff < -180) lonDiff += 360;
+        // Throttle runOnJS to MARKER_HZ — Marker coord needs JS-thread state but
+        // bridging at 60fps wastes CPU and causes map jitter on low-end devices.
+        //
+        // Subtract the threshold rather than resetting to zero so residual time
+        // (the overshoot past the threshold) carries into the next cycle.
+        // Reset-to-zero discards that overshoot, causing ~5–10 ms of cumulative
+        // phase drift over a 25-min session (still within the ±0.5 s spec, but
+        // perceptible if you're watching the plane vs. the timer closely).
+        const dt = info.timeSincePreviousFrame ?? 16.67;
+        markerUpdateAccSV.value += dt;
+        if (markerUpdateAccSV.value >= 1000 / MARKER_HZ) {
+            markerUpdateAccSV.value -= 1000 / MARKER_HZ;
+            runOnJS(setMarkerCoord)(coord);
+            runOnJS(setBearingDeg)(bearing);
+        }
+    });
 
-        setMarkerCoord({
-            latitude:  wps[lowerIdx].latitude  + fraction * (wps[upperIdx].latitude  - wps[lowerIdx].latitude),
-            longitude: wps[lowerIdx].longitude + fraction * lonDiff,
+    // Mirror fly slot's notifId in a ref for unmount cancel (can't read state in cleanup)
+    const flyNotifIdRef = useRef<string | null>(null);
+    useEffect(() => {
+        flyNotifIdRef.current = session.state.fly?.scheduledNotificationId ?? null;
+    }, [session.state.fly?.scheduledNotificationId]);
+
+    // ── onComplete subscriber for fly kind ──────────────────────────────────
+    useEffect(() => {
+        return session.onComplete((slot, kind) => {
+            if (kind !== 'fly') return;
+            flyNotifIdRef.current = null; // notification already fired
+
+            setFlightComplete(true);
+
+            if (settings.settings.haptics) {
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+            }
+
+            const minutes = Math.round((slot.durationMs ?? 0) / 60000);
+            if (minutes > 0) {
+                stats.incrementFocus(minutes);
+            }
+
+            if (settings.settings.showLoveNotes) {
+                const note = loveNotes.pickRandomNote(lastLoveNoteRef.current);
+                lastLoveNoteRef.current = note;
+                setLandingLoveNote(note);
+            }
+
+            AdPolicy.recordSessionCompletion().then(() => {
+                if (AdPolicy.shouldShowAd()) setIsAdPending(true);
+            }).catch(console.warn);
         });
-        setBearingDeg(calculateBearing(wps[lowerIdx], wps[upperIdx]));
-    }, []);
-
-    // Throttle to ~10fps: only call runOnJS every 6th Reanimated frame.
-    // withTiming fires at ~60fps; 60 bridge calls/sec is unnecessary for a map marker.
-    const frameCountSV = useSharedValue(0);
-    useAnimatedReaction(
-        () => progressSV.value,
-        (progress) => {
-            frameCountSV.value = (frameCountSV.value + 1) % 6; // every 6th frame ≈ 10fps
-            if (frameCountSV.value === 0) {
-                runOnJS(updateMarkerFromProgress)(progress);
-            }
-        },
-    );
-
-    // ── Flight completion: haptic + stats + love note + ad
-    const handleFlightComplete = useCallback(async () => {
-        setFlightComplete(true);
-        notifIdRef.current = null; // notification already fired (or flight ended in foreground)
-        // Clear saved session — flight completed naturally, not paused mid-way
-        save(STORAGE_KEYS.FLY_SESSION, null).catch(() => {});
-
-        // Impact haptic on landing (respects user setting)
-        if (settings.settings.haptics) {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-        }
-
-        // Record focus minutes into the shared stats pool (same as Pomodoro sessions)
-        const minutes = Math.round((flightDataRef.current?.totalSeconds ?? 0) / 60);
-        if (minutes > 0) {
-            stats.incrementFocus(minutes);
-        }
-
-        // Show a love note after landing (same pattern as Pomodoro)
-        if (settings.settings.showLoveNotes) {
-            const note = loveNotes.pickRandomNote(lastLoveNoteRef.current);
-            lastLoveNoteRef.current = note;
-            setLandingLoveNote(note);
-        }
-
-        await AdPolicy.recordSessionCompletion();
-        if (AdPolicy.shouldShowAd()) {
-            setIsAdPending(true);
-        }
-    }, [stats, loveNotes, settings.settings.haptics]);
-
-    // ── Ticker: updates remaining time and Reanimated progress
-    const startTick = useCallback((totalMs: number) => {
-        if (tickRef.current) clearInterval(tickRef.current);
-        tickRef.current = setInterval(() => {
-            const now = Date.now();
-            const remaining = Math.max(0, targetEndTimeRef.current - now);
-            setRemainingMs(remaining);
-            const elapsed = totalMs - remaining;
-            progressSV.value = withTiming(
-                Math.min(elapsed / totalMs, 1),
-                { duration: 950 }
-            );
-            if (remaining === 0) {
-                if (tickRef.current) clearInterval(tickRef.current);
-                setTimerRunning(false);
-                void handleFlightComplete();
-            }
-        }, 1000);
-    }, [progressSV, handleFlightComplete]);
+    }, [session.onComplete, settings.settings, stats, loveNotes]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ── Start
-    const handleStart = useCallback(() => {
+    const handleStart = useCallback(async () => {
         if (!flightData) return;
-        // Clear any stale pause/restore state so this is always a fresh flight.
-        pausedRemainingRef.current = 0;
-        restoredRemainingRef.current = null;
-        setPaused(false);
         const totalMs = flightData.totalSeconds * 1000;
         const endAt = Date.now() + totalMs;
-        targetEndTimeRef.current = endAt;
-        setRemainingMs(totalMs);
+
+        let notifId: string | null = null;
+        if (settings.settings.notifications) {
+            try {
+                notifId = await Promise.race([
+                    scheduleSessionEnd(endAt, '✈️ Landed!', 'Your flight focus session is complete 💗'),
+                    new Promise<null>(resolve => setTimeout(() => resolve(null), 1000)),
+                ]);
+            } catch (e) {
+                console.warn('Failed to schedule landing notification:', e);
+            }
+        }
+
+        restoredRemainingRef.current = null;
+        flySlotRestoredRef.current = true; // session will carry origin/dest; no re-restore needed
         setFlightComplete(false);
         progressSV.value = 0;
+        markerUpdateAccSV.value = 0;
         setMarkerCoord(flightData.waypoints[0]);
         setBearingDeg(
             flightData.waypoints.length > 1
                 ? calculateBearing(flightData.waypoints[0], flightData.waypoints[1])
                 : 0
         );
-        setTimerRunning(true);
-        startTick(totalMs);
 
-        // Schedule a "Landed!" push notification for when the flight completes —
-        // this fires even if the app is backgrounded.
-        if (settings.settings.notifications) {
-            scheduleSessionEnd(endAt, '✈️ Landed!', 'Your flight focus session is complete 💗').then(id => {
-                notifIdRef.current = id;
-            });
-        }
-    }, [flightData, progressSV, startTick, scheduleSessionEnd, settings.settings.notifications]);
+        session.start({
+            kind: 'fly',
+            durationMs: totalMs,
+            extras: {
+                originIata: origin?.iata ?? null,
+                destinationIata: destination?.iata ?? null,
+                scheduledNotificationId: notifId,
+            },
+        });
+    }, [flightData, origin, destination, progressSV, markerUpdateAccSV, scheduleSessionEnd, settings.settings.notifications, session]);
 
-    // ── Pause / Resume
-    const pausedRemainingRef = useRef<number>(0);
-    const [paused, setPaused] = useState(false);
-
+    // ── Pause
     const handlePause = useCallback(() => {
-        if (tickRef.current) clearInterval(tickRef.current);
-        pausedRemainingRef.current = Math.max(0, targetEndTimeRef.current - Date.now());
-        setPaused(true);
-        // Cancel the landing notification while paused (timing is now wrong)
-        cancelScheduled(notifIdRef.current).then(() => { notifIdRef.current = null; });
-    }, [cancelScheduled]);
-
-    const handleResume = useCallback(() => {
-        if (!flightData) return;
-        const totalMs = flightData.totalSeconds * 1000;
-        const endAt = Date.now() + pausedRemainingRef.current;
-        targetEndTimeRef.current = endAt;
-        setPaused(false);
-        setTimerRunning(true);
-        startTick(totalMs);
-        // Reschedule the notification with the new end time
-        if (settings.settings.notifications) {
-            scheduleSessionEnd(endAt, '✈️ Landed!', 'Your flight focus session is complete 💗').then(id => {
-                notifIdRef.current = id;
-            });
+        const notifId = session.state.fly?.scheduledNotificationId ?? null;
+        if (notifId) {
+            cancelScheduled(notifId).catch(console.warn);
+            session.setSlotExtras('fly', { scheduledNotificationId: null });
         }
-    }, [flightData, startTick, scheduleSessionEnd, settings.settings.notifications]);
+        session.pause();
+    }, [session, cancelScheduled]);
+
+    // ── Resume
+    const handleResume = useCallback(async () => {
+        const slot = session.state.fly;
+        if (!slot || slot.isRunning || slot.pausedRemainingMs === null) return;
+
+        session.resume();
+
+        if (settings.settings.notifications) {
+            const endAt = Date.now() + slot.pausedRemainingMs;
+            try {
+                const notifId = await Promise.race([
+                    scheduleSessionEnd(endAt, '✈️ Landed!', 'Your flight focus session is complete 💗'),
+                    new Promise<null>(resolve => setTimeout(() => resolve(null), 1000)),
+                ]);
+                session.setSlotExtras('fly', { scheduledNotificationId: notifId });
+            } catch (e) {
+                console.warn('Failed to reschedule landing notification:', e);
+            }
+        }
+    }, [session, scheduleSessionEnd, settings.settings.notifications]);
 
     // ── Reset
     const handleReset = useCallback(() => {
-        if (tickRef.current) clearInterval(tickRef.current);
-        waypointsRef.current = []; // clear first — prevents stale reaction re-setting marker
-        setTimerRunning(false);
-        setPaused(false);
-        setRemainingMs(null);
+        const notifId = session.state.fly?.scheduledNotificationId ?? null;
+        if (notifId) cancelScheduled(notifId).catch(console.warn);
+        session.stop();
+
+        waypointsSV.value = []; // clear UI-thread waypoints first — stops frame callback interpolating
+        progressSV.value = 0;
+        markerUpdateAccSV.value = 0;
         setMarkerCoord(null);
         setFlightComplete(false);
         setIsAdPending(false);
         setLandingLoveNote(null);
-        setViewMode('overview');
-        progressSV.value = 0;
-        restoredRemainingRef.current = null; // discard any pending restore
-        // Clear saved session — user explicitly abandoned the flight
-        save(STORAGE_KEYS.FLY_SESSION, null).catch(() => {});
-        // Cancel any pending landing notification
-        cancelScheduled(notifIdRef.current).then(() => { notifIdRef.current = null; });
-    }, [progressSV, cancelScheduled]);
+        setCameraMode(DEFAULT_CAMERA_MODE);
+        restoredRemainingRef.current = null;
+        flySlotRestoredRef.current = false;
+    }, [session, cancelScheduled, progressSV, waypointsSV, markerUpdateAccSV]);
 
     // ── Pan gesture: sets a flag that suppresses camera following for 4 s.
     // This allows the user to freely explore the map during chase/route modes
@@ -495,44 +531,18 @@ export default function FlyModeScreen() {
         setMapHeading(0);
     }, []);
 
-    // ── View mode: cycle overview → chase → route → overview
-    const cycleViewMode = useCallback(() => {
-        setViewMode((prev) => {
-            const idx = VIEW_MODE_CYCLE.indexOf(prev);
-            return VIEW_MODE_CYCLE[(idx + 1) % VIEW_MODE_CYCLE.length];
-        });
-    }, []);
+    // AppState background completion is handled by useSessionClock — no inline listener needed.
 
-    // ── AppState background sync
-    // When the app returns to foreground, remainingMs recalculates from
-    // targetEndTime so the timer (and airplane position) snap to the correct
-    // position instantly — no drift possible.
-    // If the flight completed while backgrounded, handleFlightComplete fires here
-    // so stats, haptics, love note, and ad are never missed.
-    useEffect(() => {
-        const sub = AppState.addEventListener('change', (state: AppStateStatus) => {
-            if (state === 'active' && timerRunning && !paused && flightData) {
-                const totalMs = flightData.totalSeconds * 1000;
-                const remaining = Math.max(0, targetEndTimeRef.current - Date.now());
-                setRemainingMs(remaining);
-                const elapsed = totalMs - remaining;
-                progressSV.value = Math.min(elapsed / totalMs, 1);
-                if (remaining === 0) {
-                    if (tickRef.current) clearInterval(tickRef.current);
-                    setTimerRunning(false);
-                    void handleFlightComplete(); // ← was missing — fires stats/haptic/ad
-                }
-            }
-        });
-        return () => sub.remove();
-    }, [timerRunning, paused, flightData, progressSV, handleFlightComplete]);
+    // ── Throttle ref for seeAll mode (4 Hz fitToCoordinates) ────────────────
+    const seeAllThrottleRef = useRef(0);
 
-    // ── View mode: 'overview' → fit full route once when mode switches
+    // ── Camera: 'global' and 'seeAll' idle — fit origin + destination once ──
     useEffect(() => {
-        if (viewMode !== 'overview') return;
-        if (!flightData?.waypoints || flightData.waypoints.length < 2) return;
+        if (cameraMode !== 'global' && cameraMode !== 'seeAll') return;
+        if (isSessionActive) return; // while flying, the marker-based effects handle framing
+        if (!origin || !destination) return;
         const panelW = Math.min(width * 0.42, 400);
-        mapRef.current?.fitToCoordinates(flightData.waypoints, {
+        mapRef.current?.fitToCoordinates([origin.coordinates, destination.coordinates], {
             edgePadding: {
                 top: insets.top + 60,
                 right: isLandscape ? panelW + 24 : 40,
@@ -541,32 +551,49 @@ export default function FlyModeScreen() {
             },
             animated: true,
         });
-    }, [viewMode, flightData, height, insets.top]);
+    }, [cameraMode, origin, destination, isSessionActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // ── View mode: 'chase' / 'route' → camera follows plane
-    // • Chase: instant setCamera so the plane never lags behind its heading
-    // • Route: gentle 300ms animation (slower-moving overview)
-    // • Skipped entirely while the user is panning (userInteractingRef guard)
+    // ── Camera: flat / followPlane / followPath — follow the plane ──────────
     useEffect(() => {
-        if (!markerCoord || viewMode === 'overview') return;
-        if (userInteractingRef.current) return; // user is panning — let them explore
+        if (!markerCoord) return;
+        if (cameraMode !== 'flat' && cameraMode !== 'followPlane' && cameraMode !== 'followPath') return;
+        if (userInteractingRef.current) return;
 
-        const cam = {
-            center: markerCoord,
-            heading: bearingDeg,
-            pitch: viewMode === 'chase' ? 50 : 20,
-            altitude: viewMode === 'chase' ? 500_000 : 2_500_000,
-        };
-
-        if (viewMode === 'chase') {
-            mapRef.current?.setCamera(cam);          // instant — no lag
-            // Immediately sync mapHeading so the compass and plane-rotation formula
-            // don't have to wait for the async onRegionChange → getCamera() round-trip.
+        if (cameraMode === 'flat') {
+            mapRef.current?.setCamera({ center: markerCoord, heading: 0, pitch: 0, altitude: 2_500_000 });
+        } else if (cameraMode === 'followPlane') {
+            mapRef.current?.setCamera({ center: markerCoord, heading: bearingDeg, pitch: 50, altitude: 500_000 });
             setMapHeading(bearingDeg);
         } else {
-            mapRef.current?.animateCamera(cam, { duration: 300 }); // route: gentle
+            // followPath: align screen-up with the path tangent slightly ahead
+            const wps = flightData?.waypoints ?? [];
+            const heading = wps.length >= 2
+                ? pathTangentBearing(wps, progressSV.value, 0.015)
+                : bearingDeg;
+            mapRef.current?.setCamera({ center: markerCoord, heading, pitch: 50, altitude: 600_000 });
+            setMapHeading(heading);
         }
-    }, [markerCoord, viewMode, bearingDeg]);
+    }, [markerCoord, cameraMode, bearingDeg]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // ── Camera: seeAll — refit dynamically as plane moves (4 Hz throttle) ───
+    useEffect(() => {
+        if (cameraMode !== 'seeAll') return;
+        if (!markerCoord || !origin || !destination) return;
+        const now = Date.now();
+        if (now - seeAllThrottleRef.current < 250) return;
+        seeAllThrottleRef.current = now;
+        if (userInteractingRef.current) return;
+        const panelW = Math.min(width * 0.42, 400);
+        mapRef.current?.fitToCoordinates([origin.coordinates, markerCoord, destination.coordinates], {
+            edgePadding: {
+                top: insets.top + 60,
+                right: isLandscape ? panelW + 24 : 40,
+                bottom: isLandscape ? 40 : height * 0.58,
+                left: 40,
+            },
+            animated: true,
+        });
+    }, [markerCoord, cameraMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ── Show interstitial ad after flight completion
     // Wait for any love note overlay to be dismissed first — never stack UI layers
@@ -581,40 +608,18 @@ export default function FlyModeScreen() {
         });
     }, [isAdPending, timerRunning, paused, landingLoveNote]);
 
-    // ── Cleanup on unmount — cancel Reanimated animations so their UI-thread
-    // callbacks don't fire after the component is gone (crash prevention).
+    // ── Cleanup on unmount ─────────────────────────────────────────────────
+    // Session clock persists clock state automatically — no FLY_SESSION save needed.
+    // Cancel landing notification so it doesn't fire while fly mode is paused.
+    // progressSV and bearingSV are written via direct .value assignment (not animations),
+    // so no cancelAnimation needed — the frame callback stops on unmount automatically.
     useEffect(() => {
         return () => {
-            cancelAnimation(progressSV);
-            cancelAnimation(bearingSV);
-            if (tickRef.current) clearInterval(tickRef.current);
             if (interactionTimerRef.current) clearTimeout(interactionTimerRef.current);
+            const notifId = flyNotifIdRef.current;
+            if (notifId) cancelScheduled(notifId).catch(() => {});
         };
-    }, [progressSV, bearingSV]);
-
-    // ── Save session on unmount if flight is active ────────────────────────
-    // When the user switches modes mid-flight, FlyModeScreen unmounts.
-    // We save origin/destination/remainingMs so the session can be resumed
-    // next time FlyModeScreen mounts (mode switch back to Fly Mode).
-    // Uses snapshotRef (always current) — empty deps so this only fires on unmount.
-    useEffect(() => {
-        return () => {
-            const { timerRunning, paused, origin, destination } = snapshotRef.current;
-            if (!timerRunning && !paused) return;
-            if (!origin || !destination) return;
-            const remaining = paused
-                ? pausedRemainingRef.current
-                : Math.max(0, targetEndTimeRef.current - Date.now());
-            if (remaining <= 0) return;
-            save(STORAGE_KEYS.FLY_SESSION, {
-                originIata: origin.iata,
-                destinationIata: destination.iata,
-                remainingMs: remaining,
-            } as FlySessionSave).catch(() => {});
-            cancelScheduled(notifIdRef.current).catch(() => {});
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ── Ambient sound: plays during active (running, not paused) sessions
     useFlyModeAudio(
@@ -623,39 +628,22 @@ export default function FlyModeScreen() {
         settings.settings.flyModeSound
     );
 
-    // ── Globe camera configuration
-    // altitude > 10,000,000 m is required for MapKit to render the full 3D sphere
-    const globeCamera: Camera = {
-        center: { latitude: 20, longitude: 0 },
-        pitch: 0,
-        heading: 0,
-        altitude: 20_000_000,
-        zoom: 1,
-    };
+    const mapType: MapType = 'mutedStandard';
 
-    const mapType: MapType = isGlobe
-        ? (Platform.OS === 'ios' ? 'satelliteFlyover' : 'satellite')
-        : 'mutedStandard';
-
-    const displayMs = remainingMs ?? (flightData ? flightData.totalSeconds * 1000 : null);
-
-    // Picker row fades in from mid snap upward (progress ≈0.49 at mid)
+    // Picker row fades in as the sheet opens toward full (2-snap: 0=peek, 1=full)
     const pickerAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: interpolate(sheetProgress.value, [0.38, 0.58], [0, 1], Extrapolation.CLAMP),
-        pointerEvents: sheetProgress.value > 0.45 ? 'auto' : 'none',
+        opacity: interpolate(sheetProgress.value, [0.45, 0.75], [0, 1], Extrapolation.CLAMP),
+        pointerEvents: sheetProgress.value > 0.5 ? 'auto' : 'none',
     } as any));
 
-    // mapHint floats just above the top of the sheet
+    // mapHint floats just above the peek strip (at progress=0) and above the full sheet (at progress=1)
     const mapHintAnimatedStyle = useAnimatedStyle(() => {
         const portraitBottom = interpolate(
-            sheetProgress.value, [0, 1], [height * 0.08, height * 0.57],
+            sheetProgress.value, [0, 1], [height * 0.12, height * 0.57],
             Extrapolation.CLAMP,
         );
         return { bottom: portraitBottom };
     });
-
-    // ── Map tap selection: disabled during active sessions
-    const isSessionActive = timerRunning || paused;
 
     // ── Zoom-based airport markers ───────────────────────────────────────────
     // Shown when no session is running (both flat and globe modes).
@@ -664,11 +652,6 @@ export default function FlyModeScreen() {
     // Capped at 120 to keep the bridge happy (sorted best-first before capping).
     const visibleAirportMarkers = useMemo(() => {
         if (isSessionActive) return []; // hidden during active flights
-
-        // Globe mode: show tier-1 airports across the whole world
-        if (isGlobe) {
-            return AIRPORTS.filter(a => (a.tier ?? 1) === 1);
-        }
 
         const { latitude, longitude, latitudeDelta, longitudeDelta } = mapRegion;
 
@@ -698,7 +681,7 @@ export default function FlyModeScreen() {
 
         // Hard cap at 120 — beyond this MapKit bridge overhead noticeable
         return filtered.slice(0, 120);
-    }, [mapRegion, isSessionActive, isGlobe]);
+    }, [mapRegion, isSessionActive]);
 
     const handleMapPress = useCallback((event: { nativeEvent: { coordinate: { latitude: number; longitude: number } } }) => {
         if (isSessionActive) return;
@@ -731,8 +714,7 @@ export default function FlyModeScreen() {
                 pitchEnabled={true}
                 showsCompass={false}  // hide MapKit's compass; CompassRose overlay replaces it
                 userInterfaceStyle={isDark ? 'dark' : 'light'}
-                camera={isGlobe ? globeCamera : undefined}
-                initialRegion={isGlobe ? undefined : {
+                initialRegion={{
                     latitude: 20, longitude: 0,
                     latitudeDelta: 120, longitudeDelta: 120,
                 }}
@@ -746,19 +728,9 @@ export default function FlyModeScreen() {
                     const cam = await mapRef.current?.getCamera();
                     if (cam?.heading !== undefined) setMapHeading(cam.heading);
                 }}
-                // Clamp latitude (globe) + track region for airport markers + compass
+                // Track region for zoom-based airport dot rendering + final heading sync
                 onRegionChangeComplete={async (region) => {
-                    if (isGlobe) {
-                        const clamped = Math.max(-85, Math.min(85, region.latitude));
-                        if (clamped !== region.latitude) {
-                            mapRef.current?.setCamera({
-                                center: { latitude: clamped, longitude: region.longitude },
-                            });
-                        }
-                    }
-                    // Update visible region for zoom-based airport dot rendering
                     setMapRegion(region);
-                    // Final heading sync after gesture settles
                     const cam = await mapRef.current?.getCamera();
                     if (cam?.heading !== undefined) setMapHeading(cam.heading);
                 }}
@@ -857,19 +829,16 @@ export default function FlyModeScreen() {
                     <CompassRose heading={mapHeading} />
                 </Pressable>
 
-                {/* View mode — only visible during active session */}
+                {/* Camera mode switcher — only visible during active session */}
                 {isSessionActive && markerCoord && (
-                    <Pressable
-                        style={[styles.mapControlBtn, styles.mapControlBtnGap, {
-                            backgroundColor: isDark ? 'rgba(45,45,45,0.95)' : 'rgba(247,243,240,0.95)',
-                            borderColor: `${ValentineSpec.accentPrimary}30`,
-                        }]}
-                        onPress={cycleViewMode}
-                        accessibilityLabel={`Map view: ${viewMode}`}
-                        accessibilityRole="button"
-                    >
-                        <Text style={styles.mapControlIcon}>{VIEW_MODE_ICONS[viewMode]}</Text>
-                    </Pressable>
+                    <View style={styles.mapControlBtnGap}>
+                        <CameraModeSwitcher
+                            cameraMode={cameraMode}
+                            onSelect={setCameraMode}
+                            isDark={isDark}
+                            hapticsEnabled={settings.settings.haptics}
+                        />
+                    </View>
                 )}
             </View>
 
@@ -902,7 +871,7 @@ export default function FlyModeScreen() {
             <FlyTimerPill
                 sheetProgress={sheetProgress}
                 displayMs={displayMs}
-                onTap={() => flySheetRef.current?.expandTo(isLandscape ? 'full' : 'mid')}
+                onTap={() => flySheetRef.current?.expandTo('full')}
                 topInset={insets.top}
                 isLandscape={isLandscape}
                 isDark={isDark}
@@ -917,23 +886,27 @@ export default function FlyModeScreen() {
                 viewportHeight={height}
                 bottomInset={insets.bottom}
                 cardBgColor={colors.card}
-                headerControl={
-                    <Pressable
-                        style={[styles.globeToggle, {
-                            backgroundColor: isDark
-                                ? `${colors.card}CC`
-                                : `${ValentineSpec.backgroundSecondary}80`,
-                            borderColor: `${ValentineSpec.accentPrimary}40`,
-                        }]}
-                        onPress={() => setIsGlobe((v) => !v)}
-                    >
-                        <Text style={[styles.globeToggleText, { color: colors.text }]}>
-                            {isGlobe ? '🗺 Flat' : '🌍 Globe'}
-                        </Text>
-                    </Pressable>
-                }
+                hapticsEnabled={settings.settings.haptics}
             >
-                {/* Airport pickers + flight info — fade out below mid snap */}
+                {/* Timer display — visible at peek and full */}
+                <View style={styles.timerRow}>
+                    {flightComplete && !timerRunning ? (
+                        <Text style={styles.landedText}>✈️  Landed!</Text>
+                    ) : (
+                        <Text style={styles.timerDigits}>
+                            {displayMs !== null ? formatTime(displayMs) : '--:--'}
+                        </Text>
+                    )}
+                </View>
+
+                {/* Camera mode label — visible at peek; matches the active CameraModeSwitcher selection */}
+                <View style={styles.modeIndicatorStrip}>
+                    <Text style={[styles.modeIndicatorText, { color: colors.textMuted }]}>
+                        {cameraMode}
+                    </Text>
+                </View>
+
+                {/* Airport pickers + flight info — fade in as sheet opens toward full */}
                 <Animated.View style={pickerAnimatedStyle}>
                     <View style={styles.pickerRow}>
                         <AirportPicker
@@ -964,18 +937,7 @@ export default function FlyModeScreen() {
                     )}
                 </Animated.View>
 
-                {/* Timer display — always visible */}
-                <View style={styles.timerRow}>
-                    {flightComplete && !timerRunning ? (
-                        <Text style={styles.landedText}>✈️  Landed!</Text>
-                    ) : (
-                        <Text style={styles.timerDigits}>
-                            {displayMs !== null ? formatTime(displayMs) : '--:--'}
-                        </Text>
-                    )}
-                </View>
-
-                {/* Controls — always visible */}
+                {/* Controls — visible when sheet is expanded */}
                 <View style={styles.controls}>
                     {!timerRunning && !paused && (
                         <Pressable
@@ -1028,19 +990,6 @@ const styles = StyleSheet.create({
     },
     map: {
         flex: 1,
-    },
-    // Globe / flat toggle button — lives inside FlySheet's header control slot
-    // backgroundColor + borderColor supplied inline (dark mode adaptive)
-    globeToggle: {
-        borderRadius: 20,
-        paddingHorizontal: 14,
-        paddingVertical: 6,
-        borderWidth: 1,
-    },
-    // color supplied inline (dark mode adaptive)
-    globeToggleText: {
-        fontSize: 13,
-        fontWeight: '600',
     },
     // Airplane marker wrapper (Reanimated rotation applied here)
     airplane: {
@@ -1108,6 +1057,17 @@ const styles = StyleSheet.create({
         color: ValentineSpec.accentPrimary,
         letterSpacing: 1,
         marginBottom: 16,
+    },
+    // Placeholder for Task 3's CameraModeSwitcher — shown at peek snap below the timer
+    modeIndicatorStrip: {
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    modeIndicatorText: {
+        fontSize: 12,
+        fontWeight: '500',
+        textTransform: 'capitalize',
+        letterSpacing: 0.5,
     },
     controls: {
         alignItems: 'center',

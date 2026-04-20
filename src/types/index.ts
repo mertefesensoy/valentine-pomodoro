@@ -96,7 +96,7 @@ export interface LoveNotes {
 export type AppMode = 'default' | 'fly';
 
 // Camera mode for Fly Mode map view
-export type CameraMode = 'global' | 'flat' | 'followPlane' | 'followPath' | 'seeAll';
+export type CameraMode = 'followPlane' | 'route' | 'free';
 
 // ─── Session clock ─────────────────────────────────────────────────────────
 

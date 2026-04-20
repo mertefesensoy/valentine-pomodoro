@@ -221,28 +221,6 @@ export function interpolateAlongPath(
 }
 
 /**
- * Computes the forward tangent bearing of the path at `progress` by looking
- * `lookAhead` fraction of the total route ahead (e.g. 0.015 = 1.5%).
- *
- * Use this for "follow-path" camera heading so the screen's up direction aligns
- * with where the path is about to go, rather than the plane's instantaneous heading.
- * This keeps the upcoming curve visible in front of the plane icon on screen.
- */
-export function pathTangentBearing(
-    waypoints: LatLng[],
-    progress: number,
-    lookAhead: number
-): number {
-    const ahead = Math.min(1, progress + lookAhead);
-    const { coord: coordA } = interpolateAlongPath(waypoints, progress);
-    const { coord: coordB } = interpolateAlongPath(waypoints, ahead);
-    if (Math.abs(ahead - progress) < 1e-6) {
-        return interpolateAlongPath(waypoints, progress).bearing;
-    }
-    return calculateBearing(coordA, coordB);
-}
-
-/**
  * Calculates the forward azimuth (bearing in degrees, 0–360) from one
  * coordinate to another along the great circle path.
  *

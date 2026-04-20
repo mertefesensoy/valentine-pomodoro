@@ -167,3 +167,25 @@ Device-only checks (require physical hardware):
 - Plan: `C:\Users\senso\.claude\plans\flickering-waddling-spark.md` (Task 2 section)
 - Task 1 doc: `docs/implementations/2026-04-19-timer-unification.md`
 - Types: `src/components/FlySheet.tsx` (`FlySnapPoint`, `FlySheetRef`, `FlySheetProps`)
+
+---
+
+## Followup (2026-04-20) — geometry & map-control overlap
+
+**Problem:** four layout bugs surfaced during device testing:
+1. Portrait full snap was too tall (`h*0.55`) — map only 45 % visible.
+2. Landscape full snap: compass + CameraModeSwitcher column overlapped the sheet.
+3. Portrait-peek → rotate landscape: sheet peek strip inaccessible (blocked by mapControls overlay + potentially stale gesture axis).
+4. Landscape peek strip crossed the mapControls column.
+
+**Fixes:**
+1. **Portrait fullH 0.55 → 0.45** (`FlySheet.tsx:portraitSnaps`). Three `FlyModeScreen.tsx` constants updated in lockstep: both `fitToCoordinates` bottom-padding sites `0.58 → 0.48`; `mapHintAnimatedStyle` top-of-range `0.57 → 0.47`.
+2. **mapControls column moves with sheetProgress in landscape** (`FlyModeScreen.tsx`). `styles.mapControls` loses the static `right: 12`; gains `zIndex: 5`. An `Animated.View` wrapper + `mapControlsAnimatedStyle` interpolates `right` from `44` (peek: PEEK_STRIP 32 + gap 12) to `panelW + 12` (full). Follows the same pattern as `mapHintAnimatedStyle`. Portrait retains static `right: 12`.
+3. **Gestures memoized** (`FlySheet.tsx`): `portraitGesture`, `landscapeGesture`, `doubleTap`, and `Gesture.Race(...)` all wrapped in `useMemo` with `[onSnap]` / `[isLandscape]` deps. Prevents stale axis config (Y vs X) after an orientation change mid-touch.
+4. **Tap-to-expand on drag handles** (`FlySheet.tsx`): portrait `dragHandleRow` and landscape `sideDragHandle` each wrapped in a `<Pressable>` that calls `snapToTarget('full')`. Provides a last-resort expansion gesture on the narrow landscape peek strip.
+
+**Invariant:** In landscape, the mapControls column and the sheet never overlap. Controls are always at `right: panelW + 12` (full) or `right: PEEK_STRIP + 12` (peek). In portrait the `right` is constant 12.
+
+**FlySheet geometry constants are coupled to FlyModeScreen layout math.** If `fullH` changes again, update these three FlyModeScreen sites in the same commit: `fitToCoordinates` bottom edgePadding (×2) and `mapHintAnimatedStyle` progress=1 bottom value.
+
+**Verification:** 8-step device test matrix in `C:\Users\senso\.claude\plans\sheet-geometry-followup.md`.

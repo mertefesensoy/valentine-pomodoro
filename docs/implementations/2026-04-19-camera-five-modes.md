@@ -155,6 +155,32 @@ Device-only checks:
 
 ---
 
+## 8. Postmortem — nil-child crash exposed by this task
+
+Task 3 did **not** introduce the crash; it exposed a latent bug that
+pre-dated it.
+
+**The latent bug:** `visibleAirportMarkers.map((airport) => { if (...) return null; ... return <Marker/>; })` — returning `null` inside a `.map()` used as MapView children produces nil slots in the native child array. `AIRMap.insertReactSubview:atIndex:` inserts each slot into an `NSMutableArray` without nil-filtering, so a nil slot crashes with `[NSMutableArray insertObject:nil atIndex:]`.
+
+**Why Task 3 made it reproducible:** Before Task 3, the globe / view-mode cycle button was unreliable in certain orientations, so users rarely reached the specific state that triggers the crash: both airports selected AND the selected airport visible as a tier-1 dot at the current zoom. Task 3's cleaner session-start flow made this the default path. Every user with a popular airport origin/destination (JFK, LHR, NRT, etc.) at default zoom crashed on mount.
+
+**The fix:** Replaced `return null` inside the `.map()` with a `.filter()` step before `.map()`, so the callback always returns a valid `<Marker>` element. See `docs/implementations/2026-04-20-mapview-nil-child-fix.md`.
+
+**The rule going forward:** MapView children must **never** come from a `.map()` that can return `null`. Always filter first:
+
+```tsx
+// WRONG
+{list.map(item => { if (skip(item)) return null; return <Marker .../>; })}
+
+// CORRECT
+{list.filter(item => !skip(item)).map(item => <Marker .../>)}
+```
+
+The `&&` short-circuit pattern (`{cond && <Marker/>}`) is safe for
+direct-child positions but must not be used as the body of a `.map()`.
+
+---
+
 ## 7. Related Docs
 
 - Plan: `C:\Users\senso\.claude\plans\flickering-waddling-spark.md` (Task 3 section)
@@ -163,3 +189,33 @@ Device-only checks:
 - Camera mode type: `src/types/index.ts` (`CameraMode`)
 - Geo helpers: `src/utils/geoMath.ts` (`interpolateAlongPath`, `pathTangentBearing`)
 - Switcher component: `src/components/CameraModeSwitcher.tsx`
+
+---
+
+## Superseded (2026-04-20)
+
+The five-mode surface introduced by this task was reduced to three modes
+on 2026-04-20 — see
+`docs/implementations/2026-04-20-camera-simplification.md`.
+
+Removed: `global`, `flat`, `followPath`.
+Renamed: `seeAll` → `route` (identical behaviour).
+Added: `free` — auto-entered on pan/rotate, replaces the 4-second
+`userInteractingRef` suppression timer; exited by tapping the cycle
+button.
+
+`CameraModeSwitcher.tsx` was deleted; a single cycle button in the
+`mapControls` column replaced it.
+
+`pathTangentBearing` in `geoMath.ts` was removed (no remaining
+callers); `interpolateAlongPath` is retained.
+
+`isGlobe` state was restored with the pre-Task-3 globe/flat toggle
+button passed via the `FlySheet.headerControl` prop.
+
+A separate bug — plane icon not rotating in landscape followPlane —
+was fixed in the same commit. Root cause: `mapHeadingSV` was only
+written via a useEffect mirror of `mapHeading`, so `markerAnimatedStyle`
+read a stale heading for one frame after every
+`setCamera({heading}) / setMapHeading` pair. Fix: write
+`mapHeadingSV.value = bearingDeg` synchronously alongside `setCamera`.

@@ -20,7 +20,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    View, Text, Pressable, StyleSheet,
+    View, Text, Pressable, StyleSheet, Platform,
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,7 +39,7 @@ import AirportPicker, { Airport } from '../components/AirportPicker';
 import {
     haversineDistance, flightDurationToSeconds, formatFlightDuration,
     generateGreatCircleWaypoints, calculateBearing, findNearestAirport, LatLng,
-    interpolateAlongPath, pathTangentBearing,
+    interpolateAlongPath,
 } from '../utils/geoMath';
 import { save, load, STORAGE_KEYS } from '../utils/storage';
 import airportData from '../assets/data/airports.json';
@@ -50,7 +50,6 @@ import { AdManager } from '../ads/AdManager';
 import { AdPolicy } from '../ads/AdPolicy';
 import { useNotifications } from '../hooks/useNotifications';
 import LoveNoteCard from '../components/LoveNoteCard';
-import CameraModeSwitcher from '../components/CameraModeSwitcher';
 import * as Haptics from 'expo-haptics';
 import type { CameraMode } from '../types';
 
@@ -104,7 +103,24 @@ function CompassRose({ heading }: { heading: number }) {
 
 // ─── Camera mode default ─────────────────────────────────────────────────────
 
-const DEFAULT_CAMERA_MODE: CameraMode = 'seeAll';
+const DEFAULT_CAMERA_MODE: CameraMode = 'followPlane';
+
+const CYCLE_MODE: Record<CameraMode, CameraMode> = {
+    followPlane: 'route',
+    route: 'followPlane',
+    free: 'followPlane',
+};
+const CAMERA_ICON: Record<CameraMode, string> = {
+    followPlane: '✈️',
+    route: '🗺',
+    free: '🖐',
+};
+const MODE_LABEL: Record<CameraMode, string> = {
+    followPlane: 'Following',
+    route: 'Route',
+    free: 'Free',
+};
+const VALID_MODES: CameraMode[] = ['followPlane', 'route', 'free'];
 
 // ─── Plane animation constants ───────────────────────────────────────────────
 
@@ -173,10 +189,6 @@ export default function FlyModeScreen() {
     // Heading update throttle — live compass during map rotation (10fps max)
     const headingThrottleRef = useRef(0);
 
-    // User pan interaction flag — suppresses camera following for 4s after pan
-    const userInteractingRef = useRef(false);
-    const interactionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
     // Airport selection
     const [origin, setOrigin] = useState<Airport | null>(null);
     const [destination, setDestination] = useState<Airport | null>(null);
@@ -228,6 +240,7 @@ export default function FlyModeScreen() {
     // Map overlay state
     const [mapHeading, setMapHeading] = useState(0);
     const [cameraMode, setCameraMode] = useState<CameraMode>(DEFAULT_CAMERA_MODE);
+    const [isGlobe, setIsGlobe] = useState(false);
 
     // ── Restore airports from session clock on mount ───────────────────────
     // SESSION_CLOCK carries originIata/destinationIata in the fly slot extras.
@@ -250,17 +263,20 @@ export default function FlyModeScreen() {
         }
     }, [session.state.fly]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Persist camera mode in FLY_PREFS (independent of SESSION_CLOCK)
+    // Persist camera mode + globe toggle in FLY_PREFS (independent of SESSION_CLOCK)
     useEffect(() => {
-        load<{ cameraMode?: CameraMode }>(STORAGE_KEYS.FLY_PREFS, {}).then(prefs => {
-            if (prefs.cameraMode) setCameraMode(prefs.cameraMode);
+        load<{ cameraMode?: string; isGlobe?: boolean }>(STORAGE_KEYS.FLY_PREFS, {}).then(prefs => {
+            if (prefs.cameraMode && VALID_MODES.includes(prefs.cameraMode as CameraMode)) {
+                setCameraMode(prefs.cameraMode as CameraMode);
+            }
+            if (typeof prefs.isGlobe === 'boolean') setIsGlobe(prefs.isGlobe);
         }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        save(STORAGE_KEYS.FLY_PREFS, { cameraMode }).catch(() => {});
-    }, [cameraMode]);
+        save(STORAGE_KEYS.FLY_PREFS, { cameraMode, isGlobe }).catch(() => {});
+    }, [cameraMode, isGlobe]);
 
     // Mirror cameraMode into a SharedValue so Task 4's UI-thread frame callback
     // can read the current mode without a runOnJS round-trip per frame.
@@ -514,15 +530,11 @@ export default function FlyModeScreen() {
         flySlotRestoredRef.current = false;
     }, [session, cancelScheduled, progressSV, waypointsSV, markerUpdateAccSV]);
 
-    // ── Pan gesture: sets a flag that suppresses camera following for 4 s.
-    // This allows the user to freely explore the map during chase/route modes
-    // without the camera snapping back every 100ms.
-    const handlePanDrag = useCallback(() => {
-        userInteractingRef.current = true;
-        if (interactionTimerRef.current) clearTimeout(interactionTimerRef.current);
-        interactionTimerRef.current = setTimeout(() => {
-            userInteractingRef.current = false;
-        }, 4000);
+    // ── Pan/rotate: enter free mode so camera stops chasing the plane.
+    // The cycle button exits free mode. This replaces the old 4-second
+    // suppression timer with a first-class mode visible in the UI.
+    const enterFreeMode = useCallback(() => {
+        setCameraMode(prev => (prev === 'free' ? prev : 'free'));
     }, []);
 
     // ── Compass: snap map heading to north
@@ -533,62 +545,56 @@ export default function FlyModeScreen() {
 
     // AppState background completion is handled by useSessionClock — no inline listener needed.
 
-    // ── Throttle ref for seeAll mode (4 Hz fitToCoordinates) ────────────────
+    // ── Throttle ref for route mode (4 Hz fitToCoordinates) ─────────────────
     const seeAllThrottleRef = useRef(0);
 
-    // ── Camera: 'global' and 'seeAll' idle — fit origin + destination once ──
+    // ── Camera: 'route' idle — fit origin + destination once ──────────────
     useEffect(() => {
-        if (cameraMode !== 'global' && cameraMode !== 'seeAll') return;
-        if (isSessionActive) return; // while flying, the marker-based effects handle framing
+        if (cameraMode !== 'route') return;
+        if (isSessionActive) return; // while flying, the marker-based effect handles framing
         if (!origin || !destination) return;
         const panelW = Math.min(width * 0.42, 400);
         mapRef.current?.fitToCoordinates([origin.coordinates, destination.coordinates], {
             edgePadding: {
                 top: insets.top + 60,
                 right: isLandscape ? panelW + 24 : 40,
-                bottom: isLandscape ? 40 : height * 0.58,
+                bottom: isLandscape ? 40 : height * 0.48,
                 left: 40,
             },
             animated: true,
         });
     }, [cameraMode, origin, destination, isSessionActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // ── Camera: flat / followPlane / followPath — follow the plane ──────────
+    // ── Camera: followPlane — follow the plane ─────────────────────────────
     useEffect(() => {
         if (!markerCoord) return;
-        if (cameraMode !== 'flat' && cameraMode !== 'followPlane' && cameraMode !== 'followPath') return;
-        if (userInteractingRef.current) return;
+        if (cameraMode !== 'followPlane') return;
 
-        if (cameraMode === 'flat') {
-            mapRef.current?.setCamera({ center: markerCoord, heading: 0, pitch: 0, altitude: 2_500_000 });
-        } else if (cameraMode === 'followPlane') {
-            mapRef.current?.setCamera({ center: markerCoord, heading: bearingDeg, pitch: 50, altitude: 500_000 });
-            setMapHeading(bearingDeg);
-        } else {
-            // followPath: align screen-up with the path tangent slightly ahead
-            const wps = flightData?.waypoints ?? [];
-            const heading = wps.length >= 2
-                ? pathTangentBearing(wps, progressSV.value, 0.015)
-                : bearingDeg;
-            mapRef.current?.setCamera({ center: markerCoord, heading, pitch: 50, altitude: 600_000 });
-            setMapHeading(heading);
-        }
+        mapRef.current?.setCamera({
+            center: markerCoord,
+            heading: bearingDeg,
+            pitch: 50,
+            altitude: 500_000,
+        });
+        // Write SV synchronously — avoids the one-frame stale-heading lag
+        // where markerAnimatedStyle reads mapHeadingSV before the useEffect mirror runs.
+        mapHeadingSV.value = bearingDeg;
+        setMapHeading(bearingDeg);
     }, [markerCoord, cameraMode, bearingDeg]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // ── Camera: seeAll — refit dynamically as plane moves (4 Hz throttle) ───
+    // ── Camera: route — refit dynamically as plane moves (4 Hz throttle) ────
     useEffect(() => {
-        if (cameraMode !== 'seeAll') return;
+        if (cameraMode !== 'route') return;
         if (!markerCoord || !origin || !destination) return;
         const now = Date.now();
         if (now - seeAllThrottleRef.current < 250) return;
         seeAllThrottleRef.current = now;
-        if (userInteractingRef.current) return;
         const panelW = Math.min(width * 0.42, 400);
         mapRef.current?.fitToCoordinates([origin.coordinates, markerCoord, destination.coordinates], {
             edgePadding: {
                 top: insets.top + 60,
                 right: isLandscape ? panelW + 24 : 40,
-                bottom: isLandscape ? 40 : height * 0.58,
+                bottom: isLandscape ? 40 : height * 0.48,
                 left: 40,
             },
             animated: true,
@@ -615,7 +621,6 @@ export default function FlyModeScreen() {
     // so no cancelAnimation needed — the frame callback stops on unmount automatically.
     useEffect(() => {
         return () => {
-            if (interactionTimerRef.current) clearTimeout(interactionTimerRef.current);
             const notifId = flyNotifIdRef.current;
             if (notifId) cancelScheduled(notifId).catch(() => {});
         };
@@ -628,7 +633,19 @@ export default function FlyModeScreen() {
         settings.settings.flyModeSound
     );
 
-    const mapType: MapType = 'mutedStandard';
+    const mapType: MapType = isGlobe
+        ? (Platform.OS === 'ios' ? 'satelliteFlyover' : 'satellite')
+        : 'mutedStandard';
+
+    const cycleCameraMode = useCallback(() => {
+        if (settings.settings.haptics) Haptics.selectionAsync().catch(() => {});
+        setCameraMode(prev => CYCLE_MODE[prev]);
+    }, [settings.settings.haptics]);
+
+    const toggleGlobe = useCallback(() => {
+        if (settings.settings.haptics) Haptics.selectionAsync().catch(() => {});
+        setIsGlobe(g => !g);
+    }, [settings.settings.haptics]);
 
     // Picker row fades in as the sheet opens toward full (2-snap: 0=peek, 1=full)
     const pickerAnimatedStyle = useAnimatedStyle(() => ({
@@ -639,10 +656,26 @@ export default function FlyModeScreen() {
     // mapHint floats just above the peek strip (at progress=0) and above the full sheet (at progress=1)
     const mapHintAnimatedStyle = useAnimatedStyle(() => {
         const portraitBottom = interpolate(
-            sheetProgress.value, [0, 1], [height * 0.12, height * 0.57],
+            sheetProgress.value, [0, 1], [height * 0.12, height * 0.47],
             Extrapolation.CLAMP,
         );
         return { bottom: portraitBottom };
+    });
+
+    // mapControls column shifts left in landscape so it never overlaps the sheet.
+    // At peek (progress=0): sits just left of the 32 px strip (PEEK_STRIP=32, gap=12 → right:44).
+    // At full (progress=1): sits just left of the panel (panelW + 12).
+    // In portrait the right value is fixed at 12.
+    const mapControlsAnimatedStyle = useAnimatedStyle(() => {
+        if (!isLandscape) return { right: 12 };
+        const panelW = Math.min(width * 0.42, 400);
+        const rightPos = interpolate(
+            sheetProgress.value,
+            [0, 1],
+            [44, panelW + 12], // 44 = PEEK_STRIP(32) + gap(12)
+            Extrapolation.CLAMP,
+        );
+        return { right: rightPos };
     });
 
     // ── Zoom-based airport markers ───────────────────────────────────────────
@@ -721,21 +754,25 @@ export default function FlyModeScreen() {
                 // Live heading update during rotation gesture (throttled to ~10fps).
                 // onRegionChangeComplete fires only after the gesture settles; this
                 // fires continuously so the CompassRose needle rotates in real-time.
+                // Also enters free mode so camera stops chasing the plane while rotating.
                 onRegionChange={async () => {
+                    enterFreeMode();
                     const now = Date.now();
                     if (now - headingThrottleRef.current < 100) return;
                     headingThrottleRef.current = now;
                     const cam = await mapRef.current?.getCamera();
                     if (cam?.heading !== undefined) setMapHeading(cam.heading);
                 }}
-                // Track region for zoom-based airport dot rendering + final heading sync
+                // Track region for zoom-based airport dot rendering + final heading sync.
+                // Clamp latitude to ±85 to prevent Mercator singularity near the poles.
                 onRegionChangeComplete={async (region) => {
-                    setMapRegion(region);
+                    const safeLat = Math.max(-85, Math.min(85, region.latitude));
+                    setMapRegion({ ...region, latitude: safeLat });
                     const cam = await mapRef.current?.getCamera();
                     if (cam?.heading !== undefined) setMapHeading(cam.heading);
                 }}
-                // Detect user pan — suppresses camera following for 4 s
-                onPanDrag={handlePanDrag}
+                // Detect user pan — enters free mode so camera stops chasing the plane
+                onPanDrag={enterFreeMode}
                 // Map tap → nearest-airport selection (only when no session is active)
                 onPress={isSessionActive ? undefined : handleMapPress}
             >
@@ -779,41 +816,46 @@ export default function FlyModeScreen() {
                 )}
 
                 {/* ── Zoom-based airport dots (idle mode only) ─────────────── */}
-                {visibleAirportMarkers.map((airport) => {
-                    // Skip airports that are already selected (they have dedicated pins)
-                    if (airport.iata === origin?.iata || airport.iata === destination?.iata) return null;
-                    const tier = airport.tier ?? 1;
-                    return (
-                        <Marker
-                            key={airport.iata}
-                            coordinate={airport.coordinates}
-                            anchor={{ x: 0.5, y: 0.5 }}
-                            flat
-                            tracksViewChanges={false}
-                            onPress={() => {
-                                if (isSessionActive) return;
-                                if (!origin || (origin && destination)) {
-                                    setOrigin(airport);
-                                    setDestination(null);
-                                } else if (airport.iata !== origin.iata) {
-                                    setDestination(airport);
-                                }
-                            }}
-                        >
-                            <View style={[
-                                styles.airportDot,
-                                tier === 1 && styles.airportDotTier1,
-                                tier === 2 && styles.airportDotTier2,
-                                tier === 3 && styles.airportDotTier3,
-                            ]} />
-                        </Marker>
-                    );
-                })}
+                {/* filter BEFORE map — returning null inside a MapView child .map()
+                    produces nil slots that crash AIRMap.insertReactSubview on iOS. */}
+                {visibleAirportMarkers
+                    .filter(airport =>
+                        airport.iata !== origin?.iata &&
+                        airport.iata !== destination?.iata,
+                    )
+                    .map((airport) => {
+                        const tier = airport.tier ?? 1;
+                        return (
+                            <Marker
+                                key={airport.iata}
+                                coordinate={airport.coordinates}
+                                anchor={{ x: 0.5, y: 0.5 }}
+                                flat
+                                tracksViewChanges={false}
+                                onPress={() => {
+                                    if (isSessionActive) return;
+                                    if (!origin || (origin && destination)) {
+                                        setOrigin(airport);
+                                        setDestination(null);
+                                    } else if (airport.iata !== origin.iata) {
+                                        setDestination(airport);
+                                    }
+                                }}
+                            >
+                                <View style={[
+                                    styles.airportDot,
+                                    tier === 1 && styles.airportDotTier1,
+                                    tier === 2 && styles.airportDotTier2,
+                                    tier === 3 && styles.airportDotTier3,
+                                ]} />
+                            </Marker>
+                        );
+                    })}
             </MapView>
 
             {/* ── Map overlay controls: compass + view mode ───────────────── */}
-            <View
-                style={[styles.mapControls, { top: insets.top + 12 }]}
+            <Animated.View
+                style={[styles.mapControls, { top: insets.top + 12 }, mapControlsAnimatedStyle]}
                 pointerEvents="box-none"
             >
                 {/* Compass — always visible; tap to snap north */}
@@ -829,18 +871,21 @@ export default function FlyModeScreen() {
                     <CompassRose heading={mapHeading} />
                 </Pressable>
 
-                {/* Camera mode switcher — only visible during active session */}
+                {/* Camera cycle button — only visible during active session */}
                 {isSessionActive && markerCoord && (
-                    <View style={styles.mapControlBtnGap}>
-                        <CameraModeSwitcher
-                            cameraMode={cameraMode}
-                            onSelect={setCameraMode}
-                            isDark={isDark}
-                            hapticsEnabled={settings.settings.haptics}
-                        />
-                    </View>
+                    <Pressable
+                        style={[styles.mapControlBtn, styles.mapControlBtnGap, {
+                            backgroundColor: isDark ? 'rgba(45,45,45,0.95)' : 'rgba(247,243,240,0.95)',
+                            borderColor: `${ValentineSpec.accentPrimary}30`,
+                        }]}
+                        onPress={cycleCameraMode}
+                        accessibilityLabel={`Camera mode: ${cameraMode}. Tap to cycle.`}
+                        accessibilityRole="button"
+                    >
+                        <Text style={styles.mapControlIcon}>{CAMERA_ICON[cameraMode]}</Text>
+                    </Pressable>
                 )}
-            </View>
+            </Animated.View>
 
             {/* ── Map tap hint banner — position tracks sheet in portrait ──── */}
             {!isSessionActive && (!origin || !destination) && (
@@ -887,6 +932,20 @@ export default function FlyModeScreen() {
                 bottomInset={insets.bottom}
                 cardBgColor={colors.card}
                 hapticsEnabled={settings.settings.haptics}
+                headerControl={
+                    <Pressable
+                        onPress={toggleGlobe}
+                        style={[styles.globeToggle, {
+                            backgroundColor: isDark ? 'rgba(45,45,45,0.95)' : 'rgba(247,243,240,0.95)',
+                            borderColor: `${ValentineSpec.accentPrimary}30`,
+                        }]}
+                        accessibilityLabel={isGlobe ? 'Switch to flat map' : 'Switch to globe map'}
+                    >
+                        <Text style={[styles.globeToggleText, { color: isDark ? '#EEE' : '#222' }]}>
+                            {isGlobe ? '🗺 Flat' : '🌍 Globe'}
+                        </Text>
+                    </Pressable>
+                }
             >
                 {/* Timer display — visible at peek and full */}
                 <View style={styles.timerRow}>
@@ -899,10 +958,10 @@ export default function FlyModeScreen() {
                     )}
                 </View>
 
-                {/* Camera mode label — visible at peek; matches the active CameraModeSwitcher selection */}
+                {/* Camera mode label — visible at peek snap */}
                 <View style={styles.modeIndicatorStrip}>
                     <Text style={[styles.modeIndicatorText, { color: colors.textMuted }]}>
-                        {cameraMode}
+                        {MODE_LABEL[cameraMode]}{isGlobe ? ' · 🌍' : ''}
                     </Text>
                 </View>
 
@@ -1058,7 +1117,6 @@ const styles = StyleSheet.create({
         letterSpacing: 1,
         marginBottom: 16,
     },
-    // Placeholder for Task 3's CameraModeSwitcher — shown at peek snap below the timer
     modeIndicatorStrip: {
         alignItems: 'center',
         marginBottom: 8,
@@ -1116,10 +1174,10 @@ const styles = StyleSheet.create({
     // ── Map overlay control buttons (compass + view mode) ──────────────────
     mapControls: {
         position: 'absolute',
-        right: 12,
         flexDirection: 'column',
         alignItems: 'center',
-        // top is set inline via insets
+        zIndex: 5,
+        // top and right are set via mapControlsAnimatedStyle + inline insets
     },
     // backgroundColor + borderColor supplied inline (dark mode adaptive)
     mapControlBtn: {
@@ -1140,6 +1198,16 @@ const styles = StyleSheet.create({
     },
     mapControlIcon: {
         fontSize: 20,
+    },
+    globeToggle: {
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 14,
+        borderWidth: 1,
+    },
+    globeToggleText: {
+        fontSize: 12,
+        fontWeight: '600',
     },
     // ── Airport dot markers (zoom-based visibility) ────────────────────────
     airportDot: {

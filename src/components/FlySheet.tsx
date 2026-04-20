@@ -4,7 +4,7 @@
  * A snap-to-point container for the Fly Mode dashboard.
  *
  * Portrait: bottom sheet with 2 snap points (full / peek).
- *   - full = 55 % of viewport height
+ *   - full = 45 % of viewport height
  *   - peek = thin strip: handle + timer row + mode-indicator (~10 % of viewport, min 80 px)
  *
  * Landscape: right-side panel with 2 snap points (full / peek).
@@ -26,10 +26,10 @@
  */
 
 import React, {
-    forwardRef, useCallback, useEffect, useRef,
+    forwardRef, useCallback, useEffect, useMemo, useRef,
     useImperativeHandle,
 } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
     SharedValue,
@@ -62,6 +62,8 @@ interface FlySheetProps {
     hapticsEnabled?: boolean;
     /** Background colour of the card surface. */
     cardBgColor: string;
+    /** Rendered beside the drag handle (portrait) or at the top of the side panel (landscape). */
+    headerControl?: React.ReactNode;
     children: React.ReactNode;
 }
 
@@ -74,8 +76,8 @@ const PEEK_STRIP = 32; // landscape: visible width when peeked
 function portraitSnaps(h: number) {
     return {
         full: 0,
-        peek: h * 0.55 - Math.max(h * 0.10, 80), // (fullH − peekVisibleH); shows handle + timer + mode strip
-        fullH: h * 0.55,
+        peek: h * 0.45 - Math.max(h * 0.10, 80), // (fullH − peekVisibleH); shows handle + timer + mode strip
+        fullH: h * 0.45,
     };
 }
 
@@ -93,7 +95,7 @@ function landscapeSnaps(w: number) {
 const FlySheet = forwardRef<FlySheetRef, FlySheetProps>((props, ref) => {
     const {
         sheetProgress, isLandscape, viewportWidth, viewportHeight,
-        bottomInset, onSnapChange, hapticsEnabled, cardBgColor, children,
+        bottomInset, onSnapChange, hapticsEnabled, cardBgColor, headerControl, children,
     } = props;
 
     // Primary animation value (translateY portrait / translateX landscape)
@@ -162,7 +164,9 @@ const FlySheet = forwardRef<FlySheetRef, FlySheetProps>((props, ref) => {
     // ── Gestures ────────────────────────────────────────────────────────────
     const dragStart = useSharedValue(0);
 
-    const portraitGesture = Gesture.Pan()
+    // Memoized so gesture-handler only rebuilds when snap callbacks change,
+    // not on every render — prevents stale axis config after orientation change.
+    const portraitGesture = useMemo(() => Gesture.Pan()
         .activeOffsetY([-2, 2])
         .failOffsetX([-10, 10])
         .onBegin(() => { dragStart.value = translation.value; })
@@ -178,9 +182,9 @@ const FlySheet = forwardRef<FlySheetRef, FlySheetProps>((props, ref) => {
             const snap = resolveSnap(translation.value, e.velocityY);
             snapToTarget(snap);
             runOnJS(onSnap)(snap);
-        });
+        }), [onSnap, resolveSnap, snapToTarget]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const landscapeGesture = Gesture.Pan()
+    const landscapeGesture = useMemo(() => Gesture.Pan()
         .activeOffsetX([-2, 2])
         .failOffsetY([-10, 10])
         .onBegin(() => { dragStart.value = translation.value; })
@@ -196,10 +200,10 @@ const FlySheet = forwardRef<FlySheetRef, FlySheetProps>((props, ref) => {
             const snap = resolveSnap(translation.value, e.velocityX);
             snapToTarget(snap);
             runOnJS(onSnap)(snap);
-        });
+        }), [onSnap, resolveSnap, snapToTarget]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Double-tap toggles between full and peek
-    const doubleTap = Gesture.Tap()
+    const doubleTap = useMemo(() => Gesture.Tap()
         .numberOfTaps(2)
         .onEnd((_e, success) => {
             'worklet';
@@ -209,10 +213,12 @@ const FlySheet = forwardRef<FlySheetRef, FlySheetProps>((props, ref) => {
             const nextSnap: FlySnapPoint = nearPeek ? 'full' : 'peek';
             snapToTarget(nextSnap);
             runOnJS(onSnap)(nextSnap);
-        });
+        }), [onSnap, snapToTarget]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const panGesture = isLandscape ? landscapeGesture : portraitGesture;
-    const gesture = Gesture.Race(doubleTap, panGesture);
+    const gesture = useMemo(
+        () => Gesture.Race(doubleTap, isLandscape ? landscapeGesture : portraitGesture),
+        [doubleTap, portraitGesture, landscapeGesture, isLandscape],
+    );
 
     // Expose imperative API
     useImperativeHandle(ref, () => ({
@@ -245,13 +251,18 @@ const FlySheet = forwardRef<FlySheetRef, FlySheetProps>((props, ref) => {
                         containerStyle,
                     ]}
                 >
-                    {/* Drag handle on the left edge */}
-                    <View style={styles.sideDragHandle}>
-                        <View style={[styles.handleBarVertical, { backgroundColor: `${ValentineSpec.accentPrimary}55` }]} />
-                    </View>
+                    {/* Drag handle on the left edge — tap to expand from peek */}
+                    <Pressable onPress={() => { snapToTarget('full'); onSnap('full'); }}>
+                        <View style={styles.sideDragHandle}>
+                            <View style={[styles.handleBarVertical, { backgroundColor: `${ValentineSpec.accentPrimary}55` }]} />
+                        </View>
+                    </Pressable>
 
                     {/* Panel content */}
                     <View style={styles.sidePanelContent}>
+                        {headerControl && (
+                            <View style={styles.landscapeHeaderControl}>{headerControl}</View>
+                        )}
                         {children}
                     </View>
                 </Animated.View>
@@ -274,10 +285,16 @@ const FlySheet = forwardRef<FlySheetRef, FlySheetProps>((props, ref) => {
                     containerStyle,
                 ]}
             >
-                {/* Drag handle row */}
-                <View style={styles.dragHandleRow}>
-                    <View style={[styles.handleBar, { backgroundColor: `${ValentineSpec.accentPrimary}55` }]} />
-                </View>
+                {/* Drag handle row — tap to expand from peek */}
+                <Pressable onPress={() => { snapToTarget('full'); onSnap('full'); }}>
+                    <View style={styles.dragHandleRow}>
+                        <View style={[styles.handleBar, { backgroundColor: `${ValentineSpec.accentPrimary}55` }]} />
+                    </View>
+                </Pressable>
+
+                {headerControl && (
+                    <View style={styles.headerControlSlot}>{headerControl}</View>
+                )}
 
                 {/* Sheet content */}
                 <View style={styles.sheetBody}>
@@ -355,5 +372,15 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         paddingTop: 12,
         paddingBottom: 20,
+    },
+    headerControlSlot: {
+        position: 'absolute',
+        right: 16,
+        top: 6,
+        zIndex: 2,
+    },
+    landscapeHeaderControl: {
+        paddingBottom: 6,
+        alignItems: 'flex-start',
     },
 });

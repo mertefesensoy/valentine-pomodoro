@@ -241,6 +241,9 @@ export default function FlyModeScreen() {
     const [mapHeading, setMapHeading] = useState(0);
     const [cameraMode, setCameraMode] = useState<CameraMode>(DEFAULT_CAMERA_MODE);
     const [isGlobe, setIsGlobe] = useState(false);
+    // Gates airport-dot render until AIRMap finishes its initial subview setup,
+    // avoiding the early-mount race that crashes insertReactSubview:atIndex: on iOS.
+    const [mapReady, setMapReady] = useState(false);
 
     // ── Restore airports from session clock on mount ───────────────────────
     // SESSION_CLOCK carries originIata/destinationIata in the fly slot extras.
@@ -775,6 +778,9 @@ export default function FlyModeScreen() {
                 onPanDrag={enterFreeMode}
                 // Map tap → nearest-airport selection (only when no session is active)
                 onPress={isSessionActive ? undefined : handleMapPress}
+                // Defer airport-dot mount until AIRMap is fully initialized; prevents
+                // a 120-marker burst racing AIRMap._reactSubviews on first render.
+                onMapReady={() => setMapReady(true)}
             >
                 {/* Great circle polyline — Deep Romance Red */}
                 {flightData && (
@@ -817,8 +823,10 @@ export default function FlyModeScreen() {
 
                 {/* ── Zoom-based airport dots (idle mode only) ─────────────── */}
                 {/* filter BEFORE map — returning null inside a MapView child .map()
-                    produces nil slots that crash AIRMap.insertReactSubview on iOS. */}
-                {visibleAirportMarkers
+                    produces nil slots that crash AIRMap.insertReactSubview on iOS.
+                    mapReady gate defers the up-to-120 dot burst until AIRMap's
+                    internal _reactSubviews array is fully initialized. */}
+                {mapReady && visibleAirportMarkers
                     .filter(airport =>
                         airport.iata !== origin?.iata &&
                         airport.iata !== destination?.iata,

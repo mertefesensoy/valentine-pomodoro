@@ -1,0 +1,94 @@
+
+ESLint has been configured 🎉
+
+
+src\App.tsx
+   1:8   warning  'node_modules\react-native-reanimated\lib\module\index.js' imported multiple times  import/no-duplicates
+   2:63  warning  'node_modules\react-native-reanimated\lib\module\index.js' imported multiple times  import/no-duplicates
+   7:1   warning  Import in body of module; reorder to top                                                                                                                          import/first
+   8:1   warning  Import in body of module; reorder to top                                                                                                                          import/first
+   9:1   warning  Import in body of module; reorder to top                                                                                                                          import/first
+  10:1   warning  Import in body of module; reorder to top                                                                                                                          import/first
+  11:1   warning  Import in body of module; reorder to top                                                                                                                          import/first
+  12:1   warning  Import in body of module; reorder to top                                                                                                                          import/first
+  13:1   warning  Import in body of module; reorder to top                                                                                                                          import/first
+  15:1   warning  Import in body of module; reorder to top                                                                                                                          import/first
+  16:1   warning  Import in body of module; reorder to top                                                                                                                          import/first
+  17:1   warning  Import in body of module; reorder to top                                                                                                                          import/first
+  18:1   warning  Import in body of module; reorder to top                                                                                                                          import/first
+  19:1   warning  Import in body of module; reorder to top                                                                                                                          import/first
+  20:1   warning  Import in body of module; reorder to top                                                                                                                          import/first
+  21:1   warning  Import in body of module; reorder to top                                                                                                                          import/first
+
+src\ads\AdManager.ts
+  1:39  warning  'TestIds' is defined but never used  @typescript-eslint/no-unused-vars
+
+src\components\CalmBackground.tsx
+   1:17  warning  'useState' is defined but never used           @typescript-eslint/no-unused-vars
+   1:27  warning  'useEffect' is defined but never used          @typescript-eslint/no-unused-vars
+   2:10  warning  'View' is defined but never used               @typescript-eslint/no-unused-vars
+   2:28  warning  'AccessibilityInfo' is defined but never used  @typescript-eslint/no-unused-vars
+  15:7   warning  'styles' is assigned a value but never used    @typescript-eslint/no-unused-vars
+
+src\components\GiftModeModal.tsx
+  144:60  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+src\components\GoalReachedPopup.tsx
+  89:8  warning  React Hook useEffect has a missing dependency: 'close'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\components\LoveNoteCard.tsx
+  1:10  warning  'View' is defined but never used  @typescript-eslint/no-unused-vars
+
+src\components\PremiumCalmBackground.tsx
+    1:46  warning  'useMemo' is defined but never used                                                                                                                                                 @typescript-eslint/no-unused-vars
+   21:7   warning  'HEART_COUNT' is assigned a value but never used                                                                                                                                    @typescript-eslint/no-unused-vars
+   70:19  error    Component definition is missing display name                                                                                                                                        react/display-name
+  193:8   warning  React Hook useEffect has missing dependencies: 'aurora1Anim', 'aurora2Anim', 'crossfadeAnim', 'heartsAnim', and 'sparklesAnim'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+src\components\WaveLines.tsx
+  105:23  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+
+src\context\AppContext.tsx
+  45:9  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+
+src\hooks\useSettings.ts
+  64:8  warning  React Hook useCallback has an unnecessary dependency: 'enqueueSave'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\hooks\useStats.ts
+   12:10  warning  'parseDayKey' is defined but never used                      @typescript-eslint/no-unused-vars
+  280:35  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+  282:23  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+
+src\hooks\useTimer.ts
+   78:5  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+  140:8  warning  React Hook useEffect has a missing dependency: 'session'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\hooks\useUpdateCheck.ts
+  50:18  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+
+src\navigation\index.tsx
+  91:15  warning  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+src\screens\FlyModeScreen.tsx
+  267:30  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+  277:5   warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+
+src\screens\SettingsScreen.tsx
+  27:10  warning  'isValidHHMM' is defined but never used  @typescript-eslint/no-unused-vars
+
+src\screens\StatsScreen.tsx
+  53:24  error  React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                 react-hooks/rules-of-hooks
+  63:23  error  React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                 react-hooks/rules-of-hooks
+  72:22  error  React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+  81:23  error  React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+  88:23  error  React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+
+src\screens\TimerScreen.tsx
+  101:6  warning  React Hook useEffect has a missing dependency: 'stats'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\theme\tokens.ts
+  58:6  warning  'WidenGradients' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 49 problems (7 errors, 42 warnings)
+  0 errors and 13 warnings potentially fixable with the `--fix` option.
+

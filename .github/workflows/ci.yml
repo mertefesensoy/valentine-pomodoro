@@ -31,6 +31,11 @@ jobs:
         run: npm run lint
       - name: Unit tests
         run: npx jest --ci
+      - name: Docs check (links, IDs, backlinks, traceability)
+        # Non-blocking while the Phase 1 Stage B sessions are still writing docs
+        # (docs/implementations/2026-10-30-documentation-system.md §5). Make it blocking after.
+        continue-on-error: true
+        run: node scripts/docs/check-docs.mjs
 
   perf:
     if: github.event_name == 'pull_request'

@@ -112,7 +112,12 @@ After the SDK 58 step, the timer-guard mutation check was re-run: removing `setD
    - **OneDrive can do it again at any time.** The durable fix is to move the repository out of OneDrive (for example to `C:\dev\valentine-pomodoro`). That is your call; EAS and CI are unaffected because they check out from git.
 3. **Bytecode grew about 19 % across the upgrade** (§6.1), mostly with the switch to Hermes v1 in SDK 56 and about 95 more modules. The plan's Phase 1 lazy-loading (Fly Mode, `airports.json`) is the recovery; the Phase 1 budget is now "below the SDK 58 baseline", re-measured with the pinned command.
 4. **Minimum iOS is now 16.4.** iPhone 6s, 7 and the first-generation SE can no longer install updates. It's an Expo platform floor, not something the app can avoid.
-5. **Android has not shipped since 1.0.1** (EAS history: three production builds on 2026-01-09; iOS has had 1.3.x since). The first SDK 58 Android build is also the first Android update in months, with versionName finally matching `app.json`.
+5. **`npm audit` after the upgrade: 16 advisories** (0 critical, 3 high, 13 low), down from 39 on SDK 54.
+   - All 3 high come from one `zod` < 4.6.6 used by `@expo/cli`, which is build tooling.
+   - `expo` and `datetimepicker` show up only because npm propagates the advisory up through `via`. Checked against the SDK 58 source maps, `zod`, `@expo/cli` and `@expo/config` contribute no code to the app bundle.
+   - npm's suggested fix (downgrade to `expo@51`) is wrong; the real fix arrives with an `@expo/cli` patch release.
+6. **Android system bars don't follow the theme.** Prebuild warns `userInterfaceStyle: Install expo-system-ui`. `app.json` sets `"automatic"`, but without `expo-system-ui` Android ignores it. Phase 1's design work decides whether to add it (`npx expo install expo-system-ui`).
+7. **Android has not shipped since 1.0.1** (EAS history: three production builds on 2026-01-09; iOS has had 1.3.x since). The first SDK 58 Android build is also the first Android update in months, with versionName finally matching `app.json`.
 
 ## 6. Verification
 

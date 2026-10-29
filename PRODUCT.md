@@ -4,7 +4,7 @@
 
 ## Platform
 
-adaptive
+ios
 
 ## Users
 
@@ -60,7 +60,7 @@ Its origin is true and specific: the app began as a gift for one person. That he
 - The bundle id `com.bengisu.valentinepomodoro` stays, so existing installs update in place. Every storage migration is idempotent and keeps every existing key.
 - No account is needed for solo use. An account is needed only to pair.
 - Ads never appear during a running shared session, on the web, or for Plus couples. The paywall never appears before the first completed session or over a running session.
-- **Platforms:** iOS 16.4+, Android, and the web (an Expo web build, which follows web conventions as its own surface). The real map is phone-only.
+- **Platforms:** **iOS first** (16.4+); v1.4 and the work after it target iOS only, decided 2026-10-29. **Android is deferred** until the owner can run Google Play's required closed test (at least 12 testers for 14 consecutive days). When it returns, this record's platform becomes `adaptive` again. The web (an Expo web build, its own surface with web conventions) comes later. The real map is phone-only.
 - **Privacy:** GDPR and KVKK; in-app account deletion; data export; minimal, bucketed analytics.
 - All vector art is produced with VectorCraft, and all app sounds with SoundCraft (synthesized, no third-party samples).
 
@@ -78,7 +78,7 @@ Its origin is true and specific: the app began as a gift for one person. That he
 
 ## Evidence on Hand
 
-- **The shipped app:** v1.3.1 on the iOS App Store. Android last shipped 1.0.1 on Google Play.
+- **The shipped app:** v1.3.1 on the iOS App Store. Android builds exist (EAS, January 2026), but the app is not in production on Google Play: the account has not yet passed Play's closed-test requirement.
 - **Real copy:** 20 default love notes (`src/constants/defaults.ts`); EN/TR site copy (`../../Valentine Pomodoro Website/src/locales/en.json`, `tr.json`).
 - **Real assets:** app icon, adaptive icon and splash (`assets/images/`); the Fly Mode ambient loop (`src/assets/sounds/fly-ambient.m4a`).
 - **Measurements:** bundle, Lighthouse and render-count baselines (`docs/baselines/2026-10-29/`, `docs/implementations/2026-10-29-phase0-foundation.md` §4).

@@ -40,7 +40,7 @@ Every document under `docs/` (and `CONTRIBUTING.md`, `CHANGELOG.md` excepted) st
 id: ADR-0022                 # stable, unique, never reused (§3)
 title: Server owns session time
 status: accepted             # see §4
-date: 2026-10-29             # created; ISO 8601
+date: 2026-10-29             # created; for an ADR, the day the decision was made; ISO 8601
 owner: Mert Efe Şensoy
 related: [SRS, ADR-0024]     # optional: IDs this doc depends on
 supersedes: []               # optional

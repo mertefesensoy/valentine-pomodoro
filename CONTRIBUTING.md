@@ -12,6 +12,7 @@ How work is done in this repo, by the owner and by every Claude session. The [do
 6. **Update status** in the [roadmap](docs/roadmap/ROADMAP.md) and, when the change is user-visible, under "Unreleased" in [CHANGELOG.md](CHANGELOG.md).
 7. **Check:**
    ```bash
+   node scripts/docs/check-docs.mjs --write   # regenerate backlinks + traceability, then commit what it changed
    npm run typecheck && npm run lint && npm test && node scripts/docs/check-docs.mjs
    ```
 8. **Commit.**

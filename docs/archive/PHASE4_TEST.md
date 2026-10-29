@@ -1,3 +1,5 @@
+> **Archived 2026-10-29.** Superseded by `docs/device-check-backlog.md` and the Jest suite (`npm test`). Kept for history only.
+
 # Phase 4 Testing Guide - iPhone Required
 
 **Objective**: Verify timer + notifications work correctly on real iPhone (iOS notifications don't work in simulator)

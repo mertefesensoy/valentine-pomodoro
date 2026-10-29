@@ -5,7 +5,6 @@ import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-rean
 configureReanimatedLogger({ level: ReanimatedLogLevel.warn, strict: false });
 
 import { DarkTheme, DefaultTheme } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 import * as React from 'react';
@@ -92,15 +91,6 @@ function ThemedApp() {
 }
 
 export function App() {
-  const [loaded] = useFonts({
-    SpaceMono: require('./assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
-  }
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

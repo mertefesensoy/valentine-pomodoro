@@ -21,11 +21,15 @@ import { useSessionClockEngine } from './sessionStore';
  * Holds no app state itself and provides no context; components read the
  * stores directly. Mount exactly one, at the root.
  *
- * INVARIANT: hydrateStores() calls the stores' set() during this component's
- * first render. That is safe only because nothing subscribes to the stores
- * yet: every store reader is rendered below this gate, after it. Rendering a
- * store reader outside the gate (a second tree, a sibling) would make React
- * warn about updating one component while rendering another.
+ * INVARIANT (the synchronous path): when migrated, hydrateStores() calls the
+ * stores' set() inside the useState initializer, i.e. during this component's
+ * first render. That is safe only because no other component subscribes yet:
+ * every store reader is rendered below this gate, after it. Rendering a store
+ * reader outside the gate (a second tree, a sibling) would make React warn
+ * about updating one component while rendering another. (On the migrating
+ * path, hydrateStores() runs in a promise callback, outside any render, where
+ * the gate's own reminder-scheduler selectors are already subscribed; that
+ * is an ordinary store update.)
  */
 export function StoreGate({ children }: { children: ReactNode }) {
     const [ready, setReady] = useState(() => {

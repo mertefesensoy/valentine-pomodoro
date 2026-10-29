@@ -47,6 +47,13 @@ jest.mock('react-native-maps', () => {
     return { __esModule: true, default: MapView, Marker: Plain, Polyline: Plain };
 });
 
+// expo-audio builds a class on its native module at import (also via FlyModeScreen).
+// Only what useFlyModeAudio touches is stubbed.
+jest.mock('expo-audio', () => ({
+    useAudioPlayer: () => ({ play: jest.fn(), pause: jest.fn(), remove: jest.fn(), loop: false, volume: 1 }),
+    setAudioModeAsync: jest.fn(async () => {}),
+}));
+
 // AdMob resolves its TurboModule at import time. Only the exports the app uses
 // (src/ads/*, StatsScreen) are stubbed; ads never load in tests.
 jest.mock('react-native-google-mobile-ads', () => ({

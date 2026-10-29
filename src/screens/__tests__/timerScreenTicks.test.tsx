@@ -26,13 +26,6 @@ jest.mock('expo-notifications', () => ({
     setNotificationChannelAsync: jest.fn(async () => null),
 }));
 
-// Fly Mode's ambient cabin sound. The player is a native object; only the
-// members useFlyModeAudio touches are stubbed.
-jest.mock('expo-audio', () => ({
-    useAudioPlayer: () => ({ play: jest.fn(), pause: jest.fn(), remove: jest.fn(), loop: false, volume: 1 }),
-    setAudioModeAsync: jest.fn(async () => {}),
-}));
-
 type AirportRecord = { coordinates: { latitude: number; longitude: number } };
 const airports = airportData as Record<string, AirportRecord>;
 

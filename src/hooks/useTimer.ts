@@ -9,8 +9,9 @@ import type { UseSessionClockReturn } from './useSessionClock';
 // ─── Pomodoro-specific persistent state ───────────────────────────────────────
 // Clock state (endAt, remainingMs, isRunning) lives in useSessionClock.
 // This type holds only what's specific to the Pomodoro experience.
+// Exported for the v1.3.1 storage fixture (src/__fixtures__/storage/v131.ts).
 
-interface PomodoroState {
+export interface PomodoroState {
     phase: TimerPhase;
     completedFocusCountInCycle: number;
     lastLoveNote: string | null;

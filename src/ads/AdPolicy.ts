@@ -4,7 +4,8 @@ const STORAGE_KEY = 'ad_policy_v1';
 const MIN_SESSIONS_BETWEEN_ADS = 2;
 const MIN_INTERVAL_SECONDS = 120; // 2 minutes
 
-type AdState = {
+// Exported for the v1.3.1 storage fixture (src/__fixtures__/storage/v131.ts).
+export type AdState = {
     sessionsSinceLastAd: number;
     lastShownAt: number; // timestamp in ms
 };

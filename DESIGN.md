@@ -82,7 +82,7 @@ Light and dark follow the system appearance, because the use scene covers both: 
 
 **The Paper Not Gradient Rule.** Fields are flat paper colours. No purple-to-blue aurora, no gradient text, no gradient buttons.
 
-**The Theme Is The Product Rule.** Themes are part of what Plus sells, so the palette never yields to Android Dynamic Color (Material You) wallpaper colours.
+**The Theme Is The Product Rule** *(proposed, awaiting the owner's confirmation in the Phase 1 plan §6)*. Themes are part of what Plus sells, so the palette never yields to Android Dynamic Color (Material You) wallpaper colours.
 
 ## Typography
 

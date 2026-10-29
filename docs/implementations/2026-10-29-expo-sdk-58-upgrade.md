@@ -150,7 +150,9 @@ On SDKs 56–58, the remaining doctor flags are the accepted `@expo/config-plugi
 
 On the Android preview APK:
 
-- [ ] The app launches and shows the splash (now from the `expo-splash-screen` plugin), then the timer.
+> **Result, 2026-10-29 (Android 15 emulator, AVD `vp_api35`): FAILED at item 1.** The APK crashes about 3 s after every launch (3/3, including a clean cold boot): R8 removed WorkManager's Room database constructor. Every later item is blocked. Keep rules were added; see [2026-10-29-android-r8-workmanager-crash.md](2026-10-29-android-r8-workmanager-crash.md). The list re-runs on the next preview build.
+
+- [ ] The app launches and shows the splash (now from the `expo-splash-screen` plugin), then the timer. **Failed: R8 launch crash.**
 - [ ] **Tab bar shows four icons** (heart, chart, gear, note): the fix from `0c99c0b`.
 - [ ] A full focus → break cycle. The completion notification fires; in the foreground it shows a banner (SDK 58 shows foreground notifications by default; the app's handler already asks for banners).
 - [ ] Open Stats immediately after a cold start (the Phase 0 crash fix).

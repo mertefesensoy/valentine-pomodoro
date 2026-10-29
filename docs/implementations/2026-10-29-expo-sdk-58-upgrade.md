@@ -126,12 +126,14 @@ After the SDK 58 step, the timer-guard mutation check was re-run: removing `setD
 | | SDK 54 (start) | SDK 55 | SDK 56 | SDK 57 | SDK 58 |
 |--|----------------|--------|--------|--------|--------|
 | `tsc` | ✓ | ✓ | ✓ | ✓ | ✓ (strict RN types) |
-| Lint errors | 0 | 0 | 0 | 0 | 0 |
+| Lint errors (cached `expo lint`, see note) | 0 | 0 | 0 | 0 | 0 |
 | Jest | 25/25 | 25/25 | 25/25 | 25/25 | 25/25 |
 | iOS bytecode (B) | 3,243,628 | 3,244,780 | 3,663,400 | 3,614,140 | 3,856,208 |
 | Android bytecode (B) | 3,318,740 | 3,319,444 | 3,744,168 | 3,695,648 | 3,944,548 |
 | Modules iOS / Android | 1,704 / 1,728 | 1,664 / 1,686 | 1,652 / 1,705 | 1,706 / 1,727 | 1,798 / 1,821 |
 | expo-doctor | 18/18 | 20/20 | 20/22 | 20/21 | 19/20 |
+
+**Correction (first CI run):** the lint row came from `expo lint`, which caches per-file results and did not re-check unchanged files after their dependencies were upgraded. An uncached run on SDK 58 shows **2 errors**: an `import/namespace` false positive on `Notifications.AndroidImportance`, caused by `expo-notifications` 58's compiled output. Fixed, and the `lint` script made uncached, in [2026-10-29-ci-first-run-lint-fix.md](2026-10-29-ci-first-run-lint-fix.md).
 
 Net change from SDK 54 to 58: iOS +18.9 %, Android +18.9 %. Bundled assets are unchanged at 1,615,828 B.
 

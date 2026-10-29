@@ -22,4 +22,14 @@ module.exports = defineConfig([
       'react-hooks/globals': 'warn',
     },
   },
+  {
+    // tsc already checks namespace members in TypeScript. eslint-plugin-import's
+    // own check gives false positives on Babel-compiled packages whose first
+    // `export` follows a `*/` on the same line (expo-notifications 58:
+    // Notifications.AndroidImportance), because its module-detection regex misses it.
+    files: ['**/*.ts', '**/*.tsx'],
+    rules: {
+      'import/namespace': 'off',
+    },
+  },
 ]);

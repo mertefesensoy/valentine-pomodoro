@@ -1,6 +1,6 @@
 # 2026-10-29 — v2 Couples Rehaul: Plan
 
-**Status:** Plan, awaiting your review. No code has been changed.
+**Status:** **Approved by you on 2026-10-29** ("Approve, start Phase 0"). Phase 0 is done and Phase 1 is in progress; see the [roadmap](../roadmap/ROADMAP.md). *(This status line was corrected on 2026-10-30; it still said "awaiting your review".)*
 **Base:** `release/ios-1.3.0` @ `c527044` (app v1.3.1, build 6)
 **Target branch:** `rehaul/v2`, cut from `master` after `master` becomes trunk again (Phase 0)
 
@@ -837,7 +837,7 @@ No source, config or dependency files were touched. Nothing was committed.
 
 ## 14. Related docs
 
-- [../../PLAN.md](../../PLAN.md): the v1 plan
+- [v1 plan (history copy)](../history/2026-01-07-v1-plan.md): the v1 plan (the original `PLAN.md` lives outside the repo)
 - [../../DECISIONS.md](../../DECISIONS.md): v1 decisions
 - [../scale-plan.md](../scale-plan.md): the April 2026 scale plan
 - [../device-check-backlog.md](../device-check-backlog.md): outstanding device checks

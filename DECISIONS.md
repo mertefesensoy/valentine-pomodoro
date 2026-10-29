@@ -1,3 +1,5 @@
+> **Historical log (v1, 2026-01-07).** Each decision here now has an architecture decision record in [docs/architecture/adr/](docs/architecture/adr/README.md), which is where new decisions go. This file is kept as written. Its open questions Q1–Q3 are closed by Phase 1 task E4 ([Phase 1 plan](docs/implementations/2026-10-29-phase1-plan.md)).
+
 # Valentine Pomodoro - Design Decisions Log
 
 **Project**: Valentine-themed Pomodoro timer for Bengisu  

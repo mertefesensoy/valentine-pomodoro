@@ -53,4 +53,5 @@ A session's completion is handled at most once, guarded at each layer:
 - [One unified session clock (useSessionClock) with two slots](0016-unified-session-clock.md)
 - [Zustand for app state, TanStack Query for server state](0029-zustand-and-tanstack-query.md)
 - [Architecture decision records](README.md)
+- ["Phase 1 B3: Zustand stores, hydrated synchronously from MMKV"](../../implementations/2026-10-30-phase1-b3-zustand-stores.md)
 <!-- backlinks:end -->

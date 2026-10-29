@@ -46,7 +46,7 @@ Native modules have no Node implementation; [`jest.setup.ts`](../../jest.setup.t
 
 | Guard | Protects | Must stay green through |
 |-------|----------|-------------------------|
-| `src/context/__tests__/timerTextTicks.test.tsx` | Timer text ticks through `AppProvider` (FR-TMR-006) | The Phase 1 re-render refactor (B3/B4) |
+| `src/context/__tests__/timerTextTicks.test.tsx` | Timer text ticks through the session store's tick, read with `useSessionClock()` (FR-TMR-006); through `AppProvider` before B3 | The Phase 1 re-render refactor (B3/B4) |
 | `src/screens/__tests__/timerScreenTicks.test.tsx` | The real `TimerScreen` ticks in Classic and Fly (FR-TMR-006) | B1, B3, B4, B6, D1 |
 | `src/hooks/__tests__/useSessionClock.test.ts` | Countdown, pause/resume, exactly-once completion, cold start, two slots (FR-TMR-003/004/005/008) | Phase 3's engine replacement |
 | `src/utils/__tests__/geoMath.equivalence.test.ts` | Worklet ≡ JS interpolation (FR-FLY-002) | Any Fly change |

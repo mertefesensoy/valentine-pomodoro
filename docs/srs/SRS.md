@@ -249,12 +249,13 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 #### FR-TMR-005
 **Statement:** A session's completion shall be handled exactly once, whether it is detected by the 1 Hz ticker, by the app returning to the foreground, or on a cold start after the app was killed.
 **Pri:** Must · **Target:** v1 · **Status:** implemented
-**Known deviation:** DEF-004 (suspected); see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
+**Known deviation:** DEF-004, reproduced and fixed in Phase 1 B3 (`e04cc8c`); see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
 **Accept:**
 - The completion handlers run once.
 - Stats are credited once.
 - The slot is cleared.
-**Verify:** T: `src/hooks/__tests__/useSessionClock.test.ts` (foreground+ticker race, cold start) · **Source:** v1 README "Idempotency"; [timer unification](../implementations/2026-04-19-timer-unification.md)
+- A session whose end passed while the app was killed completes once a handler for its kind has subscribed, however late the screen mounts; until then it waits, and nothing ticks.
+**Verify:** T: `src/hooks/__tests__/useSessionClock.test.ts` (foreground+ticker race, cold start), `src/stores/__tests__/coldStartCompletion.test.tsx` (late subscriber, waiting, kind) · **Source:** v1 README "Idempotency"; [timer unification](../implementations/2026-04-19-timer-unification.md)
 
 #### FR-TMR-006
 **Statement:** The visible timer text shall update every second while a session runs, on the Classic screen and on the Fly screen.
@@ -333,18 +334,18 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 #### FR-STA-001
 **Statement:** Completed focus sessions shall be counted per day (sessions and minutes), attributed to the day the session **started**.
 **Pri:** Must · **Target:** v1 · **Status:** implemented
-**Known deviation:** DEF-001; see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
+**Known deviation:** DEF-001, fixed in Phase 1 B3 (`7863e50`); see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
 **Accept:**
 - A session started at 23:50 and finished at 00:15 counts toward the earlier day.
-**Verify:** I: `useTimer.ts` uses `getDayKeyFromDate(sessionStartedAt)` · **Source:** code
+**Verify:** I: `useTimer.ts` uses `getDayKeyFromDate(sessionStartedAt)`; T: `src/screens/__tests__/flyCredit.test.tsx` (Fly) · **Source:** code
 
 #### FR-STA-002
 **Statement:** A session's credit shall be applied at most once, even if its completion is replayed.
 **Pri:** Must · **Target:** v1 · **Status:** implemented
-**Known deviation:** DEF-001, DEF-002; see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
+**Known deviation:** DEF-001, DEF-002, both fixed in Phase 1 B3 (`7863e50`, `71d836f`); see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
 **Accept:**
-- `lastAppliedSessionId` blocks a second credit for the same `sessionId`.
-**Verify:** I: `useStats.ts`; T (to be written) · **Source:** code
+- `lastAppliedSessionId` blocks a second credit for the same `sessionId`, also after a relaunch.
+**Verify:** T: `src/stores/__tests__/statsCredit.test.tsx`, `src/screens/__tests__/flyCredit.test.tsx` · **Source:** code
 
 #### FR-STA-003
 **Statement:** The Stats screen shall show today, all-time and a 7-day chart, switchable between sessions and minutes.
@@ -356,8 +357,8 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 
 #### FR-STA-005
 **Statement:** The streak shall count consecutive goal-hit days; a gap of 2 or more days since the last hit resets the current streak, and the best streak is kept.
-**Pri:** Should · **Target:** v1 · **Status:** implemented · **Verify:** I: `normalizeStreakForToday`; T (to be written)
-**Known deviation:** DEF-003; see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
+**Pri:** Should · **Target:** v1 · **Status:** implemented · **Verify:** I: `normalizeStreakForToday`; T: `src/stores/__tests__/statsCredit.test.tsx`
+**Known deviation:** DEF-003, fixed in Phase 1 B3 (`7863e50`); see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
 
 #### FR-STA-006
 **Statement:** The Stats screen shall never crash when stats finish loading while it is mounted.
@@ -395,7 +396,7 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 #### FR-SET-001
 **Statement:** The settings shall persist across restarts: durations, notifications, sound, haptics, love notes on or off, theme mode (system, light or dark), background animations, and the Fly ambient sound.
 **Pri:** Must · **Target:** v1 · **Status:** implemented
-**Known deviation:** DEF-007; see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
+**Known deviation:** DEF-007 (the haptics half fixed in Phase 1 B3, `ca21ef0`; the sound half open until D4); see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
 **Accept:**
 - The defaults are those in `src/constants/defaults.ts`.
 - New fields merge into saved settings without loss.
@@ -749,13 +750,13 @@ These are places where the code at `5b10a78` doesn't fully meet a requirement ma
 
 | ID | Requirement | Deviation | Evidence | Severity | Fix in |
 |----|-------------|-----------|----------|----------|--------|
-| DEF-001 | FR-STA-001, FR-STA-002 | Fly Mode credits its minutes without the session's start day or id, so a Fly session that crosses midnight counts toward the wrong day, and a replayed completion isn't de-duplicated. | `FlyModeScreen.tsx:382` calls `stats.incrementFocus(minutes)`; Pomodoro passes both (`useTimer.ts:112`) | Medium | Phase 1 B3 (stats store) |
-| DEF-002 | FR-STA-002 | The de-duplication key `lastAppliedSessionId` isn't restored when stats load, so it only protects within one run. Across a restart, only the clock's `endAt` guard prevents a double credit. | `useStats.ts:118–145` rebuilds state without it | Low | Phase 1 B2/B3 |
-| DEF-003 | FR-STA-005 | The streak's "yesterday" is computed from the current date, not the credited day. A goal reached by a session that started before midnight and finished after it can reset the streak to 1. | `useStats.ts` (`yesterdayKeyDate = new Date()`), versus the credited `dayKey` | Low | Phase 1 B3 |
-| DEF-004 | FR-TMR-005 | **Suspected, not yet reproduced:** a Fly session that ends while the app is killed may not be credited. The clock fires its cold-start completion as soon as its own state loads, but `FlyModeScreen` subscribes only after the mode loads and the lazy import resolves. The cold-start test covers Pomodoro only. | `useSessionClock.ts` mount effect; `AppContext.tsx` mode load; B1 lazy load | Medium | Phase 1 B3/B4: write the failing test first |
-| DEF-005 | FR-NTF-001 | When scheduling the session-end notification takes more than 1 s, its id is dropped. That notification can't be cancelled, so a paused or skipped session may still alert. | `useTimer.ts:158–170` (`Promise.race` with a 1 s timeout) | Low–Medium | Phase 1 B3 |
+| DEF-001 | FR-STA-001, FR-STA-002 | Fly Mode credits its minutes without the session's start day or id, so a Fly session that crosses midnight counts toward the wrong day, and a replayed completion isn't de-duplicated. | `FlyModeScreen.tsx:382` calls `stats.incrementFocus(minutes)`; Pomodoro passes both (`useTimer.ts:112`) | Medium | **Fixed** in Phase 1 B3 (`7863e50`) |
+| DEF-002 | FR-STA-002 | The de-duplication key `lastAppliedSessionId` isn't restored when stats load, so it only protects within one run. Across a restart, only the clock's `endAt` guard prevents a double credit. | `useStats.ts:118–145` rebuilds state without it | Low | **Fixed** in Phase 1 B3 (`71d836f`) |
+| DEF-003 | FR-STA-005 | The streak's "yesterday" is computed from the current date, not the credited day. A goal reached by a session that started before midnight and finished after it can reset the streak to 1. | `useStats.ts` (`yesterdayKeyDate = new Date()`), versus the credited `dayKey` | Low | **Fixed** in Phase 1 B3 (`7863e50`) |
+| DEF-004 | FR-TMR-005 | **Reproduced in Phase 1 B3, and wider than suspected:** a session of **either** kind that ends while the app is killed is cleared on relaunch with no credit. `NavigationContainer` renders nothing until `Linking.getInitialURL()` resolves (up to 150 ms), so the screens subscribe after the clock's cold-start completion has fired. Since B2's MMKV load (microtasks) this happens every time; on v1.3.1 it was a race. Affects TestFlight build 43. | `useSessionClock.ts` mount effect; React Navigation 7.5.1 `NavigationContainer.tsx:121–135`; B1 lazy load | **High** (since B2) | **Fixed** in Phase 1 B3 (`e04cc8c`): completions wait for a handler of their kind ([B3 §0](../implementations/2026-10-30-phase1-b3-zustand-stores.md)) |
+| DEF-005 | FR-NTF-001 | When scheduling the session-end notification takes more than 1 s, its id is dropped. That notification can't be cancelled, so a paused or skipped session may still alert. | `useTimer.ts:158–170` (`Promise.race` with a 1 s timeout) | Low–Medium | **Open.** Moved out of B3: it is notification scheduling, not store state. Slot TBD (owner): B4 or D1 |
 | DEF-006 | FR-ADS-001 | The Stats screen shows an AdMob **banner** outside `AdPolicy`, including during a running session; the requirement covers interstitials only. | `StatsScreen.tsx:297` | Product decision | Phase 1 D2: keep it under the policy, or remove it |
-| DEF-007 | FR-SET-001 | The `sound` setting has no effect yet (sounds arrive in D4), and the tab bar's haptic ignores the Haptics setting. | `HapticTab.tsx`; no reader of `settings.sound` | Low | Phase 1 D4 (sound); B3 (haptics) |
+| DEF-007 | FR-SET-001 | The `sound` setting has no effect yet (sounds arrive in D4), and the tab bar's haptic ignores the Haptics setting. | `HapticTab.tsx`; no reader of `settings.sound` | Low | Phase 1 D4 (sound); haptics **fixed** in B3 (`ca21ef0`) |
 
 ---
 
@@ -793,6 +794,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - [Architecture — Valentine Pomodoro (as built, and the v2 target)](../architecture/ARCHITECTURE.md)
 - [Original v1 implementation plan (2026-01-07)](../history/2026-01-07-v1-plan.md)
 - [Documentation system, release history and branch cleanup](../implementations/2026-10-30-documentation-system.md)
+- ["Phase 1 B3: Zustand stores, hydrated synchronously from MMKV"](../implementations/2026-10-30-phase1-b3-zustand-stores.md)
 - [Documentation conventions](../process/DOCS.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Test strategy](../testing/TEST-STRATEGY.md)

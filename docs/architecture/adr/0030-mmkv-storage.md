@@ -54,4 +54,5 @@ Use **react-native-mmkv**, falling back to localStorage on the web (rehaul plan 
 - [Stats stored as a per-day map keyed by YYYY-MM-DD](0010-per-day-stats-map.md)
 - [Zustand for app state, TanStack Query for server state](0029-zustand-and-tanstack-query.md)
 - [Architecture decision records](README.md)
+- ["Phase 1 B3: Zustand stores, hydrated synchronously from MMKV"](../../implementations/2026-10-30-phase1-b3-zustand-stores.md)
 <!-- backlinks:end -->

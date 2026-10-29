@@ -57,7 +57,8 @@ Plan: [Phase 1 plan](../implementations/2026-10-29-phase1-plan.md) (approved 202
 | B — Local re-architecture | B1 lazy Fly | **Done** `5b10a78` ([B1](../implementations/2026-10-29-phase1-b1-lazy-fly-mode.md)); device check passed on `v1.4.0-tf.43` |
 | | B1b `airports.json` out of the bundle | **Done** `0d63145` ([B1b](../implementations/2026-10-29-phase1-b1b-airports-asset.md)); device check passed on `v1.4.0-tf.43` |
 | | B2 MMKV + migration | **Done** `dd1e894` ([B2](../implementations/2026-10-29-phase1-b2-mmkv-migration.md)); device check passed on `v1.4.0-tf.43` (EAS `73ad1446`), 2026-10-30 |
-| | B3 Zustand stores · B4 re-render refactor (gate-checked) · B5 React Compiler · B6 Expo Router · B7 deferred start-up work | Not started |
+| | B3 Zustand stores, hydrated synchronously; `AppContext` deleted; DEF-001–004 and DEF-007 (haptics) fixed | **Done locally** `71d836f`…`e04cc8c` ([B3](../implementations/2026-10-30-phase1-b3-zustand-stores.md)); not pushed; device check needs a TestFlight build |
+| | B4 re-render refactor (gate-checked) · B5 React Compiler · B6 Expo Router · B7 deferred start-up work | Not started |
 | C — Design system and art | C1 theme tokens and contrast check · C2 display face · C3 VectorCraft pipeline and first art · C4 `/impeccable shape classic` | Not started |
 | D — Screens | D1 Classic rebuilt · D2 Stats/Settings/Notes/Gift restyled, emoji removed · D3 EN/TR · D4 SoundCraft sounds | Not started |
 | E — Verify and ship | E1 migration on an iPhone · E2 device checklist · E3 measurements · E4 release prep | Not started |

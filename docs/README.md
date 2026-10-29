@@ -51,6 +51,7 @@ Start here. Every document in the repo is listed below. The rules for writing th
 
 | Date | Record |
 |------|--------|
+| 2026-10-30 | [Phase 1 B3: Zustand stores, hydrated synchronously](implementations/2026-10-30-phase1-b3-zustand-stores.md) |
 | 2026-10-30 | [Documentation system, release history, branch cleanup](implementations/2026-10-30-documentation-system.md) |
 | 2026-10-29 | [Phase 1 B2: MMKV and the one-time migration](implementations/2026-10-29-phase1-b2-mmkv-migration.md) |
 | 2026-10-29 | [Phase 1 B1b: airports.json as a runtime asset](implementations/2026-10-29-phase1-b1b-airports-asset.md) |

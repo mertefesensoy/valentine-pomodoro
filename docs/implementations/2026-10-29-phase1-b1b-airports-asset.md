@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-29-phase1-b1-lazy-fly-mode, 
 
 # 2026-10-29 — Phase 1 B1b: `airports.json` out of the JS bundle
 
-**Status:** Done (`0d63145`; FR-FLY-004, NFR-PERF-002). Jest, typecheck, lint and the Reassure counts are green, and the bytecode was measured with the pinned command. **The device check is open:** it rides on TestFlight build 43, v1.4.0 (EAS `73ad1446-23f8-4c34-a00e-78b2da38a900`), uploaded 2026-10-30 (§6).
+**Status:** Done (`0d63145`; FR-FLY-004, NFR-PERF-002). Jest, typecheck, lint and the Reassure counts are green, and the bytecode was measured with the pinned command. **The device check passed** on 2026-10-30 (reported by you) on TestFlight build 43, v1.4.0 (EAS `73ad1446-23f8-4c34-a00e-78b2da38a900`). The runtime asset read works on a device (§6).
 **Branch:** `rehaul/v2`
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md), task B1b, §5 finding 1 (your decision of 2026-10-29)
 
@@ -175,7 +175,7 @@ npx expo export --platform ios --platform android --dump-sourcemap --output-dir 
   - (`jest.setup.ts` is outside `expo lint`'s file set; plain `eslint` shows +2 there, the `fs` and `path` requires in the mock.)
 - [x] Reassure, against the Stage A baseline: settings-only 14, Timer 14, Stats 14, Settings 15, Notes 14, leaf 14. All unchanged, ×3 runs each.
 - [x] Bytecode before and after, and the `Lublin` check: §4.
-- [ ] **Device (iPhone, TestFlight build 43, v1.4.0).** The build compiled and was uploaded, but this path has not yet run on a device: the asset embedding, `downloadAsync` on an embedded file URL, and `File.text()` on the bundle path.
+- [x] **Device (iPhone, TestFlight build 43, v1.4.0): all items passed, reported by you on 2026-10-30.** This was the first time this path ran on a device: the asset embedding, `downloadAsync` on an embedded file URL, and `File.text()` on the bundle path.
   1. Open Fly the first time and search "istanbul" in **From**: IST appears.
   2. Tap the map: the nearest airport is picked.
   3. Start and fly a short flight; the landing works.

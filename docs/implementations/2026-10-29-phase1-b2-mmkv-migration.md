@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-29-phase1-stage-a, SRS]
 
 # 2026-10-29 — Phase 1 B2: MMKV and the one-time AsyncStorage migration
 
-**Status:** Done (`dd1e894`; FR-MIG-001, FR-MIG-002). Jest, typecheck, lint and the Reassure counts are green, and the migration was tested against every A3 fixture. **It builds:** TestFlight build 43, v1.4.0 (EAS `73ad1446-23f8-4c34-a00e-78b2da38a900`), was built with your go-ahead and uploaded on 2026-10-30. **The device check is open** (§6.2).
+**Status:** Done (`dd1e894`; FR-MIG-001, FR-MIG-002). Jest, typecheck, lint and the Reassure counts are green, and the migration was tested against every A3 fixture. **It builds:** TestFlight build 43, v1.4.0 (EAS `73ad1446-23f8-4c34-a00e-78b2da38a900`), was built with your go-ahead and uploaded on 2026-10-30. **The device check passed** on 2026-10-30, as reported by you (§6.2).
 **Branch:** `rehaul/v2`
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md), task B2, §5 (flag-last decision), §6 item 2 (the notes rule); [rehaul plan](2026-10-29-couples-rehaul-plan.md) §10 Risks ("AsyncStorage keys are kept for one release as a fallback")
 
@@ -224,7 +224,9 @@ B2 adds native code (MMKV's C++ core through Nitro), so it couldn't ride on buil
 
 The same build carries the B1 and B1b device checks.
 
-**The build risk didn't materialize.** `app.json` sets `expo-build-properties` `ios.useFrameworks: "static"` (for AdMob), and Nitro and MMKV 4 had never been built that way here. Pods, compile and link all succeeded on EAS. Whether MMKV *runs* correctly on a device is what the checks below find out.
+**The build risk didn't materialize.** `app.json` sets `expo-build-properties` `ios.useFrameworks: "static"` (for AdMob), and Nitro and MMKV 4 had never been built that way here. Pods, compile and link all succeeded on EAS.
+
+**Result: all checks below passed on a physical iPhone (2026-10-30, reported by you).** So MMKV runs on the device, and the migration carried the data across the update. You didn't say which install the build went over, 1.3.1 or build 42. Both kept their data in AsyncStorage, so either one exercises the same migration.
 
 **Checks.** Install over the phone that has data, ideally one still on App Store 1.3.1, otherwise the build 42 install, which still stores in AsyncStorage:
 
@@ -254,7 +256,7 @@ All counts are identical to Stage A. The migration (one `getAllKeys`, one `multi
 
 ## 7. Findings and open items
 
-1. **The device check (§6.2) is the only open item for B2.** Build 43 is on TestFlight. The checks need your iPhone, ideally installed over one that still holds 1.3.1 data.
+1. **Nothing is open for B2.** The device check (§6.2) passed on TestFlight build 43 on 2026-10-30. E1 repeats the migration check on the final v1.4 build, over App Store 1.3.1.
 2. **AsyncStorage is never cleaned up.** Deleting it is a deliberate later task, after the rollback window. Until then each install carries its v1.3.1 data twice; a few KB.
 3. **A corrupt `love_notes` key is copied as-is.** The reader then falls back to `DEFAULT_LOVE_NOTES`, and after D2 that means the *new* set. This needs a torn write of the notes key, which is rare, because it is written only on edit. Left as "handled where it is read"; D2 could check the frozen set as well.
 4. **Stage A finding 1 (`useStats` drops `lastAppliedSessionId`) is untouched.** B3's stats store should keep the field.

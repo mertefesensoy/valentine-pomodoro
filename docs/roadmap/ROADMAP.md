@@ -11,8 +11,8 @@ related: [SRS, ARCHITECTURE, IMPL-2026-10-29-couples-rehaul-plan, IMPL-2026-10-2
 
 **Where we are (2026-10-30):**
 - Phase 0 is done.
-- Phase 1 (v1.4.0, iOS): Stage A is done. B1, B1b and B2 are done and built into TestFlight build 43; their device check is open. **B3 is next.**
-- The App Store has v1.3.1. TestFlight has `v1.4.0-tf.42`, which passed the A0 device check, and build 43 (B1, B1b, B2), uploaded 2026-10-30.
+- Phase 1 (v1.4.0, iOS): Stage A is done. B1, B1b and B2 are done, and their device check passed on TestFlight build 43. **B3 is next.**
+- The App Store has v1.3.1. On TestFlight, `v1.4.0-tf.42` passed the A0 device check, and `v1.4.0-tf.43` (B1, B1b, B2) passed its device check on 2026-10-30.
 
 This page is the **single status board**. Each phase links to its plan, which holds the task detail; each task's "done" evidence lives in its implementation record. **Update the status here in the same commit as the work.** Requirements per phase are in the [SRS](../srs/SRS.md) (field `Target`).
 
@@ -54,9 +54,9 @@ Plan: [Phase 1 plan](../implementations/2026-10-29-phase1-plan.md) (approved 202
 | Stage | Tasks | Status |
 |-------|-------|--------|
 | A — Safety nets | A0 iPhone check (TestFlight build 42), A1 guards on both screens, A2 Reassure per screen, A3 v1.3.1 storage fixtures | **Done** ([Stage A](../implementations/2026-10-29-phase1-stage-a.md)) |
-| B — Local re-architecture | B1 lazy Fly | **Done** `5b10a78` ([B1](../implementations/2026-10-29-phase1-b1-lazy-fly-mode.md)); in TestFlight build 43; device check open |
-| | B1b `airports.json` out of the bundle | **Done** `0d63145` ([B1b](../implementations/2026-10-29-phase1-b1b-airports-asset.md)); in TestFlight build 43; device check open |
-| | B2 MMKV + migration | **Done** `dd1e894` ([B2](../implementations/2026-10-29-phase1-b2-mmkv-migration.md)); TestFlight build 43 (EAS `73ad1446`) built and uploaded 2026-10-30; device check open |
+| B — Local re-architecture | B1 lazy Fly | **Done** `5b10a78` ([B1](../implementations/2026-10-29-phase1-b1-lazy-fly-mode.md)); device check passed on `v1.4.0-tf.43` |
+| | B1b `airports.json` out of the bundle | **Done** `0d63145` ([B1b](../implementations/2026-10-29-phase1-b1b-airports-asset.md)); device check passed on `v1.4.0-tf.43` |
+| | B2 MMKV + migration | **Done** `dd1e894` ([B2](../implementations/2026-10-29-phase1-b2-mmkv-migration.md)); device check passed on `v1.4.0-tf.43` (EAS `73ad1446`), 2026-10-30 |
 | | B3 Zustand stores · B4 re-render refactor (gate-checked) · B5 React Compiler · B6 Expo Router · B7 deferred start-up work | Not started |
 | C — Design system and art | C1 theme tokens and contrast check · C2 display face · C3 VectorCraft pipeline and first art · C4 `/impeccable shape classic` | Not started |
 | D — Screens | D1 Classic rebuilt · D2 Stats/Settings/Notes/Gift restyled, emoji removed · D3 EN/TR · D4 SoundCraft sounds | Not started |

@@ -436,7 +436,7 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 
 #### FR-FLY-004
 **Statement:** Fly Mode code, the map library and the airport data shall load only when Fly is first opened.
-**Pri:** Should · **Target:** Phase 1 (B1, B1b) · **Status:** implemented (B1 `5b10a78`, B1b `0d63145`; device check on the next TestFlight build)
+**Pri:** Should · **Target:** Phase 1 (B1, B1b) · **Status:** implemented (B1 `5b10a78`, B1b `0d63145`; device check passed on `v1.4.0-tf.43`, 2026-10-30)
 **Verify:** T: `src/screens/__tests__/flyLazyLoad.test.tsx`, `src/utils/__tests__/airportAsset.test.ts`, `src/utils/__tests__/airportData.test.ts` · **Source:** [B1 doc](../implementations/2026-10-29-phase1-b1-lazy-fly-mode.md), [B1b doc](../implementations/2026-10-29-phase1-b1b-airports-asset.md)
 
 #### FR-FLY-005
@@ -493,7 +493,7 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 - copy corrupt values as they are
 
 AsyncStorage stays untouched for one release as a fallback.
-**Pri:** Must · **Target:** Phase 1 (B2) · **Status:** implemented (`dd1e894`; device check on the next TestFlight build) · **Verify:** T: `src/utils/__tests__/storageMigration.test.ts`, `src/utils/__tests__/storage.test.ts` over every A3 fixture · **Source:** PLAN-PHASE1 B2, [B2 doc](../implementations/2026-10-29-phase1-b2-mmkv-migration.md)
+**Pri:** Must · **Target:** Phase 1 (B2) · **Status:** implemented (`dd1e894`; device check passed on `v1.4.0-tf.43`, 2026-10-30) · **Verify:** T: `src/utils/__tests__/storageMigration.test.ts`, `src/utils/__tests__/storage.test.ts` over every A3 fixture · **Source:** PLAN-PHASE1 B2, [B2 doc](../implementations/2026-10-29-phase1-b2-mmkv-migration.md)
 
 #### FR-MIG-003
 **Statement:** On first sign-in, local stats and notes shall be uploaded once, guarded by an idempotency key.

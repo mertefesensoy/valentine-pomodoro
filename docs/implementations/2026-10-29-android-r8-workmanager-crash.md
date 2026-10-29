@@ -1,6 +1,6 @@
 # 2026-10-29 — Android release build crashes on launch: R8 removed WorkManager's database constructor
 
-**Status:** Fix committed; **not yet verified on a new build** (needs an EAS build, which needs your go-ahead)
+**Status:** Done and **verified on device**: EAS preview build `01705679-f57d-4db2-9be2-1e1b9f9f4d1e` (commit `c70afd9`) launches cleanly on the emulator.
 **Branch:** `rehaul/v2`
 **Found by:** the device check gate (upgrade doc §6.3; Phase 1 plan task A0)
 
@@ -73,11 +73,11 @@ Done here:
 - [x] Dex inspection confirms the missing constructor (table above).
 - [x] A throwaway `npx expo prebuild --platform android --no-install` writes both rules into `android/app/proguard-rules.pro` inside the `expo-build-properties` block. R8 is on (`android.enableMinifyInReleaseBuilds=true`). The generated `android/` folder was deleted afterwards.
 
-Needs a new build (EAS `preview` profile, **your go-ahead**):
+On the new build (EAS `preview` `01705679…`, built with your go-ahead on 2026-10-29):
 
-- [ ] The new APK launches to the timer on the emulator; the crash buffer is empty.
-- [ ] The dex parser shows `WorkDatabase_Impl` with an `<init>`.
-- [ ] Then the rest of the upgrade doc's §6.3 list, which this crash blocked.
+- [x] The dex parser shows `WorkDatabase_Impl` **with `<init>`**, and so do `OverwritingInputMerger` and `ArrayCreatingInputMerger`.
+- [x] The APK launches to the first-run screen, then the timer. The crash buffer stays empty across several cold starts.
+- [x] The rest of the upgrade doc's §6.3 list was run. Every item passed except Fly Mode, which fails for a **separate** reason, a missing Google Maps Android API key (upgrade doc §6.3), not R8.
 
 ## 7. Related Docs
 

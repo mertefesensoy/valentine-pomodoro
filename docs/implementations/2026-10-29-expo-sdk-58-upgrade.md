@@ -150,15 +150,31 @@ On SDKs 56–58, the remaining doctor flags are the accepted `@expo/config-plugi
 
 On the Android preview APK:
 
-> **Result, 2026-10-29 (Android 15 emulator, AVD `vp_api35`): FAILED at item 1.** The APK crashes about 3 s after every launch (3/3, including a clean cold boot): R8 removed WorkManager's Room database constructor. Every later item is blocked. Keep rules were added; see [2026-10-29-android-r8-workmanager-crash.md](2026-10-29-android-r8-workmanager-crash.md). The list re-runs on the next preview build.
+> **Run 1, 2026-10-29, build `3450a78b…` (Android 15 emulator, AVD `vp_api35`): FAILED at item 1.** The APK crashed about 3 s after every launch (3/3, including a clean cold boot): R8 removed WorkManager's Room database constructor. Keep rules were added in `c70afd9`; see [2026-10-29-android-r8-workmanager-crash.md](2026-10-29-android-r8-workmanager-crash.md).
+>
+> **Run 2, 2026-10-29, build `01705679…` (`c70afd9`), same emulator: everything passes except Fly Mode.** Screenshots are in `C:\Android\devicecheck\shots2\`. An emulator is not a phone: gestures, haptics and performance still need hardware.
 
-- [ ] The app launches and shows the splash (now from the `expo-splash-screen` plugin), then the timer. **Failed: R8 launch crash.**
-- [ ] **Tab bar shows four icons** (heart, chart, gear, note): the fix from `0c99c0b`.
-- [ ] A full focus → break cycle. The completion notification fires; in the foreground it shows a banner (SDK 58 shows foreground notifications by default; the app's handler already asks for banners).
-- [ ] Open Stats immediately after a cold start (the Phase 0 crash fix).
-- [ ] Fly Mode: pick airports, start, drag and double-tap the sheet (Gesture Handler 3 compatibility layer), let the plane land.
-- [ ] Ads: an interstitial after the second completed session. These are still Google's test ids on Android, so test ads are expected.
-- [ ] **R8:** anything crashing only in this build (ads, maps, notifications) is the reflection risk; report it and I'll add keep rules.
+- [x] The app launches, shows the first-run gift screen, then the timer. No crash across several cold starts. (The splash itself was not captured: the emulator's first frame comes after it.)
+- [x] **Tab bar shows four icons** (heart, chart, gear, note): the fix from `0c99c0b` holds.
+- [x] A full focus → break → focus cycle (1-minute durations). **The app asks for notification permission on the first Start**, as Android 13+ requires.
+  - With the app in the background, "Focus complete 💗 / Time for a sweet break" arrived on the `timer` channel (importance high).
+  - Opening it from the notification shows the love-note card, then the break.
+  - The break also ended correctly in the foreground (2 notifications posted).
+- [x] Stats opened during a cold start (40 taps while loading): no crash. After the cycle it shows 2 sessions and 2 minutes today, with 48 minutes of the goal left: correct.
+- [ ] **Fly Mode: FAILED, a crash plus a crash loop (not R8).**
+  - Opening Fly crashes: `API key not found … com.google.android.geo.API_KEY`. On Android, react-native-maps uses Google Maps, and `app.json` has no `android.config.googleMaps.apiKey`.
+  - The app saves the chosen mode (`app_mode = fly`), so **every later launch crashes within 3 s**, until the app's data is cleared.
+  - Android has never shipped a build with Fly Mode (Play has 1.0.1), so no user has hit this. It needs your decision before v1.4.
+- [x] Ads: a Google **test** interstitial after the second completed focus session, as `AdPolicy` says.
+- [x] **R8:** no other release-only crash in start-up, notifications, storage, stats or ads. The maps code can't be judged until Fly Mode has a key.
+
+**Findings for Phase 1** (layout, not crashes; all on Android 15 with targetSdk 36, where edge-to-edge is enforced):
+
+1. Stats and Settings titles draw under the status-bar clock (no top safe-area inset).
+2. A white band above the tab bar **hides the 7-day chart's bars** on Stats, and leaves a strip un-dimmed behind the love-note card's backdrop.
+3. The notification small icon is a plain circle; no monochrome notification icon is configured. This goes in the C3 art list.
+4. The active tab is tinted system blue, not a brand colour.
+5. The first-run gift screen says "for Bengisu" to every install (already planned in D2).
 
 On iOS, after a TestFlight build (needs your go-ahead):
 

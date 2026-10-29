@@ -1,0 +1,61 @@
+# Quality gate for every push and pull request.
+# Typecheck, lint (errors fail; warnings are reported) and unit tests must pass.
+# On pull requests, Reassure compares render counts and times against the base
+# branch and uploads the report; it informs review rather than failing the build.
+
+name: CI
+
+on:
+  push:
+    branches: [master, 'rehaul/**', 'release/**']
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Unit tests
+        run: npx jest --ci
+
+  perf:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Baseline on base branch
+        run: |
+          git switch --detach origin/${{ github.base_ref }}
+          npm ci
+          npx reassure --baseline || echo "No perf tests on the base branch yet"
+      - name: Measure this branch
+        run: |
+          git switch --detach ${{ github.sha }}
+          npm ci
+          npx reassure --branch
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reassure-report
+          path: .reassure/output.md
+          if-no-files-found: ignore

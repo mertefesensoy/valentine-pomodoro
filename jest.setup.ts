@@ -6,6 +6,10 @@
  * minimal: a mock here hides real behaviour from every test.
  */
 
+// Gesture Handler ships its own mocks for the native module and host detector
+// (FlySheet's pan and double-tap gestures).
+import 'react-native-gesture-handler/jestSetup';
+
 jest.mock('@react-native-async-storage/async-storage', () =>
     require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
@@ -22,6 +26,26 @@ jest.mock('react-native-reanimated/src/css/native/proxy', () => ({
 jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
 
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
+
+// react-native-maps resolves its TurboModule at import time, and TimerScreen
+// imports FlyModeScreen statically. The map becomes plain Views; the camera
+// methods FlyModeScreen calls through its ref are no-ops.
+jest.mock('react-native-maps', () => {
+    const React = require('react');
+    const { View } = require('react-native');
+    const MapView = React.forwardRef(function MockMapView(props: { children?: unknown }, ref: unknown) {
+        React.useImperativeHandle(ref, () => ({
+            animateCamera: jest.fn(),
+            animateToRegion: jest.fn(),
+            fitToCoordinates: jest.fn(),
+            setCamera: jest.fn(),
+            getCamera: jest.fn(async () => ({ center: { latitude: 0, longitude: 0 }, heading: 0, pitch: 0, zoom: 1, altitude: 0 })),
+        }));
+        return React.createElement(View, { testID: 'map-view' }, props.children);
+    });
+    const Plain = (props: { children?: unknown }) => React.createElement(View, null, props.children);
+    return { __esModule: true, default: MapView, Marker: Plain, Polyline: Plain };
+});
 
 // AdMob resolves its TurboModule at import time. Only the exports the app uses
 // (src/ads/*, StatsScreen) are stubbed; ads never load in tests.

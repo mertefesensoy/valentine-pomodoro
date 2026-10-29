@@ -1,7 +1,7 @@
 # 2026-10-29 — Phase 0: Foundation and safety net
 
-**Status:** In progress. Items 1–8 are done, as are the SDK 58 upgrade and CNG switch (both EAS builds succeeded); the device checks are still open (§6.3).
-**Branch:** `rehaul/v2` (local only, nothing pushed)
+**Status:** In progress. Items 1–8 are done, as are the SDK 58 upgrade, the CNG switch (both EAS builds succeeded) and the first green CI run; the device checks are still open (§6.3).
+**Branch:** `rehaul/v2`, pushed to origin on 2026-10-29 together with `master` (`fda4fef`)
 **Plan:** [2026-10-29-couples-rehaul-plan.md](2026-10-29-couples-rehaul-plan.md), §7 Phase 0
 
 ---
@@ -214,7 +214,8 @@ There is no Android SDK or iOS toolchain on this machine, so no native build was
    - [ ] Task 1: Pomodoro and Fly timers match within ±0.5 s; a 10 s pause doesn't change elapsed time; 30 s in the background shows real elapsed time on return; warm-return completion fires once; two-slot preservation; the pill matches the dashboard in portrait and landscape.
    - [ ] AIRMap crash regressions: tier-1 airports as origin and destination, a full session, then reset and re-pick.
    - [ ] **New:** open the Stats tab right after a cold launch, before stats load. It must not crash.
-4. **`/impeccable init`.** It writes `PRODUCT.md` through questions to you, and becomes the first task of Phase 1, in a new session so the skill is loaded.
+4. **`/impeccable init`.** Done on 2026-10-29: `PRODUCT.md` from your answers, and a seed `DESIGN.md` with the kawaii direction pinned (North Star "The Sticker Diary"). See the [Phase 1 plan](2026-10-29-phase1-plan.md).
+5. **CI on GitHub.** The first run ([40894252335](https://github.com/mertefesensoy/valentine-pomodoro/actions/runs/40894252335)) failed lint on a false positive that the cached local lint had hidden. Fixed in `6708f03` ([doc](2026-10-29-ci-first-run-lint-fix.md)). The re-run ([40895284323](https://github.com/mertefesensoy/valentine-pomodoro/actions/runs/40895284323)) passed typecheck, lint and all 25 unit tests on Linux. `master` has no workflow file until `rehaul/v2` merges, so only `rehaul/**` pushes run CI today.
 
 ## 7. Design Decisions
 

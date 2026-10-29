@@ -66,7 +66,7 @@ Local (all run on 2026-10-29):
 
 CI:
 
-- [ ] The re-run on `rehaul/v2` passes typecheck, lint and, for the first time on Linux, unit tests. The result is recorded in the Phase 0 doc §6.3.
+- [x] The re-run on `rehaul/v2` ([run 40895284323](https://github.com/mertefesensoy/valentine-pomodoro/actions/runs/40895284323)) passed typecheck, lint and, for the first time on Linux, all 25 unit tests. Recorded in the Phase 0 doc §6.3.
 
 ## 7. Related Docs
 

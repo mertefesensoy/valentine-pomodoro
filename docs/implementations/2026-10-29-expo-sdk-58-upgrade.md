@@ -1,7 +1,7 @@
 # 2026-10-29 — Expo SDK 54 → 58 upgrade and generated native projects
 
 **Status:** Built. Both EAS native builds succeeded on SDK 58 (§6.2). The device checks are still to do (§6.3), and on-device iOS testing needs a TestFlight build.
-**Branch:** `rehaul/v2` (local only, nothing pushed)
+**Branch:** `rehaul/v2` (pushed to origin on 2026-10-29)
 **Plan:** [2026-10-29-couples-rehaul-plan.md](2026-10-29-couples-rehaul-plan.md), §7 Phase 0, item 6 · follows [Phase 0 foundation](2026-10-29-phase0-foundation.md)
 
 ---

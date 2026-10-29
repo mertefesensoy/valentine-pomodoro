@@ -1,11 +1,13 @@
 import { Platform, Pressable, Text } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { AppProvider, useApp } from '../AppContext';
-import { STORAGE_KEYS } from '../../utils/storage';
+import { load, save, STORAGE_KEYS } from '../../utils/storage';
+import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 
 // The Android crash loop: a persisted app_mode of 'fly' relaunched straight into
 // Fly Mode, which cannot open on Android. AppProvider must resolve it to 'default'.
+// Stored state is written and read through the app's storage helpers (MMKV
+// since Phase 1 B2), not AsyncStorage, which the app no longer writes.
 function ModeProbe() {
     const app = useApp();
     return (
@@ -25,12 +27,12 @@ describe('stored Fly Mode guard', () => {
 
     afterEach(async () => {
         setPlatform(originalOS);
-        await AsyncStorage.clear();
+        await resetStorage();
     });
 
     it('opens in default mode on Android when fly was stored', async () => {
         setPlatform('android');
-        await AsyncStorage.setItem(STORAGE_KEYS.APP_MODE, JSON.stringify('fly'));
+        await save(STORAGE_KEYS.APP_MODE, 'fly');
 
         await render(<AppProvider><ModeProbe /></AppProvider>);
         await act(async () => {});
@@ -48,12 +50,12 @@ describe('stored Fly Mode guard', () => {
         });
 
         expect(screen.getByTestId('mode')).toHaveTextContent('default');
-        expect(await AsyncStorage.getItem(STORAGE_KEYS.APP_MODE)).not.toBe(JSON.stringify('fly'));
+        expect(await load(STORAGE_KEYS.APP_MODE, 'nothing stored')).not.toBe('fly');
     });
 
     it('still restores fly on iOS', async () => {
         setPlatform('ios');
-        await AsyncStorage.setItem(STORAGE_KEYS.APP_MODE, JSON.stringify('fly'));
+        await save(STORAGE_KEYS.APP_MODE, 'fly');
 
         await render(<AppProvider><ModeProbe /></AppProvider>);
         await act(async () => {});

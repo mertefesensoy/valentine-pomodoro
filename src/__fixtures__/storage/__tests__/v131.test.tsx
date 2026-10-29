@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { act, render, screen } from '@testing-library/react-native';
 import { AppProvider, useApp } from '../../../context/AppContext';
 import { load, STORAGE_KEYS } from '../../../utils/storage';
+import { resetStorage } from '../resetStorage';
 import type { SessionClockState } from '../../../types';
 import {
     CORRUPT_SESSION_CLOCK_ENTRIES,
@@ -18,7 +19,9 @@ import {
 
 // Phase 1 task A3. The fixtures are what B2's migration is tested against, so
 // these tests check that each one is what it claims to be, using the v1.3.1
-// readers that still ship today.
+// readers that still ship today. Since B2 those readers go through the
+// one-time AsyncStorage → MMKV migration, so seeding AsyncStorage and reading
+// with load() also exercises the migrated path.
 
 // AdPolicy.ts keeps its key private.
 const AD_POLICY_KEY = 'ad_policy_v1';
@@ -30,7 +33,7 @@ const NEW_SINCE_V131: string[] = [];
 const MISSING = Symbol('missing');
 
 afterEach(async () => {
-    await AsyncStorage.clear();
+    await resetStorage();
 });
 
 describe('v1.3.1 storage fixtures', () => {
@@ -69,7 +72,9 @@ describe('v1.3.1 storage fixtures', () => {
         expect([...(await AsyncStorage.getAllKeys())].sort()).toEqual(
             V131_KEYS.filter((k) => k !== STORAGE_KEYS.LOVE_NOTES).sort(),
         );
-        expect(await load(STORAGE_KEYS.LOVE_NOTES, V131_DEFAULT_LOVE_NOTES)).toBe(V131_DEFAULT_LOVE_NOTES);
+        // Since B2 the migration writes these notes explicitly for an existing
+        // install, so load() returns a stored copy rather than the default it is given.
+        expect(await load(STORAGE_KEYS.LOVE_NOTES, [] as string[])).toEqual(V131_DEFAULT_LOVE_NOTES);
         expect(V131_DEFAULT_LOVE_NOTES).toHaveLength(20);
     });
 
@@ -107,7 +112,9 @@ describe('v1.3.1 storage fixtures', () => {
         const minutes = days.reduce((n, d) => n + d.focusMinutes, 0);
         expect(screen.getByTestId('totals')).toHaveTextContent(`${sessions}/${minutes}`);
 
-        const v2 = JSON.parse((await AsyncStorage.getItem(STORAGE_KEYS.STATS_V2))!);
-        expect(Object.keys(v2.days).sort()).toEqual(Object.keys(STATS_V1_USER.stats).sort());
+        // The provider writes stats_v2 through the app's storage (MMKV since B2).
+        const v2 = await load<{ days: Record<string, unknown> } | null>(STORAGE_KEYS.STATS_V2, null);
+        expect(Object.keys(v2!.days).sort()).toEqual(Object.keys(STATS_V1_USER.stats).sort());
+        expect(await AsyncStorage.getItem(STORAGE_KEYS.STATS_V2)).toBeNull();
     });
 });

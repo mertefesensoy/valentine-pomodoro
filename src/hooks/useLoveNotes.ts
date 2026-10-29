@@ -11,7 +11,7 @@ export function useLoveNotes() {
     const [notes, setNotes] = useState<string[]>(DEFAULT_LOVE_NOTES);
     const [isReady, setIsReady] = useState(false);
 
-    // Serialize writes to avoid out-of-order AsyncStorage persistence
+    // Serialize writes to avoid out-of-order persistence (async save() calls)
     const saveChainRef = useRef(Promise.resolve());
     const enqueueSave = useCallback((data: string[]) => {
         saveChainRef.current = saveChainRef.current

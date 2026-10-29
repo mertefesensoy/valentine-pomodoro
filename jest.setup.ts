@@ -70,6 +70,18 @@ jest.mock('./src/utils/airportAsset', () => ({
     readAirportsAsset: async () => require('fs').readFileSync(mockAirportAssetPath, 'utf8'),
 }));
 
+// react-native-mmkv (Phase 1 B2) imports react-native-nitro-modules, which looks
+// up its TurboModule at import time. Under Jest, createMMKV() returns MMKV's own
+// in-memory store and never calls Nitro, so the import only has to succeed; a
+// real Nitro call would mean a test is off the mock path, and throws.
+jest.mock('react-native-nitro-modules', () => ({
+    NitroModules: {
+        createHybridObject: (name: string) => {
+            throw new Error(`NitroModules.createHybridObject('${name}') called under Jest`);
+        },
+    },
+}));
+
 // AdMob resolves its TurboModule at import time. Only the exports the app uses
 // (src/ads/*, StatsScreen) are stubbed; ads never load in tests.
 jest.mock('react-native-google-mobile-ads', () => ({

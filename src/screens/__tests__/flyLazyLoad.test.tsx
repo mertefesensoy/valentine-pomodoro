@@ -1,10 +1,10 @@
 import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppProvider } from '../../context/AppContext';
 import { save, STORAGE_KEYS } from '../../utils/storage';
+import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 
 // Phase 1 task B1: TimerScreen loads Fly Mode with React.lazy, so FlyModeScreen
 // and everything only it imports (react-native-maps, the airport data, Fly's
@@ -49,7 +49,7 @@ describe('Fly Mode is loaded lazily (B1)', () => {
 
     afterEach(async () => {
         setPlatform(originalOS);
-        await AsyncStorage.clear();
+        await resetStorage();
     });
 
     it('a cold start into Classic does not evaluate FlyModeScreen', async () => {

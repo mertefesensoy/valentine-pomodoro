@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { act, renderHook } from '@testing-library/react-native';
 import { useSessionClock } from '../useSessionClock';
-import { STORAGE_KEYS } from '../../utils/storage';
+import { save, STORAGE_KEYS } from '../../utils/storage';
+import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import type { SessionKind, SessionSlot } from '../../types';
 
 // Modern fake timers also fake Date.now(), so setInterval ticks and the
@@ -22,7 +22,7 @@ async function renderClock(handler: Handler = jest.fn()) {
     });
 }
 
-/** Lets the async AsyncStorage load in the mount effect settle. */
+/** Lets the async storage load in the mount effect settle. */
 async function flushLoad() {
     await act(async () => {});
 }
@@ -33,7 +33,7 @@ function appStateListener(): (state: string) => void {
 }
 
 beforeEach(async () => {
-    await AsyncStorage.clear();
+    await resetStorage();
     (AppState.addEventListener as jest.Mock).mockClear?.();
 });
 
@@ -100,10 +100,7 @@ describe('useSessionClock', () => {
             sessionId: 'cold-start-session',
             phase: 'focus',
         };
-        await AsyncStorage.setItem(
-            STORAGE_KEYS.SESSION_CLOCK,
-            JSON.stringify({ activeKind: 'pomodoro', pomodoro: endedSlot, fly: null }),
-        );
+        await save(STORAGE_KEYS.SESSION_CLOCK, { activeKind: 'pomodoro', pomodoro: endedSlot, fly: null });
 
         const handler = jest.fn();
         const { result } = await renderClock(handler);

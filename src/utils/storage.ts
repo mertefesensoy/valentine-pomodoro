@@ -1,12 +1,19 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { appStorage } from './appStorage';
+import { ensureMigrated } from './storageMigration';
+
+// From v1.4 the app's data lives in MMKV (Phase 1 task B2). These helpers keep
+// the async API the hooks already use; each one first awaits the one-time copy
+// from v1.3.1's AsyncStorage, so nothing reads MMKV before the copy has
+// finished, and no write can be overwritten by it. Values are JSON text, the
+// same as v1.3.1 wrote, so migrated keys read back unchanged.
 
 /**
- * Save a value to AsyncStorage with JSON serialization
+ * Save a value as JSON
  */
 export async function save<T>(key: string, value: T): Promise<void> {
+    await ensureMigrated();
     try {
-        const jsonValue = JSON.stringify(value);
-        await AsyncStorage.setItem(key, jsonValue);
+        appStorage.set(key, JSON.stringify(value));
     } catch (error) {
         console.error(`[Storage] Failed to save ${key}:`, error);
         throw error;
@@ -14,13 +21,14 @@ export async function save<T>(key: string, value: T): Promise<void> {
 }
 
 /**
- * Load a value from AsyncStorage with JSON deserialization
+ * Load a JSON value
  * Returns defaultValue if key doesn't exist or parsing fails
  */
 export async function load<T>(key: string, defaultValue: T): Promise<T> {
+    await ensureMigrated();
     try {
-        const jsonValue = await AsyncStorage.getItem(key);
-        if (jsonValue === null) {
+        const jsonValue = appStorage.getString(key);
+        if (jsonValue === undefined) {
             return defaultValue;
         }
         return JSON.parse(jsonValue) as T;
@@ -31,11 +39,12 @@ export async function load<T>(key: string, defaultValue: T): Promise<T> {
 }
 
 /**
- * Remove a value from AsyncStorage
+ * Remove a value
  */
 export async function remove(key: string): Promise<void> {
+    await ensureMigrated();
     try {
-        await AsyncStorage.removeItem(key);
+        appStorage.remove(key);
     } catch (error) {
         console.error(`[Storage] Failed to remove ${key}:`, error);
         throw error;

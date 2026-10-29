@@ -4,7 +4,7 @@ export type TimerPhase = 'focus' | 'shortBreak' | 'longBreak';
 // Theme mode types
 export type ThemeMode = 'system' | 'light' | 'dark';
 
-// Timer state (persisted to AsyncStorage)
+// Timer state (persisted through src/utils/storage)
 export interface TimerState {
     phase: TimerPhase;
     isRunning: boolean;
@@ -38,7 +38,7 @@ export interface ReminderSettings {
     notificationId?: string | null; // stored to cancel/reschedule
 }
 
-// Settings (persisted to AsyncStorage)
+// Settings (persisted through src/utils/storage)
 export interface Settings {
     durations: {
         focus: number; // minutes
@@ -82,12 +82,12 @@ export interface StatsState {
     lastAppliedSessionId?: string; // NEW: idempotency - prevent double-counting
 }
 
-// Gift mode (persisted to AsyncStorage)
+// Gift mode (persisted through src/utils/storage)
 export interface GiftMode {
     hasSeenGiftMode: boolean;
 }
 
-// Love notes (persisted to AsyncStorage)
+// Love notes (persisted through src/utils/storage)
 export interface LoveNotes {
     notes: string[];
 }

@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { Text } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { act } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -9,6 +8,7 @@ import { AppProvider, useApp } from '../../context/AppContext';
 import { formatTime } from '../../utils/time';
 import type { UseSessionClockReturn } from '../../hooks/useSessionClock';
 import TimerScreen from '../TimerScreen';
+import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import StatsScreen from '../StatsScreen';
 import SettingsScreen from '../SettingsScreen';
 import LoveNotesScreen from '../LoveNotesScreen';
@@ -62,8 +62,9 @@ const tenSecondSession = {
     wrapper: Providers,
     runs: 3,
     warmupRuns: 1,
-    // Every run hydrates from the same (empty) storage.
-    beforeEach: () => AsyncStorage.clear(),
+    // Every run hydrates from the same (empty) storage: AsyncStorage and, since
+    // B2, MMKV with its migration flag, so every run also migrates the same way.
+    beforeEach: () => resetStorage(),
     scenario: async () => {
         await act(async () => {});
         await act(() => session!.start({ kind: 'pomodoro', durationMs: 25 * 60_000 }));

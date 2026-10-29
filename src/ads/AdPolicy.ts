@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { load, save } from '../utils/storage';
 
 const STORAGE_KEY = 'ad_policy_v1';
 const MIN_SESSIONS_BETWEEN_ADS = 2;
@@ -20,16 +20,17 @@ let _isLoaded = false;
 
 /*
  * AdPolicy:
- * - Persists ad counters to AsyncStorage
+ * - Persists ad counters through src/utils/storage (MMKV since v1.4, migrated
+ *   from v1.3.1's AsyncStorage key of the same name)
  * - strict frequency capping logic
  */
 export const AdPolicy = {
     async init(): Promise<void> {
         if (_isLoaded) return;
         try {
-            const raw = await AsyncStorage.getItem(STORAGE_KEY);
-            if (raw) {
-                _state = { ...DEFAULT_STATE, ...JSON.parse(raw) };
+            const stored = await load<Partial<AdState> | null>(STORAGE_KEY, null);
+            if (stored) {
+                _state = { ...DEFAULT_STATE, ...stored };
             }
         } catch (e) {
             console.warn('[AdPolicy] Failed to load state', e);
@@ -87,7 +88,7 @@ export const AdPolicy = {
 
     async _persist(): Promise<void> {
         try {
-            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(_state));
+            await save(STORAGE_KEY, _state);
         } catch (e) {
             console.warn('[AdPolicy] Failed to save state', e);
         }

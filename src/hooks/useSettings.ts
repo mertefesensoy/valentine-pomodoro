@@ -7,7 +7,7 @@ export function useSettings() {
     const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
     const [isReady, setIsReady] = useState(false);
 
-    // Serialize writes to avoid out-of-order AsyncStorage persistence
+    // Serialize writes to avoid out-of-order persistence (async save() calls)
     const saveChainRef = useRef(Promise.resolve());
     const enqueueSave = useCallback((data: Settings) => {
         saveChainRef.current = saveChainRef.current

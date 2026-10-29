@@ -1,6 +1,6 @@
 # 2026-10-29 — Phase 0: Foundation and safety net
 
-**Status:** In progress. Items 1–8 below are done; the SDK upgrade and the device checks are open (§6.3).
+**Status:** In progress. Items 1–8 are done, as are the SDK upgrade and CNG switch (local gates green, EAS builds running); device checks are still open (§6.3).
 **Branch:** `rehaul/v2` (local only, nothing pushed)
 **Plan:** [2026-10-29-couples-rehaul-plan.md](2026-10-29-couples-rehaul-plan.md), §7 Phase 0
 
@@ -207,8 +207,8 @@ There is no Android SDK or iOS toolchain on this machine, so no native build was
 
 ### 6.3 Still open in Phase 0
 
-1. **Expo SDK 54 → 58.** Blocked on a decision: the path, and permission to run EAS builds to verify it (asked separately).
-2. **`android/` → generated native projects (CNG).** Delete the folder and git-ignore `/android` and `/ios`, so `app.json` becomes the single source of truth. Pending your yes.
+1. **Expo SDK 54 → 58.** Done step by step, with the local gates green at each step. The EAS native builds are running. See [2026-10-29-expo-sdk-58-upgrade.md](2026-10-29-expo-sdk-58-upgrade.md).
+2. **`android/` → generated native projects (CNG).** Done in `f4bdd2e`. expo-doctor went to 18/18 at that point.
 3. **Device checks on the current v1.3.1 build** (yours, on a physical phone). From `docs/device-check-backlog.md`:
    - [ ] Regression Gates: a full focus → short break → focus cycle (love note and stats fire); Stats attribution across both modes.
    - [ ] Task 1: Pomodoro and Fly timers match within ±0.5 s; a 10 s pause doesn't change elapsed time; 30 s in the background shows real elapsed time on return; warm-return completion fires once; two-slot preservation; the pill matches the dashboard in portrait and landscape.

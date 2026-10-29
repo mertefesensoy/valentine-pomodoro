@@ -141,7 +141,7 @@ export default function GiftModeModal({ visible, onDismiss }: GiftModeModalProps
                     </Animated.View>
 
                     <Pressable style={styles.button} onPress={onDismiss}>
-                        <Text style={styles.buttonText}>Let's start</Text>
+                        <Text style={styles.buttonText}>Let&apos;s start</Text>
                     </Pressable>
                 </View>
             </View>

@@ -72,6 +72,7 @@ const HeartIcon = React.memo(({ color, size }: { color: string, size: number }) 
         <Path d={HeartPath} fill={color} />
     </Svg>
 ));
+HeartIcon.displayName = 'HeartIcon';
 
 export default function PremiumCalmBackground({ enabled }: { enabled: boolean }) {
     const { colors, isDark } = useTheme();

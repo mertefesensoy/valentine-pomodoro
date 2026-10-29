@@ -7,11 +7,6 @@
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
     "scheme": "valentinepomodoro",
-    "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FFF8F0"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -88,7 +83,17 @@
           ]
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-audio",
+      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#FFF8F0"
+        }
+      ]
     ],
     "extra": {
       "eas": {

@@ -41,6 +41,7 @@ import {
     generateGreatCircleWaypoints, calculateBearing, findNearestAirport, LatLng,
     interpolateAlongPath,
 } from '../utils/geoMath';
+import { interpolateAlongPathWorklet } from '../utils/geoMathWorklet';
 import { save, load, STORAGE_KEYS } from '../utils/storage';
 import airportData from '../assets/data/airports.json';
 import { formatTime } from '../utils/time';
@@ -128,46 +129,6 @@ const VALID_MODES: CameraMode[] = ['followPlane', 'route', 'free'];
 // Camera effects fire at the same cadence (they depend on markerCoord state).
 // Reduce MARKER_HZ to 10 if the native bridge stalls on low-end devices.
 const MARKER_HZ = 15;
-
-// ─── UI-thread interpolation worklet ─────────────────────────────────────────
-// Mirror of geoMath.ts:interpolateAlongPath — keep in sync with that function.
-// Defined at module scope so the Reanimated Babel plugin instruments it before
-// any useFrameCallback closure captures it.
-
-function interpolateAlongPathWorklet(
-    waypoints: LatLng[],
-    progress: number,
-): { coord: LatLng; bearing: number } {
-    'worklet';
-    if (waypoints.length === 0) return { coord: { latitude: 0, longitude: 0 }, bearing: 0 };
-    if (waypoints.length === 1) return { coord: waypoints[0], bearing: 0 };
-
-    const clamped = Math.max(0, Math.min(1, progress));
-    const exactIdx = clamped * (waypoints.length - 1);
-    const lowerIdx = Math.min(Math.floor(exactIdx), waypoints.length - 2);
-    const upperIdx = lowerIdx + 1;
-    const fraction = exactIdx - lowerIdx;
-
-    let lonDiff = waypoints[upperIdx].longitude - waypoints[lowerIdx].longitude;
-    if (lonDiff > 180) lonDiff -= 360;
-    if (lonDiff < -180) lonDiff += 360;
-
-    const lat = waypoints[lowerIdx].latitude + fraction * (waypoints[upperIdx].latitude - waypoints[lowerIdx].latitude);
-    const lon = waypoints[lowerIdx].longitude + fraction * lonDiff;
-
-    const toRad = (d: number) => (d * Math.PI) / 180;
-    const toDeg = (r: number) => (r * 180) / Math.PI;
-    const lat1 = toRad(waypoints[lowerIdx].latitude);
-    const lat2 = toRad(waypoints[upperIdx].latitude);
-    const dLon = toRad(waypoints[upperIdx].longitude - waypoints[lowerIdx].longitude);
-    const sinDLon = Math.sin(dLon);
-    const cosLat2 = Math.cos(lat2);
-    const y = sinDLon * cosLat2;
-    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * cosLat2 * Math.cos(dLon);
-    const bearing = (toDeg(Math.atan2(y, x)) + 360) % 360;
-
-    return { coord: { latitude: lat, longitude: lon }, bearing };
-}
 
 // ─── Component ───────────────────────────────────────────────────────────────
 

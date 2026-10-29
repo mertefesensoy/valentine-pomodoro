@@ -264,8 +264,9 @@ export function useTimer(
 }
 
 // ─── Phase state machines (unchanged logic) ───────────────────────────────────
+// Exported for unit tests only (src/hooks/__tests__/timerPhases.test.ts).
 
-function nextAfterComplete(
+export function nextAfterComplete(
     phase: TimerPhase,
     focusCountInCycle: number,
     longBreakEvery: number
@@ -280,7 +281,7 @@ function nextAfterComplete(
     return { phase: 'focus', focusCountInCycle };
 }
 
-function nextAfterSkip(
+export function nextAfterSkip(
     phase: TimerPhase,
     focusCountInCycle: number
 ): { phase: TimerPhase; focusCountInCycle: number } {

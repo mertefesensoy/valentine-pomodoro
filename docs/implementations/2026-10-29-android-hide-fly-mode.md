@@ -1,6 +1,8 @@
 # 2026-10-29 — Hide Fly Mode where it can't open, and stop the saved-mode crash loop
 
-**Status:** Done in code and unit-tested; **device check pending** (it needs an EAS preview build, which needs your go-ahead)
+**Status:** Done in code and unit-tested; **device check pending** (it needs an EAS preview build, which needs your go-ahead).
+
+> **Revised the same day:** you then chose to bring Fly to Android in v1.4 with a Google Maps key (Phase 1 plan tasks B8 and B9). This guard stays. B8 widens `isFlyModeAvailable()` to "iOS, or Android when the build has a key", so builds without a key, and the web, keep falling back to Classic.
 **Branch:** `rehaul/v2`
 **Decision:** yours, 2026-10-29: option (b) in the [Phase 1 plan](2026-10-29-phase1-plan.md) §6 item 7
 

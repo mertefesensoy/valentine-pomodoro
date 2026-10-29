@@ -401,7 +401,7 @@ export default function FlyModeScreen() {
             AdPolicy.recordSessionCompletion().then(() => {
                 if (AdPolicy.shouldShowAd()) setIsAdPending(true);
             }).catch(console.warn);
-        });
+        }, 'fly');
     }, [session.onComplete, settings, incrementFocus, pickRandomNote]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ── Start

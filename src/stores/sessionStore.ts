@@ -28,8 +28,16 @@ export const INITIAL_POMODORO: PomodoroState = {
 
 export type CompletionHandler = (slot: SessionSlot, kind: SessionKind) => void;
 
-// Functions, not state: subscribers register here and are called on completion.
-const completionHandlers = new Set<CompletionHandler>();
+// Functions, not state: subscribers register here, each with the kind of
+// session it handles (null: every kind), and are called on completion.
+const completionHandlers = new Map<CompletionHandler, SessionKind | null>();
+
+function hasHandlerFor(kind: SessionKind): boolean {
+    for (const k of completionHandlers.values()) {
+        if (k === null || k === kind) return true;
+    }
+    return false;
+}
 
 export interface SessionStore {
     clock: SessionClockState;
@@ -55,8 +63,13 @@ export interface SessionStore {
     extend(additionalMs: number): void;
     /** Merges extras into an existing slot without touching clock fields. */
     setSlotExtras(kind: SessionKind, extras: Partial<SessionSlot>): void;
-    /** Registers a completion handler. Returns the unsubscribe function. */
-    onComplete(handler: CompletionHandler): () => void;
+    /**
+     * Registers a completion handler for sessions of `kind` (default: every
+     * kind). Returns the unsubscribe function. If a session of that kind has
+     * already ended and is waiting for a handler (DEF-004), it is completed
+     * now, during this call.
+     */
+    onComplete(handler: CompletionHandler, kind?: SessionKind): () => void;
     /** Replaces the Pomodoro state and persists it. */
     setPomodoro(pomodoro: PomodoroState): void;
 }
@@ -193,8 +206,11 @@ export const useSessionStore = create<SessionStore>()((set, get) => {
             commit({ ...state, [kind]: { ...slot, ...extras } });
         },
 
-        onComplete(handler) {
-            completionHandlers.add(handler);
+        onComplete(handler, kind) {
+            completionHandlers.set(handler, kind ?? null);
+            // A session that ended before anything could handle it (DEF-004).
+            const ended = endedActiveSlot();
+            if (ended && (kind === undefined || kind === ended.kind)) fireCompletion(ended.slot, ended.kind);
             return () => {
                 completionHandlers.delete(handler);
             };
@@ -209,24 +225,30 @@ export const useSessionStore = create<SessionStore>()((set, get) => {
 
 // ─── Engine ───────────────────────────────────────────────────────────────────
 
-/** Clears the slot and calls every handler. The caller has checked the slot ended. */
-function completeSlot(slot: SessionSlot, kind: SessionKind) {
-    const { clock } = useSessionStore.getState();
-    const cleared: SessionClockState = { ...clock, [kind]: null, activeKind: null };
-    useSessionStore.setState({ clock: cleared });
-    saveSync(STORAGE_KEYS.SESSION_CLOCK, cleared);
-    completionHandlers.forEach((h) => h(slot, kind));
-}
-
 /**
- * Idempotent completion: does nothing unless `slot` is still the live slot of
- * its kind (same endAt), so the ticker and the foreground event can both see
- * the end and the handlers still run exactly once (FR-TMR-005).
+ * Idempotent completion: clears the slot and calls the handlers for its kind,
+ * exactly once (FR-TMR-005).
+ *
+ * - Does nothing unless `slot` is still the live slot of its kind (same
+ *   endAt), so the ticker, the foreground event, the cold-start check and a
+ *   handler's registration can all see the end and it still completes once.
+ * - Does nothing while no handler for `kind` is registered (DEF-004): the
+ *   session stays ended-but-pending, and completes when one registers. On a
+ *   phone the screens that handle completions mount only after the navigator
+ *   has resolved its initial URL, after the clock has hydrated.
  */
 function fireCompletion(slot: SessionSlot, kind: SessionKind) {
     const live = useSessionStore.getState().clock[kind];
     if (!live || live.endAt !== slot.endAt) return;
-    completeSlot(slot, kind);
+    if (!hasHandlerFor(kind)) return;
+
+    const { clock } = useSessionStore.getState();
+    const cleared: SessionClockState = { ...clock, [kind]: null, activeKind: null };
+    useSessionStore.setState({ clock: cleared });
+    saveSync(STORAGE_KEYS.SESSION_CLOCK, cleared);
+    completionHandlers.forEach((k, h) => {
+        if (k === null || k === kind) h(slot, kind);
+    });
 }
 
 /** The active slot if it is running and its end has passed. */
@@ -245,10 +267,12 @@ let engineInstances = 0;
  * The session clock's side effects. Mounted exactly once, by StoreGate, after
  * the stores have hydrated (`active`).
  *
- * - On mount: a session that ended while the app was closed is completed at
- *   once (cold start).
+ * - On mount: a session that ended while the app was closed is completed
+ *   (cold start), if a handler for its kind is registered; otherwise it waits
+ *   for one (DEF-004, see fireCompletion).
  * - Every second: completes the active slot if its end has passed, otherwise
- *   increments `tick`.
+ *   increments `tick`. An ended session still waiting for a handler is left
+ *   alone, so nothing ticks.
  * - On returning to the foreground: completes the active slot if its end has
  *   passed while the app was in the background.
  *
@@ -267,7 +291,7 @@ export function useSessionClockEngine(active: boolean): void {
 
         // Cold start: the session completed while the app was closed.
         const ended = endedActiveSlot();
-        if (ended) completeSlot(ended.slot, ended.kind);
+        if (ended) fireCompletion(ended.slot, ended.kind);
 
         const interval = setInterval(() => {
             const { clock } = useSessionStore.getState();

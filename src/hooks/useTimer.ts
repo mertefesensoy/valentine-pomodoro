@@ -98,7 +98,7 @@ export function useTimer(
             if (wasFocus && settings.showLoveNotes) {
                 setShowLoveNoteCard(true);
             }
-        });
+        }, 'pomodoro');
     }, [session.onComplete, settings, pickRandomNote, incrementFocus, persistPomodoro]);
 
     // ── getDuration helper ───────────────────────────────────────────────────

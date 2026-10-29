@@ -43,3 +43,7 @@ coverage/
 
 # Impeccable engine binary (downloaded and checksum-verified on first run)
 .claude/skills/impeccable/scripts/bin/
+
+# Native projects are generated from app.json by expo prebuild / EAS (CNG)
+/android
+/ios

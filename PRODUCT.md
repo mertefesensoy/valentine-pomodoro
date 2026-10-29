@@ -62,7 +62,7 @@ Its origin is true and specific: the app began as a gift for one person. That he
 - Ads never appear during a running shared session, on the web, or for Plus couples. The paywall never appears before the first completed session or over a running session.
 - **Platforms:** iOS 16.4+, Android, and the web (an Expo web build, which follows web conventions as its own surface). The real map is phone-only.
 - **Privacy:** GDPR and KVKK; in-app account deletion; data export; minimal, bucketed analytics.
-- All vector art is produced with VectorCraft.
+- All vector art is produced with VectorCraft, and all app sounds with SoundCraft (synthesized, no third-party samples).
 
 **Undecided:**
 

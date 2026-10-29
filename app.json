@@ -6,7 +6,6 @@
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "scheme": "valentinepomodoro",
     "splash": {
       "image": "./assets/images/splash.png",

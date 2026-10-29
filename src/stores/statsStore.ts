@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { create } from 'zustand';
 import type { DayStats, StatsMap, StatsState, StreakState } from '../types';
-import { diffDays, getTodayKey } from '../utils/time';
+import { dayKeyToUtcMs, diffDays, getTodayKey } from '../utils/time';
 import { loadSync, saveSync, STORAGE_KEYS } from '../utils/storage';
 
 // The stats store (Phase 1 B3): daily stats, the goal and the streak, key
@@ -51,6 +51,18 @@ function isV2(x: any): x is StatsState {
     return x && typeof x === 'object' && x.days && typeof x.goalMinutes === 'number' && x.streak;
 }
 
+/**
+ * The calendar day before `dayKey` (both YYYY-MM-DD, local dates). Computed on
+ * UTC midnights, like diffDays, so a DST change can't skip or repeat a day.
+ */
+export function previousDayKey(dayKey: string): string {
+    const d = new Date(dayKeyToUtcMs(dayKey) - 86_400_000);
+    const yyyy = d.getUTCFullYear();
+    const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(d.getUTCDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
+
 /** The streak as it stands on `todayKey`: broken (current 0) if the last hit was 2+ days ago. */
 export function normalizeStreakForToday(streak: StreakState, todayKey: string): StreakState {
     if (!streak.lastHitDayKey) return { current: 0, best: streak.best ?? 0 };
@@ -83,14 +95,17 @@ export interface StatsStore extends StatsState {
     /**
      * Reads `stats_v2` from MMKV synchronously, or, when it is absent, the
      * 1.0.x `stats` map, and writes the result back as `stats_v2`. Keeps
-     * `lastAppliedSessionId` (DEF-002). Never throws.
+     * `lastAppliedSessionId` (DEF-002) and the streak as stored (DEF-003: a
+     * streak that looks broken today may still be continued by a session
+     * credited to yesterday; useStreak() shows the broken value). Never throws.
      */
     hydrate(): void;
     /**
      * Credits one completed focus session of `minutes` to `dayKey` (default:
      * today). A `sessionId` equal to the last one credited is ignored
      * (FR-STA-002). The first credit that reaches the day's goal marks the day
-     * hit, updates the streak and sets `goalHitPulse`. Persists.
+     * hit and sets `goalHitPulse`. The streak continues if the day before
+     * `dayKey` was hit, otherwise restarts at 1 (FR-STA-005). Persists.
      */
     incrementFocus(minutes: number, dayKey?: string, sessionId?: string): void;
     /** Rounds and clamps to 0–1440 minutes (0 = off), then persists. */
@@ -115,14 +130,15 @@ export const useStatsStore = create<StatsStore>()((set, get) => ({
             const loadedV2 = loadSync<StatsState | null>(STORAGE_KEYS.STATS_V2, null);
             // migrate from old v1 map if needed
             const loadedV1 = loadedV2 ? null : loadSync<StatsMap>(STORAGE_KEYS.STATS, {});
-            const todayKey = getTodayKey();
 
             let next: StatsState;
             if (loadedV2 && isV2(loadedV2)) {
                 next = {
                     days: mergeDays(loadedV2.days, {}),
                     goalMinutes: loadedV2.goalMinutes ?? DEFAULT_GOAL_MINUTES,
-                    streak: normalizeStreakForToday(loadedV2.streak, todayKey),
+                    // As stored: zeroing a lapsed streak here (as before B3) lost the
+                    // count a midnight-crossing session needs to continue it (DEF-003).
+                    streak: loadedV2.streak,
                 };
                 // DEF-002: the idempotency key survives a relaunch.
                 if (typeof loadedV2.lastAppliedSessionId === 'string') {
@@ -187,16 +203,14 @@ export const useStatsStore = create<StatsStore>()((set, get) => ({
         let nextStreak = prev.streak;
         let goalHitPulse = prev.goalHitPulse;
         if (hitTransition) {
-            const yesterdayKeyDate = new Date();
-            yesterdayKeyDate.setDate(yesterdayKeyDate.getDate() - 1);
-            const yyyy = yesterdayKeyDate.getFullYear();
-            const mm = String(yesterdayKeyDate.getMonth() + 1).padStart(2, '0');
-            const dd = String(yesterdayKeyDate.getDate()).padStart(2, '0');
-            const yesterdayKey = `${yyyy}-${mm}-${dd}`;
+            // DEF-003: "yesterday" is the day before the credited day, not before
+            // now: a session that started before midnight is credited to that
+            // day (FR-STA-001), and its streak continues from the day before it.
+            const dayBeforeKey = previousDayKey(targetDayKey);
 
-            const yesterday = prev.days[yesterdayKey];
+            const dayBefore = prev.days[dayBeforeKey];
             const shouldContinue =
-                (yesterday?.goalHit === true) || (prev.streak.lastHitDayKey === yesterdayKey);
+                (dayBefore?.goalHit === true) || (prev.streak.lastHitDayKey === dayBeforeKey);
 
             const newCurrent = shouldContinue ? (prev.streak.current ?? 0) + 1 : 1;
             const newBest = Math.max(prev.streak.best ?? 0, newCurrent);

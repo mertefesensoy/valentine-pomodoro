@@ -44,7 +44,7 @@ import {
 import { interpolateAlongPathWorklet } from '../utils/geoMathWorklet';
 import { save, load, STORAGE_KEYS } from '../utils/storage';
 import { useAirports } from '../hooks/useAirports';
-import { formatTime } from '../utils/time';
+import { formatTime, getDayKeyFromDate, getTodayKey } from '../utils/time';
 import { useFlyModeAudio } from '../hooks/useFlyModeAudio';
 import { useSessionClock } from '../hooks/useSessionClock';
 import { useNotesStore } from '../stores/notesStore';
@@ -386,7 +386,10 @@ export default function FlyModeScreen() {
 
             const minutes = Math.round((slot.durationMs ?? 0) / 60000);
             if (minutes > 0) {
-                incrementFocus(minutes);
+                // DEF-001: credit the day the flight took off, once per session id,
+                // as a Pomodoro does (FR-STA-001, FR-STA-002).
+                const dayKey = slot.sessionStartedAt ? getDayKeyFromDate(slot.sessionStartedAt) : getTodayKey();
+                incrementFocus(minutes, dayKey, slot.sessionId ?? undefined);
             }
 
             if (settings.showLoveNotes) {

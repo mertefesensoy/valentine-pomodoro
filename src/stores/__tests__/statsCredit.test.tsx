@@ -1,6 +1,6 @@
 import { act, render } from '@testing-library/react-native';
 import { StoreGate } from '../StoreGate';
-import { useStatsStore } from '../statsStore';
+import { previousDayKey, useStatsStore } from '../statsStore';
 import { save, STORAGE_KEYS } from '../../utils/storage';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import type { StatsState } from '../../types';
@@ -41,8 +41,7 @@ describe('a completion replayed after a relaunch (DEF-002)', () => {
 
 // covers: FR-STA-005
 describe('a goal reached by a session that crossed midnight (DEF-003)', () => {
-    // Known defect until the DEF-003 fix: it.failing passes only while the test fails.
-    it.failing('continues the streak from the day before the credited day', async () => {
+    it('continues the streak from the day before the credited day', async () => {
         await launchWith({
             days: {
                 '2026-10-29': {
@@ -61,5 +60,33 @@ describe('a goal reached by a session that crossed midnight (DEF-003)', () => {
 
         expect(stats().days['2026-10-30']).toMatchObject({ focusMinutes: 50, goalHit: true });
         expect(stats().streak).toMatchObject({ current: 4, best: 4, lastHitDayKey: '2026-10-30' });
+    });
+
+    it('restarts the streak at 1 when the day before the credited day was missed', async () => {
+        await launchWith({
+            days: {
+                '2026-10-28': { focusSessions: 2, focusMinutes: 50, goalMinutes: 50, goalHit: true },
+            },
+            goalMinutes: 50,
+            streak: { current: 3, best: 3, lastHitDayKey: '2026-10-28' },
+        });
+
+        await act(() => stats().incrementFocus(50, '2026-10-30', 'session-C'));
+
+        expect(stats().streak).toMatchObject({ current: 1, best: 3, lastHitDayKey: '2026-10-30' });
+    });
+});
+
+// covers: FR-STA-005
+describe('previousDayKey', () => {
+    it.each([
+        ['2026-10-31', '2026-10-30'],
+        ['2026-03-01', '2026-02-28'],
+        ['2028-03-01', '2028-02-29'], // leap year
+        ['2026-01-01', '2025-12-31'],
+        ['2026-03-30', '2026-03-29'], // the day after the EU spring-forward change
+        ['2026-10-26', '2026-10-25'], // the day after the EU fall-back change
+    ])('the day before %s is %s', (day, before) => {
+        expect(previousDayKey(day)).toBe(before);
     });
 });

@@ -48,8 +48,7 @@ afterEach(async () => {
 
 // covers: FR-STA-001, FR-STA-002
 describe('a Fly session that lands after midnight (DEF-001)', () => {
-    // Known defect until the DEF-001 fix: it.failing passes only while the test fails.
-    it.failing('is credited to the day it took off, with its session id', async () => {
+    it('is credited to the day it took off, with its session id', async () => {
         await render(
             <GestureHandlerRootView style={{ flex: 1 }}>
                 <StoreGate>

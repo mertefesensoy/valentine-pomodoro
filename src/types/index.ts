@@ -4,23 +4,15 @@ export type TimerPhase = 'focus' | 'shortBreak' | 'longBreak';
 // Theme mode types
 export type ThemeMode = 'system' | 'light' | 'dark';
 
-// Timer state (persisted through src/utils/storage)
-export interface TimerState {
+// Pomodoro state, stored under `timer_state` (session store, Phase 1 B3).
+// Clock fields live in the session clock; this holds only what's specific to
+// the Pomodoro experience. Pre-1.3 installs stored a wider shape under the same
+// key (LegacyTimerState in src/__fixtures__/storage/v131.ts); the extra fields
+// are ignored on read.
+export interface PomodoroState {
     phase: TimerPhase;
-    isRunning: boolean;
-    endAt: number | null; // epoch ms when running
-    remainingMs: number | null; // cached when paused
-    completedFocusCountInCycle: number; // 0..N for long break logic
-    scheduledNotificationId: string | null; // ID of scheduled notification
-    sessionPlannedMinutes: number | null; // Actual duration for this session (stats accuracy)
-    lastHandledEndAt: number | null; // Idempotency: prevent double-completion
-    sessionStartedAt: number | null; // NEW: epoch ms when session started (for midnight attribution)
-    sessionId: string | null; // NEW: unique ID for this session (prevents double-counting)
-
-    // Phase 5: Love notes
-    lastLoveNote: string | null; // Last shown note (for anti-repeat logic)
-    lastTransitionId: number; // Increment on each transition (for uniqueness)
-    showLoveNoteCard: boolean; // If true, show love note card overlay
+    completedFocusCountInCycle: number;
+    lastLoveNote: string | null;
 }
 
 // Quiet hours for daily reminders
@@ -87,10 +79,9 @@ export interface GiftMode {
     hasSeenGiftMode: boolean;
 }
 
-// Love notes (persisted through src/utils/storage)
-export interface LoveNotes {
-    notes: string[];
-}
+// Love notes, stored under `love_notes` as a bare JSON array of strings, the
+// shape every version since 1.0 has written (Stage A finding 2).
+export type LoveNotes = string[];
 
 // App mode — which timer experience is active
 export type AppMode = 'default' | 'fly';

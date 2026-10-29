@@ -1,5 +1,5 @@
 import { appStorage } from './appStorage';
-import { ensureMigrated } from './storageMigration';
+import { ensureMigrated, isStorageMigrated } from './storageMigration';
 
 // From v1.4 the app's data lives in MMKV (Phase 1 task B2). These helpers keep
 // the async API the hooks already use; each one first awaits the one-time copy
@@ -35,6 +35,57 @@ export async function load<T>(key: string, defaultValue: T): Promise<T> {
     } catch (error) {
         console.error(`[Storage] Failed to load ${key}, using default:`, error);
         return defaultValue;
+    }
+}
+
+/**
+ * Synchronous load, for the stores' hydration (Phase 1 B3). Same JSON format
+ * and fallbacks as load(): a missing key or corrupt JSON returns defaultValue,
+ * and corrupt JSON is logged.
+ *
+ * Reads nothing until the one-time migration has finished (the B2 invariant):
+ * before that it returns defaultValue. StoreGate only hydrates once
+ * isStorageMigrated() holds, so in the app this branch is never taken.
+ */
+export function loadSync<T>(key: string, defaultValue: T): T {
+    if (!isStorageMigrated()) {
+        console.error(`[Storage] loadSync(${key}) before the migration finished; using default`);
+        return defaultValue;
+    }
+    try {
+        const jsonValue = appStorage.getString(key);
+        if (jsonValue === undefined) {
+            return defaultValue;
+        }
+        return JSON.parse(jsonValue) as T;
+    } catch (error) {
+        console.error(`[Storage] Failed to load ${key}, using default:`, error);
+        return defaultValue;
+    }
+}
+
+/**
+ * Save a value as JSON, synchronously once the migration has finished.
+ *
+ * Before the migration flag exists, a direct MMKV write could be overwritten
+ * by the copy (the B2 invariant), so the write is handed to save(), which waits
+ * for it. Such writes keep their call order: each one awaits the same
+ * migration promise, and its continuation runs in the order they were queued.
+ *
+ * Never throws: a failed write is logged, as the hooks before B3 did with
+ * save()'s rejection.
+ */
+export function saveSync<T>(key: string, value: T): void {
+    if (!isStorageMigrated()) {
+        save(key, value).catch((error) => {
+            console.error(`[Storage] Failed to save ${key}:`, error);
+        });
+        return;
+    }
+    try {
+        appStorage.set(key, JSON.stringify(value));
+    } catch (error) {
+        console.error(`[Storage] Failed to save ${key}:`, error);
     }
 }
 

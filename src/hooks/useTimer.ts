@@ -1,27 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { TimerPhase, Settings, SessionSlot } from '../types';
-import { save, load, STORAGE_KEYS } from '../utils/storage';
+import type { TimerPhase, Settings, SessionSlot, PomodoroState } from '../types';
+import { INITIAL_POMODORO, useSessionStore } from '../stores/sessionStore';
 import { minutesToMs, getDayKeyFromDate, getTodayKey } from '../utils/time';
 import { useNotifications, getNotificationContent } from './useNotifications';
 import * as Haptics from 'expo-haptics';
 import type { UseSessionClockReturn } from './useSessionClock';
 
-// ─── Pomodoro-specific persistent state ───────────────────────────────────────
-// Clock state (endAt, remainingMs, isRunning) lives in useSessionClock.
-// This type holds only what's specific to the Pomodoro experience.
-// Exported for the v1.3.1 storage fixture (src/__fixtures__/storage/v131.ts).
-
-export interface PomodoroState {
-    phase: TimerPhase;
-    completedFocusCountInCycle: number;
-    lastLoveNote: string | null;
-}
-
-const INITIAL_POMODORO: PomodoroState = {
-    phase: 'focus',
-    completedFocusCountInCycle: 0,
-    lastLoveNote: null,
-};
+// The current Pomodoro state, read at call time (not render time) by the
+// handlers and actions below.
+const currentPomodoro = (): PomodoroState => useSessionStore.getState().pomodoro;
 
 interface UseTimerReturn {
     phase: TimerPhase;
@@ -44,40 +31,14 @@ export function useTimer(
     incrementFocus: (minutes: number, dayKey?: string, sessionId?: string) => void,
     session: UseSessionClockReturn,
 ): UseTimerReturn {
-    const [pomodoroState, setPomodoroState] = useState<PomodoroState>(INITIAL_POMODORO);
-    const pomodoroStateRef = useRef(pomodoroState);
-    useEffect(() => { pomodoroStateRef.current = pomodoroState; }, [pomodoroState]);
+    // Phase, cycle count and last note: the session store's `pomodoro`
+    // (key timer_state), hydrated before the first render (Phase 1 B3).
+    const pomodoroState = useSessionStore((s) => s.pomodoro);
+    const persistPomodoro = useSessionStore((s) => s.setPomodoro);
 
     const [showLoveNoteCard, setShowLoveNoteCard] = useState(false);
 
     const { scheduleSessionEnd, cancelScheduled } = useNotifications();
-
-    // Persist pomodoro state (phase/count/lastLoveNote)
-    const persistPomodoro = useCallback((state: PomodoroState) => {
-        setPomodoroState(state);
-        save(STORAGE_KEYS.TIMER_STATE, state).catch(() => {});
-    }, []);
-
-    // ── Load persisted pomodoro state on mount (migration-safe) ────────────
-    useEffect(() => {
-        let cancelled = false;
-        (async () => {
-            // Read old TIMER_STATE — may have both clock fields (ignored) and
-            // Pomodoro-specific fields (migrated).
-            const old = await load<Partial<PomodoroState & { phase?: TimerPhase; completedFocusCountInCycle?: number; lastLoveNote?: string | null }>>(
-                STORAGE_KEYS.TIMER_STATE,
-                {}
-            );
-            if (cancelled) return;
-            setPomodoroState({
-                phase: old.phase ?? 'focus',
-                completedFocusCountInCycle: old.completedFocusCountInCycle ?? 0,
-                lastLoveNote: old.lastLoveNote ?? null,
-            });
-        })();
-        return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     // ── Cancel Pomodoro notification when mode switches away ─────────────────
     // switchTo() auto-pauses the clock but doesn't know about notification IDs.
@@ -103,7 +64,7 @@ export function useTimer(
             if (kind !== 'pomodoro') return;
 
             const wasFocus = slot.phase === 'focus';
-            const fCount = slot.completedFocusCountInCycle ?? pomodoroStateRef.current.completedFocusCountInCycle;
+            const fCount = slot.completedFocusCountInCycle ?? currentPomodoro().completedFocusCountInCycle;
 
             if (wasFocus && slot.sessionPlannedMinutes) {
                 const dayKey = slot.sessionStartedAt
@@ -113,14 +74,14 @@ export function useTimer(
             }
 
             const nextPhase = nextAfterComplete(
-                slot.phase ?? pomodoroStateRef.current.phase,
+                slot.phase ?? currentPomodoro().phase,
                 fCount,
                 settings.longBreakEvery
             );
 
             let loveNote: string | null = null;
             if (wasFocus && settings.showLoveNotes) {
-                loveNote = pickRandomNote(pomodoroStateRef.current.lastLoveNote);
+                loveNote = pickRandomNote(currentPomodoro().lastLoveNote);
             }
 
             if (settings.haptics) {
@@ -130,7 +91,7 @@ export function useTimer(
             const newPomodoro: PomodoroState = {
                 phase: nextPhase.phase,
                 completedFocusCountInCycle: nextPhase.focusCountInCycle,
-                lastLoveNote: loveNote ?? pomodoroStateRef.current.lastLoveNote,
+                lastLoveNote: loveNote ?? currentPomodoro().lastLoveNote,
             };
             persistPomodoro(newPomodoro);
 
@@ -159,7 +120,7 @@ export function useTimer(
         let notificationId: string | null = null;
         if (settings.notifications) {
             try {
-                const { title, body } = getNotificationContent(pomodoroStateRef.current.phase);
+                const { title, body } = getNotificationContent(currentPomodoro().phase);
                 notificationId = await Promise.race([
                     scheduleSessionEnd(now + durationMs, title, body),
                     new Promise<null>(resolve => setTimeout(() => resolve(null), 1000)),
@@ -173,8 +134,8 @@ export function useTimer(
             kind: 'pomodoro',
             durationMs,
             extras: {
-                phase: pomodoroStateRef.current.phase,
-                completedFocusCountInCycle: pomodoroStateRef.current.completedFocusCountInCycle,
+                phase: currentPomodoro().phase,
+                completedFocusCountInCycle: currentPomodoro().completedFocusCountInCycle,
                 sessionPlannedMinutes: durationMinutes,
                 scheduledNotificationId: notificationId,
             },
@@ -199,7 +160,7 @@ export function useTimer(
         if (settings.notifications) {
             const endAt = Date.now() + slot.pausedRemainingMs;
             try {
-                const { title, body } = getNotificationContent(pomodoroStateRef.current.phase);
+                const { title, body } = getNotificationContent(currentPomodoro().phase);
                 const notifId = await Promise.race([
                     scheduleSessionEnd(endAt, title, body),
                     new Promise<null>(resolve => setTimeout(() => resolve(null), 1000)),
@@ -217,10 +178,10 @@ export function useTimer(
         session.stop();
 
         const next = nextAfterSkip(
-            pomodoroStateRef.current.phase,
-            pomodoroStateRef.current.completedFocusCountInCycle
+            currentPomodoro().phase,
+            currentPomodoro().completedFocusCountInCycle
         );
-        persistPomodoro({ ...pomodoroStateRef.current, phase: next.phase, completedFocusCountInCycle: next.focusCountInCycle });
+        persistPomodoro({ ...currentPomodoro(), phase: next.phase, completedFocusCountInCycle: next.focusCountInCycle });
     }, [session, cancelScheduled, persistPomodoro]);
 
     const reset = useCallback(() => {

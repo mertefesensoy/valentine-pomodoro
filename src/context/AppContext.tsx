@@ -1,63 +1,69 @@
-import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
-import { useSettings } from '../hooks/useSettings';
-import { useStats } from '../hooks/useStats';
-import { useLoveNotes } from '../hooks/useLoveNotes';
-import { useReminder } from '../hooks/useReminder';
-import { useSessionClock, UseSessionClockReturn } from '../hooks/useSessionClock';
-import { AppMode } from '../types';
-import { resolveAppMode } from '../constants/features';
-import { save, load, STORAGE_KEYS } from '../utils/storage';
+import type { ReactNode } from 'react';
+import { useSessionClock, type UseSessionClockReturn } from '../hooks/useSessionClock';
+import { StoreGate } from '../stores/StoreGate';
+import { useNotesStore } from '../stores/notesStore';
+import { useSettingsStore } from '../stores/settingsStore';
+import { useStatsStore, useStatsViews } from '../stores/statsStore';
+import { useUiStore } from '../stores/uiStore';
 
-type AppContextValue = {
-    settings: ReturnType<typeof useSettings>;
-    stats: ReturnType<typeof useStats>;
-    loveNotes: ReturnType<typeof useLoveNotes>;
-    reminder: ReturnType<typeof useReminder>;
-    activeMode: AppMode;
-    setActiveMode: (mode: AppMode) => void;
-    session: UseSessionClockReturn;
-};
-
-const AppContext = createContext<AppContextValue | null>(null);
+// TRANSITIONAL SHIM (Phase 1 B3, first commit). The state now lives in Zustand
+// stores (src/stores); this file rebuilds the old useApp() object from them so
+// every existing consumer and test runs unchanged against the stores. It reads
+// whole stores and the clock's tick, so it re-renders exactly as the old
+// context did. The second B3 commit moves each consumer onto selectors and
+// deletes this file.
 
 export function AppProvider({ children }: { children: ReactNode }) {
-    // ✅ these run ONCE globally
-    const settings = useSettings();
-    const stats = useStats();
-    const loveNotes = useLoveNotes();
-    const reminder = useReminder();
-    const session = useSessionClock();
-
-    // Mode state — persisted so the user's last choice survives restarts.
-    // resolveAppMode turns a 'fly' this platform can't open into 'default'.
-    const [activeMode, setActiveModeState] = useState<AppMode>('default');
-
-    useEffect(() => {
-        load<AppMode>(STORAGE_KEYS.APP_MODE, 'default').then((stored) => setActiveModeState(resolveAppMode(stored)));
-    }, []);
-
-    const setActiveMode = (mode: AppMode) => {
-        const next = resolveAppMode(mode);
-        setActiveModeState(next);
-        save(STORAGE_KEYS.APP_MODE, next);
-    };
-
-    // ✅ memoize to prevent re-render storm
-    const value = useMemo(
-        () => ({ settings, stats, loveNotes, reminder, activeMode, setActiveMode, session }),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [settings, stats, loveNotes, reminder, activeMode, session]
-    );
-
-    return (
-        <AppContext.Provider value={value}>
-            {children}
-        </AppContext.Provider>
-    );
+    return <StoreGate>{children}</StoreGate>;
 }
 
 export function useApp() {
-    const ctx = useContext(AppContext);
-    if (!ctx) throw new Error('useApp must be used within AppProvider');
-    return ctx;
+    const settingsStore = useSettingsStore();
+    const notesStore = useNotesStore();
+    const statsStore = useStatsStore();
+    const statsViews = useStatsViews();
+    const uiStore = useUiStore();
+    const session: UseSessionClockReturn = useSessionClock();
+
+    return {
+        settings: {
+            settings: settingsStore.settings,
+            isReady: settingsStore.isReady,
+            updateSettings: settingsStore.updateSettings,
+        },
+        stats: {
+            stats: statsStore.days,
+            isReady: statsStore.isReady,
+            incrementFocus: statsStore.incrementFocus,
+            today: statsViews.today,
+            totals: statsViews.totals,
+            last7Days: statsViews.last7Days,
+            goalMinutes: statsStore.goalMinutes,
+            setGoalMinutes: statsStore.setGoalMinutes,
+            streak: statsViews.streak,
+            goalHitPulse: statsStore.goalHitPulse,
+            clearGoalHitPulse: statsStore.clearGoalHitPulse,
+        },
+        loveNotes: {
+            notes: notesStore.notes,
+            count: notesStore.notes.length,
+            isReady: notesStore.isReady,
+            addNote: notesStore.addNote,
+            editNote: notesStore.editNote,
+            deleteNote: notesStore.deleteNote,
+            resetToDefaults: notesStore.resetToDefaults,
+            pickRandomNote: notesStore.pickRandomNote,
+        },
+        reminder: {
+            isReady: settingsStore.isReady,
+            reminder: settingsStore.reminder,
+            enableDailyReminder: settingsStore.enableDailyReminder,
+            disableDailyReminder: settingsStore.disableDailyReminder,
+            setReminderTimeHHMM: settingsStore.setReminderTimeHHMM,
+            setQuietHours: settingsStore.setQuietHours,
+        },
+        activeMode: uiStore.activeMode,
+        setActiveMode: uiStore.setActiveMode,
+        session,
+    };
 }

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { AppState } from 'react-native';
 import { act, renderHook } from '@testing-library/react-native';
 import { useSessionClock } from '../useSessionClock';
+import { StoreGate } from '../../stores/StoreGate';
 import { save, STORAGE_KEYS } from '../../utils/storage';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import type { SessionKind, SessionSlot } from '../../types';
@@ -13,13 +14,16 @@ jest.useFakeTimers();
 
 type Handler = (slot: SessionSlot, kind: SessionKind) => void;
 
+// Since Phase 1 B3 the clock's state is in the session store, and its ticker,
+// AppState listener and cold-start check run in the engine StoreGate mounts,
+// so the hook is rendered under a StoreGate, as in the app.
 async function renderClock(handler: Handler = jest.fn()) {
     return renderHook(() => {
         const clock = useSessionClock();
         const { onComplete } = clock;
         useEffect(() => onComplete(handler), [onComplete]);
         return clock;
-    });
+    }, { wrapper: StoreGate });
 }
 
 /** Lets the async storage load in the mount effect settle. */

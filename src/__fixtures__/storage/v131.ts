@@ -6,7 +6,7 @@
  * MMKV migration is tested against these.
  *
  * The values are typed against the types the app reads them with (src/types,
- * plus PomodoroState and AdState), so `tsc` fails here when one of those shapes
+ * plus AdState), so `tsc` fails here when one of those shapes
  * drifts. That is the signal to handle the old shape in the migration, not to
  * edit the fixture: the fixture is what is already on users' phones.
  *
@@ -22,17 +22,40 @@ import type {
     DayStats,
     GiftMode,
     LoveNotes,
+    PomodoroState,
     ReminderSettings,
     SessionClockState,
     Settings,
     StatsMap,
     StatsState,
-    TimerState,
+    TimerPhase,
 } from '../../types';
-import type { PomodoroState } from '../../hooks/useTimer';
 import type { AdState } from '../../ads/AdPolicy';
 
 // ─── Shapes with no type in src/types ────────────────────────────────────────
+
+/**
+ * timer_state as 1.0.x–1.2.x wrote it: the whole timer, clock fields included.
+ * 1.3.0 moved the clock to session_clock and narrowed this key to
+ * PomodoroState; the session store reads only `phase`,
+ * `completedFocusCountInCycle` and `lastLoveNote` from either shape. Frozen
+ * here in Phase 1 B3, when the type left src/types (Stage A finding 2).
+ */
+export interface LegacyTimerState {
+    phase: TimerPhase;
+    isRunning: boolean;
+    endAt: number | null;
+    remainingMs: number | null;
+    completedFocusCountInCycle: number;
+    scheduledNotificationId: string | null;
+    sessionPlannedMinutes: number | null;
+    lastHandledEndAt: number | null;
+    sessionStartedAt: number | null;
+    sessionId: string | null;
+    lastLoveNote: string | null;
+    lastTransitionId: number;
+    showLoveNoteCard: boolean;
+}
 
 /**
  * update_meta: the soft-update prompt's state, written by 1.0.2 through 1.3.0
@@ -71,8 +94,8 @@ export interface V131Storage {
     stats: StatsMap;
     stats_v2: StatsState;
     gift_mode: GiftMode;
-    /** Stored as a bare array, not the `{ notes }` object src/types declares. */
-    love_notes: LoveNotes['notes'];
+    /** A bare array of strings (src/types `LoveNotes` since Phase 1 B3). */
+    love_notes: LoveNotes;
     update_meta: LegacyUpdateMeta;
     reminder_v1: ReminderSettings;
     app_mode: AppMode;
@@ -229,7 +252,7 @@ export const V131_FULL: V131Storage = {
  * this as an existing install and write the v1.3.1 default notes.
  */
 export interface V100Storage {
-    timer_state: Omit<TimerState, 'sessionStartedAt' | 'sessionId'>;
+    timer_state: Omit<LegacyTimerState, 'sessionStartedAt' | 'sessionId'>;
     settings: Omit<Settings, 'themeMode' | 'animationsEnabled' | 'flyModeSound'>;
     stats: Record<string, Pick<DayStats, 'focusSessions' | 'focusMinutes'>>;
     gift_mode: GiftMode;

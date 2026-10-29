@@ -92,6 +92,15 @@ export async function migrateAsyncStorage(
     return 'migrated';
 }
 
+/**
+ * True once the one-time copy has finished, i.e. the flag is in MMKV. A
+ * synchronous MMKV read. The stores hydrate synchronously only when this holds
+ * (Phase 1 B3); otherwise they wait for ensureMigrated().
+ */
+export function isStorageMigrated(): boolean {
+    return appStorage.getString(MIGRATION_FLAG_KEY) === MIGRATION_DONE;
+}
+
 let inFlight: Promise<void> | null = null;
 
 /**
@@ -107,7 +116,7 @@ let inFlight: Promise<void> | null = null;
  *   v1.3.1 does when AsyncStorage fails: its loads fall back to the defaults.
  */
 export function ensureMigrated(): Promise<void> {
-    if (appStorage.getString(MIGRATION_FLAG_KEY) === MIGRATION_DONE) return Promise.resolve();
+    if (isStorageMigrated()) return Promise.resolve();
     if (!inFlight) {
         inFlight = migrateAsyncStorage(appStorage)
             .then(

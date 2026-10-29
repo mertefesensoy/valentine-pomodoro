@@ -13,9 +13,9 @@ related: [SRS, TEST-STRATEGY]
 
 ## Summary
 
-- Requirements: **102** (status: constraint 7 · implemented 34 · planned 61)
+- Requirements: **102** (status: constraint 7 · implemented 35 · planned 60)
 - Implemented **Must** requirements with an automated test: **14 / 22** (64 %; target 100 % by v1.4.0, NFR-MAINT-002)
-- Implemented requirements with any verification (test, device check or inspection): **34 / 34**
+- Implemented requirements with any verification (test, device check or inspection): **34 / 35**
 
 ## Implemented Must requirements without an automated test
 
@@ -110,7 +110,7 @@ related: [SRS, TEST-STRATEGY]
 | [FR-WEB-001](../srs/SRS.md#fr-web-001) | The app shall run as a web app at `app.<domain>`, with no ads, in-tab and Web Push notifications, and haptics … | Must | Phase 6 | planned | — | — |
 | [FR-WEB-002](../srs/SRS.md#fr-web-002) | The marketing site shall serve: | Must | Phase 2/6 | planned | — | — |
 | [NFR-PERF-001](../srs/SRS.md#nfr-perf-001) | Cold-start time-to-interactive shall be ≤ 1.0 s on an iPhone 12-class device. | — | Phase 1 E3 | planned | — | — |
-| [NFR-PERF-002](../srs/SRS.md#nfr-perf-002) | The startup JavaScript (Hermes bytecode) shall be smaller than the SDK 58 baseline: iOS 3,856,208 B, measured … | — | Phase 1 | planned | — | [ARCHITECTURE](../architecture/ARCHITECTURE.md), [IMPL-2026-10-29-phase1-b1b-airports-asset](../implementations/2026-10-29-phase1-b1b-airports-asset.md) |
+| [NFR-PERF-002](../srs/SRS.md#nfr-perf-002) | The startup JavaScript (Hermes bytecode) shall be smaller than the SDK 58 baseline: iOS 3,856,208 B, measured … | — | Phase 1 | implemented | — | [ARCHITECTURE](../architecture/ARCHITECTURE.md), [IMPL-2026-10-29-phase1-b1b-airports-asset](../implementations/2026-10-29-phase1-b1b-airports-asset.md) |
 | [NFR-PERF-003](../srs/SRS.md#nfr-perf-003) | While a session runs, a component that doesn't display time shall not re-render. In the Reassure settings-only… | — | Phase 1 B4 | planned | [rerenders.perf-test.tsx](../../src/context/__tests__/rerenders.perf-test.tsx)<br>[screens.perf-test.tsx](../../src/screens/__tests__/screens.perf-test.tsx) | [ARCHITECTURE](../architecture/ARCHITECTURE.md), [TEST-STRATEGY](TEST-STRATEGY.md) |
 | [NFR-PERF-004](../srs/SRS.md#nfr-perf-004) | Animations shall hold ≥ 58 fps median on the slowest supported test device, with no frame over 32 ms during th… | — | Phase 1 D1 | planned | — | — |
 | [NFR-PERF-005](../srs/SRS.md#nfr-perf-005) | Asset budgets: an icon ≤ 2 KB, an illustration ≤ 30 KB, a mode scene ≤ 120 KB, a UI sound ≤ 25 KB. | — | Phase 1 C3, D4 | planned | — | — |

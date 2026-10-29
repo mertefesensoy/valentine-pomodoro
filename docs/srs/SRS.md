@@ -643,7 +643,7 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 
 #### NFR-PERF-002
 **Statement:** The startup JavaScript (Hermes bytecode) shall be smaller than the SDK 58 baseline: iOS 3,856,208 B, measured with `npx expo export --platform ios --platform android --dump-sourcemap`.
-**Target:** Phase 1 · **Status:** planned · **Verify:** A · **Source:** [SDK 58 upgrade §6.1](../implementations/2026-10-29-expo-sdk-58-upgrade.md#61-local-gates-all-passed-at-every-step)
+**Target:** Phase 1 · **Status:** implemented (met by B1b `0d63145`, held after B2 `dd1e894`: iOS 3,430,632 B, −11.0 % against the baseline; Android 3,518,464 B. Re-measured at E3 before release.) · **Verify:** A: the [B1b record](../implementations/2026-10-29-phase1-b1b-airports-asset.md) and the [B2 record](../implementations/2026-10-29-phase1-b2-mmkv-migration.md) bytecode tables · **Source:** [SDK 58 upgrade §6.1](../implementations/2026-10-29-expo-sdk-58-upgrade.md#61-local-gates-all-passed-at-every-step)
 
 #### NFR-PERF-003
 **Statement:** While a session runs, a component that doesn't display time shall not re-render. In the Reassure settings-only scenario, renders drop from 14 to ≤ 2, and the timer-text leaf renders once per displayed second.

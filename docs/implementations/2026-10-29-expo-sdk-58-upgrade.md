@@ -178,7 +178,15 @@ On the Android preview APK:
 
 On iOS, after a TestFlight build (needs your go-ahead):
 
-- [ ] The same list, plus a Fly Mode session with tier-1 airports (AIRMap nil guards: upstream insert plus the local remove).
+> **Result, 2026-10-29: ALL PASSED** (reported by you), on a physical iPhone running TestFlight build **42, v1.4.0**: EAS build `7e7249e8`, submission `d5a8509d`. This is SDK 58's first run on a real iPhone. The iPhone model and iOS version weren't recorded.
+
+- [x] The data from the App Store 1.3.1 install survived the update to build 42 (stats and notes).
+- [x] Launch, splash, timer; the four tab icons.
+- [x] A full focus → break cycle: the completion notification with the phone locked, and the banner in the foreground.
+- [x] Stats opened right after a cold start: no crash.
+- [x] **Fly Mode with tier-1 airports:** start, sheet drag and double-tap, landing, then reset and re-pick (the AIRMap nil guards: upstream insert plus the local remove).
+- [x] The interstitial after the 2nd completed session (real iOS ad ids; not tapped).
+- [x] Dark mode and landscape on the timer.
 
 ## 7. Related Docs
 

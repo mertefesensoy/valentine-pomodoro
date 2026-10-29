@@ -40,14 +40,6 @@ export default function StatsScreen() {
     const [metric, setMetric] = useState<Metric>('minutes');
     const [barAreaWidth, setBarAreaWidth] = useState(0);
 
-    if (!isReady) {
-        return (
-            <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-                <Text style={[styles.loadingText, { color: colors.textMuted }]}>Loading stats…</Text>
-            </SafeAreaView>
-        );
-    }
-
     const hasStats = totals.focusSessions > 0;
 
     const weekTotals = useMemo(() => {
@@ -86,6 +78,16 @@ export default function StatsScreen() {
     }, [showGoalLine, goalMinutes, maxValue]);
 
     const leftToday = useMemo(() => Math.max(goalMinutes - today.focusMinutes, 0), [goalMinutes, today.focusMinutes]);
+
+    // The loading return must come after every hook: returning before them
+    // changes the hook count when isReady flips on a mounted screen, and React throws.
+    if (!isReady) {
+        return (
+            <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
+                <Text style={[styles.loadingText, { color: colors.textMuted }]}>Loading stats…</Text>
+            </SafeAreaView>
+        );
+    }
 
     const chartTitle = metric === 'sessions' ? 'Last 7 Days (Sessions)' : 'Last 7 Days (Minutes)';
 

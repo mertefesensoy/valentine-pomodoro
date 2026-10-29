@@ -110,7 +110,7 @@ Each cell lists the three measured runs within one baseline run (`runs: 3`, afte
 
 **Why Settings has 15.** A one-off diagnostic (deleted) logged every state update during Settings' initial render. It found the extra commit:
 
-- The source is React Native's `KeyboardAvoidingView`. On iOS its `componentDidMount` calls `_setBottom(0)`, a `setState` during the mount commit, which the Profiler reports as a `nested-update` commit.
+- The source is React Native's `KeyboardAvoidingView`. Whenever the keyboard isn't visible, its `componentDidMount` calls `_setBottom(0)` on every platform. That is a `setState` during the mount commit, which the Profiler reports as a `nested-update` commit.
 - Notes also contains a `KeyboardAvoidingView`, but only inside its add-note modal, which isn't mounted while the modal is closed.
 
 The commit happens once, at mount, and has nothing to do with the clock.

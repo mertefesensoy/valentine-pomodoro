@@ -40,3 +40,6 @@ app-example
 # test and perf output
 coverage/
 .reassure/
+
+# Impeccable engine binary (downloaded and checksum-verified on first run)
+.claude/skills/impeccable/scripts/bin/

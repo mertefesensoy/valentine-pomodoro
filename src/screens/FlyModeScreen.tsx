@@ -43,7 +43,7 @@ import {
 } from '../utils/geoMath';
 import { interpolateAlongPathWorklet } from '../utils/geoMathWorklet';
 import { save, load, STORAGE_KEYS } from '../utils/storage';
-import airportData from '../assets/data/airports.json';
+import { useAirports } from '../hooks/useAirports';
 import { formatTime } from '../utils/time';
 import { useFlyModeAudio } from '../hooks/useFlyModeAudio';
 import { useApp } from '../context/AppContext';
@@ -53,22 +53,6 @@ import { useNotifications } from '../hooks/useNotifications';
 import LoveNoteCard from '../components/LoveNoteCard';
 import * as Haptics from 'expo-haptics';
 import type { CameraMode } from '../types';
-
-// ─── Airport data ────────────────────────────────────────────────────────────
-
-type AirportRecord = {
-    name: string;
-    city: string;
-    country: string;
-    coordinates: { latitude: number; longitude: number };
-    /** 1 = large, 2 = medium — used for zoom-based marker visibility */
-    tier?: number;
-};
-
-
-const AIRPORTS: Airport[] = Object.entries(airportData as Record<string, AirportRecord>).map(
-    ([iata, data]) => ({ iata, ...data })
-);
 
 // ─── Airplane SVG icon ───────────────────────────────────────────────────────
 // Top-down view, pointing north (up) at 0° bearing.
@@ -150,6 +134,10 @@ export default function FlyModeScreen() {
     // Heading update throttle — live compass during map rotation (10fps max)
     const headingThrottleRef = useRef(0);
 
+    // Airport table: a runtime-loaded asset (Phase 1 B1b), empty for the few
+    // milliseconds until the first read finishes, then cached for the app's life.
+    const airports = useAirports();
+
     // Airport selection
     const [origin, setOrigin] = useState<Airport | null>(null);
     const [destination, setDestination] = useState<Airport | null>(null);
@@ -208,16 +196,18 @@ export default function FlyModeScreen() {
 
     // ── Restore airports from session clock on mount ───────────────────────
     // SESSION_CLOCK carries originIata/destinationIata in the fly slot extras.
-    // Runs once when the slot loads (async from AsyncStorage).
+    // Runs once, when both the slot (async from storage) and the airport table
+    // have loaded.
     const flySlotRestoredRef = useRef(false);
     useEffect(() => {
         if (flySlotRestoredRef.current) return;
         const slot = session.state.fly;
         if (!slot?.originIata || !slot?.destinationIata) return;
+        if (airports.length === 0) return;
 
         flySlotRestoredRef.current = true;
-        const orig = AIRPORTS.find(a => a.iata === slot.originIata);
-        const dest = AIRPORTS.find(a => a.iata === slot.destinationIata);
+        const orig = airports.find(a => a.iata === slot.originIata);
+        const dest = airports.find(a => a.iata === slot.destinationIata);
         if (orig) setOrigin(orig);
         if (dest) setDestination(dest);
 
@@ -225,7 +215,7 @@ export default function FlyModeScreen() {
         if (!slot.isRunning && slot.pausedRemainingMs != null) {
             restoredRemainingRef.current = slot.pausedRemainingMs;
         }
-    }, [session.state.fly]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [session.state.fly, airports]);
 
     // Persist camera mode + globe toggle in FLY_PREFS (independent of SESSION_CLOCK)
     useEffect(() => {
@@ -664,7 +654,7 @@ export default function FlyModeScreen() {
         const minLon = longitude - longitudeDelta / 2 - lonBuffer;
         const maxLon = longitude + longitudeDelta / 2 + lonBuffer;
 
-        const filtered = AIRPORTS.filter(a => {
+        const filtered = airports.filter(a => {
             if ((a.tier ?? 1) > maxTier) return false;
             const { latitude: aLat, longitude: aLon } = a.coordinates;
             return aLat >= minLat && aLat <= maxLat && aLon >= minLon && aLon <= maxLon;
@@ -678,12 +668,13 @@ export default function FlyModeScreen() {
 
         // Hard cap at 120 — beyond this MapKit bridge overhead noticeable
         return filtered.slice(0, 120);
-    }, [mapRegion, isSessionActive]);
+    }, [mapRegion, isSessionActive, airports]);
 
     const handleMapPress = useCallback((event: { nativeEvent: { coordinate: { latitude: number; longitude: number } } }) => {
-        if (isSessionActive) return;
+        // No table yet (first few ms of the first Fly open): nothing to snap to.
+        if (isSessionActive || airports.length === 0) return;
         const { latitude, longitude } = event.nativeEvent.coordinate;
-        const nearest = findNearestAirport(latitude, longitude, AIRPORTS);
+        const nearest = findNearestAirport(latitude, longitude, airports);
         if (!origin || (origin && destination)) {
             // No origin yet, or both set → restart selection with new origin
             setOrigin(nearest);
@@ -694,7 +685,7 @@ export default function FlyModeScreen() {
                 setDestination(nearest);
             }
         }
-    }, [isSessionActive, origin, destination]);
+    }, [isSessionActive, origin, destination, airports]);
 
     return (
         <View style={styles.container}>
@@ -939,7 +930,7 @@ export default function FlyModeScreen() {
                     <View style={styles.pickerRow}>
                         <AirportPicker
                             label="From"
-                            airports={AIRPORTS}
+                            airports={airports}
                             selected={origin}
                             onSelect={setOrigin}
                         />
@@ -948,7 +939,7 @@ export default function FlyModeScreen() {
                         </View>
                         <AirportPicker
                             label="To"
-                            airports={AIRPORTS}
+                            airports={airports}
                             selected={destination}
                             onSelect={setDestination}
                         />

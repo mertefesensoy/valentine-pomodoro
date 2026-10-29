@@ -10,6 +10,10 @@
 // (FlySheet's pan and double-tap gestures).
 import 'react-native-gesture-handler/jestSetup';
 
+// Node gives every module a __dirname under Jest; the app's React Native
+// typings don't declare Node globals, so this file declares the one it uses.
+declare const __dirname: string;
+
 jest.mock('@react-native-async-storage/async-storage', () =>
     require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
@@ -54,6 +58,16 @@ jest.mock('react-native-maps', () => {
 jest.mock('expo-audio', () => ({
     useAudioPlayer: () => ({ play: jest.fn(), pause: jest.fn(), remove: jest.fn(), loop: false, volume: 1 }),
     setAudioModeAsync: jest.fn(async () => {}),
+}));
+
+// The airport table is a raw asset read through expo-asset and expo-file-system
+// (Phase 1 B1b), which have no native side under Node. Tests read the same file
+// from disk instead, so Fly's real parse, cache and picker paths still run.
+// src/utils/__tests__/airportAsset.test.ts unmocks this and checks the native calls.
+// (The `mock` prefix is what lets the hoisted factory read this module variable.)
+const mockAirportAssetPath: string = require('path').join(__dirname, 'src/assets/data/airports.jsonasset');
+jest.mock('./src/utils/airportAsset', () => ({
+    readAirportsAsset: async () => require('fs').readFileSync(mockAirportAssetPath, 'utf8'),
 }));
 
 // AdMob resolves its TurboModule at import time. Only the exports the app uses

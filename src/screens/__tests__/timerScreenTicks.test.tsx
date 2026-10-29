@@ -4,7 +4,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppProvider } from '../../context/AppContext';
 import TimerScreen from '../TimerScreen';
 import { flightDurationToSeconds, haversineDistance } from '../../utils/geoMath';
-import airportData from '../../assets/data/airports.json';
+import { parseAirports } from '../../utils/airportData';
+import { readAirportsAsset } from '../../utils/airportAsset';
 
 // Guards for plan §4.5 on the real screens (Phase 1 task A1). The probe test in
 // context/__tests__/timerTextTicks.test.tsx proves the tick reaches useApp();
@@ -12,6 +13,12 @@ import airportData from '../../assets/data/airports.json';
 // drive the screens only through the UI, so they keep working when Phase 1
 // replaces storage (B2), the stores (B3) and the re-render chain (B4).
 jest.useFakeTimers();
+
+// The first test in the file pays for the first full render of TimerScreen and
+// the modules it pulls in: 2.6–3.5 s of real time on the dev PC when idle, over
+// Jest's 5 s default when the machine is busy. What the guards assert runs on
+// fake timers, so a longer real-time limit doesn't weaken them.
+jest.setTimeout(30_000);
 
 // Starting a session first asks for notification permission, raced against a
 // 1 s setTimeout. Under fake timers that timeout never fires on its own, so a
@@ -26,8 +33,14 @@ jest.mock('expo-notifications', () => ({
     setNotificationChannelAsync: jest.fn(async () => null),
 }));
 
-type AirportRecord = { coordinates: { latitude: number; longitude: number } };
-const airports = airportData as Record<string, AirportRecord>;
+// The airport table for the precondition only. B1b made it a runtime asset;
+// jest.setup.ts's readAirportsAsset reads the same file from disk.
+// parseAirports doesn't touch the app's cache, so Fly still loads the table
+// itself on first open, the way it does on a phone.
+async function airportsByIata() {
+    const list = parseAirports(await readAirportsAsset());
+    return Object.fromEntries(list.map((a) => [a.iata, a]));
+}
 
 // The providers App.tsx puts above the tabs, plus the tab bar height the tab
 // navigator would supply.
@@ -82,6 +95,7 @@ describe('timer text on the real TimerScreen', () => {
     it('counts down every second in Fly mode', async () => {
         // Precondition: Istanbul → Lublin is a 25-minute focus flight. If the
         // airport data or the duration formula changes, fix this pair, not the guard.
+        const airports = await airportsByIata();
         const distanceKm = haversineDistance(
             airports.IST.coordinates.latitude, airports.IST.coordinates.longitude,
             airports.LUZ.coordinates.latitude, airports.LUZ.coordinates.longitude,

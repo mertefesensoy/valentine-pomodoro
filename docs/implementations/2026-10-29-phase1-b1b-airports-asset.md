@@ -173,6 +173,8 @@ npx expo export --platform ios --platform android --dump-sourcemap --output-dir 
   4. Kill the app mid-flight and relaunch: Fly restores with the same airports and the plane at the right point.
   5. Zoomed-out map markers still appear (tier 1).
 
+  **If the build installs but Fly shows no airports:** look for `[useAirports] Failed to load the airport table` in the device log. The first suspect is the URI. The app's name, "Valentine Pomodoro", contains a space, so the embedded asset's `file://` URI contains `%20`, and that path through `new File(uri).text()` has not run on a device.
+
 ## 7. Related Docs
 
 - [Phase 1 plan](2026-10-29-phase1-plan.md): B1b, §5 finding 1

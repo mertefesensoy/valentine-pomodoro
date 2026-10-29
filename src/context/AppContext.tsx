@@ -5,6 +5,7 @@ import { useLoveNotes } from '../hooks/useLoveNotes';
 import { useReminder } from '../hooks/useReminder';
 import { useSessionClock, UseSessionClockReturn } from '../hooks/useSessionClock';
 import { AppMode } from '../types';
+import { resolveAppMode } from '../constants/features';
 import { save, load, STORAGE_KEYS } from '../utils/storage';
 
 type AppContextValue = {
@@ -27,16 +28,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const reminder = useReminder();
     const session = useSessionClock();
 
-    // Mode state — persisted so the user's last choice survives restarts
+    // Mode state — persisted so the user's last choice survives restarts.
+    // resolveAppMode turns a 'fly' this platform can't open into 'default'.
     const [activeMode, setActiveModeState] = useState<AppMode>('default');
 
     useEffect(() => {
-        load<AppMode>(STORAGE_KEYS.APP_MODE, 'default').then(setActiveModeState);
+        load<AppMode>(STORAGE_KEYS.APP_MODE, 'default').then((stored) => setActiveModeState(resolveAppMode(stored)));
     }, []);
 
     const setActiveMode = (mode: AppMode) => {
-        setActiveModeState(mode);
-        save(STORAGE_KEYS.APP_MODE, mode);
+        const next = resolveAppMode(mode);
+        setActiveModeState(next);
+        save(STORAGE_KEYS.APP_MODE, next);
     };
 
     // ✅ memoize to prevent re-render storm

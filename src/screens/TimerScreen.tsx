@@ -9,6 +9,7 @@ import GoalReachedPopup from "../components/GoalReachedPopup";
 import { CircularProgress } from "../components/CircularProgress";
 import CalmBackground from "../components/CalmBackground";
 import ModeSwitcher from "../components/ModeSwitcher";
+import { isFlyModeAvailable } from "../constants/features";
 import FlyModeScreen from "./FlyModeScreen";
 import * as Haptics from "expo-haptics";
 import { useApp } from "../context/AppContext";
@@ -348,8 +349,10 @@ export default function TimerScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {/* Mode switcher — sits above the header */}
-            <ModeSwitcher activeMode={activeMode} onModeChange={setActiveMode} />
+            {/* Mode switcher — sits above the header; hidden where Fly can't open */}
+            {isFlyModeAvailable() && (
+              <ModeSwitcher activeMode={activeMode} onModeChange={setActiveMode} />
+            )}
 
             {isLandscape ? (
               // Landscape: two-column layout

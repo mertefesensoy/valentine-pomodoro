@@ -15,19 +15,23 @@ import {
     StatusBar,
 } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { useApp } from '../context/AppContext';
+import { useNotesStore } from '../stores/notesStore';
 import { useTheme } from '../theme/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 
 type Mode = { type: 'add' } | { type: 'edit'; index: number; initial: string } | null;
 
 export default function LoveNotesScreen() {
-    const { loveNotes } = useApp();
     const { colors, isDark } = useTheme();
     const { isTablet } = useResponsive();
     const tabBarHeight = useBottomTabBarHeight();
-    const { notes, isReady, addNote, editNote, deleteNote, resetToDefaults, pickRandomNote } =
-        loveNotes;
+    const notes = useNotesStore((s) => s.notes);
+    const isReady = useNotesStore((s) => s.isReady);
+    const addNote = useNotesStore((s) => s.addNote);
+    const editNote = useNotesStore((s) => s.editNote);
+    const deleteNote = useNotesStore((s) => s.deleteNote);
+    const resetToDefaults = useNotesStore((s) => s.resetToDefaults);
+    const pickRandomNote = useNotesStore((s) => s.pickRandomNote);
 
     const [mode, setMode] = useState<Mode>(null);
     const [draft, setDraft] = useState('');

@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { act, render } from '@testing-library/react-native';
-import { AppProvider, useApp } from '../../context/AppContext';
+import { StoreGate } from '../StoreGate';
+import { useSessionStore } from '../sessionStore';
 import { save, STORAGE_KEYS } from '../../utils/storage';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import type { SessionKind, SessionSlot } from '../../types';
@@ -14,8 +15,7 @@ jest.useFakeTimers();
 type Handler = (slot: SessionSlot, kind: SessionKind) => void;
 
 function Subscriber({ handler }: { handler: Handler }) {
-    const { session } = useApp();
-    useEffect(() => session.onComplete(handler), [session.onComplete, handler]);
+    useEffect(() => useSessionStore.getState().onComplete(handler), [handler]);
     return null;
 }
 
@@ -52,11 +52,11 @@ describe('a session that ended while the app was killed (DEF-004)', () => {
 
         const handler = jest.fn();
         await render(
-            <AppProvider>
+            <StoreGate>
                 <MountAfter ms={150}>
                     <Subscriber handler={handler} />
                 </MountAfter>
-            </AppProvider>,
+            </StoreGate>,
         );
         await act(async () => {});
         await act(() => jest.advanceTimersByTime(150));

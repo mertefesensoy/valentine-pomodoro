@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { AppProvider } from '../../context/AppContext';
+import { StoreGate } from '../../stores/StoreGate';
 import { save, STORAGE_KEYS } from '../../utils/storage';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 
@@ -34,11 +34,11 @@ async function renderTimerScreen() {
     const TimerScreen = require('../TimerScreen').default;
     await render(
         <GestureHandlerRootView style={{ flex: 1 }}>
-            <AppProvider>
+            <StoreGate>
                 <BottomTabBarHeightContext.Provider value={0}>
                     <TimerScreen />
                 </BottomTabBarHeightContext.Provider>
-            </AppProvider>
+            </StoreGate>
         </GestureHandlerRootView>,
     );
     await act(async () => {});

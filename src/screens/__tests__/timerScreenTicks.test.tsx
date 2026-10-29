@@ -1,14 +1,14 @@
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { AppProvider } from '../../context/AppContext';
+import { StoreGate } from '../../stores/StoreGate';
 import TimerScreen from '../TimerScreen';
 import { flightDurationToSeconds, haversineDistance } from '../../utils/geoMath';
 import { parseAirports } from '../../utils/airportData';
 import { readAirportsAsset } from '../../utils/airportAsset';
 
 // Guards for plan §4.5 on the real screens (Phase 1 task A1). The probe test in
-// context/__tests__/timerTextTicks.test.tsx proves the tick reaches useApp();
+// context/__tests__/timerTextTicks.test.tsx proves the tick reaches the clock's readers;
 // these prove the text the user sees on each screen changes every second. Both
 // drive the screens only through the UI, so they keep working when Phase 1
 // replaces storage (B2), the stores (B3) and the re-render chain (B4).
@@ -47,11 +47,11 @@ async function airportsByIata() {
 async function renderTimerScreen() {
     await render(
         <GestureHandlerRootView style={{ flex: 1 }}>
-            <AppProvider>
+            <StoreGate>
                 <BottomTabBarHeightContext.Provider value={0}>
                     <TimerScreen />
                 </BottomTabBarHeightContext.Provider>
-            </AppProvider>
+            </StoreGate>
         </GestureHandlerRootView>,
     );
     // Let every store finish loading from (empty) storage.

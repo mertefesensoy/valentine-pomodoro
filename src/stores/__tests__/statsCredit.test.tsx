@@ -1,5 +1,6 @@
 import { act, render } from '@testing-library/react-native';
-import { AppProvider, useApp } from '../../context/AppContext';
+import { StoreGate } from '../StoreGate';
+import { useStatsStore } from '../statsStore';
 import { save, STORAGE_KEYS } from '../../utils/storage';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import type { StatsState } from '../../types';
@@ -9,19 +10,14 @@ import type { StatsState } from '../../types';
 // credited to the 30th (FR-STA-001) while the clock already reads the 31st.
 jest.useFakeTimers({ now: new Date(2026, 9, 31, 0, 15) });
 
-let stats: ReturnType<typeof useApp>['stats'] | null = null;
-
-function StatsHandle() {
-    stats = useApp().stats;
-    return null;
-}
-
 /** Stores `stored` as stats_v2, then launches the app's state over it. */
 async function launchWith(stored: StatsState) {
     await save(STORAGE_KEYS.STATS_V2, stored);
-    await render(<AppProvider><StatsHandle /></AppProvider>);
+    await render(<StoreGate>{null}</StoreGate>);
     await act(async () => {});
 }
+
+const stats = () => useStatsStore.getState();
 
 afterEach(async () => {
     await resetStorage();
@@ -37,9 +33,9 @@ describe('a completion replayed after a relaunch (DEF-002)', () => {
             lastAppliedSessionId: 'session-A',
         });
 
-        await act(() => stats!.incrementFocus(25, '2026-10-30', 'session-A'));
+        await act(() => stats().incrementFocus(25, '2026-10-30', 'session-A'));
 
-        expect(stats!.stats['2026-10-30']).toMatchObject({ focusSessions: 1, focusMinutes: 25 });
+        expect(stats().days['2026-10-30']).toMatchObject({ focusSessions: 1, focusMinutes: 25 });
     });
 });
 
@@ -61,9 +57,9 @@ describe('a goal reached by a session that crossed midnight (DEF-003)', () => {
             streak: { current: 3, best: 3, lastHitDayKey: '2026-10-29' },
         });
 
-        await act(() => stats!.incrementFocus(50, '2026-10-30', 'session-B'));
+        await act(() => stats().incrementFocus(50, '2026-10-30', 'session-B'));
 
-        expect(stats!.stats['2026-10-30']).toMatchObject({ focusMinutes: 50, goalHit: true });
-        expect(stats!.streak).toMatchObject({ current: 4, best: 4, lastHitDayKey: '2026-10-30' });
+        expect(stats().days['2026-10-30']).toMatchObject({ focusMinutes: 50, goalHit: true });
+        expect(stats().streak).toMatchObject({ current: 4, best: 4, lastHitDayKey: '2026-10-30' });
     });
 });

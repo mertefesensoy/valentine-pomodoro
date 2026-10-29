@@ -3,7 +3,7 @@ import { SafeAreaView, ScrollView, StyleSheet, Text, View, Pressable } from 'rea
 import Svg, { Line } from 'react-native-svg';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { useApp } from '../context/AppContext';
+import { useStatsStore, useStatsViews } from '../stores/statsStore';
 import { useTheme } from '../theme/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { BANNER_ID } from '../ads/AdConfig';
@@ -31,8 +31,9 @@ function formatNumber(n: number) {
 }
 
 export default function StatsScreen() {
-    const { stats } = useApp();
-    const { isReady, today, totals, last7Days, goalMinutes, streak } = stats;
+    const isReady = useStatsStore((s) => s.isReady);
+    const goalMinutes = useStatsStore((s) => s.goalMinutes);
+    const { today, totals, last7Days, streak } = useStatsViews();
     const { colors } = useTheme();
     const { isTablet } = useResponsive();
     const tabBarHeight = useBottomTabBarHeight();

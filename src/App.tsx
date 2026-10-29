@@ -12,11 +12,11 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Navigation } from './navigation';
-import { useGiftMode } from './hooks/useGiftMode';
 import { useUpdateCheck } from './hooks/useUpdateCheck';
 import { useTheme } from './theme/useTheme';
 import GiftModeModal from './components/GiftModeModal';
-import { AppProvider } from './context/AppContext';
+import { StoreGate } from './stores/StoreGate';
+import { useUiStore } from './stores/uiStore';
 import { AdManager } from './ads/AdManager';
 
 // GitHub Pages URL for update.json
@@ -35,10 +35,11 @@ Notifications.setNotificationHandler({
 
 SplashScreen.preventAutoHideAsync();
 
-// Inner component that uses theme from context
+// Inner component: everything below StoreGate, so the stores are hydrated
 function ThemedApp() {
   const { isDark } = useTheme();
-  const { hasSeenGiftMode, isReady: giftModeReady, dismiss } = useGiftMode();
+  const hasSeenGiftMode = useUiStore((s) => s.hasSeenGiftMode);
+  const dismissGiftMode = useUiStore((s) => s.dismissGiftMode);
   const navigationRef = React.useRef<any>(null);
 
   // Check for app updates (once per cold launch; iTunes Lookup on iOS, self-hosted JSON on Android)
@@ -83,8 +84,8 @@ function ThemedApp() {
       />
 
       {/* Gift Mode - shows only on first launch */}
-      {giftModeReady && !hasSeenGiftMode && (
-        <GiftModeModal visible={!hasSeenGiftMode} onDismiss={dismiss} />
+      {!hasSeenGiftMode && (
+        <GiftModeModal visible={!hasSeenGiftMode} onDismiss={dismissGiftMode} />
       )}
     </>
   );
@@ -94,9 +95,9 @@ export function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <AppProvider>
+        <StoreGate>
           <ThemedApp />
-        </AppProvider>
+        </StoreGate>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

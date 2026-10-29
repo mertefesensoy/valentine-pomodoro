@@ -4,9 +4,10 @@ import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { act } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { measureRenders } from 'reassure';
-import { AppProvider, useApp } from '../../context/AppContext';
+import { StoreGate } from '../../stores/StoreGate';
+import { useSessionStore } from '../../stores/sessionStore';
+import { useSessionClock } from '../../hooks/useSessionClock';
 import { formatTime } from '../../utils/time';
-import type { UseSessionClockReturn } from '../../hooks/useSessionClock';
 import TimerScreen from '../TimerScreen';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import StatsScreen from '../StatsScreen';
@@ -28,24 +29,17 @@ jest.mock('../../hooks/useUpdateCheck', () => ({
     useUpdateCheck: () => ({ checkForUpdates: jest.fn() }),
 }));
 
-let session: UseSessionClockReturn | null = null;
-
-// Holds the session API for the scenario. It renders outside the Profiler, so
-// its own renders are not counted.
-function SessionHandle() {
-    session = useApp().session;
-    return null;
-}
-
+// The scenario drives the session through the store's actions (Phase 1 B3;
+// before, a SessionHandle component outside the Profiler captured them from
+// useApp()). Nothing outside the measured element renders for it.
 function Providers({ children }: { children: ReactNode }) {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
-            <AppProvider>
+            <StoreGate>
                 <BottomTabBarHeightContext.Provider value={0}>
-                    <SessionHandle />
                     {children}
                 </BottomTabBarHeightContext.Provider>
-            </AppProvider>
+            </StoreGate>
         </GestureHandlerRootView>
     );
 }
@@ -54,7 +48,7 @@ function Providers({ children }: { children: ReactNode }) {
 // shows the remaining time. B4 swaps in the real leaf; its target is 1 + n
 // renders for n displayed seconds.
 function TimerTextLeaf() {
-    const { session: clock } = useApp();
+    const clock = useSessionClock();
     return <Text>{formatTime(clock.displayMs)}</Text>;
 }
 
@@ -66,12 +60,13 @@ const tenSecondSession = {
     // B2, MMKV with its migration flag, so every run also migrates the same way.
     beforeEach: () => resetStorage(),
     scenario: async () => {
+        const session = useSessionStore.getState();
         await act(async () => {});
-        await act(() => session!.start({ kind: 'pomodoro', durationMs: 25 * 60_000 }));
+        await act(() => session.start({ kind: 'pomodoro', durationMs: 25 * 60_000 }));
         for (let i = 0; i < 10; i++) {
             await act(() => jest.advanceTimersByTime(1_000));
         }
-        await act(() => session!.stop());
+        await act(() => session.stop());
     },
 };
 

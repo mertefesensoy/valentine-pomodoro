@@ -1,28 +1,32 @@
 import { Text } from 'react-native';
 import { act, render, screen } from '@testing-library/react-native';
-import { AppProvider, useApp } from '../AppContext';
+import { StoreGate } from '../../stores/StoreGate';
+import { useSessionClock, type UseSessionClockReturn } from '../../hooks/useSessionClock';
 import { formatTime } from '../../utils/time';
-import type { UseSessionClockReturn } from '../../hooks/useSessionClock';
 
 // Guard for plan §4.5. Timer text reaches the screen only because the 1 Hz tick
-// re-renders AppProvider and every useApp() consumer. Phase 1 replaces that chain;
-// this test must keep passing through the change, or the timer has frozen.
+// re-renders every component that reads the clock: since Phase 1 B3 the clock
+// engine increments the session store's `tick`, and useSessionClock() (what the
+// screens use) subscribes to it. Phase 1 B4 replaces that chain; this test must
+// keep passing through the change, or the timer has frozen. (The file keeps its
+// path under context/ from when the chain ran through AppContext.)
 jest.useFakeTimers();
 
 let session: UseSessionClockReturn | null = null;
 
 function TimerTextProbe() {
-    const app = useApp();
-    session = app.session;
-    return <Text testID="timer-text">{formatTime(app.session.displayMs)}</Text>;
+    const clock = useSessionClock();
+    session = clock;
+    return <Text testID="timer-text">{formatTime(clock.displayMs)}</Text>;
 }
 
-describe('timer text through AppProvider', () => {
+// covers: FR-TMR-006
+describe('timer text through the session store', () => {
     it('updates every second while a session runs', async () => {
         await render(
-            <AppProvider>
+            <StoreGate>
                 <TimerTextProbe />
-            </AppProvider>,
+            </StoreGate>,
         );
         await act(async () => {});
 

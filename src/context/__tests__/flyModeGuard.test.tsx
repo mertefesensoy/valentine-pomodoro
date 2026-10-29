@@ -1,19 +1,22 @@
 import { Platform, Pressable, Text } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { AppProvider, useApp } from '../AppContext';
+import { StoreGate } from '../../stores/StoreGate';
+import { useUiStore } from '../../stores/uiStore';
 import { load, save, STORAGE_KEYS } from '../../utils/storage';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 
 // The Android crash loop: a persisted app_mode of 'fly' relaunched straight into
-// Fly Mode, which cannot open on Android. AppProvider must resolve it to 'default'.
+// Fly Mode, which cannot open on Android. The UI store must resolve it to 'default'
+// (it lived in AppProvider before Phase 1 B3).
 // Stored state is written and read through the app's storage helpers (MMKV
 // since Phase 1 B2), not AsyncStorage, which the app no longer writes.
 function ModeProbe() {
-    const app = useApp();
+    const activeMode = useUiStore((s) => s.activeMode);
+    const setActiveMode = useUiStore((s) => s.setActiveMode);
     return (
         <>
-            <Text testID="mode">{app.activeMode}</Text>
-            <Pressable testID="to-fly" onPress={() => app.setActiveMode('fly')} />
+            <Text testID="mode">{activeMode}</Text>
+            <Pressable testID="to-fly" onPress={() => setActiveMode('fly')} />
         </>
     );
 }
@@ -34,7 +37,7 @@ describe('stored Fly Mode guard', () => {
         setPlatform('android');
         await save(STORAGE_KEYS.APP_MODE, 'fly');
 
-        await render(<AppProvider><ModeProbe /></AppProvider>);
+        await render(<StoreGate><ModeProbe /></StoreGate>);
         await act(async () => {});
 
         expect(screen.getByTestId('mode')).toHaveTextContent('default');
@@ -42,7 +45,7 @@ describe('stored Fly Mode guard', () => {
 
     it('ignores a request to switch to fly on Android', async () => {
         setPlatform('android');
-        await render(<AppProvider><ModeProbe /></AppProvider>);
+        await render(<StoreGate><ModeProbe /></StoreGate>);
         await act(async () => {});
 
         await act(async () => {
@@ -57,7 +60,7 @@ describe('stored Fly Mode guard', () => {
         setPlatform('ios');
         await save(STORAGE_KEYS.APP_MODE, 'fly');
 
-        await render(<AppProvider><ModeProbe /></AppProvider>);
+        await render(<StoreGate><ModeProbe /></StoreGate>);
         await act(async () => {});
 
         expect(screen.getByTestId('mode')).toHaveTextContent('fly');

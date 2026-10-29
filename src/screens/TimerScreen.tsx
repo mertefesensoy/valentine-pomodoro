@@ -11,7 +11,11 @@ import CalmBackground from "../components/CalmBackground";
 import ModeSwitcher from "../components/ModeSwitcher";
 import { isFlyModeAvailable } from "../constants/features";
 import * as Haptics from "expo-haptics";
-import { useApp } from "../context/AppContext";
+import { useSessionClock } from "../hooks/useSessionClock";
+import { useNotesStore } from "../stores/notesStore";
+import { useSettingsStore } from "../stores/settingsStore";
+import { useStatsStore } from "../stores/statsStore";
+import { useUiStore } from "../stores/uiStore";
 import { useTheme } from "../theme/useTheme";
 import { useResponsive } from "../hooks/useResponsive";
 import { AdManager } from "../ads/AdManager";
@@ -41,7 +45,15 @@ function FlyModePlaceholder() {
 export default function TimerScreen() {
   const { height, isLandscape, isTablet, isShortViewport } = useResponsive();
   const insets = useSafeAreaInsets();
-  const { settings, stats, loveNotes, activeMode, setActiveMode, session } = useApp();
+  const settings = useSettingsStore((s) => s.settings);
+  const incrementFocus = useStatsStore((s) => s.incrementFocus);
+  const goalHitPulse = useStatsStore((s) => s.goalHitPulse);
+  const clearGoalHitPulse = useStatsStore((s) => s.clearGoalHitPulse);
+  const pickRandomNote = useNotesStore((s) => s.pickRandomNote);
+  const activeMode = useUiStore((s) => s.activeMode);
+  const setActiveMode = useUiStore((s) => s.setActiveMode);
+  // Re-renders this screen once per second while a session runs (the B3 tick).
+  const session = useSessionClock();
   const { colors, isDark } = useTheme();
   const tabBarHeight = useBottomTabBarHeight();
   const {
@@ -58,11 +70,11 @@ export default function TimerScreen() {
     reset,
     dismissLoveNote,
   } = useTimer(
-    settings.settings,
-    loveNotes.pickRandomNote,
+    settings,
+    pickRandomNote,
     // Wrapper to hook into completion for Ads
     (minutes, dayKey, sessionId) => {
-      stats.incrementFocus(minutes, dayKey, sessionId);
+      incrementFocus(minutes, dayKey, sessionId);
       handleTimerComplete();
     },
     session,
@@ -83,6 +95,9 @@ export default function TimerScreen() {
   // session.switchTo auto-pauses the running slot and saves its remainingMs.
   // useTimer's internal effect cancels the scheduled notification when
   // session.state.activeKind changes away from 'pomodoro'.
+  // Only user switches count: the stored mode is already hydrated on the first
+  // render (Phase 1 B3), as it already was on a phone after B2, where the
+  // navigator mounts this screen only after the mode has loaded.
   const prevActiveModeRef = useRef(activeMode);
   useEffect(() => {
     const prev = prevActiveModeRef.current;
@@ -102,12 +117,12 @@ export default function TimerScreen() {
   // 1) When goalHitPulse arrives -> show popup.
   // If a love note is currently showing, queue it and dismiss it so overlays never overlap.
   useEffect(() => {
-    const pulse = stats.goalHitPulse;
+    const pulse = goalHitPulse;
     if (!pulse) return;
 
     // Prevent double celebration for same day
     if (lastCelebratedDayKeyRef.current === pulse.dayKey) {
-      stats.clearGoalHitPulse();
+      clearGoalHitPulse();
       return;
     }
     lastCelebratedDayKeyRef.current = pulse.dayKey;
@@ -119,7 +134,7 @@ export default function TimerScreen() {
     }
 
     setGoalPopup(pulse);
-  }, [stats.goalHitPulse, stats.clearGoalHitPulse, showLoveNoteCard, lastLoveNote, dismissLoveNote]);
+  }, [goalHitPulse, clearGoalHitPulse, showLoveNoteCard, lastLoveNote, dismissLoveNote]);
 
   // 2) If a love note tries to show while goal popup is already visible, queue + dismiss it.
   useEffect(() => {
@@ -164,12 +179,12 @@ export default function TimerScreen() {
   const totalMs = useMemo(() => {
     const mins =
       phase === 'focus'
-        ? settings.settings.durations.focus
+        ? settings.durations.focus
         : phase === 'shortBreak'
-          ? settings.settings.durations.shortBreak
-          : settings.settings.durations.longBreak;
+          ? settings.durations.shortBreak
+          : settings.durations.longBreak;
     return mins * 60 * 1000;
-  }, [phase, settings.settings.durations]);
+  }, [phase, settings.durations]);
 
   const progress = useMemo(() => {
     if (remainingMs === null) return 0;
@@ -191,7 +206,7 @@ export default function TimerScreen() {
   // Primary button label
   const getPrimaryButtonLabel = () => {
     if (isRunning) return 'Pause';
-    if (remainingMs < (phase === 'focus' ? settings.settings.durations.focus * 60 * 1000 : settings.settings.durations.shortBreak * 60 * 1000)) {
+    if (remainingMs < (phase === 'focus' ? settings.durations.focus * 60 * 1000 : settings.durations.shortBreak * 60 * 1000)) {
       return 'Resume';
     }
     return 'Start';
@@ -200,7 +215,7 @@ export default function TimerScreen() {
   // Primary button action
   const handlePrimaryAction = () => {
     // Light haptic on button press
-    if (settings.settings.haptics) {
+    if (settings.haptics) {
       Haptics.selectionAsync().catch(() => { }); // Catch failures (e.g. web)
     }
 
@@ -281,7 +296,7 @@ export default function TimerScreen() {
         tightSpacing && styles.cycleTextTight,
         { color: colors.textMuted }
       ]}>
-        Session {completedFocusCountInCycle + 1} of {settings.settings.longBreakEvery}
+        Session {completedFocusCountInCycle + 1} of {settings.longBreakEvery}
       </Text>
     </>
   );
@@ -359,7 +374,7 @@ export default function TimerScreen() {
         // ── Default Mode ──────────────────────────────────────────────────────
         // Wrapper holds both the scrollable content and absolute overlays.
         <View style={styles.defaultModeWrapper}>
-          <CalmBackground enabled={settings.settings.animationsEnabled} />
+          <CalmBackground enabled={settings.animationsEnabled} />
 
           <ScrollView
             style={styles.scrollView}
@@ -400,11 +415,11 @@ export default function TimerScreen() {
           <GoalReachedPopup
             visible={!!goalPopup}
             newStreak={goalPopup?.newStreak ?? 0}
-            animationsEnabled={settings.settings.animationsEnabled}
+            animationsEnabled={settings.animationsEnabled}
             autoDismissMs={1400}
             onClose={() => {
               setGoalPopup(null);
-              stats.clearGoalHitPulse();
+              clearGoalHitPulse();
             }}
           />
           {!goalPopup && (

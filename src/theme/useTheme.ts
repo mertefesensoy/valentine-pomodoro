@@ -4,13 +4,12 @@
  */
 
 import { useColorScheme } from 'react-native';
-import { useApp } from '../context/AppContext';
+import { useSettingsStore } from '../stores/settingsStore';
 import { LightTheme, DarkTheme, ThemeColors } from './tokens';
 
 export function useTheme(): { colors: ThemeColors; isDark: boolean } {
     const systemScheme = useColorScheme();
-    const { settings } = useApp();
-    const { themeMode } = settings.settings;
+    const themeMode = useSettingsStore((s) => s.settings.themeMode);
 
     let isDark = false;
 

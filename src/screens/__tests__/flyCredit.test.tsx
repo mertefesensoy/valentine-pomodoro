@@ -1,7 +1,7 @@
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { AppProvider } from '../../context/AppContext';
+import { StoreGate } from '../../stores/StoreGate';
 import TimerScreen from '../TimerScreen';
 import { load, STORAGE_KEYS } from '../../utils/storage';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
@@ -52,11 +52,11 @@ describe('a Fly session that lands after midnight (DEF-001)', () => {
     it.failing('is credited to the day it took off, with its session id', async () => {
         await render(
             <GestureHandlerRootView style={{ flex: 1 }}>
-                <AppProvider>
+                <StoreGate>
                     <BottomTabBarHeightContext.Provider value={0}>
                         <TimerScreen />
                     </BottomTabBarHeightContext.Provider>
-                </AppProvider>
+                </StoreGate>
             </GestureHandlerRootView>,
         );
         await act(async () => {});

@@ -14,7 +14,8 @@ import {
     View,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useApp } from '../context/AppContext';
+import { useSettingsStore } from '../stores/settingsStore';
+import { useStatsStore, useStreak } from '../stores/statsStore';
 import { useUpdateCheck } from '../hooks/useUpdateCheck';
 import { useTheme } from '../theme/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
@@ -29,8 +30,17 @@ function isValidHHMM(s: string) {
 }
 
 export default function SettingsScreen() {
-    const { settings: settingsContext, stats, reminder } = useApp();
-    const { settings, updateSettings } = settingsContext;
+    const settings = useSettingsStore((s) => s.settings);
+    const updateSettings = useSettingsStore((s) => s.updateSettings);
+    const reminder = useSettingsStore((s) => s.reminder);
+    const reminderReady = useSettingsStore((s) => s.isReady);
+    const enableDailyReminder = useSettingsStore((s) => s.enableDailyReminder);
+    const disableDailyReminder = useSettingsStore((s) => s.disableDailyReminder);
+    const setReminderTimeHHMM = useSettingsStore((s) => s.setReminderTimeHHMM);
+    const setQuietHours = useSettingsStore((s) => s.setQuietHours);
+    const goalMinutes = useStatsStore((s) => s.goalMinutes);
+    const setGoalMinutes = useStatsStore((s) => s.setGoalMinutes);
+    const streak = useStreak();
     const { checkForUpdates } = useUpdateCheck(UPDATE_JSON_URL);
     const { colors } = useTheme();
     const { isTablet } = useResponsive();
@@ -41,7 +51,7 @@ export default function SettingsScreen() {
     const [shortBreakDraft, setShortBreakDraft] = useState(settings.durations.shortBreak.toString());
     const [longBreakDraft, setLongBreakDraft] = useState(settings.durations.longBreak.toString());
     const [longBreakEveryDraft, setLongBreakEveryDraft] = useState(settings.longBreakEvery.toString());
-    const [goalDraft, setGoalDraft] = useState(stats.goalMinutes.toString());
+    const [goalDraft, setGoalDraft] = useState(goalMinutes.toString());
     const [statusText, setStatusText] = useState('');
 
     // Phase 7: Native time picker state
@@ -331,21 +341,21 @@ export default function SettingsScreen() {
                     <View style={[styles.row, { borderBottomColor: colors.border }]}>
                         <Text style={[styles.label, { color: colors.text }]}>Enable Daily Goal</Text>
                         <Switch
-                            value={stats.goalMinutes > 0}
+                            value={goalMinutes > 0}
                             onValueChange={(on) => {
                                 if (on) {
                                     const n = parseInt(goalDraft, 10);
-                                    stats.setGoalMinutes(Number.isFinite(n) && n > 0 ? n : 50);
+                                    setGoalMinutes(Number.isFinite(n) && n > 0 ? n : 50);
                                 } else {
-                                    stats.setGoalMinutes(0);
+                                    setGoalMinutes(0);
                                 }
                             }}
                             trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (stats.goalMinutes > 0 ? colors.accent : '#9e9e9e')}
+                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (goalMinutes > 0 ? colors.accent : '#9e9e9e')}
                         />
                     </View>
 
-                    {stats.goalMinutes > 0 && (
+                    {goalMinutes > 0 && (
                         <>
                             <View style={styles.presetRow}>
                                 {GOAL_PRESETS.map((preset) => (
@@ -353,13 +363,13 @@ export default function SettingsScreen() {
                                         key={preset}
                                         onPress={() => {
                                             setGoalDraft(preset.toString());
-                                            stats.setGoalMinutes(preset);
+                                            setGoalMinutes(preset);
                                         }}
                                         style={[
                                             styles.presetButton,
                                             {
                                                 backgroundColor:
-                                                    stats.goalMinutes === preset
+                                                    goalMinutes === preset
                                                         ? colors.accent
                                                         : colors.surfaceTint,
                                             },
@@ -367,7 +377,7 @@ export default function SettingsScreen() {
                                     >
                                         <Text
                                             style={{
-                                                color: stats.goalMinutes === preset ? '#fff' : colors.text,
+                                                color: goalMinutes === preset ? '#fff' : colors.text,
                                                 fontWeight: '600',
                                             }}
                                         >
@@ -393,9 +403,9 @@ export default function SettingsScreen() {
                                     onBlur={() => {
                                         const n = parseInt(goalDraft, 10);
                                         if (Number.isFinite(n) && n >= 0 && n <= 1440) {
-                                            stats.setGoalMinutes(n);
+                                            setGoalMinutes(n);
                                         } else {
-                                            setGoalDraft(stats.goalMinutes.toString());
+                                            setGoalDraft(goalMinutes.toString());
                                         }
                                     }}
                                     keyboardType="number-pad"
@@ -406,7 +416,7 @@ export default function SettingsScreen() {
                     )}
 
                     <Text style={[styles.infoText, { color: colors.textMuted }]}>
-                        Current streak: {stats.streak.current} days (best: {stats.streak.best})
+                        Current streak: {streak.current} days (best: {streak.best})
                     </Text>
                 </View>
 
@@ -417,30 +427,30 @@ export default function SettingsScreen() {
                     <View style={[styles.row, { borderBottomColor: colors.border }]}>
                         <Text style={[styles.label, { color: colors.text }]}>Enable Reminders</Text>
                         <Switch
-                            value={reminder.reminder.enabled}
-                            disabled={!reminder.isReady || reminderBusy}
+                            value={reminder.enabled}
+                            disabled={!reminderReady || reminderBusy}
                             onValueChange={async (on) => {
                                 setStatusText('');
                                 setReminderBusy(true);
                                 try {
                                     if (on) {
-                                        const ok = await reminder.enableDailyReminder();
+                                        const ok = await enableDailyReminder();
                                         if (!ok) {
                                             setStatusText('Permission denied. Please enable notifications in settings.');
                                         }
                                     } else {
-                                        await reminder.disableDailyReminder();
+                                        await disableDailyReminder();
                                     }
                                 } finally {
                                     setReminderBusy(false);
                                 }
                             }}
                             trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (reminder.reminder.enabled ? colors.accent : '#9e9e9e')}
+                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (reminder.enabled ? colors.accent : '#9e9e9e')}
                         />
                     </View>
 
-                    {reminder.reminder.enabled && (
+                    {reminder.enabled && (
                         <>
                             <View style={[styles.row, { borderBottomColor: colors.border }]}>
                                 <Text style={[styles.label, { color: colors.text }]}>Time</Text>
@@ -456,7 +466,7 @@ export default function SettingsScreen() {
                                     onPress={() => setShowReminderTimePicker(true)}
                                 >
                                     <Text style={{ color: colors.text, fontSize: 16 }}>
-                                        {reminder.reminder.timeHHMM}
+                                        {reminder.timeHHMM}
                                     </Text>
                                 </Pressable>
                             </View>
@@ -464,7 +474,7 @@ export default function SettingsScreen() {
                                 <>
                                     <DateTimePicker
                                         value={(() => {
-                                            const [h, m] = reminder.reminder.timeHHMM.split(':').map(Number);
+                                            const [h, m] = reminder.timeHHMM.split(':').map(Number);
                                             const date = new Date();
                                             date.setHours(h, m, 0, 0);
                                             return date;
@@ -479,7 +489,7 @@ export default function SettingsScreen() {
                                             if (event.type === 'set' && selectedDate) {
                                                 const hh = selectedDate.getHours().toString().padStart(2, '0');
                                                 const mm = selectedDate.getMinutes().toString().padStart(2, '0');
-                                                reminder.setReminderTimeHHMM(`${hh}:${mm}`);
+                                                setReminderTimeHHMM(`${hh}:${mm}`);
                                             }
                                         }}
                                     />
@@ -497,19 +507,19 @@ export default function SettingsScreen() {
                             <View style={[styles.row, { borderBottomColor: colors.border }]}>
                                 <Text style={[styles.label, { color: colors.text }]}>Quiet Hours</Text>
                                 <Switch
-                                    value={reminder.reminder.quietHours.enabled}
+                                    value={reminder.quietHours.enabled}
                                     onValueChange={(on) =>
-                                        reminder.setQuietHours({
-                                            ...reminder.reminder.quietHours,
+                                        setQuietHours({
+                                            ...reminder.quietHours,
                                             enabled: on,
                                         })
                                     }
                                     trackColor={{ false: '#ddd', true: colors.accentLight }}
-                                    thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (reminder.reminder.quietHours.enabled ? colors.accent : '#9e9e9e')}
+                                    thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (reminder.quietHours.enabled ? colors.accent : '#9e9e9e')}
                                 />
                             </View>
 
-                            {reminder.reminder.quietHours.enabled && (
+                            {reminder.quietHours.enabled && (
                                 <>
                                     <View style={[styles.row, { borderBottomColor: colors.border }]}>
                                         <Text style={[styles.label, { color: colors.text }]}>Quiet Start</Text>
@@ -525,7 +535,7 @@ export default function SettingsScreen() {
                                             onPress={() => setShowQuietStartPicker(true)}
                                         >
                                             <Text style={{ color: colors.text, fontSize: 16 }}>
-                                                {reminder.reminder.quietHours.startHHMM}
+                                                {reminder.quietHours.startHHMM}
                                             </Text>
                                         </Pressable>
                                     </View>
@@ -533,7 +543,7 @@ export default function SettingsScreen() {
                                         <>
                                             <DateTimePicker
                                                 value={(() => {
-                                                    const [h, m] = reminder.reminder.quietHours.startHHMM.split(':').map(Number);
+                                                    const [h, m] = reminder.quietHours.startHHMM.split(':').map(Number);
                                                     const date = new Date();
                                                     date.setHours(h, m, 0, 0);
                                                     return date;
@@ -548,8 +558,8 @@ export default function SettingsScreen() {
                                                     if (event.type === 'set' && selectedDate) {
                                                         const hh = selectedDate.getHours().toString().padStart(2, '0');
                                                         const mm = selectedDate.getMinutes().toString().padStart(2, '0');
-                                                        reminder.setQuietHours({
-                                                            ...reminder.reminder.quietHours,
+                                                        setQuietHours({
+                                                            ...reminder.quietHours,
                                                             startHHMM: `${hh}:${mm}`,
                                                         });
                                                     }
@@ -580,7 +590,7 @@ export default function SettingsScreen() {
                                             onPress={() => setShowQuietEndPicker(true)}
                                         >
                                             <Text style={{ color: colors.text, fontSize: 16 }}>
-                                                {reminder.reminder.quietHours.endHHMM}
+                                                {reminder.quietHours.endHHMM}
                                             </Text>
                                         </Pressable>
                                     </View>
@@ -588,7 +598,7 @@ export default function SettingsScreen() {
                                         <>
                                             <DateTimePicker
                                                 value={(() => {
-                                                    const [h, m] = reminder.reminder.quietHours.endHHMM.split(':').map(Number);
+                                                    const [h, m] = reminder.quietHours.endHHMM.split(':').map(Number);
                                                     const date = new Date();
                                                     date.setHours(h, m, 0, 0);
                                                     return date;
@@ -603,8 +613,8 @@ export default function SettingsScreen() {
                                                     if (event.type === 'set' && selectedDate) {
                                                         const hh = selectedDate.getHours().toString().padStart(2, '0');
                                                         const mm = selectedDate.getMinutes().toString().padStart(2, '0');
-                                                        reminder.setQuietHours({
-                                                            ...reminder.reminder.quietHours,
+                                                        setQuietHours({
+                                                            ...reminder.quietHours,
                                                             endHHMM: `${hh}:${mm}`,
                                                         });
                                                     }

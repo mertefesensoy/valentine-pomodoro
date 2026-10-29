@@ -13,7 +13,7 @@
  *     • `runOnJS` at MARKER_HZ (15 Hz) updates React state (markerCoord, bearingDeg)
  *       for the Marker coordinate prop and camera effects
  *     • The airplane ROTATION uses `useAnimatedStyle` — fully 60fps on UI thread
- * - Timer state lives in `useSessionClock` (via AppContext `session`). The fly
+ * - Timer state lives in the session store, read through `useSessionClock`. The fly
  *   slot's `endAt` is a `Date.now()` wall-clock epoch, so backgrounding has no
  *   effect on accuracy.
  */
@@ -46,7 +46,10 @@ import { save, load, STORAGE_KEYS } from '../utils/storage';
 import { useAirports } from '../hooks/useAirports';
 import { formatTime } from '../utils/time';
 import { useFlyModeAudio } from '../hooks/useFlyModeAudio';
-import { useApp } from '../context/AppContext';
+import { useSessionClock } from '../hooks/useSessionClock';
+import { useNotesStore } from '../stores/notesStore';
+import { useSettingsStore } from '../stores/settingsStore';
+import { useStatsStore } from '../stores/statsStore';
 import { AdManager } from '../ads/AdManager';
 import { AdPolicy } from '../ads/AdPolicy';
 import { useNotifications } from '../hooks/useNotifications';
@@ -124,7 +127,11 @@ export default function FlyModeScreen() {
     // Sheet animation state — sheetProgress 0=peek, 1=full
     const sheetProgress = useSharedValue(1);
     const flySheetRef = useRef<FlySheetRef>(null);
-    const { settings, stats, loveNotes, session } = useApp();
+    const settings = useSettingsStore((s) => s.settings);
+    const incrementFocus = useStatsStore((s) => s.incrementFocus);
+    const pickRandomNote = useNotesStore((s) => s.pickRandomNote);
+    // Re-renders this screen once per second while a session runs (the B3 tick).
+    const session = useSessionClock();
     const { scheduleSessionEnd, cancelScheduled } = useNotifications();
 
     // Populated on mount when a saved session is restored; consumed once
@@ -373,17 +380,17 @@ export default function FlyModeScreen() {
 
             setFlightComplete(true);
 
-            if (settings.settings.haptics) {
+            if (settings.haptics) {
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
             }
 
             const minutes = Math.round((slot.durationMs ?? 0) / 60000);
             if (minutes > 0) {
-                stats.incrementFocus(minutes);
+                incrementFocus(minutes);
             }
 
-            if (settings.settings.showLoveNotes) {
-                const note = loveNotes.pickRandomNote(lastLoveNoteRef.current);
+            if (settings.showLoveNotes) {
+                const note = pickRandomNote(lastLoveNoteRef.current);
                 lastLoveNoteRef.current = note;
                 setLandingLoveNote(note);
             }
@@ -392,7 +399,7 @@ export default function FlyModeScreen() {
                 if (AdPolicy.shouldShowAd()) setIsAdPending(true);
             }).catch(console.warn);
         });
-    }, [session.onComplete, settings.settings, stats, loveNotes]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [session.onComplete, settings, incrementFocus, pickRandomNote]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ── Start
     const handleStart = useCallback(async () => {
@@ -401,7 +408,7 @@ export default function FlyModeScreen() {
         const endAt = Date.now() + totalMs;
 
         let notifId: string | null = null;
-        if (settings.settings.notifications) {
+        if (settings.notifications) {
             try {
                 notifId = await Promise.race([
                     scheduleSessionEnd(endAt, '✈️ Landed!', 'Your flight focus session is complete 💗'),
@@ -433,7 +440,7 @@ export default function FlyModeScreen() {
                 scheduledNotificationId: notifId,
             },
         });
-    }, [flightData, origin, destination, progressSV, markerUpdateAccSV, scheduleSessionEnd, settings.settings.notifications, session]);
+    }, [flightData, origin, destination, progressSV, markerUpdateAccSV, scheduleSessionEnd, settings.notifications, session]);
 
     // ── Pause
     const handlePause = useCallback(() => {
@@ -452,7 +459,7 @@ export default function FlyModeScreen() {
 
         session.resume();
 
-        if (settings.settings.notifications) {
+        if (settings.notifications) {
             const endAt = Date.now() + slot.pausedRemainingMs;
             try {
                 const notifId = await Promise.race([
@@ -464,7 +471,7 @@ export default function FlyModeScreen() {
                 console.warn('Failed to reschedule landing notification:', e);
             }
         }
-    }, [session, scheduleSessionEnd, settings.settings.notifications]);
+    }, [session, scheduleSessionEnd, settings.notifications]);
 
     // ── Reset
     const handleReset = useCallback(() => {
@@ -584,7 +591,7 @@ export default function FlyModeScreen() {
     useFlyModeAudio(
         'flyAmbient',
         timerRunning && !paused,
-        settings.settings.flyModeSound
+        settings.flyModeSound
     );
 
     const mapType: MapType = isGlobe
@@ -592,14 +599,14 @@ export default function FlyModeScreen() {
         : 'mutedStandard';
 
     const cycleCameraMode = useCallback(() => {
-        if (settings.settings.haptics) Haptics.selectionAsync().catch(() => {});
+        if (settings.haptics) Haptics.selectionAsync().catch(() => {});
         setCameraMode(prev => CYCLE_MODE[prev]);
-    }, [settings.settings.haptics]);
+    }, [settings.haptics]);
 
     const toggleGlobe = useCallback(() => {
-        if (settings.settings.haptics) Haptics.selectionAsync().catch(() => {});
+        if (settings.haptics) Haptics.selectionAsync().catch(() => {});
         setIsGlobe(g => !g);
-    }, [settings.settings.haptics]);
+    }, [settings.haptics]);
 
     // Picker row fades in as the sheet opens toward full (2-snap: 0=peek, 1=full)
     const pickerAnimatedStyle = useAnimatedStyle(() => ({
@@ -891,7 +898,7 @@ export default function FlyModeScreen() {
                 viewportHeight={height}
                 bottomInset={insets.bottom}
                 cardBgColor={colors.card}
-                hapticsEnabled={settings.settings.haptics}
+                hapticsEnabled={settings.haptics}
                 headerControl={
                     <Pressable
                         onPress={toggleGlobe}

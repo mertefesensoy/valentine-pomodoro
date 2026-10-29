@@ -1,7 +1,8 @@
 import { Text } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { act, render, screen } from '@testing-library/react-native';
-import { AppProvider, useApp } from '../../../context/AppContext';
+import { StoreGate } from '../../../stores/StoreGate';
+import { useStatsViews } from '../../../stores/statsStore';
 import { load, STORAGE_KEYS } from '../../../utils/storage';
 import { resetStorage } from '../resetStorage';
 import type { SessionClockState } from '../../../types';
@@ -96,15 +97,15 @@ describe('v1.3.1 storage fixtures', () => {
         consoleError.mockRestore();
     });
 
-    it('stats v1 user: no stats_v2, and today’s provider migrates the v1 map with the same totals', async () => {
+    it('stats v1 user: no stats_v2, and the stats store migrates the v1 map with the same totals', async () => {
         await AsyncStorage.multiSet(STATS_V1_USER_ENTRIES);
         expect(await AsyncStorage.getItem(STORAGE_KEYS.STATS_V2)).toBeNull();
 
         function TotalsProbe() {
-            const { stats } = useApp();
-            return <Text testID="totals">{`${stats.totals.focusSessions}/${stats.totals.focusMinutes}`}</Text>;
+            const { totals } = useStatsViews();
+            return <Text testID="totals">{`${totals.focusSessions}/${totals.focusMinutes}`}</Text>;
         }
-        await render(<AppProvider><TotalsProbe /></AppProvider>);
+        await render(<StoreGate><TotalsProbe /></StoreGate>);
         await act(async () => {});
 
         const days = Object.values(STATS_V1_USER.stats);
@@ -112,7 +113,7 @@ describe('v1.3.1 storage fixtures', () => {
         const minutes = days.reduce((n, d) => n + d.focusMinutes, 0);
         expect(screen.getByTestId('totals')).toHaveTextContent(`${sessions}/${minutes}`);
 
-        // The provider writes stats_v2 through the app's storage (MMKV since B2).
+        // The stats store writes stats_v2 through the app's storage (MMKV since B2).
         const v2 = await load<{ days: Record<string, unknown> } | null>(STORAGE_KEYS.STATS_V2, null);
         expect(Object.keys(v2!.days).sort()).toEqual(Object.keys(STATS_V1_USER.stats).sort());
         expect(await AsyncStorage.getItem(STORAGE_KEYS.STATS_V2)).toBeNull();

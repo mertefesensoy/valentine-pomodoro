@@ -20,6 +20,7 @@ function freshModules() {
     return { ...data, read, readText: () => asset.readAirportsAsset() };
 }
 
+// covers: FR-FLY-004
 describe('parseAirports', () => {
     it('turns every IATA key into one airport, fields unchanged', async () => {
         const { parseAirports, readText } = freshModules();

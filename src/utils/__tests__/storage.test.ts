@@ -19,6 +19,7 @@ beforeEach(async () => {
     jest.restoreAllMocks();
 });
 
+// covers: FR-MIG-002
 describe('storage on MMKV', () => {
     it('a first load after the update reads the v1.3.1 value, migrated', async () => {
         await AsyncStorage.multiSet(V131_FULL_ENTRIES);

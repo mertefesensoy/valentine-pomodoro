@@ -23,6 +23,7 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
+// covers: FR-FLY-004
 it('resolves the bundled asset, then reads its local file as text', async () => {
     mockDownloadAsync.mockResolvedValue({ localUri: 'file:///app/assets/src/assets/data/airports.jsonasset' });
     mockText.mockResolvedValue('{"IST":{}}');

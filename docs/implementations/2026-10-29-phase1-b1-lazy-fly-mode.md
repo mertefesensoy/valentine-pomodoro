@@ -1,6 +1,15 @@
+---
+id: IMPL-2026-10-29-phase1-b1-lazy-fly-mode
+title: "Phase 1 B1: lazy Fly Mode"
+status: done
+date: 2026-10-29
+owner: Mert Efe Şensoy
+related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-29-phase1-b1b-airports-asset, SRS]
+---
+
 # 2026-10-29 — Phase 1 B1: lazy Fly Mode
 
-**Status:** Done. Jest, typecheck, lint and the Reassure counts are green. Device check pending: it rides on the B2 TestFlight build (§6).
+**Status:** Done (`5b10a78`; FR-FLY-004). Jest, typecheck, lint and the Reassure counts are green. **The device check is open:** it rides on TestFlight build 43, v1.4.0 (EAS `73ad1446-23f8-4c34-a00e-78b2da38a900`), uploaded 2026-10-30 (§6).
 **Branch:** `rehaul/v2`
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md), task B1, §5 finding 1
 
@@ -161,7 +170,7 @@ node scripts/startup-modules.js <dir>/_expo/static/js/ios/index-<hash>.js --list
   - the deliberate in-test `require` of `TimerScreen` (§3.3)
 - [x] Reassure, counts against the Stage A baseline: §6.1.
 - [x] Module counts: §4. To reproduce, run the export and the script at `229298d` and at this commit.
-- [ ] **Device (iPhone, TestFlight), with the B2 build:**
+- [ ] **Device (iPhone, TestFlight build 43, v1.4.0):**
   1. A cold start into Classic is unchanged.
   2. The first switch to Fly shows the placeholder for at most a moment, then the map.
   3. Switching back and forth again shows no placeholder.

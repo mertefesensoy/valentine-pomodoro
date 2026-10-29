@@ -1,6 +1,15 @@
+---
+id: IMPL-2026-10-29-phase1-b2-mmkv-migration
+title: "Phase 1 B2: MMKV and the one-time AsyncStorage migration"
+status: done
+date: 2026-10-29
+owner: Mert Efe Şensoy
+related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-29-phase1-stage-a, SRS]
+---
+
 # 2026-10-29 — Phase 1 B2: MMKV and the one-time AsyncStorage migration
 
-**Status:** Done locally. Jest, typecheck, lint and the Reassure counts are green; the migration was tested against every A3 fixture. **Not yet run on a device:** B2 adds a native module, so it needs a new EAS iOS build plus TestFlight, which only you can approve (§6.2).
+**Status:** Done (`dd1e894`; FR-MIG-001, FR-MIG-002). Jest, typecheck, lint and the Reassure counts are green, and the migration was tested against every A3 fixture. **It builds:** TestFlight build 43, v1.4.0 (EAS `73ad1446-23f8-4c34-a00e-78b2da38a900`), was built with your go-ahead and uploaded on 2026-10-30. **The device check is open** (§6.2).
 **Branch:** `rehaul/v2`
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md), task B2, §5 (flag-last decision), §6 item 2 (the notes rule); [rehaul plan](2026-10-29-couples-rehaul-plan.md) §10 Risks ("AsyncStorage keys are kept for one release as a fallback")
 
@@ -200,11 +209,22 @@ npx expo-doctor
 - [x] Pinned export: both platforms bundle MMKV and Nitro without resolution errors (§4.3).
 - [x] `npx expo-doctor`: 19/20. The one failure is the `@expo/config-plugins` note already accepted in the SDK 58 upgrade; nothing about MMKV or Nitro.
 
-### 6.2 Device (iPhone, TestFlight): needs your go-ahead
+### 6.2 Device (iPhone, TestFlight build 43)
 
-B2 adds native code (MMKV's C++ core through Nitro), so it can't ride on build 42. It needs a **new EAS iOS build and a TestFlight upload**. That one build can also carry the B1 and B1b device checks.
+B2 adds native code (MMKV's C++ core through Nitro), so it couldn't ride on build 42.
 
-**Specific build risk.** `app.json` sets `expo-build-properties` `ios.useFrameworks: "static"` (for AdMob). Nitro and MMKV 4 have **never been built in this configuration here**, and there is no Mac to try `pod install` locally. If the EAS build fails at pods or link time, that is the first suspect.
+**The build (2026-10-30, your go-ahead):**
+
+| | |
+|--|--|
+| Command | `eas build --platform ios --profile production --non-interactive --auto-submit` |
+| EAS build | `73ad1446-23f8-4c34-a00e-78b2da38a900`, **v1.4.0, build 43**, FINISHED |
+| Source | EAS recorded `9c5b0ce`, which the docs session committed after `b007530`. The app code is identical to `dd1e894`: `git diff --stat b007530 9c5b0ce` over `src/`, the package files, `app.json`, `eas.json` and the Jest/Babel/Metro config is empty. |
+| Submission | `b145e4cd-29a1-442f-943d-77bf5a49ae3b`, uploaded to App Store Connect, then Apple's processing |
+
+The same build carries the B1 and B1b device checks.
+
+**The build risk didn't materialize.** `app.json` sets `expo-build-properties` `ios.useFrameworks: "static"` (for AdMob), and Nitro and MMKV 4 had never been built that way here. Pods, compile and link all succeeded on EAS. Whether MMKV *runs* correctly on a device is what the checks below find out.
 
 **Checks.** Install over the phone that has data, ideally one still on App Store 1.3.1, otherwise the build 42 install, which still stores in AsyncStorage:
 
@@ -234,7 +254,7 @@ All counts are identical to Stage A. The migration (one `getAllKeys`, one `multi
 
 ## 7. Findings and open items
 
-1. **The device check (§6.2) is the only open item for B2.** It needs your go-ahead for the EAS build and the TestFlight submission.
+1. **The device check (§6.2) is the only open item for B2.** Build 43 is on TestFlight. The checks need your iPhone, ideally installed over one that still holds 1.3.1 data.
 2. **AsyncStorage is never cleaned up.** Deleting it is a deliberate later task, after the rollback window. Until then each install carries its v1.3.1 data twice; a few KB.
 3. **A corrupt `love_notes` key is copied as-is.** The reader then falls back to `DEFAULT_LOVE_NOTES`, and after D2 that means the *new* set. This needs a torn write of the notes key, which is rare, because it is written only on edit. Left as "handled where it is read"; D2 could check the frozen set as well.
 4. **Stage A finding 1 (`useStats` drops `lastAppliedSessionId`) is untouched.** B3's stats store should keep the field.

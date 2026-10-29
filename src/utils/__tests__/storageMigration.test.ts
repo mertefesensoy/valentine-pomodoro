@@ -78,6 +78,7 @@ beforeEach(async () => {
     jest.restoreAllMocks();
 });
 
+// covers: FR-MIG-001, FR-MIG-002
 describe.each(FIXTURES)('%s', (_name, entries) => {
     beforeEach(async () => {
         await AsyncStorage.multiSet(entries);

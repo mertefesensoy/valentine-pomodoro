@@ -44,6 +44,7 @@ async function renderTimerScreen() {
     await act(async () => {});
 }
 
+// covers: FR-FLY-004, FR-FLY-003
 describe('Fly Mode is loaded lazily (B1)', () => {
     const originalOS = Platform.OS;
 

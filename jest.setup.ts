@@ -12,6 +12,13 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 
 // Reanimated 4.2+ initialises react-native-worklets at import, so both need mocks.
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
+// Reanimated 4.7.1 bug: under Jest it swaps in JSReanimated, but initializers.native
+// still calls setCSSEventHandler, which JSReanimated throws on. Stub only that call;
+// remove once upstream fixes it (check on each Reanimated upgrade).
+jest.mock('react-native-reanimated/src/css/native/proxy', () => ({
+    ...jest.requireActual('react-native-reanimated/src/css/native/proxy'),
+    setCSSEventHandler: () => {},
+}));
 jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
 
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);

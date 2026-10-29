@@ -1,0 +1,15 @@
+diff --git a/node_modules/react-native-maps/ios/AirMaps/AIRMap.mm b/node_modules/react-native-maps/ios/AirMaps/AIRMap.mm
+index d3b0723..51d1882 100644
+--- a/node_modules/react-native-maps/ios/AirMaps/AIRMap.mm
++++ b/node_modules/react-native-maps/ios/AirMaps/AIRMap.mm
+@@ -191,7 +191,9 @@ const NSInteger AIRMapMaxZoomLevel = 20;
+             [self removeReactSubview:(UIView *)childSubviews[i]];
+         }
+     }
+-    [_reactSubviews removeObject:(UIView *)subview];
++    if (subview != nil) {
++        [_reactSubviews removeObject:(UIView *)subview];
++    }
+ }
+ #pragma clang diagnostic pop
+ 

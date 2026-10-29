@@ -38,6 +38,7 @@ Before this phase none of these held:
 | `f4c25db` | `package.json`, `package-lock.json` | Version aligned with `app.json`: 1.2.5 → 1.3.1. |
 | `ece7280` | `.claude/skills/*`, `.claude/agents/*`, `.gitignore` | Impeccable 4.8.0 and ten Emil Kowalski skills, at project scope, with their licenses. |
 | `1c73500` | `package.json`, `package-lock.json`, `app.json` | Expo SDK 54 patch updates from `npx expo install --fix`. Expo also registered the `expo-font` config plugin. |
+| `65c1d34` | `package-lock.json` | `nanoid` 3.3.11 → 3.3.20, within range (§5, finding 6). |
 
 ## 3. Implementation Approach
 

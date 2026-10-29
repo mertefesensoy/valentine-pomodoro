@@ -811,7 +811,7 @@ I can't create accounts or enter credentials for you, so these are yours:
 | Plan approval | Approve or amend §0, and decide whether Phase 1 ships as one release (v1.4) or two (§7, Phase 1). |
 | Phase 0 | The **live URL of the current marketing site**, for the Lighthouse baseline. |
 | Phase 2 | A **Supabase** project (org and region; an EU region is the closest one for users in Turkey). |
-| Phase 2 | A **domain** for the site and `app.<domain>`, which the universal-link invites need. |
+| **Now** (moved up by Phase 0) | A **domain** for the site and `app.<domain>`, which the universal-link invites need. The current `*.vercel.app` address was unreachable from your network during Phase 0. |
 | Phase 5 | **RevenueCat**, App Store Connect subscription products, Play Console products. |
 | Phase 5 | **AdMob**: real Android app id and ad unit ids (today they are Google's test ids), and the UMP consent message set up in the AdMob console. |
 | Phase 6 | A Cloudflare Pages (or Vercel) account. |

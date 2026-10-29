@@ -1,7 +1,7 @@
-import { View, Text, Pressable, StyleSheet, Alert, Platform, ScrollView, StatusBar } from "react-native";
+import { View, Text, Pressable, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator } from "react-native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useTimer } from "../hooks/useTimer";
 import { formatTime } from "../utils/time";
 import LoveNoteCard from "../components/LoveNoteCard";
@@ -10,13 +10,33 @@ import { CircularProgress } from "../components/CircularProgress";
 import CalmBackground from "../components/CalmBackground";
 import ModeSwitcher from "../components/ModeSwitcher";
 import { isFlyModeAvailable } from "../constants/features";
-import FlyModeScreen from "./FlyModeScreen";
 import * as Haptics from "expo-haptics";
 import { useApp } from "../context/AppContext";
 import { useTheme } from "../theme/useTheme";
 import { useResponsive } from "../hooks/useResponsive";
 import { AdManager } from "../ads/AdManager";
 import { AdPolicy } from "../ads/AdPolicy";
+
+// Fly Mode is split out (Phase 1 task B1): FlyModeScreen and everything only it
+// imports (react-native-maps, FlySheet, Fly's audio) are evaluated the first time
+// Fly opens, not on a cold start into Classic. Hermes still ships them in the one
+// bundle, so this defers evaluation only. Fly can only open where
+// isFlyModeAvailable() (iOS), so elsewhere the module is never loaded at all.
+const FlyModeScreen = lazy(() => import("./FlyModeScreen"));
+
+// Shown while FlyModeScreen loads on the first switch: a plain page in the
+// theme's background colour, so the switch doesn't flash an empty grey map.
+function FlyModePlaceholder() {
+  const { colors } = useTheme();
+  return (
+    <View
+      style={[styles.flyPlaceholder, { backgroundColor: colors.bg }]}
+      accessibilityLabel="Loading Fly Mode"
+    >
+      <ActivityIndicator color={colors.accent} />
+    </View>
+  );
+}
 
 export default function TimerScreen() {
   const { height, isLandscape, isTablet, isShortViewport } = useResponsive();
@@ -325,9 +345,12 @@ export default function TimerScreen() {
 
       {activeMode === 'fly' ? (
         // ── Fly Mode ─────────────────────────────────────────────────────────
-        // FlyModeScreen fills all space; ModeSwitcher floats over the map.
+        // FlyModeScreen fills all space; ModeSwitcher floats over the map. The
+        // switcher sits outside Suspense, so Classic stays reachable while Fly loads.
         <View style={styles.flyContainer}>
-          <FlyModeScreen />
+          <Suspense fallback={<FlyModePlaceholder />}>
+            <FlyModeScreen />
+          </Suspense>
           <View style={[styles.flyModeSwitcherBar, { top: insets.top + 8 }]}>
             <ModeSwitcher activeMode={activeMode} onModeChange={setActiveMode} />
           </View>
@@ -414,6 +437,11 @@ const styles = StyleSheet.create({
   // Fly mode: map + overlaid mode switcher
   flyContainer: {
     flex: 1,
+  },
+  flyPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   flyModeSwitcherBar: {
     position: 'absolute',

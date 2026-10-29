@@ -27,8 +27,9 @@ jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock
 
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
 
-// react-native-maps resolves its TurboModule at import time, and TimerScreen
-// imports FlyModeScreen statically. The map becomes plain Views; the camera
+// react-native-maps resolves its TurboModule at import time. TimerScreen loads
+// FlyModeScreen lazily (Phase 1 B1), but every test that opens Fly (the A1 guard)
+// still evaluates it, so keep this mock. The map becomes plain Views; the camera
 // methods FlyModeScreen calls through its ref are no-ops.
 jest.mock('react-native-maps', () => {
     const React = require('react');
@@ -47,7 +48,8 @@ jest.mock('react-native-maps', () => {
     return { __esModule: true, default: MapView, Marker: Plain, Polyline: Plain };
 });
 
-// expo-audio builds a class on its native module at import (also via FlyModeScreen).
+// expo-audio builds a class on its native module at import (via FlyModeScreen,
+// whenever a test opens Fly).
 // Only what useFlyModeAudio touches is stubbed.
 jest.mock('expo-audio', () => ({
     useAudioPlayer: () => ({ play: jest.fn(), pause: jest.fn(), remove: jest.fn(), loop: false, volume: 1 }),

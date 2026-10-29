@@ -1,6 +1,6 @@
 # 2026-10-29 — Expo SDK 54 → 58 upgrade and generated native projects
 
-**Status:** In progress. Every step passes the local gates; the EAS native builds are running (§6.2); device checks are still to do (§6.3).
+**Status:** Built. Both EAS native builds succeeded on SDK 58 (§6.2). The device checks are still to do (§6.3), and on-device iOS testing needs a TestFlight build.
 **Branch:** `rehaul/v2` (local only, nothing pushed)
 **Plan:** [2026-10-29-couples-rehaul-plan.md](2026-10-29-couples-rehaul-plan.md), §7 Phase 0, item 6 · follows [Phase 0 foundation](2026-10-29-phase0-foundation.md)
 
@@ -141,8 +141,8 @@ On SDKs 56–58, the remaining doctor flags are the accepted `@expo/config-plugi
 
 | Build | Profile | ID | Result |
 |-------|---------|----|--------|
-| Android APK | `preview` (internal; release variant, so R8 applies) | `3450a78b-004c-4b47-8e48-8cd808f37c2c` | *pending* |
-| iOS | `preview-simulator` | `363bb2ef-7ed1-49b1-b82d-a82987f1a0ae` | *pending* |
+| Android APK | `preview` (internal; release variant, so R8 applies) | `3450a78b-004c-4b47-8e48-8cd808f37c2c` | **FINISHED** 2026-10-29 14:34 UTC. SDK 58.0.0, **versionName 1.3.1**, which confirms the CNG switch fixed the stuck-at-1.2.4 problem. Compiled in 23 min 25 s. The APK is 108.5 MB because it is universal, carrying all four CPU architectures; the Play Store's app bundle delivers one architecture per device, so store downloads are much smaller. [Download APK](https://expo.dev/artifacts/eas/sCAxdroTc4sUKeo1QpNc35WMDgQXmZWA4q17UL8T5kY.apk) |
+| iOS | `preview-simulator` | `363bb2ef-7ed1-49b1-b82d-a82987f1a0ae` | **FINISHED** 2026-10-29 14:02 UTC. SDK 58.0.0, app 1.3.1 (build 41); compiled in 7 min 22 s. This proves the iOS native build (pods, `useFrameworks: static`, the AIRMap patch, the AdMob 16.5 pod, the scene-lifecycle prebuild) compiles on SDK 58. It does not prove runtime behaviour on a device. |
 
 ### 6.3 Device checks (yours)
 

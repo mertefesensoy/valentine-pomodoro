@@ -4,7 +4,7 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [Unreleased]
 
-*Branch `rehaul/v2` at 3d3fbaf (the B7 merge), 104 commits after 1.3.1, working toward 1.4.0 for iOS. Not released. TestFlight builds 42–45 were cut from this branch: [1.4.0-tf.42] at a12ced4, [1.4.0-tf.43] at 9c5b0ce, [1.4.0-tf.44] at 1e2316b and [1.4.0-tf.45] at 6eaeb50.*
+*Branch `rehaul/v2` at 3369418, 105 commits after 1.3.1, working toward 1.4.0 for iOS. Not released. TestFlight builds 42–46 were cut from this branch: [1.4.0-tf.42] at a12ced4, [1.4.0-tf.43] at 9c5b0ce, [1.4.0-tf.44] at 1e2316b, [1.4.0-tf.45] at 6eaeb50 and [1.4.0-tf.46] at 3369418.*
 
 The v2 rehaul, in progress. Each bullet names its theme: Phase 0 (the foundation), SDK 58, CNG, Android, iOS-first, Stage A (the Phase 1 safety nets), Stage B (the first Phase 1 changes), Docs (the 2026-10-30 documentation system and what followed it) and Design (the design-skill stack).
 
@@ -74,6 +74,12 @@ The v2 rehaul, in progress. Each bullet names its theme: Phase 0 (the foundation
 ### Security
 
 - **Phase 0:** `nanoid` 3.3.11 → 3.3.20, the only package with an `npm audit` advisory that ships in the app bundle. React Navigation uses it for fixed-size keys, so its advisories couldn't be triggered here (65c1d34). After the SDK 58 upgrade, `npm audit` reports 16 advisories, down from 39; the three high-severity ones come from `zod` inside `@expo/cli`, build tooling that contributes no code to the app (befaf99).
+
+## [1.4.0-tf.46] - 2026-10-30
+
+*iOS TestFlight build 46, a pre-release and not a store release, source 3369418. Built with EAS (build bf625f5c) and uploaded to App Store Connect for TestFlight (submission a4695d2b); passed the B6 and B7 device check on a physical iPhone, 2026-10-30.*
+
+Its changes are listed under [Unreleased], which covers the whole branch. This build contains everything there up to 3369418, through B6 and B7.
 
 ## [1.4.0-tf.45] - 2026-10-30
 
@@ -330,6 +336,7 @@ Two later fixes on the same branch were never built: functional state updates fo
 - The app icon, splash screen and EAS build configuration, on Expo SDK 54 with React Native 0.81.5 (42409bf, adc5bb3, 40489e2, 4278bd6).
 
 [Unreleased]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.3.1...rehaul/v2
+[1.4.0-tf.46]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.45...v1.4.0-tf.46
 [1.4.0-tf.45]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.44...v1.4.0-tf.45
 [1.4.0-tf.44]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.43...v1.4.0-tf.44
 [1.4.0-tf.43]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.42...v1.4.0-tf.43

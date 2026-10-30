@@ -642,14 +642,14 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 
 #### FR-NAV-001
 **Statement:** A `valentinepomodoro://` link shall open its tab: `valentinepomodoro://` Timer, `valentinepomodoro://stats` Stats, `valentinepomodoro://settings` Settings and `valentinepomodoro://notes` Notes, whether the link launches the app or arrives while it runs. Any other path shall open a not-found screen with a link to Timer.
-**Pri:** Should · **Target:** Phase 1 (B6) · **Status:** implemented (B6, `a736b22`, merged as `1b7a8d7`; device check on the B6+B7 TestFlight build pending)
+**Pri:** Should · **Target:** Phase 1 (B6) · **Status:** implemented (B6, `a736b22`, merged as `1b7a8d7`; device check passed on TestFlight build 46, `v1.4.0-tf.46`, 2026-10-30)
 **Verify:** T: `src/__tests__/router.test.tsx` (each URL cold and warm, through the router's own URL parsing); D: [B6 §6.6](../implementations/2026-10-30-phase1-b6-expo-router.md), item 6 · **Source:** PLAN-PHASE1 B6, [ADR-0028](../architecture/adr/0028-expo-router.md)
 
 ### 3.3 Non-functional requirements
 
 #### NFR-PERF-001
 **Statement:** Cold-start time-to-interactive shall be ≤ 1.0 s on an iPhone 12-class device.
-**Target:** Phase 1 E3 · **Status:** planned (baseline TBD: the B6+B7 TestFlight build measures it with the B7 probe) · **Verify:** D: the B7 start-up probe on a TestFlight build. TTI is the first idle moment after the root's first layout, in ms from the JS bundle's start (`executeJavaScriptBundleEntryPointStart`), the median of ≥ 12 clean cold starts; the owner set this reading of the 1.0 s target on 2026-10-30. The B7 before/after comparison uses the same moment measured from the probe's own start, which needs no native marker ([B7 record §4](../implementations/2026-10-30-phase1-b7-deferred-startup.md#4-mathematical--statistical-details)). The native time before the bundle starts isn't measured (no Mac for Instruments). T: `src/startup/__tests__/deferredStartup.test.ts`, `src/startup/__tests__/probeStats.test.ts`, `src/startup/__tests__/StartupDiagnostics.test.tsx` · **Source:** PLAN-REHAUL §6.2, PLAN-PHASE1 B7
+**Target:** Phase 1 E3 · **Status:** planned (baseline TBD: the B7 probe ran on TestFlight build 46, 2026-10-30, and its numbers are still to be recorded) · **Verify:** D: the B7 start-up probe on a TestFlight build. TTI is the first idle moment after the root's first layout, in ms from the JS bundle's start (`executeJavaScriptBundleEntryPointStart`), the median of ≥ 12 clean cold starts; the owner set this reading of the 1.0 s target on 2026-10-30. The B7 before/after comparison uses the same moment measured from the probe's own start, which needs no native marker ([B7 record §4](../implementations/2026-10-30-phase1-b7-deferred-startup.md#4-mathematical--statistical-details)). The native time before the bundle starts isn't measured (no Mac for Instruments). T: `src/startup/__tests__/deferredStartup.test.ts`, `src/startup/__tests__/probeStats.test.ts`, `src/startup/__tests__/StartupDiagnostics.test.tsx` · **Source:** PLAN-REHAUL §6.2, PLAN-PHASE1 B7
 
 #### NFR-PERF-002
 **Statement:** The startup JavaScript (Hermes bytecode) shall be smaller than the SDK 58 baseline: iOS 3,856,208 B, measured with `npx expo export --platform ios --platform android --dump-sourcemap`.

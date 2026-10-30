@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-b4-rerender-refact
 
 # 2026-10-30 — Phase 1 B6: Expo Router with native tabs
 
-**Status:** Code done and verified locally, in three code commits after the plan commit (§2). **Merged into `rehaul/v2` on 2026-10-30 as `1b7a8d7`, before B7 (`3d3fbaf`); not pushed yet.** The device check (§6.6) runs on the one TestFlight build that carries B6 and B7, made by the session that started this one, with your go-ahead.
+**Status:** Code done and verified locally, in three code commits after the plan commit (§2). **Merged into `rehaul/v2` on 2026-10-30 as `1b7a8d7`, before B7 (`3d3fbaf`); pushed 2026-10-30 (through `3369418`).** The device check (§6.6) passed on TestFlight build 46 (`v1.4.0-tf.46`), 2026-10-30.
 **Branch:** `phase1/b6-expo-router`, a worktree at `C:\vp\b6`, cut from `rehaul/v2` at `7034bba`. It merges with `phase1/b7-deferred-startup` without conflicts (§6.5).
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md), task B6. Decision: [ADR-0028](../architecture/adr/0028-expo-router.md) (Expo Router, native tabs); how it is built: [ADR-0043](../architecture/adr/0043-native-tabs-frozen-by-a-wrapper.md). Follows [B5](2026-10-30-phase1-b5-react-compiler.md).
 
@@ -350,9 +350,21 @@ After the merge, applying §8 and running `--write` clears all of them.
   - **iOS bytecode 3,912,884 B**: B6's 3,894,148 plus 18,736 B of B7, so **56,676 B (1.47 %) over the ceiling**.
   - Not checked here: B7's `markFirstFrame` call, which the parent adds at merge on `App`'s `GestureHandlerRootView` in `src/App.tsx` (B7 record §3.6). That view is unchanged by B6, and B7's `@/startup/deferredStartup` import resolves under Jest too (jest-expo maps `@/` to `src/`), so the router and splash tests, which render the real `App`, can load it.
 
-### 6.6 Device checklist (the combined B6 + B7 TestFlight build)
+### 6.6 Device (iPhone, TestFlight build 46): passed
 
 Jest's mocks can't show the native tab bar, real safe areas, the scheme registration, or the timing between UIKit and JavaScript. Install over build 45 (so stats, notes and settings are real), on the iPhone. B7's own checklist (its record §6.5–6.6) runs on the same build.
+
+**The build (2026-10-30, your go-ahead):**
+
+| | |
+|--|--|
+| Command | `eas build --platform ios --profile production --non-interactive`, then `eas submit --platform ios --id bf625f5c-beb8-4fef-8130-ee0e798417c1 --non-interactive` |
+| EAS build | `bf625f5c-beb8-4fef-8130-ee0e798417c1`, **v1.4.0, build 46**, SDK 58.0.0, built 09:02–09:07 UTC |
+| Source | `3369418`: B6's merge `1b7a8d7`, B7's merge `3d3fbaf`, and the follow-up that wires `markFirstFrame`. Checked locally before the build: typecheck clean, lint 0 errors, Jest 197/197 in 33 suites, Reassure 1/13/1/2/1/12, `expo install --check` clean. CI green on `3369418` (run 41030329092) |
+| Submission | `a4695d2b-7f17-439b-af67-72bf2d6469b3`, uploaded to App Store Connect, then Apple's processing |
+| Tag | `v1.4.0-tf.46` (annotated, at `3369418`) |
+
+**Result: passed on a physical iPhone (2026-10-30, reported by you: "all passes the verifications").** You ran these eleven checks together with B7's, as one 19-item list, and reported them together, not one by one. Item 1, the one new risk, showed no flash, so ADR-0043's fallback isn't needed.
 
 1. **No flash on switching tabs.** Switch between all four tabs several times, quickly and slowly, then again during a running session. A tab you have opened before must appear with its content, with no blank or background-coloured frame. *If it flashes:* that is the freeze (ADR-0043). The fallback is to remove `FreezeOnBlur` from the routes, then re-check item 8 and the cold-start cost; report it rather than accept it.
 2. **The tab bar:** the system tab bar (on iOS 26, Liquid Glass), with the heart, chart, gear and note icons labelled Timer, Stats, Settings, Notes, in that order. Switching tabs has no animation. Dark mode: the bar follows the phone's appearance, as before.
@@ -551,6 +563,7 @@ and in the intro, "The first superseded record is ADR-0035, by ADR-0041 (Phase 1
 - [Expo Router for navigation](../architecture/adr/0028-expo-router.md)
 - [Native tabs, frozen by a route wrapper, laid out by safe-area insets](../architecture/adr/0043-native-tabs-frozen-by-a-wrapper.md)
 - [2026-10-29 — Phase 1 (v1.4): design system and local re-architecture, plan](2026-10-29-phase1-plan.md)
+- ["Phase 1 B7: deferred start-up work, and an on-device TTI probe"](2026-10-30-phase1-b7-deferred-startup.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)

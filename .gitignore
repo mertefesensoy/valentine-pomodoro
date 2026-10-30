@@ -51,3 +51,9 @@ coverage/
 # dickwu/apple-design-skill bundles Apple HIG text (Apple copyright); installed locally, never committed.
 # Reinstall: see docs/process/DESIGN-WORKFLOW.md
 .claude/skills/apple-design/
+
+# Impeccable decision rounds and the browser pane's launch config: local state, never committed
+# (Stage C record §2.4). Surface briefs in .impeccable/surfaces/ are committed.
+.impeccable/mocks/
+.impeccable/questions/
+.claude/launch.json

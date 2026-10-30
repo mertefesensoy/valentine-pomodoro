@@ -46,6 +46,7 @@ Start here. Every document in the repo is listed below. The rules for writing th
 | [Phase 1 (v1.4) plan](implementations/2026-10-29-phase1-plan.md) | Approved; in progress |
 | [Scale plan](scale-plan.md) | 2026-04-20; audited in the rehaul plan §2.3 |
 | [Proposal: ticket-cutting (boarding pass)](proposals/ticket-cutting-feature.md) | Folded into Phase 4b (FR-FLY-006) |
+| [Evaluation: xtool vs Expo/EAS](proposals/xtool-evaluation.md) | 2026-10-30. Decided: stay on Expo. xtool can't build this app, and its build path breaches Apple's Xcode licence on a non-Mac |
 
 ## Implementation records (newest first)
 

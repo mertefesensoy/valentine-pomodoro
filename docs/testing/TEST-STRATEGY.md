@@ -102,6 +102,7 @@ node scripts/docs/check-docs.mjs  # docs links, IDs, backlinks, traceability
 - ["Phase 1 B5: the React Compiler on, its lint rules back to error"](../implementations/2026-10-30-phase1-b5-react-compiler.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Release process](../process/RELEASE.md)
+- [Evaluation — xtool (cross-platform Xcode replacement) vs staying on Expo/EAS](../proposals/xtool-evaluation.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](TRACEABILITY.md)
 <!-- backlinks:end -->

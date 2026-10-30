@@ -78,5 +78,6 @@ When Android returns (the [roadmap Android track](../roadmap/ROADMAP.md#android-
 - [Valentine Pomodoro](../../README.md)
 - [Documentation map](../README.md)
 - [Branching model](BRANCHING.md)
+- [Evaluation — xtool (cross-platform Xcode replacement) vs staying on Expo/EAS](../proposals/xtool-evaluation.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 <!-- backlinks:end -->

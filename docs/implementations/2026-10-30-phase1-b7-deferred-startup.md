@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-29-phase1-b1-lazy-fly-mode, 
 
 # 2026-10-30 — Phase 1 B7: deferred start-up work, and an on-device TTI probe
 
-**Status:** Code done and verified locally, in three code commits after the plan commit (§2). **Not merged, not pushed.** The done-criterion, cold-start TTI measured on the iPhone before and after, waits for the one TestFlight build that carries B6 and B7 (§6.5–6.6).
+**Status:** Code done and verified locally, in four code commits after the plan commit (§2). **Not merged, not pushed.** The done-criterion, cold-start TTI measured on the iPhone before and after, waits for the one TestFlight build that carries B6 and B7 (§6.5–6.6).
 **Branch:** `phase1/b7-deferred-startup` (worktree `C:\vp\b7`, cut from `rehaul/v2` at `7034bba`). The parent session merges it after B6 (Expo Router) and adds one call (§3.6).
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md), task B7.
 
@@ -21,8 +21,8 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-29-phase1-b1-lazy-fly-mode, 
 - **The parent must add one call at merge:** `onLayout={markFirstFrame}` on the root view of B6's `app/_layout.tsx` (§3.6). Without it every launch waits for a 2 s fallback, which keeps ads and the update check working, and the probe marks the launch `fallback` so it is excluded from the measurement.
 - **Audio:** nothing ran at cold start since B1. The cold-start module list has no `expo-audio` module, before or after (§6.4). Nothing to change.
 - **One build measures both arms.** A hidden switch, reached by a 1.5 s long-press on Settings → About's credit line, makes launches alternate between the pre-B7 path and B7's (§3.3, §3.5). The panel shows each arm's median TTI and spread, and shares the raw rows.
-- **TTI is measured from the JS bundle's start,** not from the tap on the icon: the native time before the bundle runs is invisible to JS and to this build without a Mac. B7 changes nothing in that span (§4.1).
-- **Local gates:** Jest 178/178 in 31 suites (+44 tests); typecheck clean; lint 0 errors, 38 warnings, as before; Reassure render counts unchanged (settings-only 1, Timer 13, Stats 1, Settings 2, Notes 1, leaf 12); 7 mutations, each caught (§6.2).
+- **The arms are compared on TTI from the probe's own start,** which every launch has; TTI from the JS bundle's start is the absolute number for NFR-PERF-001, wherever the native marker passes its check. Neither starts at the tap on the icon: the native time before the bundle runs is invisible to JS, and to this build without a Mac. B7 changes nothing in that span (§4.1).
+- **Local gates:** Jest 180/180 in 31 suites (+46 tests); typecheck clean; lint 0 errors, 38 warnings, as before; Reassure render counts unchanged (settings-only 1, Timer 13, Stats 1, Settings 2, Notes 1, leaf 12); 9 mutations, each caught (§6.2).
 - **Your decisions** are in §7: whether the panel ships in the App Store build, and how NFR-PERF-001's 1.0 s is to be read.
 
 ## 1. Problem / Motivation
@@ -50,7 +50,9 @@ Constraints from the brief:
 | `6ab3953` | `src/startup/`: the first-frame scheduler, the probe, the before/after switch and the statistics, with their tests. Nothing calls them yet. |
 | `8c6bf3d` | `AdManager.init()` and `useUpdateCheck`'s launch check hand their work to the scheduler; the readiness and update-check tests. |
 | `c4c6ab5` | The hidden panel and its one-line wrapper in Settings → About. |
-| this commit | This record completed (§0, §2, §6–§8, shared-doc updates). |
+| `4a0d151` | This record completed (§0, §2, §6–§8, shared-doc updates). |
+| `e0e8f26` | **The comparison can't be emptied by two things untestable from Windows:** the arms are compared on TTI from the probe's start, which every row has; a failed clock check no longer excludes a row, and only `background` (not `inactive`) does; the panel shows AppState and the clock status (§4.1, §4.3). |
+| this commit | This record updated for `e0e8f26`. |
 
 | File | Change |
 |------|--------|
@@ -62,9 +64,9 @@ Constraints from the brief:
 | `src/ads/AdManager.ts` | `init()` defers the SDK start, policy load and first preload through the scheduler, and returns one promise per launch; the first interstitial's `LOADED` is marked for the probe. |
 | `src/hooks/useUpdateCheck.ts` | The mount effect registers the launch check with the scheduler (its cleanup cancels it); the forced check is unchanged. |
 | `src/screens/SettingsScreen.tsx` | The credit line in About is wrapped in `HiddenStartupDiagnostics`; one import. No state added. |
-| `src/startup/__tests__/deferredStartup.test.ts` | New, 26 tests: the scheduler, the switch, the stored rows, the exclusion rules. |
+| `src/startup/__tests__/deferredStartup.test.ts` | New, 27 tests: the scheduler, the switch, the stored rows, both TTI origins and the exclusion rules. |
 | `src/startup/__tests__/probeStats.test.ts` | New, 6 tests: quantiles against R, the shift and its interval worked by hand. |
-| `src/startup/__tests__/StartupDiagnostics.test.tsx` | New, 3 tests: the line unchanged, the long-press, the mode, share and clear buttons. |
+| `src/startup/__tests__/StartupDiagnostics.test.tsx` | New, 4 tests: the line unchanged, the long-press, the comparison without the native marker, the mode, share and clear buttons. |
 | `src/ads/__tests__/adReadiness.test.ts` | New, 5 tests: the interstitial ready by the 2nd completed session through the signal, the fallback and the eager arm (FR-ADS-001). |
 | `src/hooks/__tests__/useUpdateCheck.test.tsx` | New, 4 tests: the launch check after the first frame, once for two mounts; the forced check at once and the deferred one then a no-op; the fallback (FR-UPD-001). |
 | `docs/implementations/2026-10-30-phase1-b7-deferred-startup.md` | This record. |
@@ -132,7 +134,7 @@ The marks are defined in §4.1.
 ### 3.5 The hidden panel (`src/startup/StartupDiagnostics.tsx`)
 
 - Settings → About: a **1.5 s long-press on the "Made with ❤️" line** opens a small panel under it. The line itself is unchanged: the wrapper is a `Pressable` with no style and no feedback, marked not accessible, so VoiceOver reads the line as before.
-- The panel shows this launch's marks, the arm for the next launches (Deferred, Alternate, Eager), and each arm's summary (§4.2) for this build. Two buttons: **Share data** (the rows as JSON, through the system share sheet, so they reach the PC without a Mac) and **Clear runs**.
+- The panel shows this launch's arm, trigger, AppState, clock status and two TTIs; the arm for the next launches (Deferred, Alternate, Eager); each arm's summary (§4.2) of TTI from the probe's start for this build, with the shift between them (§4.3); and each arm's median TTI from the bundle's start, over the rows that passed the clock check. Two buttons: **Share data** (the rows as JSON, through the system share sheet, so they reach the PC without a Mac) and **Clear runs**.
 - The panel's state lives in its own component, so `SettingsScreen` gains no state (its Reassure count must stay 2).
 - `SettingsScreen` is the one call-site change outside the two lines: an import and the wrapper around one `<Text>`.
 
@@ -160,18 +162,24 @@ All marks are `performance.now()` values, in ms. In RN 0.88 that is `HighResTime
 
 $$\text{clockOk} \iff 0 \le p_0 - b_0 \le 10\,000\ \text{ms}$$
 
-where $b_0$ = `executeJavaScriptBundleEntryPointStart` (the bundle starts evaluating) and $p_0$ = the probe module's first `performance.now()`, taken when the module is first evaluated. Two clocks on different bases differ by hours (the time the phone slept, or since a different epoch), not by a few seconds, so a window this wide still catches them. It isn't tighter ($p_0 \le b_1$, the bundle's end) because under Expo Router (B6) the root layout, and with it the probe, may be evaluated just after the bundle has finished. A launch failing the check is excluded (§4.3). The bundle's end, $b_1$ = `endTime`, is stored as `jsEnd` for reference.
+where $b_0$ = `executeJavaScriptBundleEntryPointStart` (the bundle starts evaluating) and $p_0$ = the probe module's first `performance.now()`, taken when the module is first evaluated. Two clocks on different bases differ by hours (the time the phone slept, or since a different epoch), not by a few seconds, so a window this wide still catches them. It isn't tighter ($p_0 \le b_1$, the bundle's end) because under Expo Router (B6) the root layout, and with it the probe, may be evaluated just after the bundle has finished. The bundle's end, $b_1$ = `endTime`, is stored as `jsEnd` for reference.
 
-Every mark is reported relative to $b_0$:
+Marks are stored relative to $b_0$ when the check passes, and relative to $p_0$ when it doesn't (then `probeInit` is 0):
 
 | Symbol | Mark | Meaning |
 |--------|------|---------|
-| $b_0$ | `jsStart` | Hermes starts evaluating the bundle. **Time 0.** |
+| $b_0$ | `jsStart` | Hermes starts evaluating the bundle. |
+| $p_0$ | `probeInit` | The probe module is first evaluated, while the app's modules load. Both arms run identical code up to here: the switch is read later, at the first registration. |
 | $L$ | `firstLayout` | JS handles the root view's first `onLayout`: the first frame's layout is done. |
 | $I$ | `interactive` | The first idle callback registered at $L$ runs: no higher-priority JS work is queued, so a touch would be handled at once. |
 | $D$ | `drainEnd` | The synchronous part of the drained tasks has returned (deferred arm). In the eager arm the tasks ran before $L$, so $D$ is undefined there. |
 
-**The primary metric is $\text{TTI} = I - b_0$.** A secondary one, $\text{TTI}^{+} = \max(I, D) - b_0$, charges the deferred arm for its own work too, so the comparison can't be won by measuring just before that work starts.
+**Two TTIs, for two purposes:**
+- **For comparing the arms: $\text{TTI}_p = I - p_0$.** Every row has it. Everything B7 can change happens after $p_0$, so a difference between arms shows in full; and the bundle's evaluation up to $p_0$, the same in both arms, adds no noise.
+- **For NFR-PERF-001's absolute number: $\text{TTI}_b = I - b_0$,** defined only for rows that passed the clock check.
+- For each, a secondary $\text{TTI}^{+} = \max(I, D) - \text{origin}$ charges the deferred arm for its own work too, so the comparison can't be won by measuring just before that work starts.
+
+The arms are compared on $\text{TTI}_p$ so that the comparison can't be emptied by an assumption this branch can't test on an iPhone: that the native marker exists in this build (the host must register RN's performance-logger hooks) and shares `performance.now()`'s clock (it depends on how libc++ implements `steady_clock` on iOS). If either fails, every row loses $\text{TTI}_b$ and the panel says so, but the comparison stands.
 
 **What it doesn't see.** On bridgeless iOS, `APP_STARTUP_START` is logged in `ReactInstance::loadScript`, immediately before the bundle runs, not at process launch. Process creation, dyld, the native React host and Hermes set-up happen before $b_0$ and aren't measured. B7 doesn't change any of them: both arms run the same binary up to $b_0$. The probe also can't see the UI thread: if the Ads SDK's start-up blocks the main thread, it shows up only as a later $L$ or $I$. So NFR-PERF-001's absolute 1.0 s can't be fully verified this way. The difference between arms can.
 
@@ -191,7 +199,7 @@ The median and quartiles are used, not the mean and standard deviation, because 
 
 ### 4.3 The comparison
 
-Let $x_1..x_m$ be the deferred arm's TTIs and $y_1..y_n$ the eager arm's.
+Let $x_1..x_m$ be the deferred arm's $\text{TTI}_p$ values and $y_1..y_n$ the eager arm's (§4.1).
 
 - **Difference of medians:** $\Delta = \operatorname{median}(y) - \operatorname{median}(x)$. Positive means B7 made start-up faster.
 - **Hodges–Lehmann shift**, a robust estimate of how far one distribution sits from the other: the median of all $mn$ pairwise differences $d_{ij} = y_i - x_j$.
@@ -203,14 +211,13 @@ Let $x_1..x_m$ be the deferred arm's TTIs and $y_1..y_n$ the eager arm's.
 **Sample size: 12 cold starts per arm**, 24 in all, alternated by the app (`alternate`), so slow drift (temperature, background indexing after an install, the network) falls on both arms alike. With 12 per arm the interval leaves out the 37 smallest and the 37 largest of the 144 differences, about a quarter at each end, so two or three odd launches can't set it. (The smallest samples with any interval at all are 4 per arm, where $K = 1$ and the interval is the full range of differences.) More launches would narrow it further; 24 is what fits in about 15 minutes of your time.
 
 **A launch is excluded** (rules fixed before measuring) when any of these hold:
-1. the clock check of §4.1 fails;
-2. storage wasn't migrated at launch (the one-time B2 copy ran);
-3. it has no interactive mark (killed or sent to the background before the first idle moment);
-4. `AppState` at $I$ wasn't `active`;
-5. a deferred launch's trigger was `fallback` (the first-frame signal is missing: fix the wiring, rebuild, and measure again);
-6. its build number differs from the build under test.
+1. storage wasn't migrated at launch (the one-time B2 copy ran);
+2. it has no interactive mark (killed or sent to the background before the first idle moment);
+3. `AppState` at $I$ was `background`. Not "anything but `active`": iOS can still report `inactive` while a cold launch is becoming active, and that rule could have excluded every launch;
+4. a deferred launch's trigger was `fallback` (the first-frame signal is missing: fix the wiring, rebuild, and measure again);
+5. its build number differs from the build under test.
 
-The first launch after installing pays one-time costs (a cold file cache, iOS's first-launch work), so the protocol (§6) clears the runs after it.
+A failed clock check doesn't exclude a launch from the comparison; it only removes its $\text{TTI}_b$. The first launch after installing pays one-time costs (a cold file cache, iOS's first-launch work), so the protocol (§6) clears the runs after it.
 
 ## 5. Design Decisions
 
@@ -234,7 +241,7 @@ The first launch after installing pays one-time costs (a cold file cache, iOS's 
 |------|-------------------|--------------|
 | `npm run typecheck` | clean | **clean** |
 | `npm run lint` | 0 errors, 38 warnings | **0 errors, 38 warnings** |
-| `npx jest` | 134 tests, 26 suites | **178 tests, 31 suites, all pass** |
+| `npx jest` | 134 tests, 26 suites | **180 tests, 31 suites, all pass** |
 | A1 timer guards (`timerScreenTicks`, `timerTextTicks`, `useSessionClock`, `flyModeGuard`) | pass | **pass** (in the full run) |
 
 - [x] The three new test files that reload modules per launch use `require()` after `jest.resetModules()`; each has one file-level `no-require-imports` disable with that reason, so the warning count stays at 38.
@@ -242,7 +249,7 @@ The first launch after installing pays one-time costs (a cold file cache, iOS's 
 
 ### 6.2 Mutation checks
 
-Each mutation was applied to the committed code, the five B7 test files run, and the file restored with `git checkout`.
+Each mutation was applied to the committed code, the B7 test files run, and the file restored with `git checkout`. M1–M6 ran at `c4c6ab5`, M7 and M8 at `e0e8f26`.
 
 | # | Mutation | Tests that failed |
 |---|----------|-------------------|
@@ -253,10 +260,12 @@ Each mutation was applied to the committed code, the five B7 test files run, and
 | M5 | The probe's interactive callback removed | 7: scheduler and stored-row tests |
 | M5b | The interactive callback requested *after* the drain | 1: "takes the interactive mark before the deferred work starts" |
 | M6 | The `fallback` exclusion rule removed | 1: "excludes a launch when the first-frame signal was missing" |
+| M7 | Exclude every launch not `active` at $ (the rule before `e0e8f26`) | 2: "accepts a complete launch" (`inactive`); the panel's comparison without the native marker |
+| M8 | A failed clock check excludes the launch again | 2: "a failed clock check keeps the run"; the panel's comparison without the native marker |
 
 ### 6.3 Reassure (NFR-PERF-003: no count may go up)
 
-The baseline was measured at `7034bba` in this worktree (`npx reassure --baseline`), then B7 at `c4c6ab5`, three runs each.
+The baseline was measured at `7034bba` in this worktree (`npx reassure --baseline`), then B7 at `c4c6ab5` and again at `e0e8f26`, three runs per invocation.
 
 | Scenario | Brief | Baseline `7034bba` | **B7** |
 |----------|------:|------------------:|-------:|
@@ -267,8 +276,8 @@ The baseline was measured at `7034bba` in this worktree (`npx reassure --baselin
 | Notes screen | 1 | 1 | **1** |
 | `<TimerText>` leaf | 12 | 12 | **12** |
 
-- Every count is identical in every run. Reassure reports "Render count changes: (none)".
-- **Timing (advisory, 1 ms resolution):** a first B7 run overlapped an `expo export` on the same machine and showed Timer 20.3 → 27.7 ms at 43 % stability. A quiet re-run gave Timer 20.3 → **17.3 ms** and Stats 3 → 4 ms, every other scenario equal. B7 changes nothing that these scenarios render except the Settings wrapper, whose count and time are unchanged.
+- Every count is identical in every run, at both B7 commits. Reassure reports "Render count changes: (none)".
+- **Timing (advisory, 1 ms resolution):** a first B7 run overlapped an `expo export` on the same machine and showed Timer 20.3 → 27.7 ms at 43 % stability. A quiet re-run gave Timer 20.3 → **17.3 ms** and Stats 3 → 4 ms, every other scenario equal. At `e0e8f26`, one run overlapped the docs checker and was noisy (Settings 26 ms, Notes 28 ms); the quiet re-run gave Timer 14.3, Stats 3, Settings 9, Notes 6, leaf 1 and settings-only 0 ms against the baseline's 20.3, 3, 7, 8, 2 and 1. B7 changes nothing these scenarios render except the Settings wrapper (the panel stays closed in them), and its count is unchanged.
 - The "1 initial update" Reassure lists for Settings and the settings-only consumer is in the baseline too.
 
 ### 6.4 Cold-start modules and bundle size
@@ -294,7 +303,7 @@ Build, submission and the build number are recorded by the parent session. Each 
 - [ ] 2. **The interstitial still comes:** set Focus to 1 minute, complete two focus sessions; the interstitial shows after the 2nd, as in A0 (FR-ADS-001).
 - [ ] 3. **Check for updates works at once:** cold-start the app, go straight to Settings and tap "Check for updates" within a few seconds. The "You're up to date" alert appears (TestFlight 1.4.0 is newer than the App Store's 1.3.1), and no second alert follows (FR-UPD-001).
 - [ ] 4. **The credit line is unchanged:** Settings → About, "Made with ❤️ by Mert Efe Sensoy" looks as before; a normal tap does nothing; VoiceOver reads it as text.
-- [ ] 5. **The hidden panel and the wiring:** a 1.5 s long-press on that line opens "Start-up probe". Its "This launch" line shows `deferred (idle)`, **not `fallback`**. `fallback` means `markFirstFrame()` isn't wired (§3.6): stop and report. A second long-press closes it.
+- [ ] 5. **The hidden panel and the wiring:** a 1.5 s long-press on that line opens "Start-up probe". Its "This launch" line should read `deferred (idle) · active · clock ok`, then two TTIs. **`fallback` instead of `idle`** means `markFirstFrame()` isn't wired (§3.6): stop and report. `clock check failed` or `inactive` don't stop the measurement (§4.1, §4.3); just report what it shows. A second long-press closes it.
 - [ ] 6. **The TTI protocol** below, then report the panel's lines and the shared data.
 
 ### 6.6 The TTI protocol (you; about 15 minutes)
@@ -308,7 +317,7 @@ Build, submission and the build number are recorded by the parent session. Each 
 5. **Wait 10 seconds.**
 6. **Tap the app's icon.** Don't touch the screen. When the Timer screen shows, **wait 10 more seconds**: the launch's row is written after its deferred work, and the update check can take up to 5 s.
 7. **Repeat 4–6 for 24 launches in all.** The app alternates the arms by itself, 12 each. You can open the panel any time after step 6 of a launch to see the counts; the line "clean for build N" should grow by one per launch.
-8. **Read the panel:** the Deferred and Eager lines (n, median, IQR, range, TTI⁺ median) and the "Eager − deferred" line.
+8. **Read the panel:** under "TTI from probe start", the Deferred and Eager lines (n, median, IQR, range, TTI⁺ median) and the "Eager − deferred" line; then the "From JS bundle start (NFR-PERF-001)" line.
 9. Tap **Share data** and send it to yourself (Mail or Notes), so it reaches the PC; paste it to the session or into this record.
 10. Tap **Deferred**, to return to the default for the next launches.
 
@@ -350,13 +359,13 @@ This branch doesn't edit shared docs. Apply each of these when merging, then run
 **1. `docs/implementations/2026-10-29-phase1-plan.md`, the B7 row, "Done when" column.** Append:
 
 ```markdown
-<br>**Status, 2026-10-30: code done on `phase1/b7-deferred-startup` (`6ab3953`, `8c6bf3d`, `c4c6ab5`); the TTI measurement waits for the B6+B7 TestFlight build.** `AdManager.init()` and the launch's update check run in one idle callback after the root's first layout (`markFirstFrame()`, called from B6's root layout), with a 2 s fallback. Audio had no cold-start work left after B1. One build gives both numbers: a hidden switch (a 1.5 s long-press on Settings → About's credit line) alternates the pre-B7 and B7 paths per launch, and the panel reports each arm's median TTI and spread. Jest 178/178; lint 0 errors; Reassure counts unchanged; cold-start modules 1,796 → 1,801; iOS bytecode 3,481,012 B. [B7 doc](2026-10-30-phase1-b7-deferred-startup.md).
+<br>**Status, 2026-10-30: code done on `phase1/b7-deferred-startup` (`6ab3953`, `8c6bf3d`, `c4c6ab5`, `e0e8f26`); the TTI measurement waits for the B6+B7 TestFlight build.** `AdManager.init()` and the launch's update check run in one idle callback after the root's first layout (`markFirstFrame()`, called from B6's root layout), with a 2 s fallback. Audio had no cold-start work left after B1. One build gives both numbers: a hidden switch (a 1.5 s long-press on Settings → About's credit line) alternates the pre-B7 and B7 paths per launch, and the panel reports each arm's median TTI and spread. Jest 180/180; lint 0 errors; Reassure counts unchanged; cold-start modules 1,796 → 1,801; iOS bytecode 3,481,012 B. [B7 doc](2026-10-30-phase1-b7-deferred-startup.md).
 ```
 
 **2. `docs/roadmap/ROADMAP.md`.** Replace the Stage B row `| | B6 Expo Router · B7 deferred start-up work | Not started |` with a B6 row (the parent's text) and this one:
 
 ```markdown
-| | B7 deferred start-up work: the ads start and the update check after the first frame; an on-device TTI probe with a hidden before/after switch | **Code done** `6ab3953`…`c4c6ab5` ([B7](../implementations/2026-10-30-phase1-b7-deferred-startup.md)); TTI measured on the B6+B7 TestFlight build |
+| | B7 deferred start-up work: the ads start and the update check after the first frame; an on-device TTI probe with a hidden before/after switch | **Code done** `6ab3953`…`e0e8f26` ([B7](../implementations/2026-10-30-phase1-b7-deferred-startup.md)); TTI measured on the B6+B7 TestFlight build |
 ```
 
 In the status paragraph at the top, after the B4/B5 sentence, add: "B7's code is done; its TTI measurement rides on the B6+B7 TestFlight build."
@@ -366,7 +375,7 @@ In the status paragraph at the top, after the B4/B5 sentence, add: "B7's code is
 NFR-PERF-001, replace the Target/Status/Verify line with:
 
 ```markdown
-**Target:** Phase 1 E3 · **Status:** planned (baseline TBD: the B6+B7 TestFlight build measures it with the B7 probe) · **Verify:** D: the B7 start-up probe on a TestFlight build. TTI is the first idle moment after the root's first layout, in ms from the JS bundle's start (`executeJavaScriptBundleEntryPointStart`); the median of ≥ 12 clean cold starts per arm ([B7 record §4](../implementations/2026-10-30-phase1-b7-deferred-startup.md#4-mathematical--statistical-details)). The native time before the bundle starts isn't measured (no Mac for Instruments). T: `src/startup/__tests__/deferredStartup.test.ts`, `src/startup/__tests__/probeStats.test.ts`, `src/startup/__tests__/StartupDiagnostics.test.tsx` · **Source:** PLAN-REHAUL §6.2, PLAN-PHASE1 B7
+**Target:** Phase 1 E3 · **Status:** planned (baseline TBD: the B6+B7 TestFlight build measures it with the B7 probe) · **Verify:** D: the B7 start-up probe on a TestFlight build. TTI is the first idle moment after the root's first layout, in ms from the JS bundle's start (`executeJavaScriptBundleEntryPointStart`), the median of ≥ 12 clean cold starts; the B7 before/after comparison uses the same moment measured from the probe's own start, which needs no native marker ([B7 record §4](../implementations/2026-10-30-phase1-b7-deferred-startup.md#4-mathematical--statistical-details)). The native time before the bundle starts isn't measured (no Mac for Instruments). T: `src/startup/__tests__/deferredStartup.test.ts`, `src/startup/__tests__/probeStats.test.ts`, `src/startup/__tests__/StartupDiagnostics.test.tsx` · **Source:** PLAN-REHAUL §6.2, PLAN-PHASE1 B7
 ```
 
 FR-UPD-001, replace its Verify entry `I: useUpdateCheck.ts` with:
@@ -397,7 +406,7 @@ The hooks table, the `useUpdateCheck` row: "Runs once per process on mount (§3)
 The target-state table, the Phase 1 B7 row becomes:
 
 ```markdown
-| Phase 1 B7 | `AdManager.init` and the launch update check run after the first frame (`src/startup/`); audio had no cold-start work left after B1 | The mount-effect calls in `ThemedApp` | **Done** (`6ab3953`…`c4c6ab5`); TTI measured on the B6+B7 TestFlight build |
+| Phase 1 B7 | `AdManager.init` and the launch update check run after the first frame (`src/startup/`); audio had no cold-start work left after B1 | The mount-effect calls in `ThemedApp` | **Done** (`6ab3953`…`e0e8f26`); TTI measured on the B6+B7 TestFlight build |
 ```
 
 **5. `CHANGELOG.md`, `[Unreleased]`.**
@@ -414,7 +423,7 @@ Under **Changed**, after B5's bullet:
 - **Stage B:** B7, the Google Mobile Ads start and the launch's update check run after the first frame, in one idle callback, instead of during the first render. The interstitial is still loaded long before the 2nd completed session, and "Check for updates" works at once (8c6bf3d).
 ```
 
-In the Stage B tests bullet, before "Jest runs 134 tests in 26 suites at B5", add "the start-up scheduler, probe and panel, ad readiness after the deferred start, and the deferred update check (6ab3953, 8c6bf3d, c4c6ab5);", and end the bullet with "Jest runs 134 tests in 26 suites at B5, and 178 in 31 at B7."
+In the Stage B tests bullet, before "Jest runs 134 tests in 26 suites at B5", add "the start-up scheduler, probe and panel, ad readiness after the deferred start, and the deferred update check (6ab3953, 8c6bf3d, c4c6ab5, e0e8f26);", and end the bullet with "Jest runs 134 tests in 26 suites at B5, and 180 in 31 at B7."
 
 **6. `docs/testing/TEST-STRATEGY.md`.**
 

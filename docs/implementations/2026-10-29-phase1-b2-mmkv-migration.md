@@ -228,12 +228,20 @@ The same build carries the B1 and B1b device checks.
 
 **Result: all checks below passed on a physical iPhone (2026-10-30, reported by you).** So MMKV runs on the device, and the migration carried the data across the update. You didn't say which install the build went over, 1.3.1 or build 42. Both kept their data in AsyncStorage, so either one exercises the same migration.
 
+> **Correction (2026-10-30, found in B3): B2 introduced DEF-004 (High), and this check missed it.**
+>
+> **What breaks.** MMKV's load resolves in microtasks, so the session clock now finishes loading before `TimerScreen` mounts. (`NavigationContainer` renders nothing until `Linking.getInitialURL()` resolves.) So a session that **ended while the app was killed** is cleared on the next launch with no stats credit, no phase advance and no love note.
+>
+> **Why step 4 passed.** Its "resumes" branch, relaunching before the session ends, works. Its "completes once" branch is the broken case, and it wasn't exercised.
+>
+> **Status.** Fixed in `e04cc8c` and verified on TestFlight build 44 (`v1.4.0-tf.44`). Build 43 has the bug. See the [B3 record §0](2026-10-30-phase1-b3-zustand-stores.md#0-read-this-first-b2-made-cold-start-completions-get-lost-def-004-fixed-here).
+
 **Checks.** Install over the phone that has data, ideally one still on App Store 1.3.1, otherwise the build 42 install, which still stores in AsyncStorage:
 
 1. Before updating, note what the screens show: today's and the week's stats, the streak, your notes (edited or not), settings, the reminder, and Fly's camera mode.
 2. Update to the new build and cold-start it. Every value is the same; on Bengisu's phone, her notes are hers.
 3. Change a setting, kill the app and relaunch. The change persisted (now in MMKV).
-4. Kill the app during a running Pomodoro and relaunch: the session resumes, or completes once.
+4. Kill the app during a running Pomodoro and relaunch: the session resumes, or completes once. *(The "completes once" case, relaunching after the session's end, was broken on build 43: DEF-004, see the correction above.)*
 5. Interstitial cadence: after 2 sessions an ad may show; the counter survived the update.
 6. Fly (B1, B1b): the first open shows the placeholder briefly; search "istanbul"; tap the map; fly a short flight.
 
@@ -256,7 +264,8 @@ All counts are identical to Stage A. The migration (one `getAllKeys`, one `multi
 
 ## 7. Findings and open items
 
-1. **Nothing is open for B2.** The device check (§6.2) passed on TestFlight build 43 on 2026-10-30. E1 repeats the migration check on the final v1.4 build, over App Store 1.3.1.
+1. **Nothing is open for B2 itself.** The device check (§6.2) passed on TestFlight build 43 on 2026-10-30. E1 repeats the migration check on the final v1.4 build, over App Store 1.3.1.
+   - **One side effect, now fixed:** DEF-004. B2's faster load let cold-start completions fire before any screen subscribed. Found and fixed in B3 (`e04cc8c`), and verified on build 44. **E1 should include a session that ends while the app is killed.**
 2. **AsyncStorage is never cleaned up.** Deleting it is a deliberate later task, after the rollback window. Until then each install carries its v1.3.1 data twice; a few KB.
 3. **A corrupt `love_notes` key is copied as-is.** The reader then falls back to `DEFAULT_LOVE_NOTES`, and after D2 that means the *new* set. This needs a torn write of the notes key, which is rare, because it is written only on edit. Left as "handled where it is read"; D2 could check the frozen set as well.
 4. **Stage A finding 1 (`useStats` drops `lastAppliedSessionId`) is untouched.** B3's stats store should keep the field.

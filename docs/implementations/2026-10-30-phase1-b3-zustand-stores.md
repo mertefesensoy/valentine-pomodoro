@@ -324,6 +324,7 @@ B3 has no native change, so it could have waited and gone into one build with B4
 - [Documentation map](../README.md)
 - [Architecture — Valentine Pomodoro (as built, and the v2 target)](../architecture/ARCHITECTURE.md)
 - [Zustand for app state, TanStack Query for server state](../architecture/adr/0029-zustand-and-tanstack-query.md)
+- ["Phase 1 B2: MMKV and the one-time AsyncStorage migration"](2026-10-29-phase1-b2-mmkv-migration.md)
 - [2026-10-29 — Phase 1 (v1.4): design system and local re-architecture, plan](2026-10-29-phase1-plan.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)

@@ -77,6 +77,8 @@ HeartIcon.displayName = 'HeartIcon';
 export default function PremiumCalmBackground({ enabled }: { enabled: boolean }) {
     const { colors, isDark } = useTheme();
     const [reduceMotion, setReduceMotion] = useState(false);
+    // The value last set, so an unchanged one isn't set again (see the effect).
+    const reduceMotionRef = useRef(false);
     const { width, height } = useWindowDimensions(); // 5. Responsive sizing
 
     // --- Animation Values (Stable Refs) ---
@@ -92,7 +94,17 @@ export default function PremiumCalmBackground({ enabled }: { enabled: boolean })
 
     useEffect(() => {
         let mounted = true;
-        const sync = (v: boolean) => mounted && setReduceMotion(v);
+        // Only a changed value is set. The promise usually resolves to the
+        // initial false, and React keeps even an unchanged update queued, at
+        // the promise callback's Default lane; the next render of this
+        // component (TimerScreen's, at the Sync lane, when a session starts)
+        // skips it and renders once more to process it: one extra commit on
+        // start (Phase 1 B4; B3 finding 2).
+        const sync = (v: boolean) => {
+            if (!mounted || v === reduceMotionRef.current) return;
+            reduceMotionRef.current = v;
+            setReduceMotion(v);
+        };
         AccessibilityInfo.isReduceMotionEnabled().then(sync);
         const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', sync);
         return () => {

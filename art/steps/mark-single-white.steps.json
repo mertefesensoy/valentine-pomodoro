@@ -1,0 +1,80 @@
+[
+ {
+  "command": "select.all",
+  "params": {}
+ },
+ {
+  "command": "document.save",
+  "params": {
+   "path": "C:/vp-art/art/vc/mark-single-white.vectorcraft"
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/mark-single-white.svg",
+   "format": "svg",
+   "decimals": 2,
+   "outlineText": true,
+   "minify": true,
+   "objectIds": "minimal",
+   "metadata": false
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/mark-single-white-784.png",
+   "format": "png",
+   "scale": 1
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/mark-single-white-256.png",
+   "format": "png",
+   "scale": 0.32653061224489793
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/mark-single-white-64.png",
+   "format": "png",
+   "scale": 0.08163265306122448
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/mark-single-white-48.png",
+   "format": "png",
+   "scale": 0.061224489795918366
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/mark-single-white-32.png",
+   "format": "png",
+   "scale": 0.04081632653061224
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/mark-single-white-24.png",
+   "format": "png",
+   "scale": 0.030612244897959183
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/mark-single-white-16.png",
+   "format": "png",
+   "scale": 0.02040816326530612
+  }
+ }
+]

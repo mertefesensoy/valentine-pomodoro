@@ -1,0 +1,6 @@
+# The art pipeline compares rebuilt exports byte for byte (scripts/art/build.mjs --check),
+# so its outputs must reach every checkout exactly as VectorCraft wrote them: no line-ending
+# conversion, whatever core.autocrlf says (Stage C record §2.3).
+art/vc/** -text
+art/out/** -text
+art/steps/** -text

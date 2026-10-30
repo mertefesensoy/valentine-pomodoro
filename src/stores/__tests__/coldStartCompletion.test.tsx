@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { act, render } from '@testing-library/react-native';
 import { StoreGate } from '../StoreGate';
 import { useSessionStore } from '../sessionStore';
+import { isClockWakeArmed, subscribeClock } from '../clockStore';
 import { save, STORAGE_KEYS } from '../../utils/storage';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import type { SessionKind, SessionSlot } from '../../types';
@@ -84,12 +85,19 @@ describe('a session that ended while the app was killed (DEF-004)', () => {
             </StoreGate>,
         );
         await act(async () => {});
+        const notifications = jest.fn();
+        const unsubscribe = subscribeClock(notifications);
         await act(() => jest.advanceTimersByTime(9_000));
 
         // Pending: the slot is still there, nothing completed it, nothing ticked.
+        // (B3 asserted its 1 Hz tick stayed 0. Since B4 the per-second signal is
+        // the clock store's scheduler: it has notified nothing and has no wake
+        // armed.)
         expect(handler).not.toHaveBeenCalled();
         expect(useSessionStore.getState().clock.pomodoro?.sessionId).toBe('waiting');
-        expect(useSessionStore.getState().tick).toBe(0);
+        expect(notifications).not.toHaveBeenCalled();
+        expect(isClockWakeArmed()).toBe(false);
+        unsubscribe();
 
         await act(() => jest.advanceTimersByTime(1_000));
         await act(() => jest.advanceTimersByTime(5_000));

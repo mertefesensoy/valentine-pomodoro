@@ -4,12 +4,13 @@ import { StoreGate } from '../../stores/StoreGate';
 import { useSessionClock, type UseSessionClockReturn } from '../../hooks/useSessionClock';
 import { formatTime } from '../../utils/time';
 
-// Guard for plan §4.5. Timer text reaches the screen only because the 1 Hz tick
-// re-renders every component that reads the clock: since Phase 1 B3 the clock
-// engine increments the session store's `tick`, and useSessionClock() (what the
-// screens use) subscribes to it. Phase 1 B4 replaces that chain; this test must
-// keep passing through the change, or the timer has frozen. (The file keeps its
-// path under context/ from when the chain ran through AppContext.)
+// Guard for plan §4.5. Timer text reaches the screen only because something
+// re-renders its reader each second. Since Phase 1 B4 that is the clock store
+// (src/stores/clockStore.ts): its scheduler wakes when the displayed second
+// changes and notifies its subscribers, among them useSessionClock(), which
+// this probe reads. (Before: B3's 1 Hz `tick` in the session store; before
+// that, setDisplayTick in AppContext.) If this fails, the timer has frozen.
+// The file keeps its path under context/ from the AppContext days.
 jest.useFakeTimers();
 
 let session: UseSessionClockReturn | null = null;

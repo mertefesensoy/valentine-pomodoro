@@ -11,7 +11,7 @@ import CalmBackground from "../components/CalmBackground";
 import ModeSwitcher from "../components/ModeSwitcher";
 import { isFlyModeAvailable } from "../constants/features";
 import * as Haptics from "expo-haptics";
-import { useSessionClock } from "../hooks/useSessionClock";
+import { useSessionState } from "../hooks/useSessionClock";
 import { useSlotProgress } from "../hooks/useSlotClock";
 import { useNotesStore } from "../stores/notesStore";
 import { useSettingsStore } from "../stores/settingsStore";
@@ -53,8 +53,9 @@ export default function TimerScreen() {
   const pickRandomNote = useNotesStore((s) => s.pickRandomNote);
   const activeMode = useUiStore((s) => s.activeMode);
   const setActiveMode = useUiStore((s) => s.setActiveMode);
-  // Re-renders this screen once per second while a session runs (the B3 tick).
-  const session = useSessionClock();
+  // Session state and actions: re-renders on session changes, not each second.
+  // The time is <TimerText>'s and the ring's (Phase 1 B4).
+  const session = useSessionState();
   const { colors, isDark } = useTheme();
   const tabBarHeight = useBottomTabBarHeight();
   const {

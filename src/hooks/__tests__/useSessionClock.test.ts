@@ -7,16 +7,16 @@ import { save, STORAGE_KEYS } from '../../utils/storage';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import type { SessionKind, SessionSlot } from '../../types';
 
-// Modern fake timers also fake Date.now(), so setInterval ticks and the
-// endAt − now arithmetic advance together. RNTL 14's act() and renderHook()
-// are async, so every call is awaited.
+// Modern fake timers also fake Date.now(), so the clock store's scheduled
+// wakes and the endAt − now arithmetic advance together. RNTL 14's act() and
+// renderHook() are async, so every call is awaited.
 jest.useFakeTimers();
 
 type Handler = (slot: SessionSlot, kind: SessionKind) => void;
 
-// Since Phase 1 B3 the clock's state is in the session store, and its ticker,
-// AppState listener and cold-start check run in the engine StoreGate mounts,
-// so the hook is rendered under a StoreGate, as in the app.
+// Since Phase 1 B3 the clock's state is in the session store, and its
+// scheduler, AppState listener and cold-start check run in the engine
+// StoreGate mounts, so the hook is rendered under a StoreGate, as in the app.
 async function renderClock(handler: Handler = jest.fn()) {
     return renderHook(() => {
         const clock = useSessionClock();

@@ -100,6 +100,11 @@ export function subscribeClock(listener: () => void): () => void {
     };
 }
 
+/** Whether the scheduler has a wake armed. For tests: none while paused, idle, or ended and waiting for a handler (DEF-004). */
+export function isClockWakeArmed(): boolean {
+    return timer !== null;
+}
+
 /** The wall clock as last sampled. Read it instead of Date.now() wherever a value must stay stable between notifications. */
 export function getClockNow(): number {
     return sampledNow;
@@ -136,8 +141,6 @@ let engineInstances = 0;
  * - While the active slot runs: the scheduler wakes when its displayed second
  *   changes, notifies the clock store's subscribers, and completes the slot
  *   once its end has passed.
- * - Every second: increments the session store's `tick`, the B3 chain, until
- *   B4 part 3 removes it.
  * - On returning to the foreground: resamples (timers don't run in the
  *   background) and completes the active slot if its end has passed.
  *
@@ -162,20 +165,6 @@ export function useSessionClockEngine(active: boolean): void {
         resampleAndComplete();
         reschedule();
 
-        const interval = setInterval(() => {
-            const { clock } = useSessionStore.getState();
-            const { activeKind } = clock;
-            if (!activeKind) return;
-            const slot = clock[activeKind];
-            if (!slot?.isRunning || !slot.endAt) return;
-            if (slot.endAt <= Date.now()) {
-                completeEndedSession();
-            } else {
-                // Re-render the time displays so endAt − Date.now() stays fresh.
-                useSessionStore.setState((s) => ({ tick: s.tick + 1 }));
-            }
-        }, 1000);
-
         const sub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
             if (nextState !== 'active') return;
             resampleAndComplete();
@@ -185,7 +174,6 @@ export function useSessionClockEngine(active: boolean): void {
         return () => {
             engineMounted = false;
             reschedule(); // clears the pending wake
-            clearInterval(interval);
             sub.remove();
             if (__DEV__) engineInstances--;
         };

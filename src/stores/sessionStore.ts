@@ -15,7 +15,8 @@ import { isRecord } from './isRecord';
 // cold-start completion check) are in useSessionClockEngine()
 // (src/stores/clockStore.ts), which StoreGate mounts exactly once. They all
 // complete sessions through completeEndedSession(), below. Components read the
-// clock through the useSessionClock() facade (src/hooks/useSessionClock.ts).
+// clock through the useSessionState() facade (src/hooks/useSessionClock.ts),
+// and the time through the clock store.
 
 export const IDLE_CLOCK: SessionClockState = { activeKind: null, pomodoro: null, fly: null };
 
@@ -41,14 +42,9 @@ function hasHandlerFor(kind: SessionKind): boolean {
 export interface SessionStore {
     clock: SessionClockState;
     pomodoro: PomodoroState;
-    /**
-     * Incremented once per second while the active slot runs. Components that
-     * show the remaining time subscribe to it, so they re-render with a fresh
-     * Date.now(). This is the B3 form of the `setDisplayTick` chain the timer
-     * guards protect (plan §4.5); B4 replaces it with a clock store that emits
-     * per displayed second.
-     */
-    tick: number;
+    // No time field: the remaining time is endAt − now, and what changes with
+    // time alone is the clock store's (src/stores/clockStore.ts). Since Phase 1
+    // B4 nothing in this store changes once a second.
 
     /** Reads both keys from MMKV synchronously and re-saves the clock. Never throws. */
     hydrate(): void;
@@ -83,7 +79,6 @@ export const useSessionStore = create<SessionStore>()((set, get) => {
     return {
         clock: IDLE_CLOCK,
         pomodoro: INITIAL_POMODORO,
-        tick: 0,
 
         hydrate() {
             let clock = IDLE_CLOCK;
@@ -105,7 +100,7 @@ export const useSessionStore = create<SessionStore>()((set, get) => {
                 clock = IDLE_CLOCK;
                 pomodoro = INITIAL_POMODORO;
             }
-            set({ pomodoro, tick: 0 });
+            set({ pomodoro });
             // As useSessionClock did on load: re-save, which also replaces a
             // corrupt stored value with the idle clock.
             commit(clock);
@@ -229,8 +224,9 @@ export const useSessionStore = create<SessionStore>()((set, get) => {
  * exactly once (FR-TMR-005).
  *
  * - Does nothing unless `slot` is still the live slot of its kind (same
- *   endAt), so the ticker, the foreground event, the cold-start check and a
- *   handler's registration can all see the end and it still completes once.
+ *   endAt), so the clock store's scheduler, the foreground event, the
+ *   cold-start check and a handler's registration can all see the end and it
+ *   still completes once.
  * - Does nothing while no handler for `kind` is registered (DEF-004): the
  *   session stays ended-but-pending, and completes when one registers. On a
  *   phone the screens that handle completions mount only after the navigator

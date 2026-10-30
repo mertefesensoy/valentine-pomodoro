@@ -13,7 +13,7 @@
  *     • `runOnJS` at MARKER_HZ (15 Hz) updates React state (markerCoord, bearingDeg)
  *       for the Marker coordinate prop and camera effects
  *     • The airplane ROTATION uses `useAnimatedStyle` — fully 60fps on UI thread
- * - Timer state lives in the session store, read through `useSessionClock`. The fly
+ * - Timer state lives in the session store, read through `useSessionState`. The fly
  *   slot's `endAt` is a `Date.now()` wall-clock epoch, so backgrounding has no
  *   effect on accuracy.
  */
@@ -47,7 +47,7 @@ import { save, load, STORAGE_KEYS } from '../utils/storage';
 import { useAirports } from '../hooks/useAirports';
 import { getDayKeyFromDate, getTodayKey } from '../utils/time';
 import { useFlyModeAudio } from '../hooks/useFlyModeAudio';
-import { useSessionClock } from '../hooks/useSessionClock';
+import { useSessionState } from '../hooks/useSessionClock';
 import { useSlotSharedValues } from '../hooks/useSlotClock';
 import { useNotesStore } from '../stores/notesStore';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -132,8 +132,9 @@ export default function FlyModeScreen() {
     const settings = useSettingsStore((s) => s.settings);
     const incrementFocus = useStatsStore((s) => s.incrementFocus);
     const pickRandomNote = useNotesStore((s) => s.pickRandomNote);
-    // Re-renders this screen once per second while a session runs (the B3 tick).
-    const session = useSessionClock();
+    // Session state and actions: re-renders on session changes, not each
+    // second. The time is <TimerText>'s, the plane the frame callback's (B4).
+    const session = useSessionState();
     const { scheduleSessionEnd, cancelScheduled } = useNotifications();
 
     // Populated on mount when a saved session is restored; consumed once
@@ -496,7 +497,7 @@ export default function FlyModeScreen() {
         setMapHeading(0);
     }, []);
 
-    // AppState background completion is handled by useSessionClock — no inline listener needed.
+    // AppState background completion is handled by the clock engine — no inline listener needed.
 
     // ── Throttle ref for route mode (4 Hz fitToCoordinates) ─────────────────
     const seeAllThrottleRef = useRef(0);

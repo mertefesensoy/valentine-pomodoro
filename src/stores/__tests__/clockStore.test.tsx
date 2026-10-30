@@ -1,7 +1,7 @@
 import { act, render } from '@testing-library/react-native';
 import { StoreGate } from '../StoreGate';
 import { useSessionStore } from '../sessionStore';
-import { subscribeClock } from '../clockStore';
+import { isClockWakeArmed, subscribeClock } from '../clockStore';
 import { EMISSION_EPSILON_MS } from '../../utils/clockMath';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 
@@ -52,6 +52,7 @@ describe('the clock store', () => {
         await act(() => session.pause());
 
         const { times, unsubscribe } = recordNotifications();
+        expect(isClockWakeArmed()).toBe(false);
         await act(() => jest.advanceTimersByTime(30_000));
         expect(times).toHaveLength(0);
 
@@ -77,13 +78,16 @@ describe('the clock store', () => {
 
         await act(() => jest.advanceTimersByTime(10_000));
         expect(handler).toHaveBeenCalledTimes(1);
+        expect(isClockWakeArmed()).toBe(false);
         unsubscribeHandler();
     });
 
     it('stops waking when the engine unmounts', async () => {
         const view = await mountEngine();
         await act(() => useSessionStore.getState().start({ kind: 'pomodoro', durationMs: 60_000 }));
+        expect(isClockWakeArmed()).toBe(true);
         await view.unmount();
+        expect(isClockWakeArmed()).toBe(false);
 
         const { times, unsubscribe } = recordNotifications();
         await act(() => jest.advanceTimersByTime(5_000));

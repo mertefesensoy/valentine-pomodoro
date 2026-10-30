@@ -4,7 +4,7 @@ import { INITIAL_POMODORO, useSessionStore } from '../stores/sessionStore';
 import { minutesToMs, getDayKeyFromDate, getTodayKey } from '../utils/time';
 import { useNotifications, getNotificationContent } from './useNotifications';
 import * as Haptics from 'expo-haptics';
-import type { UseSessionClockReturn } from './useSessionClock';
+import type { UseSessionStateReturn } from './useSessionClock';
 
 // The current Pomodoro state, read at call time (not render time) by the
 // handlers and actions below.
@@ -29,7 +29,7 @@ export function useTimer(
     settings: Settings,
     pickRandomNote: (lastNote: string | null) => string,
     incrementFocus: (minutes: number, dayKey?: string, sessionId?: string) => void,
-    session: UseSessionClockReturn,
+    session: UseSessionStateReturn,
 ): UseTimerReturn {
     // Phase, cycle count and last note: the session store's `pomodoro`
     // (key timer_state), hydrated before the first render (Phase 1 B3).
@@ -201,6 +201,10 @@ export function useTimer(
     const pomodoroSlot = session.state.pomodoro;
     const isRunning = pomodoroSlot?.isRunning === true;
 
+    // Computed at render. Since Phase 1 B4 the caller re-renders on session
+    // changes, not each second, so while running this is the value at the
+    // last change: TimerScreen reads it only when not running (the button),
+    // and shows the time through <TimerText> and the ring.
     const remainingMs = (() => {
         if (!pomodoroSlot) return minutesToMs(getCurrentDuration());
         if (pomodoroSlot.isRunning && pomodoroSlot.endAt) {

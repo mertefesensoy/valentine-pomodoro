@@ -203,7 +203,7 @@ The owner moved D3's plumbing into D1 (Stage D plan §3.1).
 - **The language:** `src/i18n/index.ts` picks the app's language from the device's preferred locales: the first Turkish or English one, otherwise English. iOS relaunches an app when its language changes, so the language is fixed for the process.
 - **No `react-i18next`:** `t()` is i18next's own, bound once and initialised synchronously with both resources bundled. Calling it in render is pure, so it adds nothing to the Reassure counts and no bytecode for a binding library.
 - **Turkish casing** goes through `upper()`, with `toLocaleUpperCase('tr-TR')`.
-- **Versions:** `i18next` 26.4.6 (15 October) and `expo-localization` 58.0.4 (9 October) are pinned exactly. Newer releases exist, the newest published today, but each pin is at least two weeks old.
+- **Versions:** `i18next` 26.4.6 (15 October) is pinned exactly, at least two weeks old where a newer release exists. `expo-localization` started at 58.0.4 on the same rule. Before the build, `expo-doctor` flagged it against SDK 58's expected `~58.0.5`, so it moved to that (Expo's own release, published 19 October): for a native module, the version the SDK is tested with outweighs the age rule. `expo-doctor` then passes 19 of 20; the one left, `@expo/config-plugins` installed directly, predates D1.
 - **The strings:** only D1's new strings are keys so far. The test checks key and placeholder parity between the languages, plurals (English one/other and a zero form; Turkish uses one form after a number), and casing (`istatistik` → `İSTATİSTİK` in Turkish, `ISTATISTIK` in English).
 - **Device check:** Hermes's `toLocaleUpperCase('tr-TR')` on the iPhone.
 

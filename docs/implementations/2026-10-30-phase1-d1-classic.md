@@ -59,6 +59,10 @@ See the [Stage D plan §1](2026-10-30-phase1-stage-d.md#1-problem--motivation). 
 | `art/jobs/icons.json`, `art/steps/icon-*-fill.steps.json`, `art/out/icon/icon-*-fill-25.png`, `assets/images/tabs/*` | The filled tab icons gain a 25 px export, and the `ship` field copies the 25, 50 and 75 px PNGs to `assets/images/tabs/tab-<name>{,@2x,@3x}.png`, so `build.mjs --check` covers them. |
 | `src/components/ui/IconSymbol{,.ios}.tsx` | Removed: the tab bar was their only user. |
 | `src/__tests__/router.test.tsx` | The tab-bar test now pins the template icons, the selected colour and the system's unselected appearance. |
+| `scripts/art/build-icon-components.mjs` | New. Turns the VectorCraft exports into react-native-svg data: 50 icons, Pomo & Doro's poses and the mark's four versions, one module each; `--check` compares (§3.8). |
+| `src/components/icons/Icon.tsx`, `src/components/icons/art/*.ts` | New. `<Icon glyph size color>` draws a C3 icon in `currentColor`; the 50 generated glyph modules. |
+| `src/components/stickers/Sticker.tsx`, `src/components/stickers/art/*.ts` | New. `<Sticker art width>` draws a pose or a mark version in its own fills; the 16 generated modules. |
+| `src/components/icons/__tests__/Icon.test.tsx` | New. Icons draw in the caller's colour and hide from VoiceOver without a label; stickers keep their fills and proportions; the generator's `--check` runs in Jest, so art and code can't drift apart. |
 
 ## 3. Implementation Approach
 
@@ -205,6 +209,14 @@ The owner moved D3's plumbing into D1 (Stage D plan §3.1).
 - Lint: 0 errors.
 - Compiler report: 46 compiled (one fewer, with `IconSymbol` gone), 7 skipped, no worklet change.
 - Art: `build.mjs --check` byte-identical; 79 assets within budget.
+
+### 3.8 Icons and stickers as components (NFR-UX-002, pulled forward from D2)
+
+D1 needs the "modes" icon and Pomo & Doro's poses, so the generator the plan put in D2 lands here.
+- **One module per drawing.** Metro doesn't tree-shake, so a single map of all 66 drawings would put roughly 270 KB of path strings into the bytecode. With one module each, only what a screen imports ships.
+- **Strict input.** `build-icon-components.mjs` reads each SVG's viewBox and `<path>` elements (`d`, `fill`, `fill-rule`, `opacity`), and stops on anything else, so a future exporter change can't be dropped silently.
+- **Two outputs.** Icons ignore their exported fill and draw in `currentColor`. Stickers keep theirs, die-cut white edge included.
+- **Enforced in Jest.** `--check` is byte-exact against the committed files, and a Jest test runs it.
 
 ## 4. Mathematical / Statistical Details
 

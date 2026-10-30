@@ -11,8 +11,8 @@ related: [SRS, ARCHITECTURE, IMPL-2026-10-29-couples-rehaul-plan, IMPL-2026-10-2
 
 **Where we are (2026-10-30):**
 - Phase 0 is done.
-- Phase 1 (v1.4.0, iOS): Stage A is done. B1, B1b and B2 are done, and their device check passed on TestFlight build 43. B3 is done, and its device check passed on TestFlight build 44. B4 is done and pushed through `178b4ba` (2026-10-30); its device check is open. **B5 is next.**
-- The App Store has v1.3.1. On TestFlight, `v1.4.0-tf.42` passed the A0 device check, and `v1.4.0-tf.43` (B1, B1b, B2) passed its device check on 2026-10-30. `v1.4.0-tf.44` (B3) passed its device check on 2026-10-30.
+- Phase 1 (v1.4.0, iOS): Stage A is done. B1, B1b and B2 are done, and their device check passed on TestFlight build 43. B3 is done, and its device check passed on TestFlight build 44. B4 and B5 are done and pushed, and their device check passed on TestFlight build 45 (2026-10-30). **B6 is next.**
+- The App Store has v1.3.1. On TestFlight, `v1.4.0-tf.42` passed the A0 device check, and `v1.4.0-tf.43` (B1, B1b, B2) passed its device check on 2026-10-30. `v1.4.0-tf.44` (B3) and `v1.4.0-tf.45` (B4, B5) passed their device checks on 2026-10-30.
 
 This page is the **single status board**. Each phase links to its plan, which holds the task detail; each task's "done" evidence lives in its implementation record. **Update the status here in the same commit as the work.** Requirements per phase are in the [SRS](../srs/SRS.md) (field `Target`).
 
@@ -58,8 +58,8 @@ Plan: [Phase 1 plan](../implementations/2026-10-29-phase1-plan.md) (approved 202
 | | B1b `airports.json` out of the bundle | **Done** `0d63145` ([B1b](../implementations/2026-10-29-phase1-b1b-airports-asset.md)); device check passed on `v1.4.0-tf.43` |
 | | B2 MMKV + migration | **Done** `dd1e894` ([B2](../implementations/2026-10-29-phase1-b2-mmkv-migration.md)); device check passed on `v1.4.0-tf.43` (EAS `73ad1446`), 2026-10-30 |
 | | B3 Zustand stores, hydrated synchronously; `AppContext` deleted; DEF-001–004 and DEF-007 (haptics) fixed | **Done**, pushed through `1e2316b` ([B3](../implementations/2026-10-30-phase1-b3-zustand-stores.md)); device check passed on `v1.4.0-tf.44` (EAS `7fcac2fb`), 2026-10-30 |
-| | B4 re-render refactor (gate-checked): clock store and `<TimerText>`, the ring on the UI thread, the 1 Hz chain removed, frozen tabs; Timer's double commit fixed | **Done** `b7461f1`…`b838ebe`, pushed through `178b4ba` ([B4](../implementations/2026-10-30-phase1-b4-rerender-refactor.md)); guards green and mutation-checked; device check open (needs a TestFlight build) |
-| | B5 React Compiler on; the five compiler lint rules back to `error`; Jest compiles app code as Metro does | **Done** `10811ce`…`6395aee`, pushed through `758881b` ([B5](../implementations/2026-10-30-phase1-b5-react-compiler.md), [ADR-0041](../architecture/adr/0041-react-compiler-on.md)); lint 0 errors at `error`; Reassure counts unchanged from B4; device check open (needs a TestFlight build; can share B4's) |
+| | B4 re-render refactor (gate-checked): clock store and `<TimerText>`, the ring on the UI thread, the 1 Hz chain removed, frozen tabs; Timer's double commit fixed | **Done** `b7461f1`…`b838ebe`, pushed through `178b4ba` ([B4](../implementations/2026-10-30-phase1-b4-rerender-refactor.md)); guards green and mutation-checked; device check passed on `v1.4.0-tf.45` (EAS `0eb8ca72`), 2026-10-30 |
+| | B5 React Compiler on; the five compiler lint rules back to `error`; Jest compiles app code as Metro does | **Done** `10811ce`…`6395aee`, pushed through `758881b` ([B5](../implementations/2026-10-30-phase1-b5-react-compiler.md), [ADR-0041](../architecture/adr/0041-react-compiler-on.md)); lint 0 errors at `error`; Reassure counts unchanged from B4; device check passed on `v1.4.0-tf.45` (EAS `0eb8ca72`), 2026-10-30 |
 | | B6 Expo Router · B7 deferred start-up work | Not started |
 | C — Design system and art | C1 theme tokens and contrast check · C2 display face · C3 VectorCraft pipeline and first art · C4 `/impeccable shape classic` | Not started |
 | D — Screens | D1 Classic rebuilt · D2 Stats/Settings/Notes/Gift restyled, emoji removed · D3 EN/TR · D4 SoundCraft sounds | Not started |

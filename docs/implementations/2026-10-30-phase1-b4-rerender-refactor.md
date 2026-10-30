@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-b3-zustand-stores,
 
 # 2026-10-30 — Phase 1 B4: the re-render refactor
 
-**Status:** Done, in five code commits (§2) and one docs commit. **Pushed** through `178b4ba` on 2026-10-30 with your OK (CI run 41008338008, in progress at the time of writing). **Not on a device yet.** B4 adds no native code, but it changes how the ring is drawn (Reanimated animated props on an SVG circle) and freezes hidden tabs, so it needs the device check in §6.3 on a TestFlight build, with your go-ahead.
+**Status:** Done, in five code commits (§2) and one docs commit. **Pushed** through `178b4ba` on 2026-10-30 with your OK (CI run 41008338008 green). **On TestFlight as build 45** (`v1.4.0-tf.45`, EAS `0eb8ca72-141f-457b-bde1-890b1d07b4bc`), built and submitted with your go-ahead on 2026-10-30, in one build with B5. **The device check passed** on 2026-10-30, as reported by you (§6.3).
 **Branch:** `rehaul/v2`
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md), task B4 GATE-CHECKED, §4.2, §4.3; [rehaul plan §4.5](2026-10-29-couples-rehaul-plan.md); follows [B3](2026-10-30-phase1-b3-zustand-stores.md)
 
@@ -289,7 +289,7 @@ grep -rn "useDisplayedSeconds\|useSessionClock()" src --include=*.ts --include=*
 
 Expect `TimerText.tsx`, `useSessionClock.ts`, and test files only. A new caller re-renders every second while a session runs.
 
-### 6.3 Device (iPhone, a TestFlight build): not done yet
+### 6.3 Device (iPhone, TestFlight build 45): passed
 
 B4 changes no native code, but the Jest mocks can't show four things:
 - Reanimated animated props on an SVG circle under Fabric;
@@ -297,7 +297,19 @@ B4 changes no native code, but the Jest mocks can't show four things:
 - `freezeOnBlur` on a real `Screen`;
 - timer wakes on iOS.
 
-It needs a TestFlight build, with your go-ahead. It could be batched with B5 if you prefer one build.
+It shared one build with B5's check ([B5 §6.4](2026-10-30-phase1-b5-react-compiler.md)).
+
+**The build (2026-10-30, your go-ahead):**
+
+| | |
+|--|--|
+| Command | `eas build --platform ios --profile production`, then `eas submit --platform ios --id 0eb8ca72-141f-457b-bde1-890b1d07b4bc --non-interactive` |
+| EAS build | `0eb8ca72-141f-457b-bde1-890b1d07b4bc`, **v1.4.0, build 45**, SDK 58.0.0, FINISHED in 320 s |
+| Source | EAS recorded `6eaeb50`. Its app code is identical to `758881b`, B5's last code commit; the two commits after it change docs only. Checked locally before the build: typecheck clean, Jest 134/134, lint 0 errors. CI was green on `758881b` (run 41014132814) and, after the build, on `6eaeb50` (run 41017315549) |
+| Submission | `844c25a5-63d4-4f8e-bbd8-8946a01f9b95`, uploaded to App Store Connect, then Apple's processing |
+| Tag | `v1.4.0-tf.45` (annotated, at `6eaeb50`) |
+
+**Result: passed on a physical iPhone (2026-10-30, reported by you: "45 works well approved").** You approved the build after receiving these six checks together with B5's five; you didn't report them one by one.
 
 1. **Classic counts down at the second.** Start a focus session: the text changes every second, steadily, with no stutter and no skipped second.
 2. **The ring moves smoothly** (not in 1 s steps) and is correct after:
@@ -320,7 +332,7 @@ It needs a TestFlight build, with your go-ahead. It could be batched with B5 if 
 2. **The long-break button label (pre-existing, not changed).** `getPrimaryButtonLabel` compares a non-running remainder with the *short* break's length during a long break. A paused 15-minute long break with more than 5 minutes left therefore says "Start", while the button resumes. A refactor shouldn't hide a behaviour change; this is for D1, which rebuilds Classic.
 3. **Fly's frame callback runs every frame while Fly is mounted,** idle or hidden, and its 15 Hz `runOnJS(setMarkerCoord)` re-renders the whole `FlyModeScreen` during a flight. Both predate B4, and neither is the 1 Hz chain. Owner: Phase 4b, which replaces this map; or a small follow-up gating the callback like `useSlotProgress`.
 4. **DEF-005 stays open.** B4 doesn't touch notification scheduling. Its slot is TBD (owner); D1 rebuilds Classic's start path.
-5. **The device check (§6.3) is open,** and needs a TestFlight build with your go-ahead.
+5. **The device check (§6.3) passed** on TestFlight build 45, 2026-10-30.
 
 ## 8. Related Docs
 

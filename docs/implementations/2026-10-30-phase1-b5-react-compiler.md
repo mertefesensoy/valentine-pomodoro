@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-b4-rerender-refact
 
 # 2026-10-30 — Phase 1 B5: the React Compiler on, its lint rules back to error
 
-**Status:** Done, in five code commits and two docs commits (§2). **Pushed** `178b4ba..758881b` on 2026-10-30 with your OK (CI run 41014132814, in progress at the time of writing); the push also carried B4's `f5f3a5c` and the design session's `5292199`, `17639cd` and `10adac0`. **No EAS build.** It needs a device check on a TestFlight build (§6.4), with your go-ahead; it can share one build with B4's open check.
+**Status:** Done, in five code commits and two docs commits (§2). **Pushed** `178b4ba..758881b` on 2026-10-30 with your OK (CI run 41014132814 green); the push also carried B4's `f5f3a5c` and the design session's `5292199`, `17639cd` and `10adac0`. **On TestFlight as build 45** (`v1.4.0-tf.45`, EAS `0eb8ca72-141f-457b-bde1-890b1d07b4bc`), built and submitted with your go-ahead on 2026-10-30; the same build carries B4's check. **The device check passed** on 2026-10-30, as reported by you (§6.4).
 **Branch:** `rehaul/v2`
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md), task B5; [rehaul plan §4.5, item 4](2026-10-29-couples-rehaul-plan.md#45-re-render-strategy-f1-with-the-documented-trap-guarded); follows [B4](2026-10-30-phase1-b4-rerender-refactor.md). Decision: [ADR-0041](../architecture/adr/0041-react-compiler-on.md), which supersedes [ADR-0035](../architecture/adr/0035-react-compiler-lint-warnings.md).
 
@@ -307,14 +307,18 @@ node scripts/react-compiler-report.js --verbose
 
 Expect "functions compiled: 38; functions skipped: 7; files whose worklet count changes: 0", and exit 0. A new skip or a worklet mismatch after a change is worth reading before the change ships.
 
-### 6.4 Device (iPhone, a TestFlight build): not done yet
+### 6.4 Device (iPhone, TestFlight build 45): passed
 
 The Jest mocks can't show three things:
 - worklets the compiler touched, running on the UI thread;
 - compiled components with real native views (react-native-maps, Modal, Animated);
 - expo-audio.
 
-It needs a TestFlight build, with your go-ahead. One build can cover B4's open check (B4 §6.3) and this one.
+One build covered this check and B4's; [B4 §6.3](2026-10-30-phase1-b4-rerender-refactor.md) has the full build record.
+
+**The build (2026-10-30, your go-ahead):** EAS `0eb8ca72-141f-457b-bde1-890b1d07b4bc`, **v1.4.0, build 45**, from `6eaeb50`, whose app code is identical to `758881b`; submission `844c25a5-63d4-4f8e-bbd8-8946a01f9b95`; tag `v1.4.0-tf.45`.
+
+**Result: passed on a physical iPhone (2026-10-30, reported by you: "45 works well approved").** You approved the build after receiving these five checks together with B4's six; you didn't report them one by one.
 
 1. **No crash on the UI thread.** Use the ring, Fly's plane and sheet, the pill, and the tab switches. A worklet the compiler broke would crash with "Tried to synchronously call a non-worklet function on the UI thread".
 2. **Classic after a focus:**
@@ -339,7 +343,7 @@ It needs a TestFlight build, with your go-ahead. One build can cover B4's open c
 2. **The compiler skips silently.** A finding, a compiler limitation, or a next-line `exhaustive-deps` suppression anywhere in a component skips all of it, with no build output. The report (§3.5) is how to see it. 7 functions are skipped now.
 3. **The lint and the compiler disagree.** FlySheet's 9 errors and `useSlotSharedValues`' Zustand-hook use are compile-time skips that the lint doesn't report. Not fixed: neither was a lint finding, and FlySheet's gesture code goes with Phase 4b's map.
 4. **Two suppressions remain** (Fly, §3.4). Owner: Phase 4b.
-5. **The device check (§6.4) is open,** and needs a TestFlight build with your go-ahead. B4's check (B4 §6.3) is still open too; one build can serve both.
+5. **The device check (§6.4) passed** on TestFlight build 45, 2026-10-30, the same build as B4's.
 6. **Not changed:** the long-break button label (B4 finding 2, for D1), DEF-005.
 
 ## 8. Related Docs
@@ -357,6 +361,7 @@ It needs a TestFlight build, with your go-ahead. One build can cover B4's open c
 - [React Compiler lint rules as warnings until Phase 1 B5](../architecture/adr/0035-react-compiler-lint-warnings.md)
 - [The React Compiler is on, and Jest compiles app code the way Metro does](../architecture/adr/0041-react-compiler-on.md)
 - [2026-10-29 — Phase 1 (v1.4): design system and local re-architecture, plan](2026-10-29-phase1-plan.md)
+- ["Phase 1 B4: the re-render refactor (clock store, UI-thread ring, frozen tabs)"](2026-10-30-phase1-b4-rerender-refactor.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)

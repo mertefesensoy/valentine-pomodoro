@@ -681,7 +681,7 @@ The measurable quality requirements are the SRS non-functional requirements, [SR
 
 | # | Finding | Status | Evidence |
 |---|---------|--------|----------|
-| F1 | The whole app re-renders at 1 Hz while a timer runs | **Fixed** in B3 (components that show no time) and B4 (the screens: only `<TimerText>` commits each second), 2026-10-30, pushed; device check open | §8.1; [B4 record](../implementations/2026-10-30-phase1-b4-rerender-refactor.md) |
+| F1 | The whole app re-renders at 1 Hz while a timer runs | **Fixed** in B3 (components that show no time) and B4 (the screens: only `<TimerText>` commits each second), 2026-10-30, pushed; device check passed (TestFlight build 45) | §8.1; [B4 record](../implementations/2026-10-30-phase1-b4-rerender-refactor.md) |
 | F2 | `airports.json` and the map stack are in the startup path | **Partly fixed.** Evaluation is deferred (B1, `5b10a78`: 56 modules). The JSON is still in the bytecode, and B1b is in progress (§1.3). | `TimerScreen.tsx:25`; `FlyModeScreen.tsx:46` |
 | F3 | Android ads earn nothing | **Open**, deferred with Android (AN5) and Phase 5 | `app.json:50,106,108` |
 | F4 | `master` isn't trunk | **Fixed** in Phase 0 (`fda4fef`) | Phase 0 doc §3.1 |
@@ -763,8 +763,8 @@ The re-render fix is plan §4.5: the clock store, UI-thread rings, store selecto
 | Phase 1 B1b | `airports.json` becomes an asset read through `expo-asset` and `expo-file-system`, parsed when Fly first opens | The JSON module in the bytecode (`FlyModeScreen.tsx:46`) | **Done** (`0d63145`) |
 | Phase 1 B2 | MMKV, with a one-time migration of every AsyncStorage key; the flag is written last, and AsyncStorage is kept for one release | `storage.ts`, and `AdPolicy`'s direct AsyncStorage use | **Done** (`dd1e894`) |
 | Phase 1 B3 | Zustand stores (settings, notes, stats, session/clock, UI), hydrated synchronously; `AppContext` becomes a shim, then is deleted | `AppProvider` and the five hosted hooks | **Done** (`71d836f`…`e04cc8c`), pushed; device check passed on TestFlight build 44 |
-| Phase 1 B4 (gated) | `clockStore` with `useSyncExternalStore`, and only `<TimerText>` subscribes; rings driven from `endAt` by SharedValues; `setDisplayTick` removed; `freezeOnBlur` | The re-render chain (§8.1); the React-rendered `CircularProgress` | **Done** (`b7461f1`…`b838ebe`), pushed; guards green and mutation-checked; device check open |
-| Phase 1 B5 | The React Compiler on; the lint rules back to `error`; Jest compiles app code as Metro does (`jest.babelTransformer.js`) | The rules at `warn` (`eslint.config.js`); uncompiled components | **Done** (`10811ce`…`6395aee`), pushed; device check open |
+| Phase 1 B4 (gated) | `clockStore` with `useSyncExternalStore`, and only `<TimerText>` subscribes; rings driven from `endAt` by SharedValues; `setDisplayTick` removed; `freezeOnBlur` | The re-render chain (§8.1); the React-rendered `CircularProgress` | **Done** (`b7461f1`…`b838ebe`), pushed; guards green and mutation-checked; device check passed (TestFlight build 45) |
+| Phase 1 B5 | The React Compiler on; the lint rules back to `error`; Jest compiles app code as Metro does (`jest.babelTransformer.js`) | The rules at `warn` (`eslint.config.js`); uncompiled components | **Done** (`10811ce`…`6395aee`), pushed; device check passed (TestFlight build 45) |
 | Phase 1 B6 | Expo Router: `app/(tabs)/index`, `stats`, `settings`, `notes`, `+not-found`; the scheme is kept | `src/navigation/` | Not started |
 | Phase 1 B7 | `AdManager.init`, the update check and the audio preload deferred until after the first frame | `App.tsx:45,48–50` | Not started |
 | Phase 1 C–E | Tokens and the contrast script; the display face; VectorCraft icons and mascots; Classic rebuilt with presets; emoji → icons; EN/TR; SoundCraft sounds; on-device migration check | `tokens.ts`, emoji labels, the default notes, the missing sound | Not started |

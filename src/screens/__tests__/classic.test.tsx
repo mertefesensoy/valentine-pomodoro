@@ -115,3 +115,12 @@ describe('the mode sheet', () => {
         expect(useUiStore.getState().activeMode).toBe('fly');
     });
 });
+
+describe('Settings › Appearance', () => {
+    it('offers the timer layout too (brief §3)', async () => {
+        const SettingsScreen = jest.requireActual('../SettingsScreen').default as React.ComponentType;
+        await show(<SettingsScreen />);
+        await press(screen.getByLabelText('Facing pages'));
+        expect(useSettingsStore.getState().settings.classicLayout).toBe('spread');
+    });
+});

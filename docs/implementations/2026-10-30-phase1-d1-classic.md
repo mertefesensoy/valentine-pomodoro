@@ -73,6 +73,7 @@ See the [Stage D plan §1](2026-10-30-phase1-stage-d.md#1-problem--motivation). 
 | `src/components/{GoalReachedPopup,CircularProgress,CalmBackground,PremiumCalmBackground}.tsx`, `package.json` | Removed with their last caller; `expo-linear-gradient` with them. |
 | `src/i18n/en.json`, `tr.json` | `timer.session` added for the phase line. |
 | `src/screens/__tests__/classic.test.tsx` | New. The Baloo timer with tabular figures and one VoiceOver element; a preset writes three durations and moves the selection; segments speak in words with a position, as buttons; End only while paused, with the stamp; Facing Pages; the mode sheet sets the layout and opens Fly. |
+| `src/screens/SettingsScreen.tsx` | Settings › Appearance gains "Timer layout", the same built control as the mode sheet's (brief §3: the choice lives in both); its Reassure count stays 2. Settings is otherwise D2's. |
 | `art/src/welcome/*.svg`, `art/jobs/welcome.json`, `art/steps/welcome-*.steps.json`, `art/vc/welcome-*.vectorcraft`, `art/out/illustration/welcome-*` | New. The welcome morph's art, built by VectorCraft (§3.11). |
 | `scripts/art/build-icon-components.mjs`, `src/components/stickers/art/welcome*.ts` | The generator includes the welcome layers; the 10 generated modules. |
 | `src/utils/storage.ts`, `src/stores/uiStore.ts`, `src/App.tsx`, `src/__fixtures__/storage/__tests__/v131.test.tsx` | The additive `welcome_v14` key; the welcome flag, its audience and the notification deferral; the fixture test's list of keys new since v1.3.1. |

@@ -23,6 +23,9 @@ import { HiddenStartupDiagnostics } from '../startup/StartupDiagnostics';
 import { useTheme } from '../theme/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import type { ThemeMode } from '../types';
+import { SegmentedControl } from '../components/ui/SegmentedControl';
+import { classicLayoutOf, type ClassicLayout } from '../constants/presets';
+import { t } from '../i18n';
 
 const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
 const GOAL_PRESETS = [25, 50, 75, 100];
@@ -265,6 +268,17 @@ export default function SettingsScreen() {
                             );
                         })}
                     </View>
+
+                    {/* Classic's layout (Phase 1 D1, brief §3): the same choice as the mode sheet's. */}
+                    <Text style={[styles.layoutCaption, { color: colors.textMuted }]}>{t('modes.layout')}</Text>
+                    <SegmentedControl<ClassicLayout>
+                        segments={[
+                            { value: 'ring', label: t('modes.ring'), accessibilityLabel: t('modes.ring') },
+                            { value: 'spread', label: t('modes.spread'), accessibilityLabel: t('modes.spread') },
+                        ]}
+                        value={classicLayoutOf(settings)}
+                        onChange={(classicLayout) => updateSettings({ classicLayout })}
+                    />
                 </View>
 
                 {/* Preferences Section */}
@@ -789,6 +803,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 12,
         marginTop: 12,
+    },
+    layoutCaption: {
+        fontSize: 13,
+        fontWeight: '500',
+        marginTop: 16,
+        marginBottom: 8,
     },
     themeOption: {
         flex: 1,

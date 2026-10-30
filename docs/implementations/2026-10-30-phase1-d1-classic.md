@@ -425,8 +425,19 @@ There is no overshoot anywhere. A light haptic fires as p passes 0.6 (`useAnimat
 | Command | `eas build --platform ios --profile production --non-interactive --no-wait --auto-submit` |
 | Version and build | 1.4.0 (48); EAS incremented the remote build number from 47 to 48 |
 | EAS build | `59a5248c-75d0-4da5-be80-30e38c976e60` |
-| TestFlight submission | `72b11e9c-7286-4d2d-891e-90af2b1679af`, scheduled for when the build finishes |
-| Tag | `v1.4.0-tf.48` on `61fd06e`, pushed by commit ID once the build has succeeded |
+| Build result | **Finished** 2026-10-30 19:31 UTC; EAS reports the source as `61fd06e8` |
+| TestFlight submission | `72b11e9c-7286-4d2d-891e-90af2b1679af`, **finished** (EAS's `submit-ios` workflow succeeded) |
+| Tag | `v1.4.0-tf.48`, annotated (the tf.47 format), on `61fd06e`, **pushed** (the branch stays unpushed) |
+
+**Binary (no budget exists; a measurement for E3).** These are EAS's compressed IPAs, read from the artifacts' `Content-Length`, not App Store thinned sizes.
+
+| Build | IPA (B) |
+|---|---:|
+| 46 | 21,527,051 |
+| 47 | 21,531,686 |
+| **48 (D1)** | **21,600,473** (+68,787 B, +0.32 % on 47) |
+
+The two Baloo 2 instances add about 117 KB. Removing `expo-symbols`, `expo-blur` and `expo-linear-gradient` takes some of that back.
 
 ## 4. Mathematical / Statistical Details
 

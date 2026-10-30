@@ -1,15 +1,16 @@
 ---
 id: ADR-0013
 title: Valentine colour palette
-status: accepted
+status: superseded
 date: 2026-01-07
 owner: Mert Efe Şensoy
 related: [ADR-0012, ADR-0027]
+superseded_by: [ADR-0045]
 ---
 
 # ADR-0013: Valentine colour palette
 
-> **Status note:** still in force. Phase 1 task C1 (planned, not done) replaces it with full token sets: **Strawberry Milk** (light) and **Midnight Plum** (dark), checked by a contrast script in CI and approved by the owner from a rendered swatch sheet.
+> **Status note:** superseded by [ADR-0045](0045-theme-tokens-and-contrast-gate.md) (2026-10-30): the Strawberry Milk and Midnight Plum token sets, approved by the owner (option A) and checked by `npm run check:contrast` in CI. The screens move to them in D1.
 
 ## Context
 

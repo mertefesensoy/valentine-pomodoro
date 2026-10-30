@@ -46,6 +46,8 @@ The v1 palette ([ADR-0013](0013-valentine-colour-palette.md)) has grey text, pur
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Valentine colour palette](0013-valentine-colour-palette.md)
+- [Architecture decision records](README.md)
 - ["Phase 1 Stage C (C1–C4): the Sticker Diary design system, display face, Classic brief and art"](../../implementations/2026-10-30-phase1-stage-c-design.md)
 - [Requirements traceability (generated)](../../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

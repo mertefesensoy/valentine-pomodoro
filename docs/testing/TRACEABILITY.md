@@ -13,9 +13,9 @@ related: [SRS, TEST-STRATEGY]
 
 ## Summary
 
-- Requirements: **103** (status: constraint 7 · implemented 37 · planned 59)
+- Requirements: **103** (status: constraint 7 · implemented 38 · planned 58)
 - Implemented **Must** requirements with an automated test: **18 / 22** (82 %; target 100 % by v1.4.0, NFR-MAINT-002)
-- Implemented requirements with any verification (test, device check or inspection): **36 / 37**
+- Implemented requirements with any verification (test, device check or inspection): **37 / 38**
 
 ## Implemented Must requirements without an automated test
 
@@ -120,7 +120,7 @@ related: [SRS, TEST-STRATEGY]
 | [NFR-SEC-002](../srs/SRS.md#nfr-sec-002) | No secret shall ship in the client or the repo, which is **public**. Only publishable keys (the Supabase anon … | — | now | implemented | — | [ARCHITECTURE](../architecture/ARCHITECTURE.md) |
 | [NFR-PRIV-001](../srs/SRS.md#nfr-priv-001) | Data shall be minimised. Analytics events are bucketed, carry no personal data and are kept for 90 days. There… | — | Phase 2 | planned | — | [README](../../README.md) |
 | [NFR-PRIV-002](../srs/SRS.md#nfr-priv-002) | A privacy policy (EN/TR) shall describe exactly what is collected, replacing the README's out-of-date "no serv… | — | Phase 2 | planned | — | [DOCS-MAP](../README.md), [ARCHITECTURE](../architecture/ARCHITECTURE.md) |
-| [NFR-A11Y-001](../srs/SRS.md#nfr-a11y-001) | Text and background pairs shall meet a contrast of 4.5:1 for body text and 3:1 for large text and icons. | — | Phase 1 C1 | planned | [contrast.test.ts](../../src/theme/__tests__/contrast.test.ts) | [ARCHITECTURE](../architecture/ARCHITECTURE.md), [ADR-0045](../architecture/adr/0045-theme-tokens-and-contrast-gate.md), [IMPL-2026-10-30-phase1-stage-c-design](../implementations/2026-10-30-phase1-stage-c-design.md) |
+| [NFR-A11Y-001](../srs/SRS.md#nfr-a11y-001) | Text and background pairs shall meet a contrast of 4.5:1 for body text and 3:1 for large text and icons. | — | Phase 1 C1 | implemented | [contrast.test.ts](../../src/theme/__tests__/contrast.test.ts) | [ARCHITECTURE](../architecture/ARCHITECTURE.md), [ADR-0045](../architecture/adr/0045-theme-tokens-and-contrast-gate.md), [IMPL-2026-10-30-phase1-stage-c-design](../implementations/2026-10-30-phase1-stage-c-design.md) |
 | [NFR-A11Y-002](../srs/SRS.md#nfr-a11y-002) | Touch targets shall be at least 44×44 pt on iOS and 48×48 dp on Android. | — | Phase 1 (C3, D1) | planned | — | [IMPL-2026-10-30-phase1-stage-c-design](../implementations/2026-10-30-phase1-stage-c-design.md), [IMPL-2026-10-30-settings-keyboard-dismiss](../implementations/2026-10-30-settings-keyboard-dismiss.md) |
 | [NFR-A11Y-003](../srs/SRS.md#nfr-a11y-003) | The app shall support Dynamic Type up to the largest size with nothing clipped, and VoiceOver labels on every … | — | Phase 1 D3, E2 | planned | — | [DESIGN-WORKFLOW](../process/DESIGN-WORKFLOW.md) |
 | [NFR-A11Y-004](../srs/SRS.md#nfr-a11y-004) | With Reduce Motion on, translate, scale, particles and overshoot shall be dropped, keeping opacity and colour.… | — | Phase 1 D1 | planned | — | [ARCHITECTURE](../architecture/ARCHITECTURE.md) |

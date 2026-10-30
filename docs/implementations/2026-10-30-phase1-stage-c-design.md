@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-29-couples-rehaul-plan, DESI
 
 # 2026-10-30 — Phase 1 Stage C (C1–C4): the Sticker Diary design system
 
-**Status:** **Done, 2026-10-30.** C1, C2, C4, C3 and C5 each passed their owner gate (§2.1–2.6). The plan was committed first (`a1f759c`). Not pushed; nothing here needs EAS until D1. What D1 inherits is in §10.
+**Status:** **Done, 2026-10-30.** C1, C2, C4, C3 and C5 each passed their owner gate (§2.1–2.6). The plan was committed first (`a1f759c`). **Merged into `rehaul/v2` on 2026-10-30 as `e0e814d`, with the owner's OK** ("Yes, merge it"); §9's shared-doc updates were applied in the commit after it. Not pushed; nothing here needs EAS until D1. What D1 inherits is in §10.
 **Branch:** `phase1/stage-c-design`, worktree `C:\vp\stage-c`, cut from the local `rehaul/v2` at `659b352`. Commits use `git commit -- <paths>` only. No push, no EAS, no repository settings: the session that started this one does those, with the owner's OK.
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md) Stage C (C1–C4), [rehaul plan](2026-10-29-couples-rehaul-plan.md) §5 (design system) and §6.2 (budgets).
 
@@ -435,7 +435,7 @@ node scripts/docs/check-docs.mjs --write && node scripts/docs/check-docs.mjs
 
 ## 9. Shared-doc updates to apply at merge
 
-Ready-to-paste text, applied by the merging session. Filled in as each task lands.
+**Applied on 2026-10-30, in the commit after the merge `e0e814d`** (this session did the merge, with the owner's OK). The text below stays as the record of what changed.
 
 **`docs/README.md`**, implementation records table, at the top:
 
@@ -512,8 +512,11 @@ Ready-to-paste text, applied by the merging session. Filled in as each task land
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Documentation map](../README.md)
+- [VectorCraft for all vector art; SoundCraft for all app sounds](../architecture/adr/0027-vectorcraft-art-soundcraft-sounds.md)
 - [Theme tokens in one JSON file, proved by a blocking contrast gate](../architecture/adr/0045-theme-tokens-and-contrast-gate.md)
 - [Baloo 2 for the timer, headings and sticker captions; the system face for everything else](../architecture/adr/0046-display-face-baloo-2.md)
 - [The Same Page mark, Pomo & Doro as The Colon's two round characters, and no tomato anywhere](../architecture/adr/0047-same-page-mark-and-the-colon-characters.md)
+- [2026-10-29 — Phase 1 (v1.4): design system and local re-architecture, plan](2026-10-29-phase1-plan.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

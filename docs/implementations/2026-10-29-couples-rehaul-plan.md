@@ -145,7 +145,7 @@ Your memory notes are encoded below as Phase 4c rules:
 
 ### 3.1 Name and brand (decision needed before Phase 7; working name until then)
 
-The concept is a kawaii **tomato couple**. *Pomodoro* is Italian for tomato, so the mascots are two small tomatoes, **Pomo & Doro**. They star in every mode and in the app icon.
+**Superseded 2026-10-30 (owner): no tomato anywhere; Pomo & Doro are two round characters and the mark is Same Page ([ADR-0047](../architecture/adr/0047-same-page-mark-and-the-colon-characters.md)).** The original concept was a kawaii **tomato couple**. *Pomodoro* is Italian for tomato, so the mascots are two small tomatoes, **Pomo & Doro**. They star in every mode and in the app icon.
 
 Name candidates:
 
@@ -176,7 +176,7 @@ Every mode is a **skin over the same session engine** (§4.2). A mode adds visua
 | Mode | Tier | What happens | Reward model |
 |------|------|--------------|--------------|
 | **Classic** | Free | The redesigned timer and ring, with Pomo & Doro reacting to phases. | Stats and streak. |
-| **Shared Garden** | Free | A small garden plot you share. Focus grows plants and tomatoes; breaks water them. | Growth points (§8.5). **No decay and no death.** Missed days only make the plants look sleepy. |
+| **Shared Garden** | Free | A small garden plot you share. Focus grows plants (no tomatoes, ADR-0047); breaks water them. | Growth points (§8.5). **No decay and no death.** Missed days only make the plants look sleepy. |
 | **Fly Together** | Plus | Both partners' planes fly the same route over an **illustrated world map** with landmark doodles. They land together, after the boarding-pass tear. | Stamps in a shared passport. |
 | **Study-date Room** | Plus | A cozy room scene with your two avatars studying side by side. | Focus minutes unlock furniture and decor. |
 | **Shared Pet** | Plus | A small original creature you raise together (not a recreation of any existing game). | Happiness, size and tricks, all from joint focus. No neglect penalties. |
@@ -452,7 +452,7 @@ The client also checks RevenueCat locally, so the buyer is unlocked instantly ev
 
 **Colour:**
 
-- Warm pastel fields, not gradients. **Strawberry Milk** has a cream base, strawberry-pink primary, tomato-red accent, leaf-green success and cocoa text.
+- Warm pastel fields, not gradients. **Strawberry Milk** has a cream base, strawberry-pink primary, red accent (the tomato was dropped, ADR-0047), leaf-green success and cocoa text.
 - Every text and background pair meets **4.5:1** for body text and **3:1** for large text and icons, checked by a script over the token file.
 - The purple aurora gradients, the decorative blur tab bar and gradient text are dropped (F10).
 

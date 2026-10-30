@@ -9,7 +9,7 @@ related: [ADR-0013, ADR-0027]
 
 # ADR-0012: System fonts only
 
-> **Status note:** still in force. Phase 1 task C2 (planned, not done) adds a rounded display face for headings and the timer. Body text stays the system font. This record is superseded only for headings and the timer, and only once C2 ships.
+> **Status note:** partly superseded by [ADR-0046](0046-display-face-baloo-2.md) (2026-10-30): Baloo 2 sets the timer, headings and sticker captions, embedded with D1. Body text, labels and controls stay the system font.
 
 ## Context
 

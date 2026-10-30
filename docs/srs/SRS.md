@@ -665,7 +665,7 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 
 #### NFR-PERF-005
 **Statement:** Asset budgets: an icon ≤ 2 KB, an illustration ≤ 30 KB, a mode scene ≤ 120 KB, a UI sound ≤ 25 KB.
-**Target:** Phase 1 C3, D4 · **Status:** planned · **Verify:** A
+**Target:** Phase 1 C3, D4 · **Status:** planned (icons, illustrations and the mark met in C3 and C5, 2026-10-30: 79 assets within budget, checked by `scripts/art/check-budgets.mjs`; the sounds wait for D4) · **Verify:** A
 
 #### NFR-PERF-006
 **Statement:** Shared-session skew between two phones shall be ≤ 250 ms, and a partner state change shall be visible within 1 s at p95.
@@ -711,7 +711,7 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 
 #### NFR-A11Y-001
 **Statement:** Text and background pairs shall meet a contrast of 4.5:1 for body text and 3:1 for large text and icons.
-**Target:** Phase 1 C1 · **Status:** planned · **Verify:** T (`npm run check:contrast`)
+**Target:** Phase 1 C1 · **Status:** implemented (C1, 2026-10-30: all 52 declared pairs pass in both free themes; the screens adopt the tokens in D1–D2) · **Verify:** T: `src/theme/__tests__/contrast.test.ts`; T (`npm run check:contrast`, blocking in CI)
 
 #### NFR-A11Y-002
 **Statement:** Touch targets shall be at least 44×44 pt on iOS and 48×48 dp on Android.
@@ -783,7 +783,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 
 | Item | Owner | Needed by |
 |------|-------|-----------|
-| The public name. Candidates: Pomo Pair, Tomatwo, Pomo & Doro, Two Tomatoes | Owner (store and trademark check) | Phase 7 |
+| The public name. Candidates: Pomo Pair, Tomatwo, Pomo & Doro, Two Tomatoes. Tomatwo and Two Tomatoes conflict with the no-tomato direction (ADR-0047, 2026-10-30). | Owner (store and trademark check) | Phase 7 |
 | A custom domain, needed now because `*.vercel.app` was unreachable from the owner's network | Owner | Phase 2 (invites) |
 | Plus pricing | Owner, after a competitor check | Phase 5 |
 | The Android return date (Play's closed-test rule) | Owner | — |

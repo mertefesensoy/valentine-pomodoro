@@ -32,7 +32,7 @@ Rules that follow from this:
 **Negative**
 - Every release now carries real user data through migrations, a risk the plan tracks (§10). It is mitigated by idempotent migrations and by keeping AsyncStorage for one release.
 - The bundle id keeps the original name. Only the display name and the brand change.
-- **TBD (owner, before Phase 7):** the public name. The candidates are Pomo Pair, Tomatwo, Pomo & Doro and Two Tomatoes, after the owner's own store and trademark checks.
+- **TBD (owner, before Phase 7):** the public name. The candidates are Pomo Pair, Tomatwo, Pomo & Doro and Two Tomatoes, after the owner's own store and trademark checks. Tomatwo and Two Tomatoes conflict with the no-tomato direction (ADR-0047, 2026-10-30).
 
 ## Alternatives considered
 

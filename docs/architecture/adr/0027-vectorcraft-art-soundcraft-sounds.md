@@ -9,6 +9,8 @@ related: [ADR-0003, ADR-0012, ADR-0013, ADR-0026]
 
 # ADR-0027: VectorCraft for all vector art; SoundCraft for all app sounds
 
+> **Status note:** VectorCraft is 0.18.0 as of 2026-10-30, not 0.16. The art pipeline is built as `scripts/art/build.mjs`: one `steps.json` per asset, run headless in `C:/vp-art`, with byte-identical rebuilds checked by `--check` ([Stage C record](../../implementations/2026-10-30-phase1-stage-c-design.md) §2.3).
+
 ## Context
 
 The v1 interface uses PNGs and 37 emoji glyphs as icons, across 13 files (finding F10). The rebrand needs an original kawaii set: the mascots Pomo & Doro, about 40 icons, mode scenes and theme packs. v1 never delivered its completion sound (`DECISIONS.md` Q1).

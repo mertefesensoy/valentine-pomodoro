@@ -60,6 +60,9 @@ Two rules for reading the statuses:
 | [ADR-0041](0041-react-compiler-on.md) | The React Compiler is on, and Jest compiles app code the way Metro does | accepted | 2026-10-30 |
 | [ADR-0042](0042-design-skill-stack.md) | Design work runs on Impeccable, the Apple HIG skill and Emil Kowalski's skills, in a fixed precedence | accepted | 2026-10-30 |
 | [ADR-0043](0043-native-tabs-frozen-by-a-wrapper.md) | Native tabs, frozen by a route wrapper, laid out by safe-area insets | accepted | 2026-10-30 |
+| [ADR-0045](0045-theme-tokens-and-contrast-gate.md) | Theme tokens in one JSON file, proved by a blocking contrast gate | accepted | 2026-10-30 |
+| [ADR-0046](0046-display-face-baloo-2.md) | Baloo 2 for the timer, headings and sticker captions; the system face for everything else | accepted | 2026-10-30 |
+| [ADR-0047](0047-same-page-mark-and-the-colon-characters.md) | The Same Page mark, Pomo & Doro as The Colon's two round characters, and no tomato anywhere | accepted | 2026-10-30 |
 
 **Where the decisions come from:**
 - **v1 (2026-01-07):** [`DECISIONS.md`](../../../DECISIONS.md). Its open questions Q1–Q3 are answered in ADR-0003 and ADR-0027 (Q1), ADR-0008 (Q2) and ADR-0014 (Q3).

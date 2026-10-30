@@ -60,6 +60,7 @@ They will. Impeccable bans things the HIG recommends, the HIG prefers system def
 | **Liquid Glass** (an iOS 26 system material) vs. Impeccable's ban on decorative glass and `DESIGN.md`'s "no blur tab bar" | Use glass **only where the system provides it** (the native tab bar and sheets in their default iOS 26 appearance). Never hand-roll a glass effect. Confirm against `apple-design`'s Liquid Glass checklist when the tab bar moves to Expo Router. | Phase 1 B6 / C4 |
 | HIG sheets and modals vs. the plan's "no stacked modals" | Bottom sheets and inline moments, presented the native way (`formSheet` / page sheet) | Phase 1 D1 |
 | Paywall look (brief) vs. Apple's in-app purchase rules | Apple's rules win on content and placement (price, terms, restore); the brief wins on styling | Phase 5 |
+| Launch screen: Apple's "don't include logos" vs. the brief's splash built from the mark | The owner kept the mark (C3 gate 2): static, small, on the page colour; the pages-to-logo animation never plays at launch (HIG review H-2) | Phase 1 C3 |
 
 A new tension gets a row here, or an ADR if it is structural.
 

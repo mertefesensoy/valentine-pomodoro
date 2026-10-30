@@ -2,17 +2,17 @@
 
 The brand assets of Valentine Pomodoro are licensed under the **Creative Commons Attribution-NoDerivatives 4.0 International** licence (CC BY-ND 4.0).
 
-**What it covers:** the mark, the lockups, the app icons, Pomo & Doro, the favicons, the avatar, the social card, the guide figures and their VectorCraft sources, in `svg/`, `png/`, `pdf/`, `eps/`, `web/`, `guide/` and `source/` in this folder.
+**What it covers:** the mark, the lockups, the app icons, Pomo & Doro, the favicons, the avatar, the social card, the guide figures and their VectorCraft sources, in `svg/`, `png/`, `pdf/`, `eps/`, `web/`, `guide/` and `source/` in this folder. It also covers the same artwork where the app's art pipeline keeps it: `art/src/identity/`, `art/src/app-icon/`, `art/src/splash/` and `art/src/mascots/`, every file built from them (in `art/out/logo/`, `art/out/illustration/`, `art/vc/` and `art/steps/`), and the app icons and splash images in `assets/images/`.
 
 **What it does not cover:**
-- **The scripts in `tools/` and this folder's documentation.** The repository has no licence file yet; until it has one, they are © 2026 Mert Efe Şensoy, all rights reserved. The designs the scripts draw, and the files they produce, are brand assets under this licence.
+- **The scripts in `tools/` and this folder's documentation** are under the repository's licence, FSL-1.1-ALv2 (`../LICENSE.md`). That licence covers the scripts as software: the designs they draw, and the files they produce, are brand assets under this licence.
 - **Baloo 2** (`tools/fonts/`), the typeface the wordmark is set in, is © 2019 The Baloo 2 Project Authors, under the SIL Open Font License 1.1 (`tools/fonts/OFL.txt`).
 
 **In practice:**
 - **Share:** you may copy and share the files unmodified, in any medium, including to refer to Valentine Pomodoro.
 - **Credit:** credit them, for example "Valentine Pomodoro brand assets, © 2026 Mert Efe Şensoy, CC BY-ND 4.0", with a link to this licence.
 - **Don't modify:** you may not share modified versions, such as recoloured, redrawn or cropped marks, or retyped wordmarks.
-- **Not trademark permission:** like every Creative Commons licence, this one does not license trademark rights (section 2(b)(2) below). Using the marks does not imply endorsement by Valentine Pomodoro.
+- **Not trademark permission:** like every Creative Commons licence, this one does not license trademark rights (section 2(b)(2) below). Using the marks does not imply endorsement by Valentine Pomodoro. The trademark policy is `../TRADEMARKS.md`.
 
 Summary: https://creativecommons.org/licenses/by-nd/4.0/
 

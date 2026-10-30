@@ -6,10 +6,12 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 *Branch `rehaul/v2` at 659b352, 118 commits after 1.3.1, working toward 1.4.0 for iOS. Not released. TestFlight builds 42–47 were cut from this branch: [1.4.0-tf.42] at a12ced4, [1.4.0-tf.43] at 9c5b0ce, [1.4.0-tf.44] at 1e2316b, [1.4.0-tf.45] at 6eaeb50, [1.4.0-tf.46] at 3369418 and [1.4.0-tf.47] at 659b352.*
 
-The v2 rehaul, in progress. Each bullet names its theme: Phase 0 (the foundation), SDK 58, CNG, Android, iOS-first, Stage A (the Phase 1 safety nets), Stage B (the first Phase 1 changes), Docs (the 2026-10-30 documentation system and what followed it) and Design (the design-skill stack).
+The v2 rehaul, in progress. Each bullet names its theme: Phase 0 (the foundation), SDK 58, CNG, Android, iOS-first, Stage A (the Phase 1 safety nets), Stage B (the first Phase 1 changes), Docs (the 2026-10-30 documentation system and what followed it), Design (the design-skill stack), Brand (the brand kit) and Licence.
 
 ### Added
 
+- **Brand:** The brand kit in `brand/`: the Same Page mark, the horizontal and stacked lockups, the app icon, Pomo & Doro, the web set and a guide, in SVG, PNG, PDF and EPS, drawn and checked by `brand/tools/` (a fresh build matches byte for byte); the colour mark became strawberry pages in a cocoa cover, the light splash with it (3156640).
+- **Licence:** The repository is licensed FSL-1.1-ALv2, the brand files CC BY-ND 4.0, and the names and marks are covered by a trademark policy (`LICENSE.md`, `TRADEMARKS.md`).
 - Design system (Phase 1 Stage C): Strawberry Milk and Midnight Plum themes with a contrast gate in CI; Baloo 2 chosen for the timer and headings; the Same Page mark, Pomo & Doro, 50 custom icons, a new iOS app icon (light, dark, tinted) and splash, and an identity sheet. No tomato anywhere in the design.
 - **Phase 0:** A test harness (Jest, React Native Testing Library and Reassure) with 25 tests in 5 suites: the Pomodoro phase cycle (a long break after every 4th focus; skips don't count), the session clock (1 Hz countdown, pause and resume, completion fired exactly once, cold-start completion, two-slot preservation), the timer text ticking through `AppProvider`, worklet-versus-JS flight-path equivalence, and a Stats regression test; plus a Reassure render-count baseline (abc77ef, 70cfd8d).
 - **Phase 0:** GitHub Actions CI on pushes to `master`, `rehaul/**` and `release/**` and on every pull request: typecheck, lint and unit tests, plus a Reassure render comparison on pull requests (9a24a62). After the first run, lint runs uncached, and `import/namespace` is off for TypeScript files, which `tsc` already checks (6708f03).

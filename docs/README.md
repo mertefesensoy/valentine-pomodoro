@@ -27,6 +27,7 @@ Start here. Every document in the repo is listed below. The rules for writing th
 |----------|------------|
 | [PRODUCT.md](../PRODUCT.md) | Users, purpose, positioning, principles (Impeccable `init`) |
 | [DESIGN.md](../DESIGN.md) | "The Sticker Diary" design system (seed; regenerated in Phase 1 E4) |
+| [LICENSE.md](../LICENSE.md) and [TRADEMARKS.md](../TRADEMARKS.md) | Which licence covers which files (FSL-1.1-ALv2 for the code, CC BY-ND 4.0 for the brand), and the trademark policy |
 | [Brand guide](../brand/README.md) | The brand kit: the Same Page mark, lockups, colours, type, Pomo & Doro, every file in every format, rebuilt and checked by `brand/tools/`; CC BY-ND 4.0 |
 | [README.md](../README.md) | Project overview and quick start |
 
@@ -54,6 +55,7 @@ Start here. Every document in the repo is listed below. The rules for writing th
 
 | Date | Record |
 |------|--------|
+| 2026-10-30 | [The repository licence: FSL-1.1-ALv2 for the code, CC BY-ND 4.0 for the brand, a trademark policy](implementations/2026-10-30-repository-licence.md) |
 | 2026-10-30 | [The brand kit: `brand/`, after the Cassandra Collective and SuperconducTED kits](implementations/2026-10-30-brand-kit.md) |
 | 2026-10-30 | [Phase 1 Stage C: the Sticker Diary design system, display face, Classic brief, art and identity](implementations/2026-10-30-phase1-stage-c-design.md) |
 | 2026-10-30 | [Settings: the number pad can be dismissed (DEF-008)](implementations/2026-10-30-settings-keyboard-dismiss.md) |

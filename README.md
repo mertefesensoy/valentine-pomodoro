@@ -67,4 +67,11 @@ There is no account and no analytics. v2 adds optional accounts and sync, with a
 
 ## License
 
-The repository has no license file, so by default all rights are reserved even though the source is public. Choosing a license is the owner's decision.
+The repository is licensed in parts; [`LICENSE.md`](LICENSE.md) says exactly which files each licence covers.
+
+- **The code, scripts, tools, tests and docs:** the Functional Source License 1.1, ALv2 Future License ([`LICENSE.md`](LICENSE.md), FSL-1.1-ALv2). You may read, use, change and share them for any purpose except a competing product or service: one that substitutes for Valentine Pomodoro or offers substantially the same functionality. Each version becomes Apache-2.0 two years after it is published; until then it is source-available, not OSI open source.
+- **The brand files** (`brand/`, and the same artwork in `art/` and `assets/images/`): CC BY-ND 4.0 ([`brand/LICENSE-BRAND.md`](brand/LICENSE-BRAND.md)). Share them unmodified, with credit.
+- **The names, the Same Page mark, the app icon and Pomo & Doro** are trademarks ([`TRADEMARKS.md`](TRADEMARKS.md)). A fork needs its own name and artwork.
+- **Third-party parts** (the skills in `.claude/`, the Baloo 2 font, npm dependencies) keep their own licences.
+
+Outside contributions need a contributor licence agreement first ([CONTRIBUTING.md](CONTRIBUTING.md#licence)). Commits made before the licence was added (2026-10-30) carry no licence, so all rights are reserved for them.

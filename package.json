@@ -67,6 +67,7 @@
     "typescript": "~6.0.3"
   },
   "private": true,
+  "license": "FSL-1.1-ALv2",
   "jest": {
     "preset": "jest-expo",
     "setupFiles": [

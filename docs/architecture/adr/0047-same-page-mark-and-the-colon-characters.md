@@ -56,5 +56,6 @@ The owner's words (2026-10-30): "We will use the logo of the Same Page and the m
 - [2026-10-29 — v2 Couples Rehaul: Plan](../../implementations/2026-10-29-couples-rehaul-plan.md)
 - ["The brand kit: brand/, after the Cassandra Collective and SuperconducTED kits"](../../implementations/2026-10-30-brand-kit.md)
 - ["Phase 1 Stage C (C1–C4): the Sticker Diary design system, display face, Classic brief and art"](../../implementations/2026-10-30-phase1-stage-c-design.md)
+- ["The repository licence: FSL-1.1-ALv2 for the code, CC BY-ND 4.0 for the brand, a trademark policy"](../../implementations/2026-10-30-repository-licence.md)
 - [Requirements traceability (generated)](../../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

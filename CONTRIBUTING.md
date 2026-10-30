@@ -46,6 +46,12 @@ chore(release): version 1.4.0
   - changing repository settings (such as GitHub Pages)
   - publishing GitHub Releases
 
+## Licence
+
+The repository is licensed FSL-1.1-ALv2, with the brand files under CC BY-ND 4.0 and the names and marks reserved ([LICENSE.md](LICENSE.md), [TRADEMARKS.md](TRADEMARKS.md)).
+
+**Outside contributions need a contributor licence agreement (CLA) before they are merged.** Under FSL, whoever offers code is its licensor. Without an agreement, a contributor's code would stay theirs, under terms the owner's own app could break. No CLA is set up yet, so open an issue before starting a pull request.
+
 ## Environment notes
 
 - **The repo lives in OneDrive.** OneDrive can turn old files into cloud placeholders that Metro (SDK 56+) can't see. If Metro says an existing file is missing, rewrite that file's bytes; moving the repo out of OneDrive is the durable fix.

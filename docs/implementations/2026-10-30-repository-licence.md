@@ -1,7 +1,7 @@
 ---
 id: IMPL-2026-10-30-repository-licence
 title: "The repository licence: FSL-1.1-ALv2 for the code, CC BY-ND 4.0 for the brand, a trademark policy"
-status: in-progress
+status: done
 date: 2026-10-30
 owner: Mert Efe Şensoy
 related: [IMPL-2026-10-30-brand-kit, ADR-0047]
@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-brand-kit, ADR-0047]
 
 # 2026-10-30 — The repository licence
 
-**Status:** Plan, committed before any other file of this change.
+**Status:** Done (2026-10-30). The plan was committed first (`b908965`). Not pushed: pushing needs the owner's OK.
 **Branch:** `rehaul/v2`, in the main checkout (a small documents-only change; the Stage D and D4 sessions work on their own branches). Pushing needs the owner's OK.
 
 ---
@@ -74,10 +74,10 @@ The owner wants the code to stay open while the app stays protected. Asked to ch
 
 ## 6. Verification
 
-- [ ] The FSL text in `LICENSE.md` matches the official template (`getsentry/fsl.software`, `FSL-1.1-ALv2.template.md`) byte for byte, with only the two placeholders filled.
-- [ ] `grep -rn "no licen[cs]e file\|all rights reserved"` finds no stale statement outside the records' history.
-- [ ] `node scripts/docs/check-docs.mjs --write` exits 0.
-- [ ] `python brand/tools/check_brand.py` still passes (the brand README and licence change, no brand file does).
+- [x] The FSL text in `LICENSE.md` matches the official template (`getsentry/fsl.software`, `FSL-1.1-ALv2.template.md`, downloaded 2026-10-30) byte for byte, with only the two placeholders filled: checked by the script that wrote it and by `diff` (identical). SPDX lists `FSL-1.1-ALv2`, not OSI-approved.
+- [x] `git grep -i "no licen[cs]e file\|all rights reserved\|has no licen[cs]e\|no LICENSE"` finds no stale statement: what remains is history in records, ADR-0042 and the design-skills record (about Apple's HIG text), the xtool evaluation, and a third-party notice in a Lighthouse report.
+- [x] `node scripts/docs/check-docs.mjs --write`: 110 docs, 0 errors.
+- [x] `python brand/tools/check_brand.py`: every check passed. `package.json` parses, with `"license": "FSL-1.1-ALv2"`.
 - [ ] The owner reads `LICENSE.md`'s preamble and `TRADEMARKS.md`.
 
 ## 7. Questions for the owner
@@ -91,5 +91,6 @@ The owner wants the code to stay open while the app stays protected. Asked to ch
 
 ## Backlinks
 <!-- backlinks:start -->
-_No other document links here yet._
+- [Documentation map](../README.md)
+- ["The brand kit: brand/, after the Cassandra Collective and SuperconducTED kits"](2026-10-30-brand-kit.md)
 <!-- backlinks:end -->

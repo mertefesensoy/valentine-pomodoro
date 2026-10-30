@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-brand-kit, ADR-0047]
 
 # 2026-10-30 — The repository licence
 
-**Status:** Done (2026-10-30). The plan was committed first (`b908965`). Not pushed: pushing needs the owner's OK.
+**Status:** Done (2026-10-30). The plan was committed first (`b908965`). Pushed 2026-10-30 with the owner's OK ("Yes, push it"): `3c83d2a..3aba394`; CI run 41115700883 was running when this was recorded.
 **Branch:** `rehaul/v2`, in the main checkout (a small documents-only change; the Stage D and D4 sessions work on their own branches). Pushing needs the owner's OK.
 
 ---

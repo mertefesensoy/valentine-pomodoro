@@ -33,7 +33,7 @@ chore(release): version 1.4.0
 - The scope is optional: a plan task id (`b2`), an area (`android`), or omitted.
 - The body explains **why**.
 - Cite requirement and ADR IDs.
-- **Commit by explicit path** (`git add <paths>`, then `git commit`), never `git add -A` / `commit -a`, because other sessions may share the checkout.
+- **Commit only your own paths: `git commit -- <paths>`** (add new files first with `git add <paths>`). Never use `git add -A` / `commit -a`, and never a bare `git commit` in a checkout another session shares. The index is shared, so a bare `git commit` also commits whatever the other session has staged. This happened on 2026-10-30 (`1904173`, undone before it was pushed). `git commit -- <paths>` commits exactly those paths and leaves everything else staged.
 
 ## Gates and permissions
 

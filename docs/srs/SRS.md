@@ -801,6 +801,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Documentation conventions](../process/DOCS.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
+- [Status snapshot 2026-10-30](../status/2026-10-30-status.md)
 - [Test strategy](../testing/TEST-STRATEGY.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

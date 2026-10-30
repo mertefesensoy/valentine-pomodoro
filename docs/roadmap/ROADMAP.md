@@ -146,5 +146,6 @@ Polish and harden passes, a Realtime load test, Maestro end-to-end tests, the re
 - [Documentation system, release history and branch cleanup](../implementations/2026-10-30-documentation-system.md)
 - [Release process](../process/RELEASE.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
+- [Status snapshot 2026-10-30](../status/2026-10-30-status.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

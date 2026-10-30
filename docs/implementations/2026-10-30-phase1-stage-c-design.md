@@ -444,12 +444,7 @@ Ready-to-paste text, applied by the merging session. Filled in as each task land
 
 | Where | Today | Replace with |
 |-------|-------|--------------|
-| `PRODUCT.md`, Brand Commitments (through `/impeccable`) | "A kawaii tomato couple, binding. *Pomodoro* is Italian for tomato, so the mascots are two small original tomatoes, **Pomo & Doro**…" | "**A kawaii couple of two, binding; no tomato anywhere** (owner, 2026-10-30, ADR-0047). The mascots are **Pomo & Doro**, two small round characters who are, together, the colon in the timer. The mark is **Same Page**: two pages of one open diary, each with a face, leaning in. In one signature animation the two of them turn into the two pages and form the mark. No tomato, clock or heart in the mark or the art: those are the category's habits." |
-| `PRODUCT.md`, Undecided; SRS §6 open-decisions row; ADR-0020 TBD | Candidates "Pomo Pair, Tomatwo, Pomo & Doro, Two Tomatoes" | Add: "Tomatwo and Two Tomatoes conflict with the no-tomato direction (2026-10-30)." |
-| `DESIGN.md` description, line 4 (through `/impeccable`) | "Pomo & Doro, two little tomatoes, keep a sticker diary…" | "Pomo & Doro, two little round characters, keep a sticker diary…" |
-| `DESIGN.md` pinned-direction note, line 9 | "The kawaii tomato-couple direction" | "The kawaii couple direction (no tomato, owner 2026-10-30)" |
-| `DESIGN.md` North Star, line 15 | "Pomo & Doro, two small original tomatoes, are drawn as stickers… ripe garden tomato…" | "Pomo & Doro, two small round characters (together they make the timer's colon), are drawn as stickers… a ripe garden harvest…" |
-| `DESIGN.md` Colors, Secondary | "**Tomato Red:** the accent of the brand and the mascots" | "**Accent Red:** the brand's accent" (the hex values are in `src/theme/palette.json`) |
+| `PRODUCT.md` and `DESIGN.md` | The tomato couple | **Applied on this branch, 2026-10-30, at the owner's request** ("oh we should fix this"): `PRODUCT.md` Brand Commitments, the name-candidates note and Evidence on Hand; `DESIGN.md`'s description, pinned note, North Star, Colors (hex values now point at `palette.json`, Accent Red), Display Font (Baloo 2) and a no-tomato Don't. Edited in place as Impeccable's `init` and seed rules say (schema comment kept, the seed marker kept until E4's scan). SRS §6's open-decisions row and ADR-0020's TBD still need the name-candidates note. |
 | Rehaul plan §3.1, §3.3 (Shared Garden "grows plants and tomatoes"), §5.2 ("tomato-red accent") | Tomato wording | Point at this record's §0; the garden grows plants without tomatoes. |
 | Phase 1 plan, C3 row | (no tomato wording; "Pomo & Doro as stickers") | Add: "Characters chosen with the logo; no tomato (owner, 2026-10-30)." |
 

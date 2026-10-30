@@ -56,4 +56,5 @@ Both are owner decisions from 2026-10-29.
 <!-- backlinks:start -->
 - [expo-audio for sound, not expo-av](0003-expo-audio.md)
 - [Architecture decision records](README.md)
+- ["Phase 1 Stage C (C1–C4): the Sticker Diary design system, display face, Classic brief and art"](../../implementations/2026-10-30-phase1-stage-c-design.md)
 <!-- backlinks:end -->

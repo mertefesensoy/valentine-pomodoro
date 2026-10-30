@@ -810,6 +810,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - ["Phase 1 B5: the React Compiler on, its lint rules back to error"](../implementations/2026-10-30-phase1-b5-react-compiler.md)
 - ["Phase 1 B6: Expo Router with native tabs"](../implementations/2026-10-30-phase1-b6-expo-router.md)
 - ["Phase 1 B7: deferred start-up work, and an on-device TTI probe"](../implementations/2026-10-30-phase1-b7-deferred-startup.md)
+- ["Phase 1 Stage C (C1–C4): the Sticker Diary design system, display face, Classic brief and art"](../implementations/2026-10-30-phase1-stage-c-design.md)
 - ["Settings: the number pad can be dismissed (DEF-008)"](../implementations/2026-10-30-settings-keyboard-dismiss.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Documentation conventions](../process/DOCS.md)

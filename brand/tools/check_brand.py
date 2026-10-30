@@ -7,8 +7,8 @@ Usage (from the repository root):
 Exits 1 on any failure and names each one. Checks every file, not a sample:
 
 * the file set: exactly build_brand.expected_files(), nothing missing and nothing extra
-* the drawings: the brand's mark, app icon and character sources are byte for byte the app's
-  own art sources (art/src/identity, art/src/app-icon, art/src/mascots), so the two can't drift
+* the drawings: the app's art sources (art/src: identity marks, app icon, splash marks, Pomo &
+  Doro) are byte for byte what art_geometry.py draws, and so are the brand's, so they can't drift
 * SVG: well-formed, a viewBox, a <title>; no <text>, <image>, <script>, <foreignObject>, <style>
   or external reference; a mark or lockup paints only its version's colours
 * PNG: the size its export scale gives; RGBA for the transparent art, RGB for the tiles, the
@@ -64,25 +64,25 @@ def check_file_set():
 
 
 def check_sources_match_app(assets):
-    """The brand draws the mark, the app icon and the characters with the code that drew the
-    app's art sources; any drift between the two fails here."""
-    app = {}
-    for v in B.VERSIONS:
-        app[f"{B.PREFIX}-mark-{v}"] = f"art/src/identity/mark-{v}.svg"
-    for k in ("light", "dark", "tinted"):
-        app[f"{B.PREFIX}-app-icon-{k}"] = f"art/src/app-icon/icon-{k}.svg"
-    for nm in ("pomo", "doro"):
-        for pose in B.POSES + ["single-colour"]:
-            app[f"{nm}-{pose}"] = f"art/src/mascots/{nm}-{pose}.svg"
-    app["web-icon"] = "art/src/app-icon/icon-light.svg"
-    by_stem = {a["stem"]: a for a in assets}
-    for stem, rel in app.items():
+    """The app's art sources (art/src) are the strings art_geometry.app_sources() draws, and the
+    brand's marks, app icons and characters are those same strings; any drift fails here.
+    Returns how many app sources were compared."""
+    sources = G.app_sources()
+    for rel, text in sources.items():
         path = os.path.join(REPO, rel)
         if not os.path.exists(path):
             fail(f"{rel}: the app's source is missing")
-        elif open(path, encoding="utf8", newline="").read() != by_stem[stem]["svg"]:
+        elif open(path, encoding="utf8", newline="").read() != text:
+            fail(f"{rel}: differs from art_geometry.app_sources() (python brand/tools/build_brand.py --write-app-sources)")
+    app = {f"{B.PREFIX}-mark-{v}": f"art/src/identity/mark-{v}.svg" for v in B.VERSIONS}
+    app.update({f"{B.PREFIX}-app-icon-{k}": f"art/src/app-icon/icon-{k}.svg" for k in ("light", "dark", "tinted")})
+    app.update({f"{nm}-{pose}": f"art/src/mascots/{nm}-{pose}.svg" for nm in ("pomo", "doro") for pose in B.POSES + ["single-colour"]})
+    app["web-icon"] = "art/src/app-icon/icon-light.svg"
+    by_stem = {a["stem"]: a for a in assets}
+    for stem, rel in app.items():
+        if by_stem[stem]["svg"] != sources[rel]:
             fail(f"{stem}: the brand's drawing differs from the app's {rel}")
-    return len(app)
+    return len(sources)
 
 
 def svg_colours(root):

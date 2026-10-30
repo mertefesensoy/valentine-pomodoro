@@ -130,7 +130,7 @@ footer { grid-column: span 12; font-size: 12px; color: var(--soft); }
       <img src="${mark('colour', 784)}" alt="The Same Page mark: two pages of one open diary, each with a face, leaning in">
       <div style="display:grid;gap:10px">
         <p class="story">Two pages of one diary, leaning in. Apart at the edges, bound at the spine: a couple on the same page.</p>
-        <p class="soft">A cocoa die-cut sticker with milk faces. It never shows a clock, a heart or a tomato, the category's habits (ADR-0047).</p>
+        <p class="soft">An open diary as a die-cut sticker: strawberry pages in a cocoa cover, with cocoa faces (the owner's change, 2026-10-30). It never shows a clock, a heart or a tomato, the category's habits (ADR-0047).</p>
       </div>
     </div>
   </section>
@@ -146,7 +146,7 @@ footer { grid-column: span 12; font-size: 12px; color: var(--soft); }
   <section class="cell span12" aria-labelledby="h-vers">
     <h2 id="h-vers">Versions</h2>
     <div class="vers">
-      <figure><div class="t" style="background:${L.page}"><img src="${mark('colour')}" alt=""></div><figcaption><b>Colour.</b> The default, on milk and every light ground.</figcaption></figure>
+      <figure><div class="t" style="background:${L.page}"><img src="${mark('colour')}" alt=""></div><figcaption><b>Colour.</b> The default, on milk and every light ground: strawberry pages, a cocoa cover.</figcaption></figure>
       <figure><div class="t" style="background:${D.page}"><img src="${mark('reversed')}" alt=""></div><figcaption><b>Reversed.</b> Strawberry pages for plum and other dark grounds.</figcaption></figure>
       <figure><div class="t" style="background:${L.primary}"><img src="${mark('single-cocoa')}" alt=""></div><figcaption><b>Single colour, cocoa.</b> One ink: print, embroidery, a stamp. The faces are cut out.</figcaption></figure>
       <figure><div class="t" style="background:${D.page}"><img src="${mark('single-white')}" alt=""></div><figcaption><b>Single colour, white.</b> One ink on dark or busy grounds.</figcaption></figure>

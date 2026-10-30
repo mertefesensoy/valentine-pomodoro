@@ -18,6 +18,7 @@ Two people who study together, even when they're apart, are **on the same page**
 - **The diary** is the app's world. The design direction is "the Sticker Diary": flat, kawaii, die-cut stickers on soft paper, never glass or gradients.
 - **The two faces** are the couple. They're the same size and lean in by the same angle; neither is the main one.
 - **The die-cut edge** makes the mark a sticker, the one thing in the app that lifts off the page.
+- **The cocoa cover** frames the strawberry pages. Cocoa, the brand's ink, draws the outline on light grounds, so the pages can carry the brand's colour.
 - **What it isn't:** no tomato, no clock or ring, no heart, no animal, no plant. Pomodoro timers, study apps and couples apps lean on those already ([ADR-0047](../docs/architecture/adr/0047-same-page-mark-and-the-colon-characters.md)).
 
 **Pomo & Doro** are the mark's companions, not part of it: two small round characters who, together, are the colon in the timer (24**:**59) and, in lettering, the colon between *pomo* and *doro*. See [Characters](#characters).
@@ -34,18 +35,19 @@ The mark is drawn on a 1024 grid ([`tools/art_geometry.py`](tools/art_geometry.p
 - **The lean.** Each page is turned 5° toward the other, about its own foot at the spine: (494, 780) for the left page and (530, 780) for the right.
 - **The faces.** Two eyes of radius 30 per page, set 84 apart and one 12 lower than the other, so each face tilts toward its partner. Under them, a smile: a quadratic curve, stroked 18 wide with round caps.
 - **The edge.** The die-cut edge is each page stroked 56 wide (28 outside the page) with round joins, plus a 64 × 200 block that closes the gap at the spine.
+- **The cover** (the colour version). Each page is stroked 44 wide in cocoa (22 outside the page), with a 60 × 226 block that shows as a cocoa spine; the white edge around it is stroked 100 wide (50 outside), so its band stays 28 wide. That outline is 774 × 591 units, so the whole drawing is scaled by 0.974 and centred in the same frame.
 - **The frame.** Place and measure the mark by its frame, 784 × 576 at (120, 260). It holds the mark and its edge. **H** is the frame's height.
 
 **Versions.** The same four as the approved identity sheet (Stage C, C5):
 
 | Version | Pages | Faces | Edge | Use it on | File stem |
 |---|---|---|---|---|---|
-| **Colour** (default) | Cocoa | Milk | White | Light grounds: milk, paper, white | `valentine-pomodoro-mark-colour` |
+| **Colour** (default) | Strawberry, in a cocoa cover | Cocoa | White | Light grounds: milk, paper, white | `valentine-pomodoro-mark-colour` |
 | **Reversed** | Strawberry | Midnight plum | Milk | Dark grounds: midnight plum, black | `valentine-pomodoro-mark-reversed` |
 | **Single colour, cocoa** | Cocoa | Cut out | None | One-ink print, embroidery, stamps, light grounds | `valentine-pomodoro-mark-single-cocoa` |
 | **Single colour, white** | White | Cut out | None | One-ink print and engraving on dark grounds | `valentine-pomodoro-mark-single-white` |
 
-In the single-colour versions the eyes and smiles are real holes (even-odd), so the ground shows through and one ink keeps both faces. On white or milk, the colour version's white edge melts into the ground and the mark reads as cocoa; that is intended.
+In the single-colour versions the eyes and smiles are real holes (even-odd), so the ground shows through and one ink keeps both faces. On white or milk, the colour version's white edge melts into the ground and the cocoa cover draws the outline; that is intended. Until 2026-10-30 the colour version was the cocoa sticker the app icon still uses; alone on a light ground it read as a heavy brown block, so the owner moved the cocoa to the cover.
 
 **There is no small mark.** The faces read down to 24 px and collapse at 16 px. Below the minimum, the app icon carries the brand: the favicons are the app icon, not a stripped-down mark.
 
@@ -156,7 +158,7 @@ Two more appear in the files: **white** (`#FFFFFF`, the die-cut edge on light gr
 | `tools/` | The build, the check, the shared geometry, the wordmark setter, the contrast formula, and Baloo 2 with its licence | Rebuilding |
 | [`LICENSE-BRAND.md`](LICENSE-BRAND.md) | The licence for the brand files: CC BY-ND 4.0 | Read it before using a file outside the project |
 
-**The app icon** (`svg/valentine-pomodoro-app-icon-*`) is the mark as a cocoa sticker on a full-bleed strawberry tile; iOS rounds the corners itself. The dark appearance has strawberry pages on midnight plum; the tinted one is a white mark on black, which iOS tints. They are the app's own icons, drawn by the same code (`art/src/app-icon/`).
+**The app icon** (`svg/valentine-pomodoro-app-icon-*`) is the mark as a cocoa sticker (cocoa pages, milk faces) on a full-bleed strawberry tile; iOS rounds the corners itself. On the strawberry tile the pages need to be dark, so the icon keeps the cocoa sticker. The dark appearance has strawberry pages on midnight plum; the tinted one is a white mark on black, which iOS tints. They are the app's own icons, drawn by the same code (`art/src/app-icon/`).
 
 **Favicon markup.** VectorCraft does not write `.ico` files. Modern browsers take SVG and PNG:
 
@@ -171,7 +173,7 @@ Two more appear in the files: **white** (`#FFFFFF`, the die-cut edge on light gr
 The identity sheet's "Never" list, plus the lockups':
 
 - Don't stretch, skew or rotate the mark, or any part of it.
-- Don't recolour it outside the palette, or swap the versions' colours (cocoa faces on cocoa pages, a strawberry mark on milk).
+- Don't recolour it outside the palette, or swap the versions' colours (the reversed mark on milk, the app icon's cocoa sticker on its own).
 - Don't add effects: shadows, glows, gradients, outlines or textures. The die-cut edge is the only edge.
 - Don't pull the pages apart, close the V, or change the lean.
 - Don't add a heart, a tomato or a clock, and don't put text inside the mark.

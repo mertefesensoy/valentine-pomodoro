@@ -89,6 +89,39 @@ def identity_svg(title, inner):
             f'{inner}</svg>\n')
 
 
+# The colour version since 2026-10-30 (the owner's choice C, brand-kit record §10): cocoa as the
+# diary's cover around strawberry pages, not as the fill. The white edge is 50 outside each page
+# (its band stays 28 wide, as on every version), the cocoa cover 22 outside; the blocks at the
+# spine fill the gap between the pages' feet, so it shows as a cocoa spine. The wider outline
+# (774 x 591.3 units) is scaled to the frame's height and centred in it: lockups, clear space
+# and minimum sizes stay as they are.
+COVER_EDGE, COVER = 100, 44
+COVER_OUTLINE_CY, COVER_OUTLINE_H = 534.35, 591.3
+COVER_FIT = f'translate(512 548) scale({576 / COVER_OUTLINE_H:.4f}) translate(-512 -{COVER_OUTLINE_CY})'
+
+
+def sticker_cover(fill, cover, edge, eyes):
+    """The mark with a cover: pages `fill` framed by `cover`, a die-cut `edge`, faces `eyes`."""
+    return (f'<g transform="{COVER_FIT}">'
+            f'<g transform="{ROT_L}"><path d="{LEFT}" fill="{edge}" stroke="{edge}" stroke-width="{COVER_EDGE}" stroke-linejoin="round"/></g>'
+            f'<g transform="{ROT_R}"><path d="{RIGHT}" fill="{edge}" stroke="{edge}" stroke-width="{COVER_EDGE}" stroke-linejoin="round"/></g>'
+            f'<rect x="470" y="560" width="84" height="236" fill="{edge}"/>'
+            f'<g transform="{ROT_L}"><path d="{LEFT}" fill="{cover}" stroke="{cover}" stroke-width="{COVER}" stroke-linejoin="round"/></g>'
+            f'<g transform="{ROT_R}"><path d="{RIGHT}" fill="{cover}" stroke="{cover}" stroke-width="{COVER}" stroke-linejoin="round"/></g>'
+            f'<rect x="482" y="560" width="60" height="226" fill="{cover}"/>'
+            f'<g transform="{ROT_L}"><path d="{LEFT}" fill="{fill}"/></g><g transform="{ROT_R}"><path d="{RIGHT}" fill="{fill}"/></g>'
+            + faces(eyes) + '</g>')
+
+
+# The four versions (C5, amended 2026-10-30): (title, drawing in the 1024 grid).
+MARKS = {
+    "colour": ("Same Page, colour: strawberry pages in a cocoa cover", sticker_cover(PRIMARY, INK, EDGE, INK)),
+    "reversed": ("Same Page, reversed: strawberry pages for dark grounds", sticker(D["primary"], D["stickerEdge"], D["page"])),
+    "single-cocoa": ("Same Page, single colour: cocoa, faces cut out", single(INK)),
+    "single-white": ("Same Page, single colour: white, faces cut out", single("#FFFFFF")),
+}
+
+
 # There is no small mark: below the 24 px minimum the app icon carries the brand (C5), and
 # pulling the pages apart to make one is on the sheet's "Never" list.
 
@@ -190,3 +223,22 @@ def character(ch, pose, mono=None):
     inner = f'<g transform="{t}">{edge}<g fill="{fill}">{ch["body"]}</g>{curl}{face}</g>'
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><title>{"Pomo" if ch is POMO else "Doro"}, {pose}{", single colour" if mono else ""}</title>'
             f'{inner}{extras(extra, ch) if not mono else ""}</svg>\n')
+
+
+def app_sources():
+    """Every app art source this module draws, by repository path: the C5 identity marks, the
+    app icon, the splash marks and Pomo & Doro. check_brand.py holds the files to these strings,
+    and build_brand.py --write-app-sources writes them."""
+    out = {}
+    for v, (title, inner) in MARKS.items():
+        out[f"art/src/identity/mark-{v}.svg"] = identity_svg(title, inner)
+    for k in ("light", "dark", "tinted"):
+        out[f"art/src/app-icon/icon-{k}.svg"] = app_icon(k)
+    # The splash: the mark alone on a transparent square; app.json supplies the page colour behind it.
+    out["art/src/splash/splash-mark-light.svg"] = svg1024("Splash mark, light", MARKS["colour"][1])
+    out["art/src/splash/splash-mark-dark.svg"] = svg1024("Splash mark, dark", pages(D["primary"], D["stickerEdge"]) + faces(D["page"]))
+    for ch, nm in ((POMO, "pomo"), (DORO, "doro")):
+        for pose in POSES:
+            out[f"art/src/mascots/{nm}-{pose}.svg"] = character(ch, pose)
+        out[f"art/src/mascots/{nm}-single-colour.svg"] = character(ch, "idle", mono=INK)
+    return out

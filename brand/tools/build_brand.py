@@ -48,22 +48,18 @@ LICENCE_NOTE = f"{NAME} brand files. CC BY-ND 4.0, see LICENSE-BRAND.md."
 L, D = G.L, G.D
 WHITE = "#FFFFFF"
 
-# The mark's four versions: the approved C5 set, with C5's names. `title` is the app art
-# source's own title, so the brand's source drawing is byte for byte art/src/identity/mark-<v>.svg.
-# `word` is the wordmark's colour in the lockups; `ground` is where the version is shown.
-VERSIONS = {
-    "colour": dict(inner=G.sticker(L["ink"], L["stickerEdge"], L["page"]), word=L["ink"], ground=L["page"],
-                   title="Same Page, colour: the cocoa sticker", use="the default, on light grounds"),
-    "reversed": dict(inner=G.sticker(D["primary"], D["stickerEdge"], D["page"]), word=D["ink"], ground=D["page"],
-                     title="Same Page, reversed: strawberry pages for dark grounds", use="on dark grounds"),
-    "single-cocoa": dict(inner=G.single(L["ink"]), word=L["ink"], ground=L["page"],
-                         title="Same Page, single colour: cocoa, faces cut out", use="one ink, on light grounds"),
-    "single-white": dict(inner=G.single(WHITE), word=WHITE, ground=D["page"],
-                         title="Same Page, single colour: white, faces cut out", use="one ink, on dark grounds"),
-}
+# The mark's four versions: the C5 set, with C5's names (the colour version amended by the owner
+# on 2026-10-30: strawberry pages in a cocoa cover, record §10). The drawings and their titles are
+# art_geometry.MARKS, the same strings as art/src/identity/mark-<v>.svg. `word` is the wordmark's
+# colour in the lockups; `ground` is where the version is shown.
+_USE = {"colour": ("the default, on light grounds", L["ink"], L["page"]),
+        "reversed": ("on dark grounds", D["ink"], D["page"]),
+        "single-cocoa": ("one ink, on light grounds", L["ink"], L["page"]),
+        "single-white": ("one ink, on dark grounds", WHITE, D["page"])}
+VERSIONS = {v: dict(title=G.MARKS[v][0], inner=G.MARKS[v][1], use=u, word=w, ground=g) for v, (u, w, g) in _USE.items()}
 # The colours each version may paint (check_brand.py holds every SVG and EPS to these).
 VERSION_COLOURS = {
-    "colour": {L["ink"], L["stickerEdge"], L["page"]},
+    "colour": {L["ink"], L["primary"], L["stickerEdge"]},
     "reversed": {D["primary"], D["stickerEdge"], D["page"], D["ink"]},
     "single-cocoa": {L["ink"]},
     "single-white": {WHITE},
@@ -536,7 +532,19 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--out", default=BRAND, help="where to write the tree (default: brand/)")
     ap.add_argument("--measure", action="store_true", help="print the EPS CMYK table and stop")
+    ap.add_argument("--write-app-sources", action="store_true",
+                    help="write the app's art sources (art/src) from art_geometry.app_sources() and stop")
     args = ap.parse_args(argv)
+    if args.write_app_sources:
+        repo = os.path.dirname(BRAND)
+        for rel, text in G.app_sources().items():
+            path = os.path.join(repo, rel)
+            old = open(path, encoding="utf8", newline="").read() if os.path.exists(path) else None
+            if old != text:
+                with open(path, "w", encoding="utf8", newline="") as f:
+                    f.write(text)
+                print(f"wrote {rel}")
+        return 0
     work = tempfile.mkdtemp(prefix="vp-brand-")
     try:
         for d in ("src", "steps", "out"):

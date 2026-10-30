@@ -4,7 +4,7 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [Unreleased]
 
-*Branch `rehaul/v2` at 3369418, 105 commits after 1.3.1, working toward 1.4.0 for iOS. Not released. TestFlight builds 42–46 were cut from this branch: [1.4.0-tf.42] at a12ced4, [1.4.0-tf.43] at 9c5b0ce, [1.4.0-tf.44] at 1e2316b, [1.4.0-tf.45] at 6eaeb50 and [1.4.0-tf.46] at 3369418.*
+*Branch `rehaul/v2` at 659b352, 118 commits after 1.3.1, working toward 1.4.0 for iOS. Not released. TestFlight builds 42–47 were cut from this branch: [1.4.0-tf.42] at a12ced4, [1.4.0-tf.43] at 9c5b0ce, [1.4.0-tf.44] at 1e2316b, [1.4.0-tf.45] at 6eaeb50, [1.4.0-tf.46] at 3369418 and [1.4.0-tf.47] at 659b352.*
 
 The v2 rehaul, in progress. Each bullet names its theme: Phase 0 (the foundation), SDK 58, CNG, Android, iOS-first, Stage A (the Phase 1 safety nets), Stage B (the first Phase 1 changes), Docs (the 2026-10-30 documentation system and what followed it) and Design (the design-skill stack).
 
@@ -76,6 +76,12 @@ The v2 rehaul, in progress. Each bullet names its theme: Phase 0 (the foundation
 ### Security
 
 - **Phase 0:** `nanoid` 3.3.11 → 3.3.20, the only package with an `npm audit` advisory that ships in the app bundle. React Navigation uses it for fixed-size keys, so its advisories couldn't be triggered here (65c1d34). After the SDK 58 upgrade, `npm audit` reports 16 advisories, down from 39; the three high-severity ones come from `zod` inside `@expo/cli`, build tooling that contributes no code to the app (befaf99).
+
+## [1.4.0-tf.47] - 2026-10-30
+
+*iOS TestFlight build 47, a pre-release and not a store release, source 659b352. Built with EAS (build cf42f8a6) and uploaded to App Store Connect for TestFlight (submission f8557f2b); device check on a physical iPhone, 2026-10-30: passed, as reported by the owner. Tab switches no longer flicker, the Notes tab bar stays light, the Stats banner shows again, and the Settings number pad can be closed.*
+
+Its changes are listed under [Unreleased], which covers the whole branch. This build contains everything there up to 659b352: build 46's, plus the fix for its tab flicker and Stats banner (B6, 63f1db2) and the Settings keyboard fix (DEF-008, b3c16b7).
 
 ## [1.4.0-tf.46] - 2026-10-30
 
@@ -338,6 +344,7 @@ Two later fixes on the same branch were never built: functional state updates fo
 - The app icon, splash screen and EAS build configuration, on Expo SDK 54 with React Native 0.81.5 (42409bf, adc5bb3, 40489e2, 4278bd6).
 
 [Unreleased]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.3.1...rehaul/v2
+[1.4.0-tf.47]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.46...v1.4.0-tf.47
 [1.4.0-tf.46]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.45...v1.4.0-tf.46
 [1.4.0-tf.45]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.44...v1.4.0-tf.45
 [1.4.0-tf.44]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.43...v1.4.0-tf.44

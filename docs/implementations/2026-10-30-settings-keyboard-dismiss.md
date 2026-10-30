@@ -9,7 +9,7 @@ related: [SRS, IMPL-2026-10-30-phase1-b6-expo-router]
 
 # 2026-10-30 — Settings: the number pad can be dismissed (DEF-008)
 
-**Status:** Done in code and tested in Jest; **the device check rides on TestFlight build 47**, together with the B6 tab fix.
+**Status:** Done in code and tested in Jest; **the device check passed on TestFlight build 47** (`v1.4.0-tf.47`, 2026-10-30), together with the B6 tab fix.
 **Branch:** `rehaul/v2`
 **Found:** by you on TestFlight build 46: "i can't escape the keyboard when i decided to change the time in the settings".
 
@@ -72,12 +72,12 @@ None; a purely structural UI change.
   - without `keyboardDismissMode`: 1 failed.
 - [x] Gates with the change: typecheck clean; lint 0 errors, 38 warnings (unchanged); Jest 201/201 in 34 suites; Reassure settings-only 1, Timer 13, Stats 1, Settings 2, Notes 1, leaf 12 (unchanged: the bar subscribes to nothing).
 
-**Device (iPhone, TestFlight build 47):**
-- [ ] Settings → Focus: tap the field, type a number. A "Done" bar sits above the number pad, in the app's light or dark colours. Tap Done: the keyboard closes and the new duration is kept (start a session to see it).
-- [ ] Repeat for Short Break, Long Break, "Long break every N sessions" and Custom Goal.
-- [ ] With the keyboard up, scroll the list: the keyboard closes and the value is kept.
-- [ ] An invalid value (0, or above the field's limit) reverts on Done, as it does on blur.
-- [ ] VoiceOver reads the bar's button as "Done, button".
+**Device (iPhone, TestFlight build 47): passed** (2026-10-30, reported by you: "record all pass", with B6's list, not item by item):
+- [x] Settings → Focus: tap the field, type a number. A "Done" bar sits above the number pad, in the app's light or dark colours. Tap Done: the keyboard closes and the new duration is kept (start a session to see it).
+- [x] Repeat for Short Break, Long Break, "Long break every N sessions" and Custom Goal.
+- [x] With the keyboard up, scroll the list: the keyboard closes and the value is kept.
+- [x] An invalid value (0, or above the field's limit) reverts on Done, as it does on blur.
+- [x] VoiceOver reads the bar's button as "Done, button".
 
 ## 7. Related Docs
 

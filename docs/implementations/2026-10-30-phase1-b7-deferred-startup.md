@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-29-phase1-b1-lazy-fly-mode, 
 
 # 2026-10-30 — Phase 1 B7: deferred start-up work, and an on-device TTI probe
 
-**Status:** Code done and verified locally, in four code commits after the plan commit (§2). **Merged into `rehaul/v2` on 2026-10-30 as `3d3fbaf`, after B6 (`1b7a8d7`), with `onLayout={markFirstFrame}` on `App()`'s root view in `src/App.tsx` (§3.6); pushed 2026-10-30 (through `3369418`).** The device checklist (§6.5) passed on TestFlight build 46 (`v1.4.0-tf.46`), 2026-10-30, the probe panel's `deferred (idle)` line included, so the first-frame wiring works on the phone. **The done-criterion, cold-start TTI before and after, still needs the panel's numbers on record (§6.7).**
+**Status:** Code done and verified locally, in four code commits after the plan commit (§2). **Merged into `rehaul/v2` on 2026-10-30 as `3d3fbaf`, after B6 (`1b7a8d7`), with `onLayout={markFirstFrame}` on `App()`'s root view in `src/App.tsx` (§3.6); pushed 2026-10-30 (through `3369418`).** The device checklist (§6.5) passed on TestFlight build 46 (`v1.4.0-tf.46`), 2026-10-30, the probe panel's `deferred (idle)` line included, so the first-frame wiring works on the phone. Item 5 passed again on TestFlight build 47 (`v1.4.0-tf.47`, 2026-10-30), with B6's tab fix, whose pre-render runs after the interactive mark. **The done-criterion, cold-start TTI before and after, still needs the panel's numbers on record (§6.7).**
 **Branch:** `phase1/b7-deferred-startup` (worktree `C:\vp\b7`, cut from `rehaul/v2` at `7034bba`). The parent session merges it after B6 (Expo Router) and adds one call (§3.6).
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md), task B7.
 
@@ -301,6 +301,8 @@ Build 46 is recorded in [B6 §6.6](2026-10-30-phase1-b6-expo-router.md) (EAS `bf
 
 **Result: passed on a physical iPhone (2026-10-30, reported by you: "all passes the verifications").** You ran these checks together with B6's and reported them together, not one by one. Items 1–5 are ticked below. Item 6 ran, but its numbers haven't been shared yet (§6.7).
 
+**Build 47 (2026-10-30):** item 5 passed again, reported by you as part of B6's build-47 list ("record all pass").
+
 - [x] 1. **Launch looks the same as build 45:** the splash, then the Timer screen; no flash, no layout jump, no delay you can see.
 - [x] 2. **The interstitial still comes:** set Focus to 1 minute, complete two focus sessions; the interstitial shows after the 2nd, as in A0 (FR-ADS-001).
 - [x] 3. **Check for updates works at once:** cold-start the app, go straight to Settings and tap "Check for updates" within a few seconds. The "You're up to date" alert appears (TestFlight 1.4.0 is newer than the App Store's 1.3.1), and no second alert follows (FR-UPD-001).
@@ -327,7 +329,7 @@ If a launch's row is missing (you touched the screen, the app went to the backgr
 
 ### 6.7 Results
 
-**Open.** The protocol ran on build 46 (2026-10-30), and you reported it passed, but the panel's lines and its Share data haven't reached this record yet. When they do, record here: device, iOS version, build, then per arm n, median, IQR and range for TTI and TTI⁺, the difference of medians, and the Hodges–Lehmann shift with its 95 % interval; the raw rows in an appendix.
+**Open.** The protocol ran on build 46 (2026-10-30), and you reported it passed; you reported build 47's list, which includes it, as all passed. The panel's lines and its Share data haven't reached this record yet. When they do, record here: device, iOS version, build, then per arm n, median, IQR and range for TTI and TTI⁺, the difference of medians, and the Hodges–Lehmann shift with its 95 % interval; the raw rows in an appendix.
 
 ## 7. Findings and open items
 

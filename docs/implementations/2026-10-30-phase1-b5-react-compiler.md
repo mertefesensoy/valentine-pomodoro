@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-b4-rerender-refact
 
 # 2026-10-30 — Phase 1 B5: the React Compiler on, its lint rules back to error
 
-**Status:** Done, in five code commits and one docs commit (§2). **Local only: not pushed, no EAS build.** It needs a device check on a TestFlight build (§6.4), with your go-ahead; it can share one build with B4's open check.
+**Status:** Done, in five code commits and two docs commits (§2). **Pushed** `178b4ba..758881b` on 2026-10-30 with your OK (CI run 41014132814, in progress at the time of writing); the push also carried B4's `f5f3a5c` and the design session's `5292199`, `17639cd` and `10adac0`. **No EAS build.** It needs a device check on a TestFlight build (§6.4), with your go-ahead; it can share one build with B4's open check.
 **Branch:** `rehaul/v2`
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md), task B5; [rehaul plan §4.5, item 4](2026-10-29-couples-rehaul-plan.md#45-re-render-strategy-f1-with-the-documented-trap-guarded); follows [B4](2026-10-30-phase1-b4-rerender-refactor.md). Decision: [ADR-0041](../architecture/adr/0041-react-compiler-on.md), which supersedes [ADR-0035](../architecture/adr/0035-react-compiler-lint-warnings.md).
 

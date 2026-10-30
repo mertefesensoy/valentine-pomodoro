@@ -4,9 +4,9 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [Unreleased]
 
-*Branch `rehaul/v2` at 5b10a78, 49 commits after 1.3.1, working toward 1.4.0 for iOS. Not released. TestFlight build 42 ([1.4.0-tf.42]) was cut from this branch at a12ced4.*
+*Branch `rehaul/v2` at d7f46d2, 87 commits after 1.3.1, working toward 1.4.0 for iOS. Not released. TestFlight builds 42–45 were cut from this branch: [1.4.0-tf.42] at a12ced4, [1.4.0-tf.43] at 9c5b0ce, [1.4.0-tf.44] at 1e2316b and [1.4.0-tf.45] at 6eaeb50.*
 
-The v2 rehaul, in progress. Each bullet names its theme: Phase 0 (the foundation), SDK 58, CNG, Android, iOS-first, Stage A (the Phase 1 safety nets), Stage B (the first Phase 1 changes) and Docs (the 2026-10-30 documentation system).
+The v2 rehaul, in progress. Each bullet names its theme: Phase 0 (the foundation), SDK 58, CNG, Android, iOS-first, Stage A (the Phase 1 safety nets), Stage B (the first Phase 1 changes), Docs (the 2026-10-30 documentation system and what followed it) and Design (the design-skill stack).
 
 ### Added
 
@@ -21,13 +21,17 @@ The v2 rehaul, in progress. Each bullet names its theme: Phase 0 (the foundation
 - **Stage A:** A3, typed fixtures of everything a v1.3.1 install keeps in AsyncStorage (all 13 keys), plus a fresh install, never-edited notes, a torn `session_clock` write and a 1.0.0-era stats-v1 user, each checked against the readers that ship today (57ebc65). Stage A is written up in fd96c12.
 - **Stage A:** The A0 device check passed on a physical iPhone with TestFlight build 42 (v1.4.0), owner-reported: data from the App Store 1.3.1 install survived the update, and launch, the tabs, a focus/break cycle with notifications, Stats after a cold start, Fly Mode with tier-1 airports (including reset and re-pick), the interstitial, dark mode and landscape all passed (73aa110, 33036e4, 229298d).
 - **Stage B:** `scripts/startup-modules.js`, which counts the modules a cold start evaluates, from a Metro export (5b10a78).
+- **Stage B:** `scripts/react-compiler-report.js`, which counts the functions the React Compiler compiles and skips, with each skip's reason, and the files whose worklet count it changes (10811ce, f11082d).
+- **Stage B:** Tests with each change: the runtime airport table (0d63145); storage, and the migration over every A3 fixture (dd1e894); store hydration, stats and Fly credit, and the cold-start completions behind DEF-004 (71d836f, e04cc8c); the tab haptic (ca21ef0); the clock store, its math and `<TimerText>` (b7461f1); the ring's SharedValues (43cf1a8); Timer's single commit on start (b838ebe); that Jest compiles with the React Compiler (10811ce); and Classic's overlay order (630c35a). Jest runs 134 tests in 26 suites at B5.
+- **Design:** The design-skill stack and its per-screen workflow ([DESIGN-WORKFLOW](docs/process/DESIGN-WORKFLOW.md), [ADR-0042](docs/architecture/adr/0042-design-skill-stack.md)): the rest of Emil Kowalski's skills beside Impeccable, with his `apple-design` renamed `emil-apple-design`, and dickwu's Apple HIG reviewer, which is installed locally and git-ignored because it bundles Apple's copyrighted text (5292199, 10adac0).
+- **Docs:** An [evaluation of xtool](docs/proposals/xtool-evaluation.md) against Expo/EAS. xtool can't build this app, and its build path breaches Apple's Xcode licence on a non-Mac; the owner decided to stay on Expo (7c7e66e).
 - **Docs:** The documentation system (2026-10-30):
   - an [SRS](docs/srs/SRS.md) with stable requirement IDs, plus the [architecture](docs/architecture/ARCHITECTURE.md) and [ADRs](docs/architecture/adr/README.md)
   - the [roadmap](docs/roadmap/ROADMAP.md) and the [test strategy](docs/testing/TEST-STRATEGY.md)
   - the process docs ([branching](docs/process/BRANCHING.md), [release](docs/process/RELEASE.md), [conventions](docs/process/DOCS.md)) and [CONTRIBUTING.md](CONTRIBUTING.md)
   - this changelog, and a [documentation map](docs/README.md)
-  - `scripts/docs/check-docs.mjs`, which checks links and IDs and generates backlinks and the [traceability matrix](docs/testing/TRACEABILITY.md)
-  - annotated tags for every EAS-built version (`v1.0.0`–`v1.3.1`, `v1.0.1-android`, `v1.4.0-tf.42`), each at the commit of that version's last finished production build, and two `archive/*` tags preserving the only commits never merged to `master`
+  - `scripts/docs/check-docs.mjs`, which checks links and IDs and generates backlinks and the [traceability matrix](docs/testing/TRACEABILITY.md), run as a non-blocking CI step (dca725c)
+  - annotated tags for every EAS-built version (`v1.0.0`–`v1.3.1`, `v1.0.1-android`, `v1.4.0-tf.42`), each at the commit of that version's last finished production build, and two `archive/*` tags preserving the only commits never merged to `master`; since then, one for each TestFlight build (`v1.4.0-tf.43`–`v1.4.0-tf.45`) at its build's source commit
 
 ### Changed
 
@@ -39,13 +43,22 @@ The v2 rehaul, in progress. Each bullet names its theme: Phase 0 (the foundation
 - **Android:** Fly Mode is hidden where it can't open (Android and web). `isFlyModeAvailable()` is true only on iOS, a saved `fly` mode falls back to Classic, and the mode switcher is hidden there (9372403). On Android, opening Fly crashed for lack of a Google Maps API key, and the saved mode turned that into a crash on every later launch; no store build had Fly Mode on Android.
 - **iOS-first:** v1.4 ships to iOS only (5da66f4). Android is deferred until the account can run Google Play's closed test (at least 12 testers for 14 consecutive days); this replaces the earlier plan to bring Fly Mode to Android in v1.4 with a Maps key (9dc9885), and corrects the record that Android 1.0.1 was in production on Google Play.
 - **iOS-first:** The app version is 1.4.0 for every TestFlight build of the rehaul, because App Store Connect closes a released version to new uploads (a12ced4), and `ascAppId` is set so `eas submit` runs without prompting (a290d67).
-- **Stage B:** B1, Fly Mode loads lazily. `TimerScreen` loads `FlyModeScreen` with `React.lazy` and `Suspense`, so Fly Mode, react-native-maps, expo-audio and the 648 KB airport JSON are evaluated on the first switch to Fly instead of at every cold start: 1,799 → 1,745 modules evaluated at an iOS cold start, 56 deferred. The bundle size is unchanged (moving the airport data out of it is task B1b), and the change is not yet checked on a device (5b10a78).
+- **Stage B:** B1, Fly Mode loads lazily. `TimerScreen` loads `FlyModeScreen` with `React.lazy` and `Suspense`, so Fly Mode, react-native-maps, expo-audio and the 648 KB airport JSON are evaluated on the first switch to Fly instead of at every cold start: 1,799 → 1,745 modules evaluated at an iOS cold start, 56 deferred. The bundle size is unchanged by B1 itself; B1b moves the airport data out (5b10a78). The device check passed on TestFlight build 43.
+- **Stage B:** B1b, the 648 KB airport table ships as a bundled asset (`airports.jsonasset`) instead of being compiled into the Hermes bytecode. It is read with `expo-asset` and `expo-file-system` the first time Fly opens, then kept in memory. iOS bytecode 3,856,660 → 3,403,356 B (−11.75 %), Android 3,945,024 → 3,491,384 B (−11.50 %); the assets grow by the file's 648,483 B (0d63145). The device check passed on TestFlight build 43.
+- **Stage B:** B2, app storage moves from AsyncStorage to MMKV (`react-native-mmkv` 4.3.2 with `react-native-nitro-modules` 0.37.1). On the first launch a one-time migration copies every AsyncStorage key and writes its done flag last, so a crash part-way re-runs to the same result; AsyncStorage stays untouched for one release as the fallback. An existing install with no saved love notes gets the v1.3.1 notes written explicitly, so a later change to the defaults can't replace the notes it shows today. The iOS bytecode is 3,430,632 B after it (dd1e894). The device check passed on TestFlight build 43, but B2 also made DEF-004 happen every time (see Fixed).
+- **Stage B:** B3, app state moves into Zustand stores (settings, notes, stats, the session clock and UI) that hydrate synchronously from MMKV in a `StoreGate`, so the first frame shows stored values and Stats and Notes no longer show "Loading…". Every screen reads them through selectors, and `AppContext` is deleted (71d836f, ca21ef0). In the Reassure scenario where only a setting changes during a session, renders drop from 14 to 1. The device check passed on TestFlight build 44.
+- **Stage B:** B4, the re-render refactor. A clock store emits once per displayed second, and only the `<TimerText>` leaf subscribes to it (b7461f1). The progress ring and Fly read SharedValues on the UI thread instead of re-rendering React (43cf1a8). The 1 Hz tick chain is gone, and the clock store's scheduler completes sessions (e9df252). Hidden tabs are frozen (040ad32), and starting a session on Timer commits once, not twice (b838ebe). One change you can see: a love note, goal popup or interstitial that comes due while another tab is showing now appears when you return to Timer. Before, the goal popup could dismiss itself unseen, and with love notes off the interstitial could open over Stats. The device check passed on TestFlight build 45.
+- **Stage B:** B5, the React Compiler is on (6395aee), after its 94 rule findings were fixed and the five `react-hooks` compiler rules went back to `error` (7a849b3). Jest now compiles app code exactly when `app.json` turns the compiler on, through `jest.babelTransformer.js`, because jest-expo never tells Babel the compiler is supported (10811ce; [ADR-0041](docs/architecture/adr/0041-react-compiler-on.md)). Render counts are unchanged from B4. The iOS bytecode is 3,463,508 B, +0.96 % over B2 for B3–B5 together and still 10.2 % under the SDK 58 baseline (758881b). The device check passed on TestFlight build 45.
+- **Docs:** In a checkout that several sessions share, commits name their paths (`git commit -- <paths>`), so one session can't commit files another has staged (17639cd).
 
 ### Fixed
 
 - **Phase 0:** The Stats tab could crash with "Rendered more hooks than during the previous render" when opened before stats finished loading. Every hook now runs before the loading return (70cfd8d).
 - **Phase 0:** Android and web showed no tab-bar icons, because the icon mapping still held the template's symbols. Any unmapped symbol now fails the type check (0c99c0b).
 - **Android:** The SDK 58 Android release build crashed about 3 seconds after every launch: R8 had removed the no-argument constructor that Room calls by reflection to open WorkManager's database. R8 keep rules for every `RoomDatabase` and WorkManager `InputMerger` subclass are now written through `expo-build-properties` (c70afd9), and a new build launches cleanly on the emulator (56857f6). The crash never reached a store build.
+- **Stage B:** DEF-004: a Pomodoro or a flight that ended while the app was killed was cleared on relaunch, with no credit. In 1.3.1 it was a race; B2's faster storage load made it happen every time, so TestFlight build 43 has it. Completions now wait for a handler of their kind (e04cc8c), confirmed by build 44's device check.
+- **Stage B:** Fly Mode credited its minutes without the session's start day or id, so a flight across midnight counted on the wrong day and a replayed completion wasn't de-duplicated (DEF-001). The streak's "yesterday" came from the current date, not the credited day, so a goal reached by a session that crossed midnight could reset the streak to 1 (DEF-003) (7863e50).
+- **Stage B:** The stats de-duplication key wasn't restored on load, so it only protected within one run (DEF-002, 71d836f). The tab bar's haptic ignored the Haptics setting (DEF-007, ca21ef0); the Sound setting still has no effect until sounds arrive in D4.
 
 ### Removed
 
@@ -58,11 +71,29 @@ The v2 rehaul, in progress. Each bullet names its theme: Phase 0 (the foundation
 
 - **Phase 0:** `nanoid` 3.3.11 → 3.3.20, the only package with an `npm audit` advisory that ships in the app bundle. React Navigation uses it for fixed-size keys, so its advisories couldn't be triggered here (65c1d34). After the SDK 58 upgrade, `npm audit` reports 16 advisories, down from 39; the three high-severity ones come from `zod` inside `@expo/cli`, build tooling that contributes no code to the app (befaf99).
 
+## [1.4.0-tf.45] - 2026-10-30
+
+*iOS TestFlight build 45, a pre-release and not a store release, source 6eaeb50, whose app code is identical to 758881b. Built with EAS (build 0eb8ca72) and uploaded to App Store Connect for TestFlight (submission 844c25a5); passed the B4 and B5 device check on a physical iPhone (d7f46d2).*
+
+Its changes are listed under [Unreleased], which covers the whole branch. This build contains everything there up to 6eaeb50, through B5. Only docs came after it.
+
+## [1.4.0-tf.44] - 2026-10-30
+
+*iOS TestFlight build 44, a pre-release and not a store release, source 1e2316b. Built with EAS (build 7fcac2fb) and uploaded to App Store Connect for TestFlight (submission 977f92f0, 1bdcff8); passed its device check on a physical iPhone, including sessions that ended while the app was killed (d3fe740).*
+
+Its changes are listed under [Unreleased]. This build contains everything there up to 1e2316b: B1, B1b, B2 and B3, with DEF-001–004 and DEF-007's haptics fixed. It does not contain B4, B5 or the design-skill stack.
+
+## [1.4.0-tf.43] - 2026-10-29
+
+*iOS TestFlight build 43, a pre-release and not a store release, source 9c5b0ce, whose app code is identical to dd1e894. Built with EAS (build 73ad1446) at 21:43 UTC, already 30 October in local time, and uploaded to App Store Connect for TestFlight (submission b145e4cd, de8d4cb); passed its device check on a physical iPhone (97c48b7). It has DEF-004, found afterwards in B3 (c77037d).*
+
+Its changes are listed under [Unreleased]. This build contains everything there up to 9c5b0ce: B1, B1b and B2. It does not contain B3 or anything after it.
+
 ## [1.4.0-tf.42] - 2026-10-29
 
 *iOS TestFlight build 42, a pre-release and not a store release, source a12ced4. Built with EAS and uploaded to App Store Connect for TestFlight (33036e4); passed the A0 device check on a physical iPhone (229298d).*
 
-Its changes are listed under [Unreleased], which covers the whole branch. This build contains everything there up to a12ced4. It does not contain what came after: the A2 and A3 test baselines, the `ascAppId` setting and B1 lazy Fly Mode.
+Its changes are listed under [Unreleased], which covers the whole branch. This build contains everything there up to a12ced4. It does not contain what came after: the A2 and A3 test baselines, the `ascAppId` setting, and Stage B from B1 on.
 
 ## [1.3.1] - 2026-05-05
 
@@ -295,6 +326,9 @@ Two later fixes on the same branch were never built: functional state updates fo
 - The app icon, splash screen and EAS build configuration, on Expo SDK 54 with React Native 0.81.5 (42409bf, adc5bb3, 40489e2, 4278bd6).
 
 [Unreleased]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.3.1...rehaul/v2
+[1.4.0-tf.45]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.44...v1.4.0-tf.45
+[1.4.0-tf.44]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.43...v1.4.0-tf.44
+[1.4.0-tf.43]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.42...v1.4.0-tf.43
 [1.4.0-tf.42]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.3.1...v1.4.0-tf.42
 [1.3.1]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.2.5...v1.3.0

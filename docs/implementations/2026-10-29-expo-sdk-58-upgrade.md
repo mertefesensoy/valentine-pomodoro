@@ -1,6 +1,6 @@
 # 2026-10-29 — Expo SDK 54 → 58 upgrade and generated native projects
 
-**Status:** Built. Both EAS native builds succeeded on SDK 58 (§6.2). The device checks are still to do (§6.3), and on-device iOS testing needs a TestFlight build.
+**Status:** Done. Both EAS native builds succeeded on SDK 58 (§6.2). **The device checks are done (§6.3).** On iOS, every item passed on a physical iPhone with TestFlight build 42, v1.4.0, on 2026-10-29 (the A0 gate, reported by you). On the Android emulator, run 2 passed everything except Fly Mode, which crashed for lack of a Google Maps key. Fly is now hidden on Android (`9372403`), and Android is deferred while v1.4 ships to iOS only.
 **Branch:** `rehaul/v2` (pushed to origin on 2026-10-29)
 **Plan:** [2026-10-29-couples-rehaul-plan.md](2026-10-29-couples-rehaul-plan.md), §7 Phase 0, item 6 · follows [Phase 0 foundation](2026-10-29-phase0-foundation.md)
 

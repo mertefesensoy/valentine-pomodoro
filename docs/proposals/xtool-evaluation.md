@@ -81,5 +81,6 @@ The second is outside xtool's control, so for building, the answer is effectivel
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Changelog](../../CHANGELOG.md)
 - [Documentation map](../README.md)
 <!-- backlinks:end -->

@@ -56,6 +56,7 @@ Two facts found in B5 shaped how:
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Changelog](../../../CHANGELOG.md)
 - [Architecture — Valentine Pomodoro (as built, and the v2 target)](../ARCHITECTURE.md)
 - [React Compiler lint rules as warnings until Phase 1 B5](0035-react-compiler-lint-warnings.md)
 - [Architecture decision records](README.md)

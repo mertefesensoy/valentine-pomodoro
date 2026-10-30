@@ -814,6 +814,7 @@ Tabs are still loaded only when first opened or once start-up has gone idle, and
 - [Native tabs, frozen by a route wrapper, laid out by safe-area insets](../architecture/adr/0043-native-tabs-frozen-by-a-wrapper.md)
 - [2026-10-29 — Phase 1 (v1.4): design system and local re-architecture, plan](2026-10-29-phase1-plan.md)
 - ["Phase 1 B7: deferred start-up work, and an on-device TTI probe"](2026-10-30-phase1-b7-deferred-startup.md)
+- ["Phase 1 Stage C (C1–C4): the Sticker Diary design system, display face, Classic brief and art"](2026-10-30-phase1-stage-c-design.md)
 - ["Settings: the number pad can be dismissed (DEF-008)"](2026-10-30-settings-keyboard-dismiss.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)

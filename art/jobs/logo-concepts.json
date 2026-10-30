@@ -1,0 +1,9 @@
+{
+  "about": "C3: the logo concepts, in black and white only (logo rule 2). Each source is expanded (strokes become fills), saved as an editable .vectorcraft file and exported as an SVG and as PNGs at every iOS icon size. The colour version waits for the owner's pick.",
+  "assets": [
+    { "id": "logo-c1-same-page", "src": "art/src/logo/c1-same-page.svg", "kind": "logo", "png": [1024, 180, 120, 87, 80, 60, 40, 29, 20] },
+    { "id": "logo-c2-lean-on-me", "src": "art/src/logo/c2-lean-on-me.svg", "kind": "logo", "png": [1024, 180, 120, 87, 80, 60, 40, 29, 20] },
+    { "id": "logo-c3-colon", "src": "art/src/logo/c3-colon.svg", "kind": "logo", "png": [1024, 180, 120, 87, 80, 60, 40, 29, 20] },
+    { "id": "logo-c4-red-thread", "src": "art/src/logo/c4-red-thread.svg", "kind": "logo", "png": [1024, 180, 120, 87, 80, 60, 40, 29, 20] }
+  ]
+}

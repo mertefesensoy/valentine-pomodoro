@@ -1,18 +1,18 @@
 <!-- SEED: established with the user before implementation; re-run /impeccable document once there's code to capture the actual tokens and components. -->
 ---
 name: Valentine Pomodoro (working name)
-description: A kawaii couples study timer. Pomo & Doro, two little tomatoes, keep a sticker diary of the focus you share.
+description: A kawaii couples study timer. Pomo & Doro, two little round characters, keep a sticker diary of the focus you share.
 ---
 
 # Design System: Valentine Pomodoro (working name)
 
-> **PINNED DIRECTION — the brief wins.** The kawaii tomato-couple direction (rehaul plan §5.2–5.3, approved 2026-10-29) and the North Star "The Sticker Diary" (chosen 2026-10-29) are pinned by the owner. Refinement passes (`critique`, `audit`, `polish`, `quieter`, `distill`, `harden`) tune execution *inside* this direction. They must not flatten it into a generic minimal look, and they must not swap the North Star for a calmer one. Changing the direction needs the owner's explicit words.
+> **PINNED DIRECTION — the brief wins.** The kawaii couple direction (rehaul plan §5.2–5.3, approved 2026-10-29; no tomato anywhere, owner 2026-10-30, ADR-0047) and the North Star "The Sticker Diary" (chosen 2026-10-29) are pinned by the owner. Refinement passes (`critique`, `audit`, `polish`, `quieter`, `distill`, `harden`) tune execution *inside* this direction. They must not flatten it into a generic minimal look, and they must not swap the North Star for a calmer one. Changing the direction needs the owner's explicit words.
 
 ## Overview
 
 **Creative North Star: "The Sticker Diary"**
 
-The app is the diary a student couple keeps together, the kind of kawaii stationery people carry to the library. Its pages are the screens: soft paper fields with crisp edges, set in calm, quiet chrome. Its stickers are the rewards. Pomo & Doro, two small original tomatoes, are drawn as stickers, and every completed session, landed flight, ripe garden tomato and couple milestone is a sticker placed onto the diary. The paper stays calm; the stickers carry the emotion.
+The app is the diary a student couple keeps together, the kind of kawaii stationery people carry to the library. Its pages are the screens: soft paper fields with crisp edges, set in calm, quiet chrome. Its stickers are the rewards. Pomo & Doro, two small round characters (a strawberry with one curl and a matcha dome; together they make the timer's colon), are drawn as stickers, and every completed session, landed flight, garden harvest and couple milestone is a sticker placed onto the diary. The mark, **Same Page**, is two pages of one open diary, leaning in. The paper stays calm; the stickers carry the emotion.
 
 It is an Operate product first. A student opens it to start a focus session in seconds and to see that their partner is there. The world lends four things only: **type, palette, density, and one signature move**. Navigation, layout model and controls stay native: a tab bar, sheets, switches and pickers that a fluent iPhone or Android user already trusts. Long-distance is the lead situation, so **both partners are always in the frame**: the partner's presence, intention and local time are part of the page, not a detail behind a tap.
 
@@ -46,7 +46,7 @@ With Reduce Motion on, opacity and colour stay; translate, scale, particles and 
 
 Warm pastel fields, never gradients. Each theme is a complete token set plus one VectorCraft illustration pack, and the stationery world (washi tape, highlighters, sticker sheets) is where new theme colours come from.
 
-**Hex values are `[to be resolved during implementation]`**, in Phase 1, by the token file plus its contrast-check script. Only the roles below are established.
+**Hex values are resolved (Phase 1 C1, approved by the owner 2026-10-30):** they live in `src/theme/palette.json`, and `npm run check:contrast` proves every declared pair in CI (ADR-0045). The roles below name them.
 
 ### Primary
 
@@ -54,7 +54,7 @@ Warm pastel fields, never gradients. Each theme is a complete token set plus one
 
 ### Secondary
 
-- **Tomato Red:** the accent of the brand and the mascots, used sparingly for emphasis and the sticker moment, never for large fields of chrome.
+- **Accent Red:** the brand's accent, used sparingly for emphasis and the sticker moment, never for large fields of chrome. Destructive actions have their own `danger` red, so the brand colour never means loss.
 
 ### Tertiary
 
@@ -86,7 +86,7 @@ Light and dark follow the system appearance, because the use scene covers both: 
 
 ## Typography
 
-**Display Font:** a rounded display face, `[to be resolved during implementation]`. Candidates to test: Fredoka, Baloo 2, M PLUS Rounded 1c.
+**Display Font:** **Baloo 2** (Phase 1 C2, the owner's pick, 2026-10-30; ADR-0046), embedded with D1 as a Latin + Turkish subset with the `fi`/`fl` ligatures removed, so a Turkish i keeps its dot. Fredoka failed the requirements below.
 **Body Font:** the system face (SF Pro on iOS, Roboto on Android, the platform UI stack on the web).
 
 **Character:** a soft, round display voice for headings, the timer and sticker captions, paired with the platform's own body face, so reading and controls stay native and accessible.
@@ -148,6 +148,7 @@ Depth comes from **paper layering**: pages and fields sit flat, separated by ton
 
 - **Don't** go babyish: no primary-colour cartoon, no oversized bubbly toddler-app UI. A university student must be happy to open this in a library.
 - **Don't** let a mascot sulk, cry, wilt or nag, and never shame a missed day or a broken streak. Plants only look sleepy.
+- **Don't** draw a tomato anywhere, or a clock, timer ring or heart in the mark: those are the category's habits (ADR-0047).
 - **Don't** fall back to generic grey productivity: a grey-and-white screen with one accent colour is not restraint here, it is a different product.
 - **Don't** overload with candy: no neon pinks, glitter or sparkles everywhere, and never more than one delight moment per screen.
 - **Don't** use purple-to-blue aurora gradients, gradient text or a decorative blur tab bar.

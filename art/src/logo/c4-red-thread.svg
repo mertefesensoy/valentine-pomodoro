@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>Concept 4, Red Thread: one thread ties the two of you, however far apart</title>
+  <rect width="1024" height="1024" fill="#FFFFFF"/>
+  <path id="thread" d="M300 600 C360 760 470 760 512 660 C540 590 470 560 470 610 C470 680 600 760 724 560" fill="none" stroke="#000000" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle id="left" cx="262" cy="468" r="150" fill="#000000"/>
+  <circle id="right" cx="762" cy="430" r="150" fill="#000000"/>
+  <g id="eyes" fill="#FFFFFF">
+    <circle cx="286" cy="456" r="26"/><circle cx="350" cy="466" r="26"/>
+    <circle cx="676" cy="430" r="26"/><circle cx="740" cy="420" r="26"/>
+  </g>
+</svg>

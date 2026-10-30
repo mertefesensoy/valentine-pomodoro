@@ -72,5 +72,6 @@ Three facts shaped the decision:
 - [Changelog](../../../CHANGELOG.md)
 - [Architecture decision records](README.md)
 - [Design skills — Apple HIG skill and the full Emil Kowalski pack](../../implementations/2026-10-30-design-skills.md)
+- ["Phase 1 Stage C (C1–C4): the Sticker Diary design system, display face, Classic brief and art"](../../implementations/2026-10-30-phase1-stage-c-design.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../../process/DESIGN-WORKFLOW.md)
 <!-- backlinks:end -->

@@ -31,6 +31,10 @@ jobs:
         run: npm run lint
       - name: Unit tests
         run: npx jest --ci
+      - name: Contrast check (every theme's declared text and mark pairs)
+        # Blocking: a theme that fails its 4.5:1 / 3:1 floors does not ship (DESIGN.md,
+        # the Contrast Gate Rule; NFR-A11Y-001). Needs Node 22.6+ for type stripping.
+        run: npm run check:contrast
       - name: Docs check (links, IDs, backlinks, traceability)
         # Non-blocking while the Phase 1 Stage B sessions are still writing docs
         # (docs/implementations/2026-10-30-documentation-system.md §5). Make it blocking after.

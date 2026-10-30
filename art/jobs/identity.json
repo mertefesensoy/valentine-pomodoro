@@ -1,0 +1,61 @@
+{
+ "about": "C5: the Same Page mark's versions for the identity sheet, on a tight 784 x 576 artboard: colour, reversed, and single colour in cocoa and white with the faces cut out. PNG widths include the minimum-size test (64 down to 16 px).",
+ "assets": [
+  {
+   "id": "mark-colour",
+   "src": "art/src/identity/mark-colour.svg",
+   "kind": "logo",
+   "png": [
+    784,
+    256,
+    64,
+    48,
+    32,
+    24,
+    16
+   ]
+  },
+  {
+   "id": "mark-reversed",
+   "src": "art/src/identity/mark-reversed.svg",
+   "kind": "logo",
+   "png": [
+    784,
+    256,
+    64,
+    48,
+    32,
+    24,
+    16
+   ]
+  },
+  {
+   "id": "mark-single-cocoa",
+   "src": "art/src/identity/mark-single-cocoa.svg",
+   "kind": "logo",
+   "png": [
+    784,
+    256,
+    64,
+    48,
+    32,
+    24,
+    16
+   ]
+  },
+  {
+   "id": "mark-single-white",
+   "src": "art/src/identity/mark-single-white.svg",
+   "kind": "logo",
+   "png": [
+    784,
+    256,
+    64,
+    48,
+    32,
+    24,
+    16
+   ]
+  }
+ ]
+}

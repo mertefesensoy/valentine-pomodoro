@@ -1,0 +1,88 @@
+[
+ {
+  "command": "select.all",
+  "params": {}
+ },
+ {
+  "command": "object.expand",
+  "params": {
+   "object": true,
+   "fill": true,
+   "stroke": true
+  }
+ },
+ {
+  "command": "document.save",
+  "params": {
+   "path": "C:/vp-art/art/vc/mark-colour.vectorcraft"
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/mark-colour.svg",
+   "format": "svg",
+   "decimals": 2,
+   "outlineText": true,
+   "minify": true,
+   "objectIds": "minimal",
+   "metadata": false
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/mark-colour-784.png",
+   "format": "png",
+   "scale": 1
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/mark-colour-256.png",
+   "format": "png",
+   "scale": 0.32653061224489793
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/mark-colour-64.png",
+   "format": "png",
+   "scale": 0.08163265306122448
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/mark-colour-48.png",
+   "format": "png",
+   "scale": 0.061224489795918366
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/mark-colour-32.png",
+   "format": "png",
+   "scale": 0.04081632653061224
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/mark-colour-24.png",
+   "format": "png",
+   "scale": 0.030612244897959183
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/mark-colour-16.png",
+   "format": "png",
+   "scale": 0.02040816326530612
+  }
+ }
+]

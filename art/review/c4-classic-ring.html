@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=390, initial-scale=1">
+<title>Classic: The Ring</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600&display=swap">
+<style>
+  :root { --page:#FFF6F1; --paper:#FFFDFB; --field:#FBEAE4; --edge:#F0DAD3; --ink:#4A2C29; --soft:#7D5A54;
+          --primary:#F7A9BE; --pInk:#B03158; --pSoft:#FDE4EB; --track:#FBEDE8; --ring:#D64B76; --leaf:#BFE5B5;
+          --edgeSticker:#FFFFFF; --shadow:rgba(74,44,41,.16); --display:'Baloo 2', ui-rounded, system-ui, sans-serif;
+          --ui:-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; }
+  * { box-sizing: border-box; margin: 0; }
+  body { width: 390px; height: 844px; overflow: hidden; background: var(--page); color: var(--ink); font: 15px/1.35 var(--ui); position: relative; }
+  .status { height: 54px; display: flex; justify-content: space-between; align-items: center; padding: 14px 32px 0; font-weight: 600; font-size: 16px; }
+  .top { display: flex; justify-content: space-between; align-items: center; padding: 6px 20px 0; height: 44px; }
+  .phase { font-size: 15px; font-weight: 600; color: var(--soft); }
+  .mode { width: 44px; height: 44px; border-radius: 22px; display: grid; place-items: center; color: var(--pInk); font-weight: 700; }
+  .ringwrap { position: relative; width: 300px; height: 300px; margin: 20px auto 0; }
+  .ringwrap svg { position: absolute; inset: 0; }
+  .time { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 2px; }
+  .time b { font: 600 84px/1 var(--display); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .time span { font-size: 14px; color: var(--soft); }
+  .partner { margin: 22px 20px 0; background: var(--paper); border: 1px solid var(--edge); border-radius: 22px; padding: 12px 14px; display: flex; gap: 12px; align-items: center; min-height: 72px; }
+  .pair { display: flex; }
+  .dot { width: 34px; height: 34px; border-radius: 50%; background: var(--ink); border: 3px solid var(--edgeSticker); box-shadow: 1px 2px 3px var(--shadow); position: relative; }
+  .dot + .dot { margin-left: -8px; background: var(--ring); }
+  .dot i, .dot i + i { position: absolute; top: 12px; width: 5px; height: 5px; border-radius: 50%; background: #fff; }
+  .dot i { left: 9px; } .dot i + i { left: 17px; }
+  .partner p { font-size: 15px; } .partner small { display: block; font-size: 13px; color: var(--soft); }
+  .slot { margin-left: auto; font-size: 11px; color: var(--soft); border: 1px dashed var(--edge); border-radius: 8px; padding: 2px 6px; }
+  .today { margin: 18px 20px 0; display: flex; align-items: center; gap: 10px; }
+  .today h4 { font-size: 13px; font-weight: 600; color: var(--soft); letter-spacing: .02em; }
+  .stickers { display: flex; gap: 8px; }
+  .st { width: 30px; height: 30px; border-radius: 10px; background: var(--primary); border: 3px solid var(--edgeSticker); box-shadow: 1px 2px 3px var(--shadow); transform: rotate(-6deg); }
+  .st:nth-child(2) { transform: rotate(5deg); background: var(--leaf); } .st:nth-child(3) { transform: rotate(-2deg); }
+  .st.empty { background: transparent; border: 2px dashed var(--edge); box-shadow: none; transform: none; }
+  .controls { position: absolute; left: 20px; right: 20px; bottom: 118px; display: flex; gap: 12px; align-items: center; }
+  .btn { height: 54px; border-radius: 27px; font: 600 17px var(--ui); display: grid; place-items: center; }
+  .btn.primary { flex: 1; background: var(--primary); color: var(--ink); }
+  .btn.quiet { width: 96px; background: var(--field); color: var(--ink); }
+  .tabbar { position: absolute; left: 20px; right: 20px; bottom: 26px; height: 64px; border-radius: 32px; background: rgba(255,253,251,.82); border: 1px solid var(--edge); display: flex; justify-content: space-around; align-items: center; font-size: 11px; color: var(--soft); }
+  .tabbar span { display: grid; justify-items: center; gap: 3px; } .tabbar i { width: 22px; height: 22px; border-radius: 6px; border: 2px solid currentColor; }
+  .tabbar .on { color: var(--pInk); font-weight: 600; }
+  .home { position: absolute; bottom: 8px; left: 50%; width: 134px; height: 5px; border-radius: 3px; background: var(--ink); transform: translateX(-50%); }
+</style></head>
+<body>
+  <div class="status"><span>9:41</span><svg width="66" height="12" viewBox="0 0 66 12" aria-hidden="true"><rect x="0" y="6" width="3" height="6" rx="1" fill="currentColor"/><rect x="5" y="4" width="3" height="8" rx="1" fill="currentColor"/><rect x="10" y="2" width="3" height="10" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/><rect x="38" y="1" width="24" height="11" rx="3" fill="none" stroke="currentColor"/><rect x="40" y="3" width="18" height="7" rx="1.5" fill="currentColor"/></svg></div>
+  <div class="top"><span class="phase">Focus · session 2 of 4</span><span class="mode" aria-label="Mode: Classic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="3"/><rect x="13" y="3" width="8" height="8" rx="3"/><rect x="3" y="13" width="8" height="8" rx="3"/><rect x="13" y="13" width="8" height="8" rx="3"/></svg></span></div>
+  <div class="ringwrap">
+    <svg viewBox="0 0 300 300"><circle cx="150" cy="150" r="132" fill="none" stroke="var(--track)" stroke-width="16"/>
+      <circle cx="150" cy="150" r="132" fill="none" stroke="var(--ring)" stroke-width="16" stroke-linecap="round" stroke-dasharray="207 830" transform="rotate(-90 150 150)"/></svg>
+    <div class="time"><b>18:42</b><span>Break at 10:25</span></div>
+  </div>
+  <div class="partner">
+    <div class="pair"><span class="dot"><i></i><i></i></span><span class="dot"><i></i><i></i></span></div>
+    <div><p>Pomo &amp; Doro are studying with you</p></div>
+    <span class="slot">partner slot</span>
+  </div>
+  <div class="today"><h4>Today</h4><div class="stickers"><span class="st"></span><span class="st"></span><span class="st"></span><span class="st empty"></span></div><span class="phase">3 of 4 (example)</span></div>
+  <div class="controls"><span class="btn quiet">Skip</span><span class="btn primary">Pause</span></div>
+  <nav class="tabbar"><span class="on"><i></i>Timer</span><span><i></i>Stats</span><span><i></i>Settings</span><span><i></i>Notes</span></nav>
+  <div class="home"></div>
+</body></html>

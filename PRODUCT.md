@@ -66,13 +66,13 @@ Its origin is true and specific: the app began as a gift for one person. That he
 
 **Undecided:**
 
-- **The public app name.** Candidates: Pomo Pair, Tomatwo, Pomo & Doro, Two Tomatoes. Store and trademark checks are the owner's, before launch. "Valentine Pomodoro" is the working name.
+- **The public app name.** Candidates: Pomo Pair, Tomatwo, Pomo & Doro, Two Tomatoes. Tomatwo and Two Tomatoes conflict with the no-tomato direction (2026-10-30). Store and trademark checks are the owner's, before launch. "Valentine Pomodoro" is the working name.
 - Plus pricing (Phase 5).
 - The custom domain, which universal-link invites need.
 
 ## Brand Commitments
 
-- **A kawaii tomato couple, binding.** *Pomodoro* is Italian for tomato, so the mascots are two small original tomatoes, **Pomo & Doro**. They star in every mode and in the app icon. The visual direction is pinned in DESIGN.md.
+- **A kawaii couple of two, binding; no tomato anywhere** (owner, 2026-10-30, ADR-0047). The mascots are **Pomo & Doro**, two small round characters who are, together, the colon in the timer: Pomo a round strawberry with one curl, Doro a wide matcha dome. The mark is **Same Page**: two pages of one open diary, each with a face, leaning in. In one signature animation the two of them turn into the two pages and form the mark. No tomato, clock or heart in the mark or the art: those are the category's habits. The visual direction is pinned in DESIGN.md.
 - **Voice:** warm, gentle and encouraging; never guilt, never pressure. Emoji appear only in push-notification copy and in text users write themselves, never as interface icons.
 - **Heritage:** the app was made for Bengisu. In the public product her name appears only as a short origin line in About. Default love notes and interface copy carry no personal names. Her own install keeps the notes it already has.
 
@@ -80,7 +80,7 @@ Its origin is true and specific: the app began as a gift for one person. That he
 
 - **The shipped app:** v1.3.1 on the iOS App Store. Android builds exist (EAS, January 2026), but the app is not in production on Google Play: the account has not yet passed Play's closed-test requirement.
 - **Real copy:** 20 default love notes (`src/constants/defaults.ts`); EN/TR site copy (`../../Valentine Pomodoro Website/src/locales/en.json`, `tr.json`).
-- **Real assets:** app icon, adaptive icon and splash (`assets/images/`); the Fly Mode ambient loop (`src/assets/sounds/fly-ambient.m4a`).
+- **Real assets:** the iOS app icon in light, dark and tinted, and the splash marks (`assets/images/ios-icon-*.png`, `splash-mark-*.png`); the Same Page mark, Pomo & Doro's poses and 50 icons (`art/out/`, built by `scripts/art/build.mjs`); the v1 adaptive icon (Android, deferred); the Fly Mode ambient loop (`src/assets/sounds/fly-ambient.m4a`).
 - **Measurements:** bundle, Lighthouse and render-count baselines (`docs/baselines/2026-10-29/`, `docs/implementations/2026-10-29-phase0-foundation.md` §4).
 - **Absent, never to be invented:** testimonials, store reviews or ratings, download or user counts, press, partner logos, and prices.
 

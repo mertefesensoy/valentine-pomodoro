@@ -483,6 +483,7 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 ```markdown
 | HIG: prefer the platform's segmented control. Brief: presets spoken in words, Turkish wrapping at AX5, an in-place crossfade | A built control with native sizing, placement and behaviour; each segment a button with a selected state, its words and its position (never a "tab") | Phase 1 D1 |
 | Brand colour on the tab bar vs Liquid Glass's adaptive monochrome | Only the selected tab carries `primaryInk`; the unselected items stay the system's | Phase 1 D1 |
+| DESIGN.md: the one bounce belongs to the sticker placement. Owner, after build 48: the welcome should squash, stretch and exaggerate | The one-time welcome is the exception, with its own bounce and one burst of at most 12 sparkles; every other surface keeps DESIGN.md's grammar | Phase 1 D1 (build 49) |
 ```
 
 **After the build 48 device check (D1 record §3.16):**

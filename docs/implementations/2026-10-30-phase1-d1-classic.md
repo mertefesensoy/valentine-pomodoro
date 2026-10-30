@@ -32,6 +32,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 **FINISH is not yet discharged.** Each direction contract ends with "this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance". That waits for evidence this machine can't make:
 - After the device check, a fresh `impeccable-finish-reviewer` gets both contracts and the owner's screenshots, labelled as hardware evidence.
 - Then the documenter runs, as an ordinary extension: it compares against DESIGN.md and preserves it (E4 regenerates DESIGN.md in scan mode).
+- **The welcome's bounce is DESIGN.md's one exception (build 49, F5).** DESIGN.md's motion table still gives the one bounce to the sticker placement. The owner's 2026-10-30 instruction amends that for the one-time welcome, which now has squash and stretch, its own bounce, and one burst of at most 12 sparkles (the welcome brief, amended). The finish review judges the welcome against the amended brief. The documenter carries the exception into DESIGN.md's motion table as a "Welcome (once)" row.
 - The tab-icon PNGs carry their provenance through VectorCraft's `steps.json`; the build strips the PNG `tEXt` chunks for determinism, so `embed-prompt --scan` is checked then.
 
 **Skill resolution (2026-10-30).** The Skill tool loads Impeccable from `C:\vp\stage-c\.claude\skills\impeccable`, because this session started in stage-c (Stage D plan §0). `diff -rq` finds the stage-c and stage-d copies of `impeccable`, `apple-design`, `animate-expo`, `review-animations` and `break-ui` identical, Impeccable at `ece7280` in both. Every Impeccable command here runs stage-d's own launcher with stage-d as the working directory: `impeccable context` reports `projectRoot: C:\vp\stage-d`.
@@ -94,6 +95,8 @@ See the [Stage D plan §1](2026-10-30-phase1-stage-d.md#1-problem--motivation). 
 | `src/screens/TimerScreen.tsx`, `src/components/ModeSwitcher.tsx` (removed), `src/screens/__tests__/flyLazyLoad.test.tsx` | Build 49, F3: Fly's way back is Classic's Modes button and sheet, kept outside `Suspense`. |
 | `src/constants/presets.ts`, `src/types/index.ts`, `src/screens/classic/ClassicControls.tsx`, `src/i18n/en.json`, `tr.json`, `src/constants/__tests__/presets.test.tsx`, `src/screens/__tests__/classic.test.tsx`, `classicWorstCase.test.tsx` | Build 49, F4. The presets are 25/5, 50/10, 90/20 and Custom. Two optional settings fields, `presetChoice` and `customDurations`, are read defensively. The patches are pure, with tests, and the Custom key is in English and Turkish. |
 | `src/screens/welcome/choreography.ts`, `src/screens/welcome/__tests__/choreography.test.ts`, `src/screens/welcome/WelcomeScreen.tsx`, `.impeccable/surfaces/app-welcome-tsx.md` | Build 49, F5. New: the welcome's keyframed timeline as a pure module, and its tests. The screen now runs on that timeline, and the brief carries the owner's amendment. |
+| `src/utils/easing.ts`, `src/utils/__tests__/easing.test.ts` | Removed in build 49: the welcome was their only user, and its timeline uses closed-form easings (§4.2). |
+| `docs/architecture/adr/0031-lazy-fly-mode.md` | An as-built note: the Modes button replaced `ModeSwitcher`, outside the same boundary. |
 | `scripts/art/review-welcome-choreography.mjs`, `art/review/d1-welcome-choreography.html` | Build 49, F5. New: the browser preview of that same timeline, sampled at 60 Hz, for the owner. It is deterministic. |
 
 ## 3. Implementation Approach
@@ -533,11 +536,11 @@ The owner checked build 48 on an iPhone on 2026-10-30 (22:42) and sent two scree
   - **A haptic on an entrance the user didn't cause.** It has been kept since D1, and the device decides.
 - **Decision: Approve.**
 
-#### 3.16.3 Guards and measurements (after `a35e725`)
+#### 3.16.3 Guards and measurements (after `a35e725` and the clean-up that follows it)
 
 | Guard | Result |
 |---|---|
-| Jest | 47 suites, 357 tests, all passing |
+| Jest | 46 suites, 352 tests, all passing (after the unused `easing.ts` and its 5 tests went) |
 | Lint (`npm run lint`) | 0 errors, 31 warnings (33 at D1; the deleted switcher took two) |
 | React Compiler | 67 compiled, 6 skipped: no new skip and no worklet-count change. `NumberField`, `Diary`, `Character` and `Sparkle` compile; `SettingsScreen` was already skipped |
 | Reassure | Unchanged: settings-only 1, Timer 13, Stats 1, Settings 2, Notes 1, leaf 12 |
@@ -780,6 +783,7 @@ Every string build 48 carries in Turkish, beside its English (generated from `sr
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Load Fly Mode lazily](../architecture/adr/0031-lazy-fly-mode.md)
 - [An in-house translator over i18next, for English and Turkish](../architecture/adr/0048-in-house-translator.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

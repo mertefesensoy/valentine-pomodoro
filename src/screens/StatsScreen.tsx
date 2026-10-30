@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useStatsStore, useStatsViews } from '../stores/statsStore';
 import { useTheme } from '../theme/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
@@ -36,7 +35,6 @@ export default function StatsScreen() {
     const { today, totals, last7Days, streak } = useStatsViews();
     const { colors } = useTheme();
     const { isTablet } = useResponsive();
-    const tabBarHeight = useBottomTabBarHeight();
 
     const [metric, setMetric] = useState<Metric>('minutes');
     const [barAreaWidth, setBarAreaWidth] = useState(0);
@@ -287,8 +285,8 @@ export default function StatsScreen() {
                     )}
                 </View>
             </ScrollView>
+            {/* The SafeAreaView's bottom inset includes the native tab bar (Phase 1 B6). */}
             <View style={{
-                marginBottom: tabBarHeight,
                 backgroundColor: colors.card,
                 borderTopWidth: 1,
                 borderTopColor: colors.border,

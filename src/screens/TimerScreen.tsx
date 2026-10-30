@@ -1,5 +1,4 @@
 import { View, Text, Pressable, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator } from "react-native";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useTimer } from "../hooks/useTimer";
@@ -57,7 +56,6 @@ export default function TimerScreen() {
   // The time is <TimerText>'s and the ring's (Phase 1 B4).
   const session = useSessionState();
   const { colors, isDark } = useTheme();
-  const tabBarHeight = useBottomTabBarHeight();
 
   // Interstitials the ad policy has allowed, one per completion it said yes
   // to. The effect further down shows one when none is showing yet and no
@@ -337,7 +335,8 @@ export default function TimerScreen() {
     <View style={[
       styles.container,
       activeMode === 'fly' ? styles.containerFly : { backgroundColor: colors.bg },
-      { paddingBottom: tabBarHeight },
+      // Inside a native tab the bottom inset includes the tab bar (Phase 1 B6).
+      { paddingBottom: insets.bottom },
     ]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 

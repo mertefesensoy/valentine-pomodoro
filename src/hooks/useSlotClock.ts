@@ -16,7 +16,11 @@
  */
 
 import { useContext, useEffect, useMemo } from 'react';
-import { NavigationContext } from '@react-navigation/native';
+// Expo Router's own copy of React Navigation's context, the one its screens
+// provide. `@react-navigation/native` exports a different object, which reads
+// undefined inside a router screen (Phase 1 B6). Deprecated upstream: when it
+// is removed, take the focus signal from FreezeOnBlur instead.
+import { NavigationContext } from 'expo-router/react-navigation';
 import { useDerivedValue, useFrameCallback, useSharedValue, type SharedValue } from 'react-native-reanimated';
 import { getClockNow } from '../stores/clockStore';
 import { useSessionStore } from '../stores/sessionStore';

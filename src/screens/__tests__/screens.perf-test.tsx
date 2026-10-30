@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { act } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { measureRenders } from 'reassure';
@@ -34,9 +33,7 @@ function Providers({ children }: { children: ReactNode }) {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <StoreGate>
-                <BottomTabBarHeightContext.Provider value={0}>
-                    {children}
-                </BottomTabBarHeightContext.Provider>
+                {children}
             </StoreGate>
         </GestureHandlerRootView>
     );

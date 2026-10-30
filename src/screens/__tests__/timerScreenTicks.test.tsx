@@ -1,4 +1,3 @@
-import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StoreGate } from '../../stores/StoreGate';
@@ -42,15 +41,12 @@ async function airportsByIata() {
     return Object.fromEntries(list.map((a) => [a.iata, a]));
 }
 
-// The providers App.tsx puts above the tabs, plus the tab bar height the tab
-// navigator would supply.
+// The providers App.tsx puts above the tabs.
 async function renderTimerScreen() {
     await render(
         <GestureHandlerRootView style={{ flex: 1 }}>
             <StoreGate>
-                <BottomTabBarHeightContext.Provider value={0}>
-                    <TimerScreen />
-                </BottomTabBarHeightContext.Provider>
+                <TimerScreen />
             </StoreGate>
         </GestureHandlerRootView>,
     );

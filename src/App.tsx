@@ -4,15 +4,15 @@ import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-rean
 // Surface worklet warnings before they become fatal crashes in release builds
 configureReanimatedLogger({ level: ReanimatedLogLevel.warn, strict: false });
 
-import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
+import { DarkTheme, DefaultTheme, router, ThemeProvider } from 'expo-router';
 import * as React from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { Navigation } from './navigation';
 import { useUpdateCheck } from './hooks/useUpdateCheck';
+import { WindowInsetsProvider } from './hooks/useWindowInsets';
 import { useTheme } from './theme/useTheme';
 import GiftModeModal from './components/GiftModeModal';
 import { StoreGate } from './stores/StoreGate';
@@ -33,71 +33,72 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// The splash stays up until ThemedApp hides it. Calling the public
+// preventAutoHideAsync also stops Expo Router hiding it when its navigator
+// first mounts (Phase 1 B6), which can be before the stores are hydrated.
 SplashScreen.preventAutoHideAsync();
 
 // Inner component: everything below StoreGate, so the stores are hydrated
-function ThemedApp() {
+function ThemedApp({ children }: { children: React.ReactNode }) {
   const { isDark } = useTheme();
   const hasSeenGiftMode = useUiStore((s) => s.hasSeenGiftMode);
   const dismissGiftMode = useUiStore((s) => s.dismissGiftMode);
-  const navigationRef = React.useRef<any>(null);
 
-  // Check for app updates (once per cold launch; iTunes Lookup on iOS, self-hosted JSON on Android)
+  // Start-up work (B7 defers this)
   useUpdateCheck(UPDATE_JSON_URL);
+  React.useEffect(() => {
+    AdManager.init();
+  }, []);
 
   // Phase 7: Notification tap routing - navigate to Timer screen
   React.useEffect(() => {
-    // Initialize Ads
-    AdManager.init();
-
     const subscription = Notifications.addNotificationResponseReceivedListener(response => {
       if (__DEV__) {
         console.log('[App] Notification tapped:', response.notification.request.content);
       }
 
-      // Navigate to Timer screen when notification is tapped
-      if (navigationRef.current) {
-        navigationRef.current.navigate('HomeTabs', { screen: 'Timer' });
-      }
+      // The Timer tab is the index route (FR-NTF-003)
+      router.navigate('/');
     });
 
     return () => subscription.remove();
   }, []);
 
-  // Navigation theme based on app theme
-  const navTheme = isDark ? DarkTheme : DefaultTheme;
+  // The navigator in `children` has committed by now (a parent's effect runs
+  // after its children's), and nothing renders before the stores are
+  // hydrated, so this is the first frame worth showing.
+  React.useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
 
   return (
-    <>
-      <Navigation
-        ref={navigationRef}
-        theme={navTheme}
-        linking={{
-          enabled: 'auto',
-          prefixes: [
-            'valentinepomodoro://',
-          ],
-        }}
-        onReady={() => {
-          SplashScreen.hideAsync();
-        }}
-      />
+    // Navigation theme based on app theme
+    <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
+      {children}
 
       {/* Gift Mode - shows only on first launch */}
       {!hasSeenGiftMode && (
         <GiftModeModal visible={!hasSeenGiftMode} onDismiss={dismissGiftMode} />
       )}
-    </>
+    </ThemeProvider>
   );
 }
 
-export function App() {
+/**
+ * The app's root (Phase 1 B6: rendered by app/_layout.tsx around the router's
+ * navigator, which comes in as `children`). It provides the gesture root, the
+ * window's safe-area insets and the hydrated stores, then the navigation
+ * theme, and shows Gift Mode on first launch.
+ */
+export function App({ children }: { children: React.ReactNode }) {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <StoreGate>
-          <ThemedApp />
-        </StoreGate>
+        <WindowInsetsProvider>
+          <StoreGate>
+            <ThemedApp>{children}</ThemedApp>
+          </StoreGate>
+        </WindowInsetsProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

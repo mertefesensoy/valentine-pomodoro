@@ -4,12 +4,13 @@ title: Expo Router for navigation
 status: accepted
 date: 2026-10-29
 owner: Mert Efe Şensoy
-related: [ADR-0002, ADR-0029]
+related: [ADR-0002, ADR-0029, ADR-0043]
+supersedes: [ADR-0002]
 ---
 
 # ADR-0028: Expo Router for navigation
 
-> **Status note:** accepted on 2026-10-29 as part of the approved rehaul plan and Phase 1 plan. **Not built yet** (Phase 1 B6). "Accepted" records the decision; build status is tracked in the [roadmap](../../roadmap/ROADMAP.md). Once B6 lands, it supersedes [ADR-0002](0002-react-navigation-template.md).
+> **Status note:** accepted on 2026-10-29 as part of the approved rehaul plan and Phase 1 plan. **Built in Phase 1 B6** on branch `phase1/b6-expo-router` (2026-10-30): Expo Router 58.0.28 with native tabs ([B6 record](../../implementations/2026-10-30-phase1-b6-expo-router.md)). How the native tabs keep B4's frozen tabs, the safe areas and the tab haptic is [ADR-0043](0043-native-tabs-frozen-by-a-wrapper.md). It supersedes [ADR-0002](0002-react-navigation-template.md). The device check runs on the combined B6 and B7 TestFlight build.
 
 ## Context
 
@@ -51,5 +52,7 @@ The Phase 1 shape (task B6):
 ## Backlinks
 <!-- backlinks:start -->
 - [React Navigation bottom tabs from the with-react-navigation template](0002-react-navigation-template.md)
+- [Native tabs, frozen by a route wrapper, laid out by safe-area insets](0043-native-tabs-frozen-by-a-wrapper.md)
 - [Architecture decision records](README.md)
+- ["Phase 1 B6: Expo Router with native tabs"](../../implementations/2026-10-30-phase1-b6-expo-router.md)
 <!-- backlinks:end -->

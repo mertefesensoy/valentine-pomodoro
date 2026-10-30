@@ -11,10 +11,6 @@ import { useStatsStore } from '../../stores/statsStore';
 // app never shows the loading state; the test sets the store's isReady
 // directly to keep the screen's loading branch honest.
 
-jest.mock('@react-navigation/bottom-tabs', () => ({
-    useBottomTabBarHeight: () => 0,
-}));
-
 function setStats(isReady: boolean) {
     const day = { focusSessions: 2, focusMinutes: 50 };
     const days = Object.fromEntries(Array.from({ length: 7 }, (_, i) => [`2026-10-2${i}`, day]));

@@ -9,7 +9,7 @@ related: [ADR-0028, ADR-0002, ADR-0031, IMPL-2026-10-30-phase1-b6-expo-router, I
 
 # ADR-0043: Native tabs, frozen by a route wrapper, laid out by safe-area insets
 
-> **Status note:** accepted as part of the approved Phase 1 task B6, which [ADR-0028](0028-expo-router.md) decided. It records how B6 builds that decision, not a new direction. Built on branch `phase1/b6-expo-router` ([B6 record](../../implementations/2026-10-30-phase1-b6-expo-router.md)); it needs the device check on the combined TestFlight build (B6 record §6.2).
+> **Status note:** accepted as part of the approved Phase 1 task B6, which [ADR-0028](0028-expo-router.md) decided. It records how B6 builds that decision, not a new direction. Built on branch `phase1/b6-expo-router` ([B6 record](../../implementations/2026-10-30-phase1-b6-expo-router.md)); it needs the device check on the combined TestFlight build (B6 record §6.6).
 
 ## Context
 
@@ -58,4 +58,7 @@ related: [ADR-0028, ADR-0002, ADR-0031, IMPL-2026-10-30-phase1-b6-expo-router, I
 
 ## Backlinks
 <!-- backlinks:start -->
+- [React Navigation bottom tabs from the with-react-navigation template](0002-react-navigation-template.md)
+- [Expo Router for navigation](0028-expo-router.md)
+- ["Phase 1 B6: Expo Router with native tabs"](../../implementations/2026-10-30-phase1-b6-expo-router.md)
 <!-- backlinks:end -->

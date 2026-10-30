@@ -1,0 +1,11 @@
+{
+  "about": "C3 gate 1: the Same Page mark in three colour options (colours from src/theme/palette.json), and the first idle pose of Pomo and Doro with the outlined style for comparison. The other poses wait for the owner's confirmation of the personality map.",
+  "assets": [
+    { "id": "logo-colour-a-strawberry-matcha", "src": "art/src/logo/colour/same-page-a-strawberry-matcha.svg", "kind": "logo", "png": [1024, 180, 60, 40, 20] },
+    { "id": "logo-colour-b-strawberry-milk", "src": "art/src/logo/colour/same-page-b-strawberry-milk.svg", "kind": "logo", "png": [1024, 180, 60, 40, 20] },
+    { "id": "logo-colour-c-cocoa-sticker", "src": "art/src/logo/colour/same-page-c-cocoa-sticker.svg", "kind": "logo", "png": [1024, 180, 60, 40, 20] },
+    { "id": "pomo-idle", "src": "art/src/mascots/pomo-idle.svg", "kind": "illustration", "png": [512, 128, 32, 16] },
+    { "id": "doro-idle", "src": "art/src/mascots/doro-idle.svg", "kind": "illustration", "png": [512, 128, 32, 16] },
+    { "id": "pomo-idle-outlined", "src": "art/src/mascots/style-b/pomo-idle-outlined.svg", "kind": "illustration", "png": [512] }
+  ]
+}

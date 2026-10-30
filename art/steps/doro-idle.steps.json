@@ -1,0 +1,64 @@
+[
+ {
+  "command": "select.all",
+  "params": {}
+ },
+ {
+  "command": "object.expand",
+  "params": {
+   "object": true,
+   "fill": true,
+   "stroke": true
+  }
+ },
+ {
+  "command": "document.save",
+  "params": {
+   "path": "C:/vp-art/art/vc/doro-idle.vectorcraft"
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/illustration/doro-idle.svg",
+   "format": "svg",
+   "decimals": 2,
+   "outlineText": true,
+   "minify": true,
+   "objectIds": "minimal",
+   "metadata": false
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/illustration/doro-idle-512.png",
+   "format": "png",
+   "scale": 1
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/illustration/doro-idle-128.png",
+   "format": "png",
+   "scale": 0.25
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/illustration/doro-idle-32.png",
+   "format": "png",
+   "scale": 0.0625
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/illustration/doro-idle-16.png",
+   "format": "png",
+   "scale": 0.03125
+  }
+ }
+]

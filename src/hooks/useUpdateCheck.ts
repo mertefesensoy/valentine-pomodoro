@@ -15,6 +15,7 @@ import { Alert, Linking, Platform } from 'react-native';
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
 import { compareSemver } from '../utils/semver';
+import { runAfterFirstFrame } from '../startup/deferredStartup';
 
 // Module-level session guard: resets on process restart (cold launch),
 // so the check fires exactly once per app open — never twice in one session.
@@ -115,9 +116,11 @@ export function useUpdateCheck(updateJsonUrl: string) {
         [updateJsonUrl]
     );
 
-    useEffect(() => {
-        void check();
-    }, [check]);
+    // The launch check waits for the first frame (Phase 1 B7,
+    // src/startup/deferredStartup.ts); the forced check from Settings doesn't.
+    // Still once per cold launch (FR-UPD-001): a second mount's run, or one
+    // after a forced check, returns at the session guard.
+    useEffect(() => runAfterFirstFrame('update.check', () => check()), [check]);
 
     return { checkForUpdates: check };
 }

@@ -580,7 +580,9 @@ and in the intro, "The first superseded record is ADR-0035, by ADR-0041 (Phase 1
 | `de45489` | This section's plan, before any code. |
 | `1fc37d8` | **fix(b6):** `LazyTab` replaces `FreezeOnBlur`; `runAfterInteractive`; the focus hooks; Timer's and Fly's focus gates; Fly's frame callback off while hidden; the banner waits for Stats' first focus and records its result (`bannerStatus.ts`); `react-freeze` dropped as a direct dependency; the router and scheduler tests. |
 | `16a6752` | **feat(b6):** B7's hidden panel shows the banner's line, and its shared data carries it. |
-| `747edf1` | This record's §9 and §6.6, and ADR-0043's amendment. |
+| `747edf1`, `0ab185d` | This record's §9 and §6.6, and ADR-0043's amendment. |
+| `1865f75` | **fix(b6):** the banner's position is measured only while Stats is focused (§9.2). |
+| `8f5099a`, and the commit after it | The record's notes on that, the final numbers. |
 
 ### 9.1 Problem
 
@@ -655,7 +657,7 @@ node scripts/startup-modules.js <scratch>/_expo/static/js/ios/index-<hash>.js
 - [x] **Jest: 212 passed, 34 suites** (at `c628453`: 197 in 33). Router tests 13 → 17; 5 scheduler tests; `statsBanner.test.tsx` (6) is new; the panel test gains two assertions.
 - [x] **The guards:** `timerTextTicks`, both `timerScreenTicks` tests and `flyModeGuard` pass, and so do the "fires completion exactly once" test and the three DEF-004 tests. No guard assertion changed. `timerScreenOverlays.test.tsx` passes unchanged: it renders Timer without a navigator, where the gate is open.
 - [x] **The guards' mutation check:** without the clock store's notification of a changed second, the three timer guards fail at 24:59 (`timerTextTicks.test.tsx:43`, `timerScreenTicks.test.tsx:85`, `:112`). Restored byte-identical (sha256).
-- [x] **Reassure,** baseline re-taken at `c628453` in this worktree, then the tip; every count identical across its 3 runs:
+- [x] **Reassure,** baseline re-taken at `c628453` in this worktree, then two invocations at the code (after `16a6752` and after `1865f75`); every count identical across all its runs:
 
   | Scenario | `c628453` | Tip |
   |----------|---:|---:|
@@ -678,7 +680,7 @@ node scripts/startup-modules.js <scratch>/_expo/static/js/ios/index-<hash>.js
   | `runAfterInteractive` runs before the interactive mark | three scheduler tests (order, eager arm, no first frame) |
 
 - [x] **React Compiler report:** 47 functions compiled (46 at `c628453`: `FreezeOnBlur` out, `LazyTab` and `useHasBeenFocused` in), the same 7 skipped, no worklet count changed (Fly 5).
-- [x] **iOS bytecode** **3,917,728 B**, +4,812 B over `c628453`'s 3,912,916 B (re-measured here, matching the recorded value). 61,520 B (1.60 %) over NFR-PERF-002's ceiling: the overage you accepted until E3 (§7.1).
+- [x] **iOS bytecode** **3,918,152 B** at `1865f75` (3,917,728 B at `16a6752`), +5,236 B over `c628453`'s 3,912,916 B (re-measured here, matching the recorded value). 61,944 B (1.61 %) over NFR-PERF-002's ceiling: the overage you accepted until E3 (§7.1).
 - [x] **Cold-start modules** (`scripts/startup-modules.js`): **2,086**, against 2,084 at `c628453`. By name: `bannerStatus.ts`, `LazyTab.tsx` and `useScreenFocus.ts` in, `FreezeOnBlur.tsx` out. `react-freeze` stays in the bundle as react-native-screens' own dependency.
 - [x] **Merge preview:** `git merge-tree` against `rehaul/v2` at `b3c16b7` (the Settings number-pad fix): no conflicts. This branch doesn't touch `SettingsScreen.tsx`.
 
@@ -703,7 +705,7 @@ This branch doesn't edit shared docs. Apply each of these when merging, then run
 **Phase 1 plan, the B6 row.** In the status text, replace "and the fix is open ([B6 doc](2026-10-30-phase1-b6-expo-router.md) §6.6)." with:
 
 ```markdown
-and the fix is on `phase1/b6-tabs-fix` (`1fc37d8`, `16a6752`; [B6 doc](2026-10-30-phase1-b6-expo-router.md) §9): tabs are never frozen or hidden; its device check is build 47.
+and the fix is on `phase1/b6-tabs-fix` (`1fc37d8`, `16a6752`, `1865f75`; [B6 doc](2026-10-30-phase1-b6-expo-router.md) §9): tabs are never frozen or hidden; its device check is build 47.
 ```
 
 and replace "so each tab route renders its screen inside `FreezeOnBlur` (react-freeze, as `freezeOnBlur` was), and B4 §3.5 holds." with:
@@ -721,7 +723,7 @@ B6 Expo Router with native tabs; tabs rendered late, then never hidden; deep lin
 and in the status cell, replace "fix open" with:
 
 ```markdown
-fixed on `phase1/b6-tabs-fix` (`1fc37d8`, `16a6752`): tabs never freeze; device check on build 47
+fixed on `phase1/b6-tabs-fix` (`1fc37d8`, `16a6752`, `1865f75`): tabs never freeze; device check on build 47
 ```
 
 **SRS.**
@@ -734,7 +736,7 @@ B6, 2026-10-30, kept hidden tabs frozen with a route wrapper (`FreezeOnBlur`), b
 2. A new row in §3.4, after the last DEF row (DEF-009 if that number is still free):
 
 ```markdown
-| DEF-009 | FR-ADS-001 | The Stats banner didn't show on TestFlight build 46 (it did on build 45). The interstitial works. Nothing in the banner's code or B7's proved a cause. | Device report, build 46; [B6 §9.1](../implementations/2026-10-30-phase1-b6-expo-router.md) | Medium | **Open.** The B6 fix (`1fc37d8`, `16a6752`) makes the banner wait for Stats' first focus and reports its load result and position in B7's hidden panel; build 47's panel line names the cause ([B6 §9.5](../implementations/2026-10-30-phase1-b6-expo-router.md)) |
+| DEF-009 | FR-ADS-001 | The Stats banner didn't show on TestFlight build 46 (it did on build 45). The interstitial works. Nothing in the banner's code or B7's proved a cause. | Device report, build 46; [B6 §9.1](../implementations/2026-10-30-phase1-b6-expo-router.md) | Medium | **Open.** The B6 fix (`1fc37d8`, `16a6752`, `1865f75`) makes the banner wait for Stats' first focus and reports its load result and position in B7's hidden panel; build 47's panel line names the cause ([B6 §9.5](../implementations/2026-10-30-phase1-b6-expo-router.md)) |
 ```
 
 **ARCHITECTURE.**
@@ -768,10 +770,10 @@ Tabs are still loaded only when first opened or once start-up has gone idle, and
 2. Under "Fixed":
 
 ```markdown
-- **Stage B:** TestFlight build 46 flickered on every tab switch, and could turn the tab bar dark on Notes: the native tab bar shows a tab before JavaScript unfreezes it. Tabs are no longer frozen; a hidden Timer holds its celebration, love note and interstitial until it is shown again, as before (1fc37d8). The Stats banner now loads only once Stats has been opened, and B7's hidden panel shows its load result, since build 46 showed no banner (16a6752; DEF-009).
+- **Stage B:** TestFlight build 46 flickered on every tab switch, and could turn the tab bar dark on Notes: the native tab bar shows a tab before JavaScript unfreezes it. Tabs are no longer frozen; a hidden Timer holds its celebration, love note and interstitial until it is shown again, as before (1fc37d8). The Stats banner now loads only once Stats has been opened, and B7's hidden panel shows its load result, since build 46 showed no banner (16a6752, 1865f75; DEF-009).
 ```
 
-3. In the Stage B tests bullet under "Added": replace "deep links, frozen tabs, the tab haptic" with "deep links, tabs that never hide and the held overlays (since the fix, 1fc37d8), the tab haptic"; after "(6ab3953, 8c6bf3d, c4c6ab5, e0e8f26)" add "; the tabs' pre-render order and the banner's status (1fc37d8, 16a6752)"; and replace "and 197 in 33 with B6 and B7 merged." with "197 in 33 with B6 and B7 merged, and 212 in 34 with the B6 fix."
+3. In the Stage B tests bullet under "Added": replace "deep links, frozen tabs, the tab haptic" with "deep links, tabs that never hide and the held overlays (since the fix, 1fc37d8), the tab haptic"; after "(6ab3953, 8c6bf3d, c4c6ab5, e0e8f26)" add "; the tabs' pre-render order and the banner's status (1fc37d8, 16a6752, 1865f75)"; and replace "and 197 in 33 with B6 and B7 merged." with "197 in 33 with B6 and B7 merged, and 212 in 34 with the B6 fix."
 
 **ADR index:** no change. ADR-0043 keeps its title and status; its amendment is in the record.
 

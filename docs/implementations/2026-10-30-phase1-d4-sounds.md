@@ -1,7 +1,7 @@
 ---
 id: IMPL-2026-10-30-phase1-d4-sounds
 title: "Phase 1 D4: the SoundCraft sound set, and Fly's loop re-encoded"
-status: in-progress
+status: done
 date: 2026-10-30
 owner: Mert Efe Şensoy
 related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-29-phase1-plan, ADR-0027, SRS]
@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-29-phase1-plan, ADR-0027,
 
 # 2026-10-30 — Phase 1 D4: the SoundCraft sound set, and Fly's loop re-encoded
 
-**Status:** Built and checked; **waiting on the owner's approval** from the listening page (§7). The sounds are not wired into the app: the main Stage D session does that after D1 lands (Stage D plan §3.5).
+**Status:** **Done, 2026-10-30.** Approved by the owner from the listening page ("All approved, seamless", §7): the three sounds as built, and Fly's seamless loop, which now ships. The sounds are not wired into the app: the main Stage D session does that after D1 lands (Stage D plan §3.5).
 **Branch:** `phase1/d4-sounds`, worktree `C:\vp\stage-d4`, cut from `phase1/stage-d` at `404380a`. Commits use `git commit -- <paths>`. No push, no merge, no EAS.
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.5 and §4.5; [Phase 1 plan](2026-10-29-phase1-plan.md), the D4 row and §4.4; [ADR-0027](../architecture/adr/0027-vectorcraft-art-soundcraft-sounds.md).
 
@@ -23,7 +23,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-29-phase1-plan, ADR-0027,
   - ffmpeg is `8.1.1-full_build-www.gyan.dev` (WinGet, on PATH). Its AAC encoder is ffmpeg's own (`aac`); this build has neither `libfdk_aac` nor Apple's AudioToolbox.
   - Both are recorded in `art/sound/sounds.json` (`tools`). `--check` compares bytes, which holds only on these builds, and the build says so when either differs.
 - **Boundaries kept.** Only `art/sound/`, `scripts/sound/`, `src/assets/sounds/`, `art/review/d4-*` and this record changed, plus the backlink blocks and `TRACEABILITY.md` that `check-docs --write` regenerates. No `src/audio/`, settings, `package.json` or app code; no shared doc. Their text is in §10.
-- **Two findings the owner should hear about** (§8): Fly's ambient loop has never looped cleanly, and it is a phone recording, not a SoundCraft sound.
+- **Two findings for the owner** (§8): Fly's ambient loop had never looped cleanly (the owner chose the seamless version, which now ships), and it is a phone recording, not a SoundCraft sound.
 
 ## 1. Problem / Motivation
 
@@ -45,9 +45,9 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-29-phase1-plan, ADR-0027,
 | `scripts/sound/build.mjs` | New. The pipeline: script → session → bounce → mono → −1 dBFS → AAC, then the checks; `--check` rebuilds in a temp folder and compares bytes. |
 | `scripts/sound/review.mjs` | New. Writes the listening page from the report, the shipped files and the scripts. |
 | `src/assets/sounds/focus-start.m4a`, `break-start.m4a`, `complete.m4a` | New, generated. The three UI sounds. |
-| `src/assets/sounds/fly-ambient.m4a` | Re-encoded, same name: mono AAC-LC at 64 kbit/s, 579,315 B (was 1,248,679 B). The same sound and the same seam; no code changes. |
-| `art/review/d4-fly-ambient-seamless.m4a` | New, generated. A candidate for the owner, not shipped: Fly's loop trimmed and crossfaded so it wraps without a gap (§3.4). |
-| `art/review/d4-sounds.html` | New, generated. The listening page (3,290,305 B; every sound embedded once as a data URI). Published privately for the phone as https://claude.ai/artifact/67oZ8P8jyD7nYDZtXRpfrb. |
+| `src/assets/sounds/fly-ambient.m4a` | Re-made, same name: the source with its leading silence and fade-in trimmed and its tail crossfaded into its head, so it loops without a gap (§3.4), as mono AAC-LC at 64 kbit/s. 562,231 B and 68.38 s (was 1,248,679 B and 70.29 s). The owner chose this seamless loop over a faithful re-encode (§7). No code changes. |
+| `art/review/d4-fly-ambient-seamless.m4a` | Built in `a739f93` as the seamless candidate for the owner, and deleted once they chose it: it became `src/assets/sounds/fly-ambient.m4a` itself, byte for byte (SHA-256 `97adea64…`). |
+| `art/review/d4-sounds.html` | New, generated. The listening page, embedding every sound once as a data URI. Published privately for the phone as https://claude.ai/artifact/67oZ8P8jyD7nYDZtXRpfrb. The owner approved from version 2 (3,290,305 B), which held three Fly versions and three questions. Since the approval it shows today's file, the shipped loop and the owner's words (2,517,194 B). |
 | `docs/implementations/2026-10-30-phase1-d4-sounds.md` | This record. |
 
 ## 3. Implementation Approach
@@ -100,16 +100,18 @@ The three form one phrase:
 
 ### 3.4 Fly's loop
 
-- **The faithful re-encode, which ships now.** The source is decoded by ffmpeg, scaled to −1 dBFS (−0.76 dB, from a −0.24 dBFS peak) and encoded at 64 kbit/s with the source's 44.1 kHz kept. It has the same 3,099,648 samples, no time shift (cross-correlation lag 0), and both edges within 0.13 dB of the input's. So the seam "still holds" in the only sense a faithful re-encode can promise: it is unchanged.
 - **The finding.** The source has never looped cleanly. It opens with 112.5 ms of digital silence (−170 dBFS RMS over its first 50 ms), then fades in over about 150 ms, reaching its body level of −11.2 dBFS RMS by 300 ms. It ends on a hard cut at full level, with its last sample at −0.278. So at every wrap, every 70.3 s, the sound clicks, drops out for about 0.1 s and fades back in.
-- **The seamless candidate, for the owner.** The first 17,408 samples (0.395 s: the silence and the fade-in) are trimmed. The last 66,560 samples (1.509 s) are crossfaded into the head with equal power and dropped (§4.5). The result is 3,015,680 samples (68.38 s), and every length is a whole number of 1,024-sample AAC frames, so the loop stays frame-aligned (§4.4). Its input join is 0.0069 against a 99.9th-percentile step of 0.0242. Its edges are at −11.85 and −11.96 dBFS RMS against a body of −11.99. It is built from the same `sounds.json` and covered by `--check`; it lives in `art/review/` and is not shipped. If the owner chooses it, the `seamless` block moves onto the `fly-ambient` entry and the build is re-run.
+- **Two versions were offered.**
+  - **A faithful re-encode.** The source decoded by ffmpeg, scaled to −1 dBFS (−0.76 dB, from a −0.24 dBFS peak) and encoded at 64 kbit/s with the source's 44.1 kHz kept: 579,315 B. It had the same 3,099,648 samples, no time shift (cross-correlation lag 0) and both edges within 0.13 dB of the input's. So it kept the seam unchanged, the only promise a faithful re-encode can make, click and dropout included.
+  - **A seamless loop.** The first 17,408 samples (0.395 s: the silence and the fade-in) are trimmed. The last 66,560 samples (1.509 s) are crossfaded into the head with equal power and dropped (§4.5). The result is 3,015,680 samples (68.38 s). Every length is a whole number of 1,024-sample AAC frames, so the loop stays frame-aligned (§4.4). Its input join is 0.0069 against a 99.9th-percentile step of 0.0242, and its edges are at −11.85 and −11.96 dBFS RMS against a body of −11.99.
+- **The seamless loop ships** (the owner, §7). Its `seamless` block moved from the candidate entry onto `fly-ambient` in `sounds.json`, the candidate entry and its file were removed, and the build was re-run. The shipped file is byte-identical to the candidate the owner heard (SHA-256 `97adea64…`), because the encoded bytes depend only on the samples and the flags, not on the entry's name. Going back to the faithful re-encode is one edit: drop the `seamless` block and rebuild.
 
 ### 3.5 `--check`: what is compared
 
 `node scripts/sound/build.mjs --check` rebuilds everything in a fresh `os.tmpdir()` folder and compares, byte for byte:
 - the three `.scraft` sessions
 - the three UI `.m4a` files
-- both Fly files
+- Fly's file
 - `art/sound/report.json`, which carries every measurement and each file's SHA-256
 
 It exits 1 on any difference or any failed budget. Both tools are deterministic here:
@@ -123,7 +125,7 @@ Nothing needed pinning, unlike the art build's timestamps. What `--check` cannot
 `node scripts/sound/review.mjs` writes `art/review/d4-sounds.html` from the report, the shipped files and the scripts. Its colours are the C1 tokens (Strawberry Milk light, Midnight Plum dark) from `src/theme/palette.json`, and its headings use Baloo 2 from the C2 specimen. It shows:
 - **Each sound:** a play button, its use and gesture, its notes drawn from the script (time across, pitch up, the pop in the accent red), meters for duration and size against the budget, its decoded peak and its momentary loudness.
 - **"Play all three in order",** to judge the set as a family.
-- **Fly's three versions** (today's file, the faithful re-encode, the seamless candidate), each with a player and a "Hear the loop point" button. That button decodes the file with Web Audio and plays its last 4 s looping into its first 4 s, so each file's own join is heard with nothing added by a player.
+- **Fly's versions,** each with a player and a "Hear the loop point" button. That button decodes the file with Web Audio and plays its last 4 s looping into its first 4 s, so each file's own join is heard with nothing added by a player. As the owner heard it, the page held today's file, the faithful re-encode and the seamless candidate, with the three questions of §7. The rows are built from the report, so after the approval the regenerated page shows today's file and the shipped loop, with the owner's words where the questions were.
 
 Each file is embedded once as a data URI; the first draft embedded Fly's three files twice and weighed 6,476,044 B.
 
@@ -142,10 +144,10 @@ A level L in dBFS is the linear gain g = 10^(L/20), so −1 dBFS is g = 10^(−1
 | focus-start | −18.57 dBFS | +17.57 dB | −1.005 dBFS | none (−0.005 dB) |
 | break-start | −21.63 dBFS | +20.63 dB | −1.002 dBFS | none |
 | complete | −13.75 dBFS | +12.75 dB | −1.004 dBFS | none |
-| fly-ambient | −0.24 dBFS | −0.76 dB | −1.087 dBFS | none |
-| fly-ambient-seamless (candidate) | −0.24 dBFS | −0.76 dB | −0.849 dBFS | +0.151 dB |
+| fly-ambient (the shipped seamless loop) | −0.24 dBFS | −0.76 dB | −0.849 dBFS | +0.151 dB |
+| fly-ambient, faithful (offered, not chosen) | −0.24 dBFS | −0.76 dB | −1.087 dBFS | none |
 
-The decoded peak is computed on ffmpeg's float decode, to 3 decimals. `volumedetect` reports the same peaks rounded to 0.1 dB (−1.0, −1.0, −1.0, −1.1, −0.8).
+The decoded peak is computed on ffmpeg's float decode, to 3 decimals. `volumedetect` reports the same peaks rounded to 0.1 dB (−1.0, −1.0, −1.0, −0.8, and −1.1 for the faithful file).
 
 ### 4.2 Size
 
@@ -153,7 +155,7 @@ At an average bitrate R (bit/s), a sound of duration T seconds carries about R·
 
 - **Focus start:** 94,246 × 0.85 / 8 = 10,014 B of audio + 1,185 B = 11,199 B.
 - **Worst case allowed:** a 1.5 s sound at the 96 kbit/s target is 96,000 × 1.5 / 8 = 18,000 B + about 1,250 B = about 19,250 B. That is 75 % of the 25,600 B budget.
-- **Fly:** 64,450 × 70.287 / 8 = 566,246 B of audio + 13,069 B of container (mostly the per-frame size table: 3,027 frames × 4 B) = 579,315 B. That is 46.4 % of the original's 1,248,679 B. The original was itself 96 kbit/s mono AAC: 843,536 B of audio, plus 385,316 B of empty `free` padding and a 6,980 B waveform box (`wafm`) from the phone that recorded it.
+- **Fly, as shipped:** 64,285 × 68.382 / 8 ≈ 549,492 B of audio (the `mdat` box holds 549,693 B), plus a 12,502 B `moov` box, mostly the per-frame size table (2,946 frames × 4 B), plus 36 B of `ftyp` and `free`. That makes 562,231 B (549 KB), 45.0 % of the original's 1,248,679 B. The faithful re-encode was 579,315 B, 46.4 %, for the 1.9 s the seamless loop trims. The original was itself 96 kbit/s mono AAC: 843,536 B of audio, plus 385,316 B of empty `free` padding and a 6,980 B waveform box (`wafm`) from the phone that recorded it.
 
 ### 4.3 Loudness
 
@@ -168,16 +170,16 @@ AAC-LC codes 1,024 samples per frame, and ffmpeg's encoder adds 1,024 priming sa
 
 - **N = 40,800:** gives 40,960 (160 samples, 3.3 ms, of near-silence).
 - **N = 52,800:** gives 53,248.
-- **Fly, N = 3,099,648 = 3,027 × 1,024:** gives exactly 3,099,648. The source is frame-aligned, and keeping that (no resampling, the seamless candidate's cuts in whole frames) is what keeps a player that ignores the end trim from adding up to 23 ms of padding at every wrap.
+- **Fly, N = 3,015,680 = 2,945 × 1,024:** gives exactly 3,015,680. The source was frame-aligned (3,099,648 = 3,027 × 1,024), and the trim and the crossfade are whole frames, so the loop still is. That alignment, with no resampling, is what keeps a player that ignores the end trim from adding up to 23 ms of padding at every wrap.
 
-The budget figure is the container duration. Fly's container duration reads 70.287007 s against 3,099,648 / 44,100 = 70.286803 s, because the movie timescale is 1,000 per second and the edit segment rounds up to 70,287 ms. A player that honours that exactly plays 9 samples (0.2 ms) of the padded last frame.
+The budget figure is the container duration. Fly's edit list is in the movie timescale, 1,000 per second. It says 68,382 ms (ffprobe reads 68.381995 s), while the 3,015,680 samples last 3,015,680 / 44,100 = 68.382766 s. ffmpeg decodes all 3,015,680 samples, because it trims by the media timescale (`mdhd`: 3,016,704 = 1,024 priming + 3,015,680). A player that cuts at the millisecond edit list instead drops the last 34 samples (0.77 ms). That is a step inside the noise at the wrap, not a gap. (The faithful file's edit list rounded the other way: 70,287 ms, 9 samples past its end.)
 
 ### 4.5 The loop seam
 
 **The join.** For a decoded loop x[0..N−1], the join is J = |x[N−1] − x[0]|. It is judged against P₉₉.₉, the 99.9th percentile of the file's own sample-to-sample steps |x[n] − x[n−1]|.
 
 - **Source:** J = 0.255 against P₉₉.₉ = 0.024, a step about 10 times the file's normal largest.
-- **Faithful re-encode:** J = 0.251 decoded; the same click.
+- **Faithful re-encode (not chosen):** J = 0.251 decoded; the same click.
 
 **The crossfade.** With a = 17,408 trimmed samples and c = 66,560 crossfaded samples, the seamless loop is
 
@@ -189,7 +191,7 @@ The budget figure is the container duration. Fly's container duration reads 70.2
 - **Why equal power:** the cabin noise at the two ends is uncorrelated, so the powers add, and cos² + sin² = 1 keeps the level flat. A linear fade would dip by 3 dB in the middle.
 - **Frame alignment:** a = 17 × 1,024 and c = 65 × 1,024, so N − a − c = 2,945 × 1,024.
 
-**Why the decoded join is reported, not gated.** AAC keeps the sound, not the waveform. At 64 kbit/s on this noise, a decoded sample can sit up to 0.09 (faithful) or 0.28 (seamless, at its last samples) from its input, at an SNR of 31.6 and 30.5 dB, with the error shaped under the signal where it is not heard. The encoder also treats each end of the file as a cliff into silence. So even a perfect input join decodes as J = 0.215 for the seamless candidate. The build therefore checks each part where it can be checked:
+**Why the decoded join is reported, not gated.** AAC keeps the sound, not the waveform. At 64 kbit/s on this noise, a decoded sample can sit up to 0.09 (faithful) or 0.28 (seamless, at its last samples) from its input, at an SNR of 31.6 and 30.5 dB, with the error shaped under the signal where it is not heard. The encoder also treats each end of the file as a cliff into silence. So even a perfect input join decodes as J = 0.215 for the shipped loop. The build therefore checks each part where it can be checked:
 - **The input join,** where the loop is made: 0.0069 ≤ P₉₉.₉ = 0.0242.
 - **The decoded file's structure:** its length, a time shift of 0, a whole number of frames, and its 200 ms edges within 1 dB of the input's and within 1.5 dB of the body's.
 
@@ -211,8 +213,8 @@ At tempo B bpm and 960 ticks per quarter note, one tick lasts 60,000 / (B × 960
 | 96 kbit/s for the UI sounds | 64 kbit/s | They are at most 13.7 KB at 96 kbit/s, well inside 25 KB. The extra bits go to clean attacks, which is where AAC overshoots and smears. |
 | Loudness balanced by design (break start's diminuendo) | Scale each sound to a common loudness instead of a common peak | The brief fixes the peak at −1 dBFS for headroom. Scaling down to a loudness target would break that contract, and the wiring would inherit three different peaks. |
 | Fly's original moved to `art/sound/source/`, and the build encodes from it | Re-encode the file in place; keep only the output | An in-place encode would make each build re-encode its own output, one more lossy generation per build, and `--check` would compare generation N+1 with N. The move is the same git blob, so the repo does not grow. |
-| Fly at 64 kbit/s | 96 kbit/s; a lossless remux that only drops the padding | At 96 kbit/s the audio stays about 824 KB (843,536 B), as it is in a remux. Only 64 kbit/s shrinks it, to 566 KB (579,315 B). The remux (lossless; the source without its 385,316 B of padding and its 6,980 B waveform box, about 836 KB) is the fallback if the owner hears a difference. |
-| The seamless loop as a candidate, with the faithful re-encode shipped | Ship the seamless loop; report the finding only | The brief asked for a re-encode. Trimming and crossfading changes the content, so that is the owner's call; the page lets them hear both. |
+| Fly at 64 kbit/s | 96 kbit/s; a lossless remux that only drops the padding | At 96 kbit/s the audio stays about 824 KB (843,536 B), as it is in a remux. Only 64 kbit/s shrinks it: to 566 KB (579,315 B) faithfully, and to 549 KB (562,231 B) as the shipped seamless loop. The remux (lossless; the source without its 385,316 B of padding and its 6,980 B waveform box, about 836 KB) was the fallback had the owner heard a difference; they approved 64 kbit/s (§7). |
+| The seamless loop offered as a candidate beside a faithful re-encode, not shipped unasked | Ship the seamless loop straight away; report the finding only | The brief asked for a re-encode. Trimming and crossfading changes the content, so it was the owner's call. The page let them hear both, and they chose the seamless loop (§7). |
 | `art/sound/.gitattributes` with `* -text` | A line in the root `.gitattributes` | The root file is outside this task's paths. A nested file has the same effect, applies only here, and needs no shared change. |
 | `report.json` committed and compared in `--check` | Measurements printed only | The numbers in this record and on the page can be regenerated and checked, not just trusted. |
 
@@ -230,32 +232,45 @@ node scripts/docs/check-docs.mjs
 - [x] Determinism: SoundCraft bounced the same session to identical bytes twice, dry and with the plate; ffmpeg encoded the same WAV to identical bytes twice; the session file has no timestamp or path (§3.5).
 - [x] `node scripts/sound/build.mjs --check` exits 0: "every sound, session and the report match a clean rebuild".
 - [x] Budgets: focus start 0.85 s and 11,199 B; break start 1.1 s and 14,010 B; completion 1.1 s and 14,069 B. Each is ≤ 1.5 s and ≤ 25,600 B, with a decoded peak < 0 dBFS (−1.005, −1.002, −1.004; `volumedetect` −1.0 each) and a tail ≥ 60 dB down (−84.2, −78.5, −81.7 dB).
-- [x] Fly: mono AAC-LC at 64.45 kbit/s, 579,315 B, 3,099,648 samples as before, lag 0, decoded peak −1.087 dBFS, edges within 0.13 dB of the input's.
-- [x] The seamless candidate passes its own gates (§4.5).
+- [x] Fly, the shipped seamless loop: mono AAC-LC at 64.29 kbit/s, 562,231 B, 3,015,680 samples (2,945 whole frames), lag 0, input join 0.0069 ≤ 0.0242, edges −11.85 and −11.96 against a body of −11.99 dBFS RMS, decoded peak −0.849 dBFS (§4.5).
+- [x] The shipped Fly file is byte-identical to the candidate the owner heard (SHA-256 `97adea64…`).
+- [x] The faithful re-encode, while it was built: 579,315 B, 3,099,648 samples as before, lag 0, decoded peak −1.087 dBFS, edges within 0.13 dB of the input's.
 - [x] Every generated text file is LF only (a byte count of CR = 0 in each).
 - [x] The listening page is built and published privately.
-- [ ] **The owner's approval, in their words (§7).**
+- [x] **The owner's approval, in their words (§7):** "All approved, seamless".
 - [ ] After the wiring (main session): the sounds respect the silent switch and the Settings toggle on a device (needs a physical device; Stage D plan §6).
 
 ## 7. The owner's approval
 
-Pending. The owner listens on the [listening page](../../art/review/d4-sounds.html) (also published privately, for the phone) and answers three questions:
+**Approved, 2026-10-30.** The owner's words, verbatim:
+
+> All approved, seamless
+
+They listened on the [listening page](../../art/review/d4-sounds.html) (version 2 of the private copy), which asked three questions:
 1. Are the three sounds right as they are, or should any be softer, brighter, shorter or a different tune?
 2. Fly's loop: keep today's loop as it is, or use the seamless one?
 3. Does Fly at 64 kbit/s sound the same as today's file?
 
-Their words will be recorded here verbatim.
+Their reply matched, word for word, one of the two reply buttons this session offered with the question "Do the sounds sound right, and which Fly loop should ship?". The other button was "Approved, keep Fly as is". Read against the three questions, it approves:
+1. the three sounds as built
+2. the seamless loop
+3. Fly at 64 kbit/s
+
+What followed (§3.4):
+- The seamless loop became `src/assets/sounds/fly-ambient.m4a`, byte-identical to what they heard.
+- The candidate file was removed.
+- The page now shows their words.
 
 ## 8. Findings and follow-ups
 
-1. **Fly's loop has never been seamless.** It has 112.5 ms of silence and a fade-in at the start and a hard cut at the end (§3.4). The owner decides between the faithful re-encode and the seamless candidate (§7).
+1. **Fly's loop had never been seamless.** The source has 112.5 ms of silence and a fade-in at the start and a hard cut at the end, so v1.3.1 drops out and clicks every 70 s (§3.4). The owner chose the seamless loop, which now ships (§7).
 2. **Fly's provenance.** The source's metadata says it was recorded on an Android phone (`com.android.version=9`, created 2023-09-06), and it is not a SoundCraft sound. So ADR-0027's "every app sound is synthesised" holds for the three UI sounds but not for Fly. Who made the recording, and under what licence, is not recorded anywhere in the repo. That is TBD for the owner: replace it with a SoundCraft ambience, or record its origin. It was not changed here.
 3. **AAC can overshoot by more than 1 dB.** Two rejected break-start variants decoded at +0.297 and +0.109 dBFS from a −1 dBFS input: 1.30 and 1.11 dB of overshoot on overlapping note onsets. The plan's "about 1 dB" of headroom (Phase 1 plan §4.4) is not always enough with ffmpeg's encoder. The decoded-peak gate caught both, and it is why the gate decodes every file rather than trusting the headroom.
 4. **SoundCraft 0.14's mono-track pan** bounces the right channel 6.02 dB above the left at centre (§3.1). The scripts use stereo tracks to avoid it. This is worth reporting upstream.
 5. **For the wiring (main session):**
    - The three files can play at the same volume; their loudness is within 0.4 LU.
    - `complete.m4a` opens with its pop at t = 0, so start it with the placement spring, not after it.
-   - expo-audio restarts a loop by seeking, which may add a gap of its own on the device, whichever Fly file ships.
+   - expo-audio restarts a loop by seeking, which may add a gap of its own on the device even with the seamless file. Worth a listen at the device check. `fly-ambient.m4a` is now 68.38 s long (was 70.29 s); nothing in the code depends on its length.
 
 ## 9. Related Docs
 
@@ -266,7 +281,7 @@ Their words will be recorded here verbatim.
 
 ## 10. Shared-doc updates to apply at merge
 
-Ready to paste when this branch is merged with the owner's OK. Lines that depend on the owner's answers are marked.
+Ready to paste when this branch is merged with the owner's OK.
 
 **`docs/README.md`**, top of the implementation-records table:
 
@@ -277,7 +292,7 @@ Ready to paste when this branch is merged with the owner's OK. Lines that depend
 **`docs/roadmap/ROADMAP.md`**, the Phase 1 table, a row under Stage D:
 
 ```markdown
-| | D4 SoundCraft sounds: focus start, break start, completion; Fly's loop re-encoded | **Built** on `phase1/d4-sounds` from `a739f93` ([D4](../implementations/2026-10-30-phase1-d4-sounds.md)); `scripts/sound/build.mjs --check` byte-identical; 0.85–1.1 s and 10.9–13.7 KB each; Fly 1.19 MB → 566 KB; approved by the owner on 2026-10-30 *(once approved)*; wired into the app after D1 |
+| | D4 SoundCraft sounds: focus start, break start, completion; Fly's loop re-encoded and made seamless | **Done** on `phase1/d4-sounds` from `a739f93` ([D4](../implementations/2026-10-30-phase1-d4-sounds.md)); `scripts/sound/build.mjs --check` byte-identical; 0.85–1.1 s and 10.9–13.7 KB each; Fly 1.19 MB → 549 KB, now a seamless loop; approved by the owner on 2026-10-30 ("All approved, seamless"); wired into the app after D1 |
 ```
 
 **`docs/srs/SRS.md`**, NFR-PERF-005's status:
@@ -303,13 +318,13 @@ SoundCraft is 0.14.0, as planned (`soundcraft-cli --version`, 2026-10-30). The s
 **`CHANGELOG.md`**, `[Unreleased]` → `### Added`:
 
 ```markdown
-- **Stage D:** D4, the app's sounds, synthesised in SoundCraft 0.14 from its built-in synths: focus start, break start and completion (0.85–1.1 s and 10.9–13.7 KB each, mono AAC at a −1 dBFS peak, within 0.4 LU of each other), rebuilt byte for byte by `scripts/sound/build.mjs --check`; Fly's ambient loop re-encoded as mono AAC at 64 kbit/s, 1.19 MB → 566 KB (a739f93, …).
+- **Stage D:** D4, the app's sounds, synthesised in SoundCraft 0.14 from its built-in synths: focus start, break start and completion (0.85–1.1 s and 10.9–13.7 KB each, mono AAC at a −1 dBFS peak, within 0.4 LU of each other), rebuilt byte for byte by `scripts/sound/build.mjs --check`; Fly's ambient loop re-encoded as mono AAC at 64 kbit/s and made seamless, so it no longer drops out and clicks every 70 s (its leading silence and fade-in trimmed, its end crossfaded into its start), 1.19 MB → 549 KB (a739f93, …).
 ```
 
 **The Stage D plan**, §2's table:
 
 ```markdown
-| `art/sound/`, `scripts/sound/`, `src/assets/sounds/`, `art/review/d4-*` | D4 | The sound sources, the pipeline, the three UI sounds, Fly's re-encoded loop and the listening page ([D4 record](2026-10-30-phase1-d4-sounds.md)). |
+| `art/sound/`, `scripts/sound/`, `src/assets/sounds/`, `art/review/d4-*` | D4 | The sound sources, the pipeline, the three UI sounds, Fly's seamless loop and the listening page ([D4 record](2026-10-30-phase1-d4-sounds.md)). |
 | `docs/implementations/2026-10-30-phase1-d4-sounds.md` | D4 | The D4 record. |
 ```
 

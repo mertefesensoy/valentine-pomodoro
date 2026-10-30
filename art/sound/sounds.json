@@ -36,16 +36,9 @@
   "loops": [
     {
       "id": "fly-ambient",
-      "use": "Fly Mode's ambient loop (useFlyModeAudio, loaded lazily with Fly). A faithful re-encode: the source's own seam is kept as it is.",
+      "use": "Fly Mode's ambient loop (useFlyModeAudio, loaded lazily with Fly). The source's leading silence and fade-in are trimmed and its tail is crossfaded into its head, so it wraps without a gap (the owner chose this over a faithful re-encode, 2026-10-30). Both lengths are whole AAC frames (1024 samples), which keeps the loop frame-aligned.",
       "source": "art/sound/source/fly-ambient.m4a",
       "file": "src/assets/sounds/fly-ambient.m4a",
-      "bitrate": "64k"
-    },
-    {
-      "id": "fly-ambient-seamless",
-      "use": "A candidate for the owner, not shipped: the same loop with the source's leading silence and fade-in trimmed and its tail crossfaded into its head, so it wraps without a gap. Both lengths are whole AAC frames (1024 samples), which keeps the loop frame-aligned.",
-      "source": "art/sound/source/fly-ambient.m4a",
-      "file": "art/review/d4-fly-ambient-seamless.m4a",
       "bitrate": "64k",
       "seamless": {
         "trimStartSamples": 17408,

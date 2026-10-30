@@ -124,6 +124,9 @@ const flyRow = (id, title, note, file, figs) => `
       <p class="small">${figs}</p>
     </article>`;
 
+/** The owner's approval from this page, in their words (the D4 record, §7). */
+const APPROVAL = { date: '2026-10-30', words: 'All approved, seamless' };
+
 const sounds = Object.fromEntries(report.sounds.map((s) => [s.id, uri(s.file)]));
 
 const body = `<title>D4 sounds</title>
@@ -197,20 +200,15 @@ code { font-size: 12px; overflow-wrap: anywhere; }
 
   <section class="loops" aria-labelledby="h-fly">
     <h2 id="h-fly">Fly's ambient loop</h2>
-    <p class="lede">Today's file is ${kb(fly.source.bytes)}, of which ${kb(paddingBytes(fly.source.file))} is empty padding. Re-encoded as mono AAC at 64 kbit/s it is ${kb(fly.bytes)}. One thing turned up: the recording has never looped cleanly. It opens with 112 ms of silence and a fade-in, and it ends on a hard cut, so every 70 seconds Fly's sound drops out for a moment and clicks. "Hear the loop point" plays the last four seconds and runs on into the start.</p>
+    <p class="lede">Today's file is ${kb(fly.source.bytes)}, of which ${kb(paddingBytes(fly.source.file))} is empty padding. Re-encoded as mono AAC at 64 kbit/s it is ${kb(fly.bytes)}. One thing turned up: the recording has never looped cleanly. It opens with 112 ms of silence and a fade-in, and it ends on a hard cut, so every 70 seconds today's file drops out for a moment and clicks. The shipped loop is trimmed and crossfaded so it doesn't. "Hear the loop point" plays the last four seconds and runs on into the start.</p>
     ${flyRow('original', "Today's file", 'What ships in v1.3.1, unchanged.', fly.source.file, `${kb(fly.source.bytes)} · 96 kbit/s · ${num(fly.seam.sourceSamples / fly.sampleRate, 1)} s`)}
     ${report.loops.map(loopRow).join('')}
     <p class="small">The app restarts a loop by seeking to the start, which can add a short gap of its own on the phone. These buttons play each file's own join, with nothing added. Sizes are in KB of 1,024 bytes, as the 25 KB budget is.</p>
   </section>
 
   <section class="ask" aria-labelledby="h-ask">
-    <h2 id="h-ask">Please tell me</h2>
-    <ol>
-      <li>The three sounds: are they right as they are, or should any be softer, brighter, shorter or a different tune?</li>
-      <li>Fly's loop: keep today's loop as it is, or use the seamless one?</li>
-      <li>Does Fly at 64 kbit/s sound the same to you as today's file?</li>
-    </ol>
-    <p>Reply in the chat. Your words go into the D4 record as you write them.</p>
+    <h2 id="h-ask">Approved</h2>
+    <p>${APPROVAL.date}, from this page: <q>${APPROVAL.words}</q>. That answered the three questions it asked: the three sounds as they are, Fly at 64 kbit/s, and the seamless loop, which is now the file the app ships. The record has the details.</p>
   </section>
 
   <footer>

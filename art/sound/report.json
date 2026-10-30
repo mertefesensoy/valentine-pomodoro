@@ -105,57 +105,8 @@
   "loops": [
     {
       "id": "fly-ambient",
-      "use": "Fly Mode's ambient loop (useFlyModeAudio, loaded lazily with Fly). A faithful re-encode: the source's own seam is kept as it is.",
+      "use": "Fly Mode's ambient loop (useFlyModeAudio, loaded lazily with Fly). The source's leading silence and fade-in are trimmed and its tail is crossfaded into its head, so it wraps without a gap (the owner chose this over a faithful re-encode, 2026-10-30). Both lengths are whole AAC frames (1024 samples), which keeps the loop frame-aligned.",
       "file": "src/assets/sounds/fly-ambient.m4a",
-      "source": {
-        "file": "art/sound/source/fly-ambient.m4a",
-        "bytes": 1248679,
-        "peakDbfs": -0.24
-      },
-      "gainDb": -0.76,
-      "bitrateTarget": "64k",
-      "codec": "aac LC",
-      "channels": 1,
-      "sampleRate": 44100,
-      "seconds": 70.287007,
-      "samples": 3099648,
-      "bytes": 579315,
-      "bitrate": 64450,
-      "decodedPeakDbfs": -1.087,
-      "volumedetectMaxDb": -1.1,
-      "truePeakDbtp": -1.1,
-      "momentaryMaxLufs": -12.8,
-      "loudnessLufs": -13.5,
-      "seam": {
-        "sourceSamples": 3099648,
-        "samples": 3099648,
-        "lag": 0,
-        "inputJoin": {
-          "jump": 0.25495,
-          "p999": 0.0243
-        },
-        "join": {
-          "jump": 0.25147,
-          "p999": 0.02425
-        },
-        "codecMaxError": 0.0895,
-        "snrDb": 31.6,
-        "inputEdgeRmsDbfs": [
-          -25.66,
-          -11.63
-        ],
-        "edgeRmsDbfs": [
-          -25.68,
-          -11.76
-        ],
-        "bodyRmsDbfs": -12.02
-      },
-      "sha256": "a2ff878d7f295d123c9dd1773676ffe9811267586731a2db12317bcbd856333b"
-    },
-    {
-      "id": "fly-ambient-seamless",
-      "use": "A candidate for the owner, not shipped: the same loop with the source's leading silence and fade-in trimmed and its tail crossfaded into its head, so it wraps without a gap. Both lengths are whole AAC frames (1024 samples), which keeps the loop frame-aligned.",
-      "file": "art/review/d4-fly-ambient-seamless.m4a",
       "source": {
         "file": "art/sound/source/fly-ambient.m4a",
         "bytes": 1248679,

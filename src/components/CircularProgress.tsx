@@ -1,11 +1,19 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { View } from 'react-native';
+import Animated, { useAnimatedProps, type SharedValue } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
+import { ringDashOffset } from '../utils/clockMath';
+
+// The progress arc's dash offset is an animated prop, set on the UI thread
+// from the progress SharedValue: the ring moves with no React render (Phase 1
+// B4; before, it moved only when TimerScreen re-rendered each second).
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 interface CircularProgressProps {
     size: number;
     strokeWidth?: number;
-    progress: number; // 0..1
+    /** 0..1, clamped. Read on the UI thread (useSlotProgress). */
+    progress: SharedValue<number>;
     trackColor: string;
     progressColor: string;
 }
@@ -20,9 +28,9 @@ export function CircularProgress({
     const r = (size - strokeWidth) / 2;
     const circumference = 2 * Math.PI * r;
 
-    // Clamp progress to 0-1
-    const clamped = Math.min(1, Math.max(0, progress));
-    const dashOffset = useMemo(() => circumference * (1 - clamped), [circumference, clamped]);
+    const animatedProps = useAnimatedProps(() => ({
+        strokeDashoffset: ringDashOffset(circumference, progress.value),
+    }));
 
     return (
         <View style={{ width: size, height: size }}>
@@ -38,7 +46,7 @@ export function CircularProgress({
                 />
 
                 {/* Progress ring */}
-                <Circle
+                <AnimatedCircle
                     cx={size / 2}
                     cy={size / 2}
                     r={r}
@@ -46,7 +54,7 @@ export function CircularProgress({
                     strokeWidth={strokeWidth}
                     fill="none"
                     strokeDasharray={`${circumference} ${circumference}`}
-                    strokeDashoffset={dashOffset}
+                    animatedProps={animatedProps}
                     strokeLinecap="round"
                     rotation={-90}
                     originX={size / 2}

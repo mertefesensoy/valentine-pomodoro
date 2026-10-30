@@ -48,6 +48,7 @@ import { useAirports } from '../hooks/useAirports';
 import { getDayKeyFromDate, getTodayKey } from '../utils/time';
 import { useFlyModeAudio } from '../hooks/useFlyModeAudio';
 import { useSessionClock } from '../hooks/useSessionClock';
+import { useSlotSharedValues } from '../hooks/useSlotClock';
 import { useNotesStore } from '../stores/notesStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useStatsStore } from '../stores/statsStore';
@@ -253,11 +254,15 @@ export default function FlyModeScreen() {
     // The frame callback reads this directly without a runOnJS round-trip.
     const waypointsSV = useSharedValue<LatLng[]>([]);
 
-    // Fly-slot SharedValues — mirror only the fly slot's clock fields so the frame
-    // callback never accidentally reads Pomodoro's endAt when both slots coexist.
-    const flyEndAtSV = useSharedValue<number>(Number.NEGATIVE_INFINITY);
-    const flyDurationSV = useSharedValue<number>(0);
-    const flyIsRunningSV = useSharedValue<boolean>(false);
+    // Fly-slot SharedValues — only the fly slot's clock fields, so the frame
+    // callback never reads Pomodoro's endAt when both slots coexist. Written
+    // in the same JS tick as the slot changes (Phase 1 B4; until then a
+    // useEffect mirrored them a frame late). endAt is −∞ unless running.
+    const {
+        endAt: flyEndAtSV,
+        durationMs: flyDurationSV,
+        isRunning: flyIsRunningSV,
+    } = useSlotSharedValues('fly');
 
     // Delta-time accumulator (ms) for the MARKER_HZ runOnJS throttle.
     const markerUpdateAccSV = useSharedValue(0);
@@ -310,21 +315,6 @@ export default function FlyModeScreen() {
 
         restoredRemainingRef.current = null;
     }, [flightData, progressSV, bearingSV]);
-
-    // ── Sync fly-slot clock fields to UI-thread SharedValues ─────────────────
-    // The frame callback reads flyEndAtSV / flyDurationSV / flyIsRunningSV so it
-    // never accidentally reads the Pomodoro slot's endAt when both slots coexist.
-    useEffect(() => {
-        if (flySlot?.isRunning && flySlot.endAt && flySlot.durationMs) {
-            flyEndAtSV.value = flySlot.endAt;
-            flyDurationSV.value = flySlot.durationMs;
-            flyIsRunningSV.value = true;
-        } else {
-            flyEndAtSV.value = Number.NEGATIVE_INFINITY;
-            flyIsRunningSV.value = false;
-            if (flySlot?.durationMs) flyDurationSV.value = flySlot.durationMs;
-        }
-    }, [flySlot, flyEndAtSV, flyDurationSV, flyIsRunningSV]);
 
     // ── Frame callback: plane position as a pure function of the clock ────────
     // Runs on the UI thread at 60fps. Computes progress from the fly slot's

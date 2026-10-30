@@ -12,6 +12,7 @@ import ModeSwitcher from "../components/ModeSwitcher";
 import { isFlyModeAvailable } from "../constants/features";
 import * as Haptics from "expo-haptics";
 import { useSessionClock } from "../hooks/useSessionClock";
+import { useSlotProgress } from "../hooks/useSlotClock";
 import { useNotesStore } from "../stores/notesStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useStatsStore } from "../stores/statsStore";
@@ -186,10 +187,9 @@ export default function TimerScreen() {
     return mins * 60 * 1000;
   }, [phase, settings.durations]);
 
-  const progress = useMemo(() => {
-    if (remainingMs === null) return 0;
-    return Math.max(0, Math.min(1, 1 - remainingMs / totalMs));
-  }, [remainingMs, totalMs]);
+  // The ring's progress, derived on the UI thread from the slot's endAt
+  // (Phase 1 B4): it moves every frame with no render of this screen.
+  const ringProgress = useSlotProgress('pomodoro', totalMs);
 
   // Phase label
   const getPhaseLabel = () => {
@@ -275,7 +275,7 @@ export default function TimerScreen() {
       <View style={[styles.progressContainer, tightSpacing && styles.progressContainerTight]}>
         <CircularProgress
           size={ringSize}
-          progress={progress}
+          progress={ringProgress}
           trackColor={colors.surfaceTint}
           progressColor={colors.accent}
         />

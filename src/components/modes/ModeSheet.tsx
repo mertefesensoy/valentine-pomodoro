@@ -1,4 +1,4 @@
-import { Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { css } from 'react-native-reanimated';
 
@@ -23,6 +23,9 @@ import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
  * The mode sheet (Classic brief §6): the modes as stickers, Classic with its layout choice
  * (The Ring or Facing Pages, the additive `classicLayout` setting), and Fly where it can open.
  * Garden, Room and Pet join in Phase 4. A native form sheet: a swipe down closes it.
+ * Its root is a ScrollView, which `react-native-screens` sizes to the whole sheet, so the page
+ * colour reaches the sheet's bottom edge (build 48, F2; `src/navigation/sheetOptions.ts`), and the
+ * sheet scrolls when the largest text sizes make it taller than the screen.
  */
 export function ModeSheet() {
     const { tokens, isDark } = useTheme();
@@ -42,7 +45,7 @@ export function ModeSheet() {
     ];
 
     return (
-        <View style={[styles.sheet, { backgroundColor: tokens.page }]}>
+        <ScrollView style={{ backgroundColor: tokens.page }} contentContainerStyle={styles.sheet} bounces={false}>
             <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header">
                 {t('modes.title')}
             </Text>
@@ -83,7 +86,7 @@ export function ModeSheet() {
                     </PressableScale>
                 </View>
             )}
-        </View>
+        </ScrollView>
     );
 }
 

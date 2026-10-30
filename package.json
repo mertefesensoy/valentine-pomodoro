@@ -75,6 +75,7 @@
       "./jest.setup.ts"
     ],
     "transform": {
+      "\\.[jt]sx?$": "<rootDir>/jest.babelTransformer.js",
       "\\.jsonasset$": "jest-expo/src/preset/assetFileTransformer.js"
     },
     "testMatch": [

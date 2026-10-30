@@ -389,7 +389,37 @@ There is no overshoot anywhere. A light haptic fires as p passes 0.6 (`useAnimat
 
 ## 4. Mathematical / Statistical Details
 
-The numeric rules D1 implements are in the [Stage D plan §4](2026-10-30-phase1-stage-d.md#4-mathematical--statistical-details): contrast, tabular digits, the font build, the sticker spring, "Break at" and bytecode. Measurements go here as they are taken.
+The numeric rules D1 implements are in the [Stage D plan §4](2026-10-30-phase1-stage-d.md#4-mathematical--statistical-details): contrast, tabular digits, the font build, the sticker spring, "Break at" and bytecode.
+
+### 4.1 Bytecode after D1 (NFR-PERF-002; Stage D plan §4.7)
+
+Both sides were measured with `npx expo export --platform ios --dump-sourcemap`, each from its own checkout. The base came from a temporary detached worktree at `ed8ab00`, since removed.
+
+| Export | iOS bytecode (B) |
+|---|---:|
+| Base, `ed8ab00` (B6 + B7 + Stage C) | 3,918,816 |
+| D1, `a510a08` | **4,079,756** |
+| Δ | **+160,940 (+4.11 %)** |
+
+Against NFR-PERF-002's limit of 3,856,208 B, D1 is **+223,548 B (+5.80 %) over**. Before D1 it was 1.47 % over, which the owner accepted until E3.
+
+**Where the new bytes come from,** read from the two source maps as source characters added (a proxy for bytecode):
+
+| Group | Source chars | Share |
+|---|---:|---:|
+| `i18next` | 83,852 | 35 % |
+| Sticker and welcome art (SVG path data, `src/components/stickers/art`) | 70,644 | 30 % |
+| `src/screens/classic`, `src/screens/welcome` | 40,098 | 17 % |
+| `src/components/ui`, `icons`, `modes`, `loveNote` | 21,240 | 9 % |
+| `expo-localization` | 7,087 | 3 % |
+| The rest (`theme`, `i18n`, `utils`, `constants`, `app`) | 13,019 | 6 % |
+| **Gone** (`GoalReachedPopup`, `CircularProgress`, the two gradient backgrounds, `expo-linear-gradient`) | −27,067 | |
+
+**The two levers, for the owner:**
+- **(a) The art as PNG assets.** The art could ship as `@2x`/`@3x` PNGs rendered through `Image`, which moves about 70 K out of the bytecode into the binary's assets. The cost is the vector crispness of the welcome's scaled layers.
+- **(b) A small in-house `t()`** (interpolation, plus plurals through `Intl.PluralRules`, about 2 KB) in place of `i18next`. The handover names `i18next`.
+
+Together they would bring D1 to about +1.5 % over the base. **E3 re-measures with the pinned two-platform command.**
 
 ## 5. Design Decisions
 

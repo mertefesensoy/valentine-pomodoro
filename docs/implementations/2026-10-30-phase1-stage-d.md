@@ -460,6 +460,22 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 
 **SRS** status changes, added as each task lands:
 - **FR-SET-002** → `implemented` (Verify: T, `src/theme/__tests__/legacyColors.test.ts` and `src/__tests__/router.test.tsx`; D, the D1 device check). `useTheme` returns Strawberry Milk or Midnight Plum from `palette.ts` (D1, `46a5b00`).
+- **NFR-UX-003:** add to the status note: "Classic's native audit 16/20 and critique 35/40 at D1 (`ce388d0`), from source; the D1 device check confirms." It stays `planned` until every primary screen is audited (D2).
+- **NFR-I18N-001:** add to the status note: "D1: Baloo 2 embedded (Latin + Turkish, `fi`/`fl` off, `art/type/build-fonts.py`), every timer tabular, the i18n plumbing with `tr-TR` casing; the remaining strings are extracted in D3."
+- **NFR-A11Y-004:** add to the status note: "D1: Reduce Motion handled for every new motion (press dimming, the sticker fade, no indicator slide, the welcome's fade); the device check confirms."
+
+**`CHANGELOG.md`**, under the unreleased v1.4.0:
+
+```markdown
+- Classic rebuilt in the Sticker Diary design (Phase 1 D1): the Strawberry Milk and Midnight Plum themes, Baloo 2 with steady timer digits, The Ring and Facing Pages layouts, presets (25/5, 50/10, 52/17, 90/20), today's stickers with the sticker placement, the love note as a sheet, a mode sheet, the custom tab icons, a one-time welcome where Pomo & Doro become the Same Page mark, and English and Turkish groundwork.
+```
+
+**`docs/process/DESIGN-WORKFLOW.md` §3**, two rows for the tensions D1 decided:
+
+```markdown
+| HIG: prefer the platform's segmented control. Brief: presets spoken in words, Turkish wrapping at AX5, an in-place crossfade | A built control with native sizing, placement and behaviour; each segment a button with a selected state, its words and its position (never a "tab") | Phase 1 D1 |
+| Brand colour on the tab bar vs Liquid Glass's adaptive monochrome | Only the selected tab carries `primaryInk`; the unselected items stay the system's | Phase 1 D1 |
+```
 
 **Phase 2 inherits (the owner, Q3, 2026-10-30):** the pages-to-logo morph also plays at the first pairing. It reuses D1's welcome-screen choreography (§3.2.11). For the rehaul plan's Phase 2 section and the ROADMAP's Phase 2 row:
 

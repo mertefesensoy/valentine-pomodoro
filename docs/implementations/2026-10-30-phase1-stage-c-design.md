@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-29-couples-rehaul-plan, DESI
 
 # 2026-10-30 — Phase 1 Stage C (C1–C4): the Sticker Diary design system
 
-**Status:** **Done, 2026-10-30.** C1, C2, C4 and C3 each passed their owner gate (§2.1–2.5). The plan was committed first (`a1f759c`). Not pushed; nothing here needs EAS until D1. What D1 inherits is in §10.
+**Status:** **Done, 2026-10-30.** C1, C2, C4, C3 and C5 each passed their owner gate (§2.1–2.6). The plan was committed first (`a1f759c`). Not pushed; nothing here needs EAS until D1. What D1 inherits is in §10.
 **Branch:** `phase1/stage-c-design`, worktree `C:\vp\stage-c`, cut from the local `rehaul/v2` at `659b352`. Commits use `git commit -- <paths>` only. No push, no EAS, no repository settings: the session that started this one does those, with the owner's OK.
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md) Stage C (C1–C4), [rehaul plan](2026-10-29-couples-rehaul-plan.md) §5 (design system) and §6.2 (budgets).
 
@@ -236,6 +236,23 @@ Run before C4, as the owner agreed (§3.1), because the design skills didn't yet
   - **Low:** the tinted icon is RGB encoded with grey values only; Apple's grayscale profile is an optional refinement.
   - **Medium, decided by the owner:** `launching.md › Launch screens` says not to put a logo on the launch screen unless the first screen shows one. **The owner kept the mark** (gate 2). It is static, and the morph animation never plays at launch (H-2).
 - **The emoji to replace (for D2, NFR-UX-002):** 51 glyphs in 16 files at `5ed99ef`, more than the plan's "37 in 13". Copy that may keep emoji (push titles in `useNotifications.ts` and `notifications.ts`, and the default love notes, which D2 rewrites) is listed apart from the UI uses. The UI uses: the Fly controls in `FlyModeScreen.tsx` (16), `ModeSwitcher.tsx` (2), `FlyTimerPill.tsx`, `AirportPicker.tsx`'s check mark, `GoalReachedPopup.tsx`, `LoveNoteCard.tsx`, `GiftModeModal.tsx` (4), the titles in `LoveNotesScreen.tsx` and `SettingsScreen.tsx` (3), `TimerScreen.tsx`'s app-name header, and `useUpdateCheck.ts`'s update prompt. Each maps to an icon in the set (`fly`, `map`, `hand`, `pin`, `globe`, `landed`, `check`, `heart`, `notes`, `settings`, `update`, `modes`), or disappears with its header.
+
+### 2.6 C5 (2026-10-30): the one-page identity sheet, approved by the owner
+
+**The sheet** is `art/review/c5-identity-sheet.html`, built by `node scripts/art/review-c5-identity.mjs`. It prints on one A3 landscape page; a claude.ai copy serves the phone. **The owner approved it on 2026-10-30.** Its rules:
+
+- **The mark:** two pages of one diary, leaning in; a cocoa die-cut sticker with milk faces. Never a clock, heart or tomato.
+- **Clear space:** X on every side, X = a quarter of the mark's height.
+- **Minimum size:** the mark at least **24 px wide on screen, 10 mm in print**. The test exports (`art/out/logo/mark-colour-{64,48,32,24,16}.png`) show the faces reading down to 24 px and collapsing at 16 px. Below the minimum, the app icon carries the brand.
+- **Versions** (`art/jobs/identity.json`, on a tight 784 × 576 artboard):
+  - **colour** (`mark-colour`): the default, on light grounds
+  - **reversed** (`mark-reversed`): strawberry pages for dark grounds
+  - **single colour, cocoa and white** (`mark-single-*`): one ink, the faces cut out as even-odd holes, so print, embroidery and a stamp keep the faces
+  - **the app icon:** the mark on a strawberry tile
+- **Never:** stretched, rotated, recoloured off-palette, effects added, pages pulled apart, a heart added, text inside, a busy ground without the edge.
+- **Around the mark:** the core colours with their token names, Baloo 2 plus the system face, Pomo & Doro's rules, the voice, and the lettering *style* ("pomo:doro", the colon as the characters), not the final wordmark.
+- **Assets:** 4 versions, SVG 1.9–4.8 KB against 30 KB; **79 assets** in all now pass `check-budgets.mjs` and rebuild byte for byte.
+- **Not done here:** `DESIGN.md`'s identity section (at E4, from this sheet, through `/impeccable document`) and the final wordmark (Phase 7).
 
 ## 3. Implementation Approach
 
@@ -489,7 +506,7 @@ Ready-to-paste text, applied by the merging session. Filled in as each task land
 
 **D-stage motion, or Phase 3 onboarding:** the pages-to-logo morph, never at launch (H-2); with Reduce Motion it becomes a crossfade.
 
-**C5, the next design task:** the one-page identity sheet (clear space, minimum sizes, the colour and single-colour marks, misuse). Then `PRODUCT.md` and `DESIGN.md` get §9's text through `/impeccable`, and `DESIGN.md` is regenerated at E4.
+**C5 is done** (§2.6), and `PRODUCT.md` and `DESIGN.md` no longer describe the tomato couple (`089759c`). At E4, `DESIGN.md` is regenerated in scan mode and takes its identity section from the C5 sheet.
 
 **Phase 7:** the wordmark, once the public name is chosen; App Store art; a layered Icon Composer icon if a Mac is available; the reverse-image and trademark searches.
 

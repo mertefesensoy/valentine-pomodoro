@@ -235,7 +235,7 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 **Pri:** Must · **Target:** v1 · **Status:** implemented
 **Accept:**
 - After backgrounding or locking for any duration, the displayed time equals the wall-clock remainder on return, with no catch-up animation.
-**Verify:** T: `src/hooks/__tests__/useSessionClock.test.ts`; D: the device backlog's Task 1 · **Source:** [ADR](../architecture/adr/README.md) (timestamp timer), DECISIONS.md #3
+**Verify:** T: `src/hooks/__tests__/useSessionClock.test.ts`, `src/utils/__tests__/clockMath.test.ts`, `src/hooks/__tests__/useSlotClock.test.tsx` (the ring, since B4); D: the device backlog's Task 1 · **Source:** [ADR](../architecture/adr/README.md) (timestamp timer), DECISIONS.md #3
 
 #### FR-TMR-004
 **Statement:** The user shall be able to start, pause, resume, skip and reset a session.
@@ -247,7 +247,7 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 **Verify:** T: `src/hooks/__tests__/useSessionClock.test.ts` · **Source:** v1 plan §4.1
 
 #### FR-TMR-005
-**Statement:** A session's completion shall be handled exactly once, whether it is detected by the 1 Hz ticker, by the app returning to the foreground, or on a cold start after the app was killed.
+**Statement:** A session's completion shall be handled exactly once, whether it is detected by the clock's scheduler (the 1 Hz ticker before Phase 1 B4), by the app returning to the foreground, or on a cold start after the app was killed.
 **Pri:** Must · **Target:** v1 · **Status:** implemented
 **Known deviation:** DEF-004, reproduced and fixed in Phase 1 B3 (`e04cc8c`); see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
 **Accept:**
@@ -255,15 +255,16 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 - Stats are credited once.
 - The slot is cleared.
 - A session whose end passed while the app was killed completes once a handler for its kind has subscribed, however late the screen mounts; until then it waits, and nothing ticks.
-**Verify:** T: `src/hooks/__tests__/useSessionClock.test.ts` (foreground+ticker race, cold start), `src/stores/__tests__/coldStartCompletion.test.tsx` (late subscriber, waiting, kind); D: [B3 §6.3](../implementations/2026-10-30-phase1-b3-zustand-stores.md), a Focus session and a flight that ended while the app was killed, each credited once on relaunch (passed on `v1.4.0-tf.44`, 2026-10-30) · **Source:** v1 README "Idempotency"; [timer unification](../implementations/2026-04-19-timer-unification.md)
+**Verify:** T: `src/hooks/__tests__/useSessionClock.test.ts` (foreground+ticker race, cold start), `src/stores/__tests__/coldStartCompletion.test.tsx` (late subscriber, waiting, kind), `src/stores/__tests__/clockStore.test.tsx` (completion once at $r \le 0$, since B4); D: [B3 §6.3](../implementations/2026-10-30-phase1-b3-zustand-stores.md), a Focus session and a flight that ended while the app was killed, each credited once on relaunch (passed on `v1.4.0-tf.44`, 2026-10-30) · **Source:** v1 README "Idempotency"; [timer unification](../implementations/2026-04-19-timer-unification.md)
 
 #### FR-TMR-006
 **Statement:** The visible timer text shall update every second while a session runs, on the Classic screen and on the Fly screen.
 **Pri:** Must · **Target:** v1 · **Status:** implemented
 **Accept:**
 - Under fake timers, the text goes 25:00 → 24:59 → 24:00.
-- This must keep passing through the Phase 1 re-render refactor.
-**Verify:** T: `src/context/__tests__/timerTextTicks.test.tsx`, `src/screens/__tests__/timerScreenTicks.test.tsx` · **Source:** PLAN-REHAUL §4.5
+- This must keep passing through the Phase 1 re-render refactor (it did through B4, 2026-10-30, and was mutation-checked again).
+- Since B4: the text changes at most ε (4 ms) plus timer latency after the displayed second changes, once per displayed second, never twice, and not at all while paused ([Phase 1 plan §4.2](../implementations/2026-10-29-phase1-plan.md#42-when-the-clock-store-emits-b4), corrected in B4).
+**Verify:** T: `src/context/__tests__/timerTextTicks.test.tsx`, `src/screens/__tests__/timerScreenTicks.test.tsx`, `src/stores/__tests__/clockStore.test.tsx`, `src/utils/__tests__/clockMath.test.ts`, `src/components/__tests__/TimerText.test.tsx`; D: [B4 §6.3](../implementations/2026-10-30-phase1-b4-rerender-refactor.md#63-device-iphone-a-testflight-build-not-done-yet) · **Source:** PLAN-REHAUL §4.5
 
 #### FR-TMR-007
 **Statement:** The minutes credited for a session shall be the duration captured when the session started, not the setting at completion.
@@ -648,7 +649,7 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 
 #### NFR-PERF-003
 **Statement:** While a session runs, a component that doesn't display time shall not re-render. In the Reassure settings-only scenario, renders drop from 14 to ≤ 2, and the timer-text leaf renders once per displayed second.
-**Target:** Phase 1 B4 · **Status:** planned · **Verify:** T: `src/context/__tests__/rerenders.perf-test.tsx`, `src/screens/__tests__/screens.perf-test.tsx` · **Source:** PLAN-PHASE1 B4
+**Target:** Phase 1 B4 · **Status:** implemented (B3 brought the settings-only scenario to 1; B4, 2026-10-30, made `<TimerText>` the only per-second commit: the leaf renders 1 + its displayed changes, and the Timer screen re-renders only on session changes. Counts in the [B4 record §4.4](../implementations/2026-10-30-phase1-b4-rerender-refactor.md#44-render-counts-measured).) · **Verify:** T: `src/context/__tests__/rerenders.perf-test.tsx`, `src/screens/__tests__/screens.perf-test.tsx`, `src/screens/__tests__/timerScreenCommits.test.tsx`, `src/components/__tests__/TimerText.test.tsx` · **Source:** PLAN-PHASE1 B4
 
 #### NFR-PERF-004
 **Statement:** Animations shall hold ≥ 58 fps median on the slowest supported test device, with no frame over 32 ms during the completion moment.
@@ -754,7 +755,7 @@ These are places where the code at `5b10a78` doesn't fully meet a requirement ma
 | DEF-002 | FR-STA-002 | The de-duplication key `lastAppliedSessionId` isn't restored when stats load, so it only protects within one run. Across a restart, only the clock's `endAt` guard prevents a double credit. | `useStats.ts:118–145` rebuilds state without it | Low | **Fixed** in Phase 1 B3 (`71d836f`) |
 | DEF-003 | FR-STA-005 | The streak's "yesterday" is computed from the current date, not the credited day. A goal reached by a session that started before midnight and finished after it can reset the streak to 1. | `useStats.ts` (`yesterdayKeyDate = new Date()`), versus the credited `dayKey` | Low | **Fixed** in Phase 1 B3 (`7863e50`) |
 | DEF-004 | FR-TMR-005 | **Reproduced in Phase 1 B3, and wider than suspected:** a session of **either** kind that ends while the app is killed is cleared on relaunch with no credit. `NavigationContainer` renders nothing until `Linking.getInitialURL()` resolves (up to 150 ms), so the screens subscribe after the clock's cold-start completion has fired. Since B2's MMKV load (microtasks) this happens every time; on v1.3.1 it was a race. Affects TestFlight build 43. | `useSessionClock.ts` mount effect; React Navigation 7.5.1 `NavigationContainer.tsx:121–135`; B1 lazy load | **High** (since B2) | **Fixed** in Phase 1 B3 (`e04cc8c`): completions wait for a handler of their kind ([B3 §0](../implementations/2026-10-30-phase1-b3-zustand-stores.md)); device check passed on `v1.4.0-tf.44`, 2026-10-30 |
-| DEF-005 | FR-NTF-001 | When scheduling the session-end notification takes more than 1 s, its id is dropped. That notification can't be cancelled, so a paused or skipped session may still alert. | `useTimer.ts:158–170` (`Promise.race` with a 1 s timeout) | Low–Medium | **Open.** Moved out of B3: it is notification scheduling, not store state. Slot TBD (owner): B4 or D1 |
+| DEF-005 | FR-NTF-001 | When scheduling the session-end notification takes more than 1 s, its id is dropped. That notification can't be cancelled, so a paused or skipped session may still alert. | `useTimer.ts:158–170` (`Promise.race` with a 1 s timeout) | Low–Medium | **Open.** Moved out of B3: it is notification scheduling, not store state. Not in B4, which doesn't touch scheduling. Slot TBD (owner); D1 rebuilds Classic's start path |
 | DEF-006 | FR-ADS-001 | The Stats screen shows an AdMob **banner** outside `AdPolicy`, including during a running session; the requirement covers interstitials only. | `StatsScreen.tsx:297` | Product decision | Phase 1 D2: keep it under the policy, or remove it |
 | DEF-007 | FR-SET-001 | The `sound` setting has no effect yet (sounds arrive in D4), and the tab bar's haptic ignores the Haptics setting. | `HapticTab.tsx`; no reader of `settings.sound` | Low | Phase 1 D4 (sound); haptics **fixed** in B3 (`ca21ef0`; device check passed on `v1.4.0-tf.44`, 2026-10-30) |
 
@@ -795,6 +796,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - [Original v1 implementation plan (2026-01-07)](../history/2026-01-07-v1-plan.md)
 - [Documentation system, release history and branch cleanup](../implementations/2026-10-30-documentation-system.md)
 - ["Phase 1 B3: Zustand stores, hydrated synchronously from MMKV"](../implementations/2026-10-30-phase1-b3-zustand-stores.md)
+- ["Phase 1 B4: the re-render refactor (clock store, UI-thread ring, frozen tabs)"](../implementations/2026-10-30-phase1-b4-rerender-refactor.md)
 - [Documentation conventions](../process/DOCS.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Test strategy](../testing/TEST-STRATEGY.md)

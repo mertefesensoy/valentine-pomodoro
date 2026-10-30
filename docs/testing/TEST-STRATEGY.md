@@ -46,12 +46,15 @@ Native modules have no Node implementation; [`jest.setup.ts`](../../jest.setup.t
 
 | Guard | Protects | Must stay green through |
 |-------|----------|-------------------------|
-| `src/context/__tests__/timerTextTicks.test.tsx` | Timer text ticks through the session store's tick, read with `useSessionClock()` (FR-TMR-006); through `AppProvider` before B3 | The Phase 1 re-render refactor (B3/B4) |
+| `src/context/__tests__/timerTextTicks.test.tsx` | Timer text ticks through the clock store's notification, read with `useSessionClock()` (FR-TMR-006); B3's `tick` before B4, `AppProvider` before B3 | The Phase 1 re-render refactor (B3/B4: passed, mutation-checked again in B4) |
 | `src/screens/__tests__/timerScreenTicks.test.tsx` | The real `TimerScreen` ticks in Classic and Fly (FR-TMR-006) | B1, B3, B4, B6, D1 |
 | `src/hooks/__tests__/useSessionClock.test.ts` | Countdown, pause/resume, exactly-once completion, cold start, two slots (FR-TMR-003/004/005/008) | Phase 3's engine replacement |
 | `src/utils/__tests__/geoMath.equivalence.test.ts` | Worklet ≡ JS interpolation (FR-FLY-002) | Any Fly change |
 | `src/__fixtures__/storage/__tests__/v131.test.tsx` | v1.3.1 storage shapes (FR-MIG-001) | B2 MMKV, B3 stores |
-| `src/context/__tests__/rerenders.perf-test.tsx`, `src/screens/__tests__/screens.perf-test.tsx` | The render-count baseline (NFR-PERF-003) | B4: 14 → ≤ 2 |
+| `src/context/__tests__/rerenders.perf-test.tsx`, `src/screens/__tests__/screens.perf-test.tsx` | The render-count baseline (NFR-PERF-003) | B4: 14 → ≤ 2 (met: 1); B5's compiler |
+| `src/screens/__tests__/timerScreenCommits.test.tsx` | The Timer screen re-renders only on session changes, and a start is one commit (NFR-PERF-003), in the ordinary suite | B5, B6, D1 |
+| `src/stores/__tests__/clockStore.test.tsx`, `src/utils/__tests__/clockMath.test.ts` | One notification per displayed second, ε after the boundary; none while paused; completion once (FR-TMR-005, FR-TMR-006; plan §4.2 as corrected in B4) | Phase 3's engine replacement |
+| `src/hooks/__tests__/useSlotClock.test.tsx` | Slot SharedValues written in the store's `set()`, not an effect; the ring's UI-thread path ≡ the render-time formula (FR-TMR-003) | Any ring or Fly animation change |
 
 The first three were mutation-checked when written (Phase 0 doc §3.2, Stage A doc §3.1).
 

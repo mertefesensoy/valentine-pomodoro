@@ -57,4 +57,5 @@ Here $D$ is the fly session's duration.
 - [One unified session clock (useSessionClock) with two slots](0016-unified-session-clock.md)
 - [One session engine; modes are skins](0024-one-session-engine-modes-as-skins.md)
 - [Architecture decision records](README.md)
+- ["Phase 1 B4: the re-render refactor (clock store, UI-thread ring, frozen tabs)"](../../implementations/2026-10-30-phase1-b4-rerender-refactor.md)
 <!-- backlinks:end -->

@@ -10,7 +10,7 @@ related: [ADR-0004, ADR-0015, ADR-0019, ADR-0024, ADR-0029]
 # ADR-0016: One unified session clock (`useSessionClock`) with two slots
 
 > **Status note:** in force. Two planned changes will replace parts of it.
-> - **Phase 1 B4** (an approved plan task, not built) replaces the `setDisplayTick` re-render chain with a clock store that only a leaf `<TimerText>` subscribes to.
+> - **Phase 1 B4** (built locally, 2026-10-30; [record](../../implementations/2026-10-30-phase1-b4-rerender-refactor.md)) replaced the re-render chain (`setDisplayTick`, then B3's `tick`) with a clock store that only a leaf `<TimerText>` subscribes to. Its scheduler wakes when the displayed second changes and also detects completion; the two slots and the completion guards are unchanged.
 > - **"One session engine, modes as skins"** ([ADR-0024](0024-one-session-engine-modes-as-skins.md), proposed) would remove the two slots. That record supersedes this one once it is built.
 
 ## Context
@@ -62,4 +62,5 @@ On 2026-04-19, one wall-clock hook, `useSessionClock`, was instantiated once in 
 - [Zustand for app state, TanStack Query for server state](0029-zustand-and-tanstack-query.md)
 - [Architecture decision records](README.md)
 - ["Phase 1 B3: Zustand stores, hydrated synchronously from MMKV"](../../implementations/2026-10-30-phase1-b3-zustand-stores.md)
+- ["Phase 1 B4: the re-render refactor (clock store, UI-thread ring, frozen tabs)"](../../implementations/2026-10-30-phase1-b4-rerender-refactor.md)
 <!-- backlinks:end -->

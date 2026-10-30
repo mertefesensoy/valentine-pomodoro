@@ -38,6 +38,8 @@ Around them are a daily goal and streak, love notes, a daily reminder, a first-r
 
 ### 1.3 Work in progress (Phase 1 Stage B), not described as done
 
+> **Update, 2026-10-30 (B4):** B4 landed locally as `b7461f1`, `43cf1a8`, `e9df252`, `040ad32` and `b838ebe` ([B4 record](../implementations/2026-10-30-phase1-b4-rerender-refactor.md)). The F1 chain of §8.1 is gone: the session store has no `tick`, and the engine has no interval. A clock store (`src/stores/clockStore.ts`, `useSyncExternalStore`) samples the wall clock and notifies only when the running slot's displayed second changes. Its scheduler wakes $(r \bmod 1000) + 4$ ms after each sample and also detects completion. Only `<TimerText>` subscribes in the app. The ring's progress is derived on the UI thread from slot SharedValues written in the store's `set()`; Fly's clock SharedValues come from the same hook. Hidden tabs are frozen (`freezeOnBlur`). While a session runs, the Timer screen commits only its `<TimerText>`, once a second. §5, §6.1 and §8.1 below still describe the chain as it was.
+>
 > **Update, 2026-10-30 (B3):** B3 landed locally as `71d836f`, `ca21ef0`, `7863e50` and `e04cc8c` ([B3 record](../implementations/2026-10-30-phase1-b3-zustand-stores.md)). `AppContext` (§5.4) is deleted: five Zustand stores in `src/stores/` hold the state, hydrated synchronously by `StoreGate`, and every consumer reads them through selectors. The clock's ticker now lives in `useSessionClockEngine`, and `useSessionClock` is a read-only facade. The F1 chain of §8.1 still exists, but only the time displays follow it now. R1, R2, R3 and R5 (§11.2) are fixed. §5 and §8 below still describe `5b10a78`.
 >
 > **Update, 2026-10-30:** B1b landed as `0d63145` ([B1b record](../implementations/2026-10-29-phase1-b1b-airports-asset.md)) and B2 as `dd1e894` ([B2 record](../implementations/2026-10-29-phase1-b2-mmkv-migration.md)). This document still describes `5b10a78`. Its storage sections (§8.2) describe AsyncStorage as it was before the MMKV migration; the records above describe the change. Re-baseline this document after Stage B.
@@ -678,7 +680,7 @@ The measurable quality requirements are the SRS non-functional requirements, [SR
 
 | # | Finding | Status | Evidence |
 |---|---------|--------|----------|
-| F1 | The whole app re-renders at 1 Hz while a timer runs | **Open.** The guards are in place (A1, A2); the fix is B4. | §8.1 |
+| F1 | The whole app re-renders at 1 Hz while a timer runs | **Fixed** in B3 (components that show no time) and B4 (the screens: only `<TimerText>` commits each second), locally, 2026-10-30; device check open | §8.1; [B4 record](../implementations/2026-10-30-phase1-b4-rerender-refactor.md) |
 | F2 | `airports.json` and the map stack are in the startup path | **Partly fixed.** Evaluation is deferred (B1, `5b10a78`: 56 modules). The JSON is still in the bytecode, and B1b is in progress (§1.3). | `TimerScreen.tsx:25`; `FlyModeScreen.tsx:46` |
 | F3 | Android ads earn nothing | **Open**, deferred with Android (AN5) and Phase 5 | `app.json:50,106,108` |
 | F4 | `master` isn't trunk | **Fixed** in Phase 0 (`fda4fef`) | Phase 0 doc §3.1 |
@@ -760,7 +762,7 @@ The re-render fix is plan §4.5: the clock store, UI-thread rings, store selecto
 | Phase 1 B1b | `airports.json` becomes an asset read through `expo-asset` and `expo-file-system`, parsed when Fly first opens | The JSON module in the bytecode (`FlyModeScreen.tsx:46`) | **Done** (`0d63145`) |
 | Phase 1 B2 | MMKV, with a one-time migration of every AsyncStorage key; the flag is written last, and AsyncStorage is kept for one release | `storage.ts`, and `AdPolicy`'s direct AsyncStorage use | **Done** (`dd1e894`) |
 | Phase 1 B3 | Zustand stores (settings, notes, stats, session/clock, UI), hydrated synchronously; `AppContext` becomes a shim, then is deleted | `AppProvider` and the five hosted hooks | **Done** (`71d836f`…`e04cc8c`), pushed; device check passed on TestFlight build 44 |
-| Phase 1 B4 (gated) | `clockStore` with `useSyncExternalStore`, and only `<TimerText>` subscribes; rings driven from `endAt` by SharedValues; `setDisplayTick` removed; `freezeOnBlur` | The re-render chain (§8.1); the React-rendered `CircularProgress` | Not started; needs the A1 guards and Reassure 14 → ≤ 2 |
+| Phase 1 B4 (gated) | `clockStore` with `useSyncExternalStore`, and only `<TimerText>` subscribes; rings driven from `endAt` by SharedValues; `setDisplayTick` removed; `freezeOnBlur` | The re-render chain (§8.1); the React-rendered `CircularProgress` | **Done** locally (`b7461f1`…`b838ebe`); guards green and mutation-checked; device check open |
 | Phase 1 B5 | The React Compiler on; the lint rules back to `error` | `eslint.config.js:11–24` | Not started |
 | Phase 1 B6 | Expo Router: `app/(tabs)/index`, `stats`, `settings`, `notes`, `+not-found`; the scheme is kept | `src/navigation/` | Not started |
 | Phase 1 B7 | `AdManager.init`, the update check and the audio preload deferred until after the first frame | `App.tsx:45,48–50` | Not started |

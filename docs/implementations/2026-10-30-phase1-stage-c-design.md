@@ -1,15 +1,15 @@
 ---
 id: IMPL-2026-10-30-phase1-stage-c-design
 title: "Phase 1 Stage C (C1–C4): the Sticker Diary design system, display face, Classic brief and art"
-status: in-progress
+status: done
 date: 2026-10-30
 owner: Mert Efe Şensoy
-related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-29-couples-rehaul-plan, DESIGN-WORKFLOW, ADR-0042, ADR-0027, ADR-0012, ADR-0013, SRS]
+related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-29-couples-rehaul-plan, DESIGN-WORKFLOW, ADR-0042, ADR-0027, ADR-0012, ADR-0013, ADR-0045, ADR-0046, ADR-0047, SRS]
 ---
 
 # 2026-10-30 — Phase 1 Stage C (C1–C4): the Sticker Diary design system
 
-**Status:** Plan, committed before any other file of this stage. The four gates below are the owner's.
+**Status:** **Done, 2026-10-30.** C1, C2, C4 and C3 each passed their owner gate (§2.1–2.5). The plan was committed first (`a1f759c`). Not pushed; nothing here needs EAS until D1. What D1 inherits is in §10.
 **Branch:** `phase1/stage-c-design`, worktree `C:\vp\stage-c`, cut from the local `rehaul/v2` at `659b352`. Commits use `git commit -- <paths>` only. No push, no EAS, no repository settings: the session that started this one does those, with the owner's OK.
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md) Stage C (C1–C4), [rehaul plan](2026-10-29-couples-rehaul-plan.md) §5 (design system) and §6.2 (budgets).
 
@@ -210,6 +210,33 @@ Run before C4, as the owner agreed (§3.1), because the design skills didn't yet
 
 **Gate (2026-10-30):** the owner **confirmed the brief**, kept all three discovery assumptions, and chose sentence case for English button labels. C4 is done; D1 builds from `.impeccable/surfaces/app-tabs-index-tsx.md` and writes its direction contract before code.
 
+### 2.5 C3, part 2 (2026-10-30): the mark in colour, Pomo & Doro, the icon set, the app icon and the splash, approved
+
+**Gate 1, approved by the owner:** the app icon takes **option C**, the Same Page mark as a cocoa die-cut sticker on a strawberry tile, the strongest edge at 40 and 20 px. The **personality map** and the **flat, die-cut rendering style** are confirmed (the outlined style was shown and declined). **Pomo** is a round strawberry with one curl; **Doro** is a wide matcha dome. Strawberry and matcha are two flavours of one sweet, so the pair isn't coded by gender (ADR-0047).
+
+**Gate 2, approved by the owner:** the app icon in its light, dark and tinted appearances; the splash **keeps the mark** (the owner chose the brief over Apple's launch-screen preference, see below); the five poses and single-colour versions; and the icon set with its filled tab icons.
+
+**What was built** (sources in `art/src/`, one job per family in `art/jobs/`, every export from `art/steps/*.steps.json`):
+
+| Family | Assets | SVG sizes | Budget | Notes |
+|--------|-------:|-----------|-------:|-------|
+| Icons | 50 | 399–1,768 B | 2 KB | 46 outline icons on the 24 pt grid (2 pt rounded strokes, outlined by VectorCraft), plus filled `timer`, `stats`, `settings` and `notes` exported as template PNGs at 50 and 75 px, with real holes (the tab bar draws alpha only) |
+| Pomo & Doro | 12 | 2,636–8,646 B | 30 KB | Five poses each (idle, focusing, break, celebrating, sleepy) and a single-colour version each; PNG at 512, 128 and 32 px; idle and single colour also at 16 px |
+| App icon and splash | 5 | about 5 KB | 30 KB | 1024 × 1024 light, dark and tinted icons, **opaque RGB** (no alpha, which App Store Connect requires); light and dark splash marks with transparency |
+| Gate-1 drafts and concepts | 8 | 1.3–5.1 KB | 30 KB | The colour options A and B, and the four black-and-white concepts, kept as the decision's record |
+
+- **All 75 assets pass their budgets** (`node scripts/art/check-budgets.mjs`), and `node scripts/art/build.mjs --check` rebuilds every one of them and finds every byte identical, the shipped copies in `assets/images/` included.
+- **Shipped and wired:** the build copies the icon and splash PNGs to `assets/images/ios-icon-{light,dark,tinted}.png` and `splash-mark-{light,dark}.png` (the job's `ship` field, so `--check` covers them). `app.json` sets `ios.icon` to the three appearances, and the `expo-splash-screen` plugin to the light mark on `#FFF6F1` with a `dark` mark on `#221726`, 180 pt wide; `npx expo config` reads both. The Android adaptive icon and the old `icon.png`/`splash.png` are untouched (§3b of the Phase 1 plan). **This is native configuration: it reaches users with the next EAS build (D1).**
+- **The mark in context** (rule 7) is on the gate-2 page (`art/review/c3-gate2.html`): home screens in default, dark and tinted; an App Store page with no invented ratings, reviews, downloads or prices; a small widget with Pomo & Doro as the colon; a 1200 × 630 weekly-recap card with example numbers, labelled as examples.
+- **Originality:** none of the marks or characters uses a tomato, clock, ring, heart, animal, plant, overlapping circles or a sparkle. Pomo and Doro have no ears, limbs or animal features; their identity rests on the colon idea, the two silhouettes and the curl. The nearest families are round kawaii blobs in general (sticker sets, slime-like characters), which share the genre but no specific design. A reverse-image search of the final mark, and a trademark search with the name, remain the owner's before launch (Phase 7).
+- **`/apple-design`, app-icon mode** (`app-icons.md`, `launching.md`):
+  - **pass:** square and unmasked; clearly defined edges; no drop shadow or other effects baked in; no text; no UI replica; the same features in every appearance; the dark icon on a colour background, as Apple advises
+  - **Medium, accepted:** the icon is **flattened**, because Icon Composer needs a Mac. The layers (strawberry background, the cocoa mark, the faces) stay separate in the source, ready for a layered `.icon` when a Mac is available.
+  - **Low:** the smile strokes fall below a pixel at 29 px and under; the eyes carry the face there.
+  - **Low:** the tinted icon is RGB encoded with grey values only; Apple's grayscale profile is an optional refinement.
+  - **Medium, decided by the owner:** `launching.md › Launch screens` says not to put a logo on the launch screen unless the first screen shows one. **The owner kept the mark** (gate 2). It is static, and the morph animation never plays at launch (H-2).
+- **The emoji to replace (for D2, NFR-UX-002):** 51 glyphs in 16 files at `5ed99ef`, more than the plan's "37 in 13". Copy that may keep emoji (push titles in `useNotifications.ts` and `notifications.ts`, and the default love notes, which D2 rewrites) is listed apart from the UI uses. The UI uses: the Fly controls in `FlyModeScreen.tsx` (16), `ModeSwitcher.tsx` (2), `FlyTimerPill.tsx`, `AirportPicker.tsx`'s check mark, `GoalReachedPopup.tsx`, `LoveNoteCard.tsx`, `GiftModeModal.tsx` (4), the titles in `LoveNotesScreen.tsx` and `SettingsScreen.tsx` (3), `TimerScreen.tsx`'s app-name header, and `useUpdateCheck.ts`'s update prompt. Each maps to an icon in the set (`fly`, `map`, `hand`, `pin`, `globe`, `landed`, `check`, `heart`, `notes`, `settings`, `update`, `modes`), or disappears with its header.
+
 ## 3. Implementation Approach
 
 ### 3.1 Order, and one proposed change
@@ -325,31 +352,32 @@ npx jest src/theme            # the math anchors and every pair
 npm run typecheck && npm run lint
 ```
 
-- [ ] CI runs `check:contrast` as a blocking step.
-- [ ] The owner approves the palette from the swatch sheet.
+- [x] CI runs `check:contrast` as a blocking step.
+- [x] The owner approves the palette from the swatch sheet (option A, 2026-10-30).
 
 ### 6.2 C2
 
-- [ ] Each face: Turkish glyphs present, digits tabular (natively or with `tnum`), OFL confirmed, sizes reported.
-- [ ] The owner picks one, and says whether it lands now or with D1.
+- [x] Each face: Turkish glyphs present, digits tabular (natively or with `tnum`), OFL confirmed, sizes reported (Fredoka fails two requirements; §2.2).
+- [x] The owner picks one, and says whether it lands now or with D1 (Baloo 2, with D1).
 
 ### 6.3 C4
 
-- [ ] `/impeccable shape classic` brief written, partner slot reserved.
-- [ ] `/apple-design` on the brief, including the Liquid Glass checklist against `63f1db2`; every finding and its disposition recorded.
-- [ ] The owner confirms the brief.
+- [x] `/impeccable shape classic` brief written, partner slot reserved (both layouts).
+- [x] `/apple-design` on the brief, including the Liquid Glass checklist against `63f1db2`; every finding and its disposition recorded (§2.4).
+- [x] The owner confirms the brief.
 
 ### 6.4 C3
 
 ```bash
 node scripts/art/build.mjs           # rebuild every export from art/steps/*.steps.json
-git status --short art assets        # no change after a clean rebuild = reproducible
-node scripts/art/check-budgets.mjs   # icon ≤ 2 KB, illustration ≤ 30 KB
+node scripts/art/build.mjs --check   # rebuild in C:/vp-art, compare every file byte for byte (75 assets: pass)
+node scripts/art/check-budgets.mjs   # icon ≤ 2 KB, illustration and mark ≤ 30 KB (75 assets: pass)
 ```
 
-- [ ] Logo: concepts in black and white at every size; the owner's pick; colour; the mark in context.
-- [ ] About 40 icons on the 24 pt grid; five sticker poses; the iOS icon and splash.
-- [ ] Originality check recorded for the mascots and the mark.
+- [x] Logo: concepts in black and white at every size; the owner's pick; colour; the mark in context.
+- [x] About 40 icons on the 24 pt grid (46, plus 4 filled tab icons); five sticker poses each; the iOS icon and splash.
+- [x] Originality check recorded for the mascots and the mark (§2.5; the reverse-image and trademark searches stay the owner's, Phase 7).
+- [ ] **Device, with the D1 build:** the icon in all three appearances and the splash in light and dark, on the iPhone.
 
 ### 6.5 Docs
 
@@ -357,13 +385,13 @@ node scripts/art/check-budgets.mjs   # icon ≤ 2 KB, illustration ≤ 30 KB
 node scripts/docs/check-docs.mjs --write && node scripts/docs/check-docs.mjs
 ```
 
-## 7. Questions for the owner
+## 7. Questions for the owner, answered
 
-1. **Order:** may C3's black-and-white logo concepts and the icon set run before C4 if the skill session isn't ready (§3.1)?
-2. **Logo, rule 6:** is "keep the tomato, differ through the couple and the sticker" the right reading of the binding tomato-couple commitment?
-3. **Logo, research:** is there anything about the two of you, or the app's origin, that the mark may carry beyond the About line? (For example, a private detail only you two would notice.) "No" is a fine answer.
-4. **Identity placement** (§3.6 table): accept, or move pieces.
-5. **The face:** asked at the C2 gate.
+1. **Order:** yes, C3's concepts ran before C4 (C1 gate).
+2. **Logo, rule 6:** "no tomato. brainstorm a more unique approach", and no tomato anywhere in the design (C1 gate; §0, ADR-0047).
+3. **Logo, research:** "Keep the mark general, main things are romantic, for couples studying" (C2 gate).
+4. **Identity placement:** accepted as proposed (C2 gate). C5, the one-page identity sheet, is the next task (§10).
+5. **The face:** Baloo 2, embedded with D1 (C2 gate).
 
 ## 8. Related Docs
 
@@ -409,6 +437,51 @@ Ready-to-paste text, applied by the merging session. Filled in as each task land
 | `DESIGN.md` Colors, Secondary | "**Tomato Red:** the accent of the brand and the mascots" | "**Accent Red:** the brand's accent" (the hex values are in `src/theme/palette.json`) |
 | Rehaul plan §3.1, §3.3 (Shared Garden "grows plants and tomatoes"), §5.2 ("tomato-red accent") | Tomato wording | Point at this record's §0; the garden grows plants without tomatoes. |
 | Phase 1 plan, C3 row | (no tomato wording; "Pomo & Doro as stickers") | Add: "Characters chosen with the logo; no tomato (owner, 2026-10-30)." |
+
+**Phase 1 plan, Stage C rows**, a status line in each "Done when" cell:
+- **C1:** "**Done, 2026-10-30:** the owner approved the palette (option A); 52/52 pairs pass; `check:contrast` blocks CI. [Stage C record §2.1]"
+- **C2:** "**Done, 2026-10-30:** the owner picked Baloo 2, embedded with D1, ligatures off; Fredoka failed Turkish and tabular digits. [§2.2]"
+- **C3:** "**Done, 2026-10-30:** the Same Page mark (option C), Pomo & Doro (five poses each), 50 icons, the iOS icon (light, dark, tinted) and the splash; 75 assets within budget, every one rebuilt byte for byte. [§2.3, §2.5]"
+- **C4:** "**Done, 2026-10-30:** two layouts, The Ring (default) and Facing Pages; the HIG review rated it Good. [§2.4]"
+
+**SRS** status changes:
+- **NFR-A11Y-001** → `implemented` (Verify: T, `npm run check:contrast` and `src/theme/__tests__/contrast.test.ts`; the screens adopt the tokens in D1–D2).
+- **NFR-PERF-005**: Status note "icons and illustrations met in C3 (75 assets, `scripts/art/check-budgets.mjs`); sounds wait for D4."
+- **FR-SET-002** stays `planned` until D1 wires the themes into `useTheme`.
+
+**`docs/process/DESIGN-WORKFLOW.md` §3**, a new tension row:
+
+```markdown
+| Launch screen: Apple's "don't include logos" vs the brief's splash built from the mark | The owner kept the mark (C3 gate 2): static, small, on the page colour; the pages-to-logo animation never plays at launch (HIG review H-2) | Phase 1 C3 |
+```
+
+**`CHANGELOG.md`**, under the unreleased v1.4.0:
+
+```markdown
+- Design system (Phase 1 Stage C): Strawberry Milk and Midnight Plum themes with a contrast gate in CI; Baloo 2 chosen for the timer and headings; the Same Page mark, Pomo & Doro, 50 custom icons, and a new iOS app icon (light, dark, tinted) and splash.
+```
+
+**`docs/roadmap/ROADMAP.md`** status board: Phase 1 Stage C → done (2026-10-30).
+
+## 10. What D1 (and after) inherits from Stage C
+
+**D1, the Classic rebuild (needs a native build):**
+1. **Tokens:** switch `useTheme` from `tokens.ts` to `src/theme/palette.ts` (`StrawberryMilk`, `MidnightPlum`); FR-SET-002 becomes implemented then.
+2. **Baloo 2:** embed through the `expo-font` config plugin, two static weights, Latin + Turkish subset, **`fi`/`fl` ligatures removed**. The timer sets `fontVariant: ['tabular-nums']`, with a test that its style carries the variant and a device check that the digits hold still (ADR-0046).
+3. **The Classic brief** (`.impeccable/surfaces/app-tabs-index-tsx.md`): write its direction contract first, then build The Ring and Facing Pages on one component set, with the additive setting `classicLayout` (default `'ring'`).
+4. **The tab bar:** `NativeTabs` tint to `primaryInk` (H-1); the four filled tab icons as template images (`art/out/icon/icon-*-fill-{50,75}.png`, M-4); the controls clear the floating bar by its height plus the inset (M-5).
+5. **The segmented control:** decide between the native module (`@react-native-segmented-control/segmented-control`) and a built control.
+6. **The app icon and splash** are already wired in `app.json`; D1's EAS build is the first to carry them. Check all three icon appearances and both splash appearances on the iPhone.
+7. **The sticker placement** (the one delight), with Pomo & Doro's poses from `art/out/illustration/`; the phase crossfade swaps their pose.
+8. **Clean-up:** `expo-blur` is unused (L-4).
+
+**D2:** the 51 emoji (§2.5) become icons from `art/out/icon/`, or disappear; the grep check for NFR-UX-002; SVG components from `art/out/icon/*.svg`, filled with `currentColor`.
+
+**D-stage motion, or Phase 3 onboarding:** the pages-to-logo morph, never at launch (H-2); with Reduce Motion it becomes a crossfade.
+
+**C5, the next design task:** the one-page identity sheet (clear space, minimum sizes, the colour and single-colour marks, misuse). Then `PRODUCT.md` and `DESIGN.md` get §9's text through `/impeccable`, and `DESIGN.md` is regenerated at E4.
+
+**Phase 7:** the wordmark, once the public name is chosen; App Store art; a layered Icon Composer icon if a Mac is available; the reverse-image and trademark searches.
 
 ## Backlinks
 <!-- backlinks:start -->

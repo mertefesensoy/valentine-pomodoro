@@ -180,9 +180,9 @@ export function TodayStickers({ tokens, count, goalHit, goalStreak, onGoalMoment
             {goalMoment && (
                 <Animated.View entering={FadeIn.duration(250)} style={[styles.moment, { backgroundColor: tokens.success }]} accessibilityLiveRegion="polite">
                     <Icon glyph={goal} size={20} color={tokens.onSuccess} />
-                    <Text style={[styles.momentText, { color: tokens.onSuccess }]}>{t('goal.reached')}</Text>
+                    <Text style={[styles.momentText, { color: tokens.onSuccess }]} maxFontSizeMultiplier={1.6}>{t('goal.reached')}</Text>
                     {goalStreak !== null && goalStreak > 0 && (
-                        <Text style={[styles.momentStreak, { color: tokens.onSuccess }]}>{t('goal.streak', { count: goalStreak })}</Text>
+                        <Text style={[styles.momentStreak, { color: tokens.onSuccess }]} maxFontSizeMultiplier={1.6}>{t('goal.streak', { count: goalStreak })}</Text>
                     )}
                 </Animated.View>
             )}
@@ -208,6 +208,9 @@ const styles = css.create({
     particle: { position: 'absolute', width: 6, height: 9, marginLeft: -3, marginTop: -4.5, borderRadius: 2 },
     moment: {
         flexDirection: 'row',
+        flexWrap: 'wrap', // Turkish at AX sizes (break-ui #3)
+        justifyContent: 'center',
+        maxWidth: '100%',
         alignItems: 'center',
         gap: space.s,
         paddingHorizontal: space.l,

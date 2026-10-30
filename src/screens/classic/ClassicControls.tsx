@@ -62,7 +62,7 @@ export function ClassicControls(p: Props) {
         <View style={styles.wrap}>
             <View style={styles.reserved}>
                 <Animated.View
-                    style={[styles.layer, styles.fade, { opacity: p.idle ? 1 : 0 }]}
+                    style={[styles.fade, { opacity: p.idle ? 1 : 0 }]}
                     pointerEvents={p.idle ? 'auto' : 'none'}
                     accessibilityElementsHidden={!p.idle}
                     importantForAccessibility={p.idle ? 'auto' : 'no-hide-descendants'}
@@ -110,9 +110,11 @@ export function ClassicControls(p: Props) {
 const styles = css.create({
     wrap: { alignSelf: 'stretch', gap: space.m },
     // The presets and their key, or the cycle row, in one reserved height so nothing jumps on Start.
-    reserved: { minHeight: minTarget + 8 + 22, justifyContent: 'center' },
+    // The presets stay in flow, so the row takes their real height, two rows of them at AX sizes
+    // included (break-ui #1); the cycle row overlays that same height.
+    reserved: { justifyContent: 'center' },
     key: { fontSize: 13, fontWeight: '500', textAlign: 'center', marginTop: space.xs },
-    layer: { position: 'absolute', left: 0, right: 0 },
+    layer: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, justifyContent: 'center' },
     centre: { alignItems: 'center' },
     fade: {
         transitionProperty: 'opacity',

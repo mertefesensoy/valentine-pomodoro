@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -116,14 +116,16 @@ function Character({ who, p, box }: { who: 'pomo' | 'doro'; p: SharedValue<numbe
  */
 export function WelcomeScreen() {
     const { tokens, isDark } = useTheme();
-    const { width, height } = useWindowDimensions();
+    const { width, height, fontScale } = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const reduced = useReducedMotion();
     const audience = useUiStore((s) => s.welcomeAudience);
     const markWelcomeSeen = useUiStore((s) => s.markWelcomeSeen);
 
     const compactHeight = height < 500;
-    const boxW = Math.round(compactHeight ? Math.min(width * 0.42, (height - insets.top - insets.bottom) / ASPECT * 0.8) : Math.min(width * 0.78, 420));
+    // At AX sizes the line needs the room: the art gives it up (break-ui #2).
+    const artScale = fontScale >= 1.6 ? 0.6 : 1;
+    const boxW = Math.round(artScale * (compactHeight ? Math.min(width * 0.42, (height - insets.top - insets.bottom) / ASPECT * 0.8) : Math.min(width * 0.78, 420)));
     const box = { w: boxW, h: Math.round(boxW * ASPECT) };
     const layers = LAYERS[isDark ? 'reversed' : 'colour'];
 
@@ -186,15 +188,15 @@ export function WelcomeScreen() {
 
     return (
         <View style={[styles.screen, { backgroundColor: tokens.page, paddingTop: insets.top + space.xl, paddingBottom: insets.bottom + space.l }]}>
-            <View style={[styles.body, compactHeight && styles.bodyCompact]}>
+            <ScrollView contentContainerStyle={[styles.body, compactHeight && styles.bodyCompact]} bounces={false} showsVerticalScrollIndicator={false}>
                 <View style={styles.artSlot}>{art}</View>
                 <View style={[styles.side, compactHeight && styles.sideCompact]}>
-                    <Animated.Text style={[styles.line, { color: tokens.ink }, reduced ? null : line]}>
+                    <Animated.Text style={[styles.line, { color: tokens.ink }, reduced ? null : line]} maxFontSizeMultiplier={1.6}>
                         {t(audience === 'updated' ? 'welcome.updated' : 'welcome.fresh')}
                     </Animated.Text>
                     {compactHeight && <StartPill tokens={tokens} onPress={start} />}
                 </View>
-            </View>
+            </ScrollView>
             {!compactHeight && <StartPill tokens={tokens} onPress={start} />}
         </View>
     );
@@ -212,7 +214,7 @@ function StartPill({ tokens, onPress }: { tokens: ReturnType<typeof useTheme>['t
 
 const styles = StyleSheet.create({
     screen: { flex: 1, paddingHorizontal: space.xl },
-    body: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.xxl },
+    body: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', gap: space.xxl },
     bodyCompact: { flexDirection: 'row' },
     artSlot: { alignItems: 'center', justifyContent: 'center', paddingTop: space.xxl },
     side: { alignItems: 'center', gap: space.xl },

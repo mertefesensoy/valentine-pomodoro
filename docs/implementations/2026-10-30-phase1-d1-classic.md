@@ -24,8 +24,8 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 | Owner: direction contracts | **Approved**, 2026-10-30 ("Approve, build D1") | **Approved**, 2026-10-30 ("Approve, build D1") |
 | 3. Build (`animate-expo`) | Built, `635eb0a` (§3.9–3.10) | Built (§3.11) |
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | Critique 31 → **35/40**; audit **16/20**; HIG Good, no Critical; motion clean after fixes (§3.12) | Critique **30/32**; audit **19/20**; HIG Good, no Critical; motion clean (§3.12) |
-| 5. `break-ui` (TR at AX5) | — | — |
-| 6. `polish`, `harden`, `clarify` | — | — |
+| 5. `break-ui` (TR at AX5) | 2 Broken and 1 Ugly fixed; 2 Fragile noted (§3.13) | 1 Broken fixed (§3.13) |
+| 6. `polish`, `harden`, `clarify` | Done (§3.12–3.13); the Turkish copy waits for the owner's review | Done; the Turkish copy waits for the owner's review |
 | 7. Device check, build 48 | — | — |
 
 **Skill resolution (2026-10-30).** The Skill tool loads Impeccable from `C:\vp\stage-c\.claude\skills\impeccable`, because this session started in stage-c (Stage D plan §0). `diff -rq` finds the stage-c and stage-d copies of `impeccable`, `apple-design`, `animate-expo`, `review-animations` and `break-ui` identical, Impeccable at `ece7280` in both. Every Impeccable command here runs stage-d's own launcher with stage-d as the working directory: `impeccable context` reports `projectRoot: C:\vp\stage-d`.
@@ -355,6 +355,38 @@ There is no overshoot anywhere. A light haptic fires as p passes 0.6 (`useAnimat
 | `/apple-design` | Good, no Critical | W-H1 is in place (the calm-entry gate). **Medium, for D2:** a fresh install gets v1's gift modal, then the welcome: two first-run screens in a row (`onboarding.md`: "design a brief, enjoyable experience"). D2's Gift brief decides whether the welcome replaces the modal. |
 | `review-animations` | Clean | 2.4 s is justified for a once-only explanation. Custom ease-out and ease-in-out, with no overshoot; Start interrupts it; Reduce Motion fades; transforms and opacity only. |
 
+### 3.13 `break-ui`, the hardening and the copy pass (DESIGN-WORKFLOW §2 steps 5 and 6)
+
+**How it ran.** There is no dev server or Simulator here, and a worst-case toggle inside a TestFlight build would ship to the App Store, which `break-ui` forbids (rule 4).
+- **The worst-case data** is a Jest regression fixture instead, rendered in Turkish (`classicWorstCase.test.tsx`, with the device locale mocked to `tr-TR`).
+- **The device check** reproduces each case through Settings: Turkish, the largest text size, a 180-minute focus and a 10-session cycle.
+- **The layout findings are inferred** from the styles; Jest can't measure layout.
+
+**The limits found:**
+- focus 1–180 minutes
+- long break up to 180
+- the cycle 2–10 sessions (Settings' validators)
+- a love note: unbounded
+
+**What broke:**
+
+| # | Severity | Worst case | What happened | Fix |
+|---|---|---|---|---|
+| 1 | Broken | the presets at AX sizes, wrapped into a 2×2 grid | The grid sat in an absolutely positioned layer inside a fixed reserved row, and spilled over the Start pill | The presets stay in flow, so the row takes their real height; the cycle row overlays it (`ClassicControls.tsx`) |
+| 2 | Broken | the welcome line in Turkish at AX5 | 4–5 lines of uncapped 28 pt Baloo could run into Start | The line is capped at 1.6×; the art shrinks to 60 % at AX sizes; the body scrolls (`WelcomeScreen.tsx`) |
+| 3 | Ugly | the goal moment at AX5 ("Hedefe ulaştın" and "30 günlük seri") | One row with no wrap, so it ran past the edges | It wraps and centres within the row; its text is capped at 1.6× (`TodayStickers.tsx`) |
+| 4 | Fragile | a long love note with an unbroken URL | Readable (the sheet scrolls), but there is no length limit anywhere | **For the owner, with D2's Notes brief:** about 280 characters recommended |
+| 5 | Fragile | "Karşılıklı sayfalar" in the two-segment layout control | Fits at the default size; wraps inside its segment at larger sizes | Holds; confirm on the device |
+
+**What held up:**
+- "180:00" fits the ring and the spine frame: it shrinks to one line, with tabular digits.
+- The sticker row handles 0 (the empty slot and its caption), 1 ("1 session today") and 32 (two rows, then "+n").
+- A 10-dot cycle fits one row.
+- Long Turkish pill labels wrap inside content-sized pills.
+- Compact height scrolls its trailing column, and iPad centres at 560 pt.
+
+**The copy pass (`clarify`).** D1's English strings read in the brand's voice: warm, plain, sentence case. Each Turkish string is a draft, grammatical and in the same warm register. All of them go to the owner's copy review before build 48 ships, listed in §6.
+
 ## 4. Mathematical / Statistical Details
 
 The numeric rules D1 implements are in the [Stage D plan §4](2026-10-30-phase1-stage-d.md#4-mathematical--statistical-details): contrast, tabular digits, the font build, the sticker spring, "Break at" and bytecode. Measurements go here as they are taken.
@@ -368,8 +400,22 @@ The numeric rules D1 implements are in the [Stage D plan §4](2026-10-30-phase1-
 
 ## 6. Verification
 
-- [x] The Classic contract has all six blocks and the seed reference.
-- [ ] Every step in §0, then the guards in the [Stage D plan §3.6](2026-10-30-phase1-stage-d.md#36-guards-green-at-every-commit), then the device checklist in §3.2.10 (needs a physical device).
+- [x] The Classic and welcome contracts each have all six blocks and their seed references.
+- [x] DESIGN-WORKFLOW §2 steps 1–6 for both surfaces (§0, §3.1–3.13).
+- [x] The guards in the [Stage D plan §3.6](2026-10-30-phase1-stage-d.md#36-guards-green-at-every-commit), green at every commit.
+- [ ] **The owner's review of the Turkish copy:** every string in `src/i18n/tr.json`, which build 48 carries.
+- [ ] **The device check, build 48** (`v1.4.0-tf.48`), on a physical iPhone through TestFlight, after the owner's OK for the EAS build and the submission:
+  1. The new app icon in default, dark and tinted; the splash in light and dark.
+  2. Baloo 2 renders, and the timer's digits hold still as they count.
+  3. The selected tab is strawberry in both themes; the four template icons tint; the Turkish tab labels fit ("Zamanlayıcı").
+  4. The Ring and Facing Pages in both themes: the presets and their key, the controls clear the floating bar, the Modes sheet, and Settings › Timer layout.
+  5. The sticker placement's feel and haptic, and its frame readout (≥ 58 fps median, no frame over 32 ms; NFR-PERF-004). The phase crossfade. Skip's confirmation past the first minute.
+  6. Reduce Motion: opacity only, with no slide on the presets.
+  7. The love-note sheet stays until it is closed, then the interstitial.
+  8. Compact height (landscape); the largest text size in **Turkish** (nothing clips: the presets grid, the goal moment, the welcome line); the VoiceOver order and labels; an iPad if one is available.
+  9. The scroll edge effect under the bar when Facing Pages scrolls at accessibility sizes.
+  10. The welcome: it shows once over the update from build 47, once on a fresh install (after the gift screen), never again; never over a running session. The morph's feel, whether its flat opening reads as a squash, the pages-meet haptic, and the Reduce Motion fade.
+  11. `toLocaleUpperCase('tr-TR')` on Hermes (§3.5).
 
 ## 7. Related Docs
 

@@ -38,7 +38,12 @@ export function noteBannerFailed(error: { code?: string; message?: string }): vo
     };
 }
 
-export function noteBannerLayout(bottom: number, barTop: number): void {
+/**
+ * Where the container landed. A zero-height measurement is ignored: it means
+ * the view wasn't laid out in the window (a hidden tab), not a position.
+ */
+export function noteBannerLayout(bottom: number, barTop: number, height: number): void {
+    if (!(height > 0)) return;
     status = { ...status, layout: { bottom, barTop } };
 }
 

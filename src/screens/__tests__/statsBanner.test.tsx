@@ -65,10 +65,15 @@ describe('the Stats banner status', () => {
         expect(bannerStatusLine()).toBe('Stats banner (this launch): loaded 390×61');
     });
 
+    it('ignores a zero-height measurement (a view out of the window)', () => {
+        noteBannerLayout(0, 729, 0);
+        expect(bannerStatus().layout).toBeUndefined();
+    });
+
     it('says whether the container ends above the tab bar', () => {
-        noteBannerLayout(760, 761);
+        noteBannerLayout(760, 761, 77);
         expect(bannerStatusLine()).toBe('Stats banner (this launch): loaded 390×61 · bottom 760 / bar top 761 pt (above the tab bar)');
-        noteBannerLayout(812, 729);
+        noteBannerLayout(812, 729, 77);
         expect(bannerStatusLine()).toMatch(/bottom 812 \/ bar top 729 pt \(reaches under the tab bar\)$/);
     });
 });

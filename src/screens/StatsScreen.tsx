@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
@@ -8,7 +8,7 @@ import { useTheme } from '../theme/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { BANNER_ID } from '../ads/AdConfig';
 import { noteBannerFailed, noteBannerLayout, noteBannerLoaded, noteBannerRequested } from '../ads/bannerStatus';
-import { useHasBeenFocused } from '../hooks/useScreenFocus';
+import { useHasBeenFocused, useScreenFocused } from '../hooks/useScreenFocus';
 
 type Metric = 'sessions' | 'minutes';
 
@@ -50,10 +50,18 @@ export default function StatsScreen() {
         if (bannerAllowed) noteBannerRequested();
     }, [bannerAllowed]);
     const bannerBoxRef = useRef<React.ComponentRef<typeof View>>(null);
-    // Its bottom edge against the tab bar's top edge, both in window coordinates.
-    const onBannerBoxLayout = () => {
-        bannerBoxRef.current?.measureInWindow((_x, y, _w, h) => noteBannerLayout(y + h, height - insets.bottom));
-    };
+    // Its bottom edge against the tab bar's top edge, both in window
+    // coordinates. Measured only while Stats is on screen (a hidden tab is out
+    // of the window, so its numbers would mean nothing): on focus, on layout,
+    // and when the ad answers, since a failed load changes no layout.
+    const focused = useScreenFocused();
+    const measureBannerBox = useCallback(() => {
+        if (!focused) return;
+        bannerBoxRef.current?.measureInWindow((_x, y, _w, h) => noteBannerLayout(y + h, height - insets.bottom, h));
+    }, [focused, height, insets.bottom]);
+    useEffect(() => {
+        if (bannerAllowed) measureBannerBox();
+    }, [bannerAllowed, measureBannerBox]);
 
     const [metric, setMetric] = useState<Metric>('minutes');
     const [barAreaWidth, setBarAreaWidth] = useState(0);
@@ -305,7 +313,7 @@ export default function StatsScreen() {
                 </View>
             </ScrollView>
             {/* The SafeAreaView's bottom inset includes the native tab bar (Phase 1 B6). */}
-            <View ref={bannerBoxRef} onLayout={onBannerBoxLayout} style={{
+            <View ref={bannerBoxRef} onLayout={measureBannerBox} style={{
                 backgroundColor: colors.card,
                 borderTopWidth: 1,
                 borderTopColor: colors.border,
@@ -317,8 +325,14 @@ export default function StatsScreen() {
                         unitId={BANNER_ID}
                         size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
                         requestOptions={{ requestNonPersonalizedAdsOnly: true }}
-                        onAdLoaded={noteBannerLoaded}
-                        onAdFailedToLoad={noteBannerFailed}
+                        onAdLoaded={(size) => {
+                            noteBannerLoaded(size);
+                            measureBannerBox();
+                        }}
+                        onAdFailedToLoad={(error) => {
+                            noteBannerFailed(error);
+                            measureBannerBox();
+                        }}
                     />
                 )}
             </View>

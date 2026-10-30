@@ -35,7 +35,7 @@ Start here. Every document in the repo is listed below. The rules for writing th
 |----------|------------|
 | [SRS](srs/SRS.md) | Software requirements: as built and to be built, each with an ID, a target and a verification method |
 | [Roadmap](roadmap/ROADMAP.md) | Milestones, phases and the status board |
-| [Status snapshots](status/2026-10-30-status.md) | Dated, evidence-checked status tables, one per status run; the next run reports what moved since the newest |
+| [Status snapshots](status/2026-10-30-status-2.md) (newest; earlier: [2026-10-30 morning](status/2026-10-30-status.md)) | Dated, evidence-checked status tables, one per status run; the next run reports what moved since the newest |
 | [Architecture](architecture/ARCHITECTURE.md) | As-built and target architecture, runtime views, storage keys, risks |
 | [ADR index](architecture/adr/README.md) | Architecture decision records |
 

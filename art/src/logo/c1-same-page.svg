@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>Concept 1, Same Page: two pages of one open diary, the couple</title>
+  <rect width="1024" height="1024" fill="#FFFFFF"/>
+  <g id="page-left" transform="rotate(5 494 780)">
+    <path fill="#000000" d="M494 386 C426 330 306 306 206 312 Q164 315 164 357 L164 666 Q164 708 206 706 C306 700 422 718 494 780 Z"/>
+    <circle cx="350" cy="522" r="30" fill="#FFFFFF"/><circle cx="434" cy="534" r="30" fill="#FFFFFF"/>
+    <path d="M374 598 Q396 618 418 602" fill="none" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round"/>
+  </g>
+  <g id="page-right" transform="rotate(-5 530 780)">
+    <path fill="#000000" d="M530 386 C598 330 718 306 818 312 Q860 315 860 357 L860 666 Q860 708 818 706 C718 700 602 718 530 780 Z"/>
+    <circle cx="590" cy="534" r="30" fill="#FFFFFF"/><circle cx="674" cy="522" r="30" fill="#FFFFFF"/>
+    <path d="M606 602 Q628 618 650 598" fill="none" stroke="#FFFFFF" stroke-width="18" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>Concept 3, The Colon: the couple sits between the minutes and the seconds</title>
+  <rect width="1024" height="1024" fill="#FFFFFF"/>
+  <g id="colon" transform="rotate(14 512 512)">
+    <circle id="top" cx="512" cy="318" r="150" fill="#000000"/>
+    <circle id="bottom" cx="512" cy="700" r="150" fill="#000000"/>
+  </g>
+  <g id="eyes" fill="#FFFFFF">
+    <circle cx="518" cy="372" r="24"/><circle cx="578" cy="382" r="24"/>
+    <circle cx="448" cy="646" r="24"/><circle cx="508" cy="634" r="24"/>
+  </g>
+</svg>

@@ -1,0 +1,104 @@
+[
+ {
+  "command": "select.all",
+  "params": {}
+ },
+ {
+  "command": "object.expand",
+  "params": {
+   "object": true,
+   "fill": true,
+   "stroke": true
+  }
+ },
+ {
+  "command": "document.save",
+  "params": {
+   "path": "C:/vp-art/art/vc/logo-c4-red-thread.vectorcraft"
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/logo-c4-red-thread.svg",
+   "format": "svg",
+   "decimals": 2,
+   "outlineText": true,
+   "minify": true,
+   "objectIds": "minimal",
+   "metadata": false
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/logo-c4-red-thread-1024.png",
+   "format": "png",
+   "scale": 1
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/logo-c4-red-thread-180.png",
+   "format": "png",
+   "scale": 0.17578125
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/logo-c4-red-thread-120.png",
+   "format": "png",
+   "scale": 0.1171875
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/logo-c4-red-thread-87.png",
+   "format": "png",
+   "scale": 0.0849609375
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/logo-c4-red-thread-80.png",
+   "format": "png",
+   "scale": 0.078125
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/logo-c4-red-thread-60.png",
+   "format": "png",
+   "scale": 0.05859375
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/logo-c4-red-thread-40.png",
+   "format": "png",
+   "scale": 0.0390625
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/logo-c4-red-thread-29.png",
+   "format": "png",
+   "scale": 0.0283203125
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/logo/logo-c4-red-thread-20.png",
+   "format": "png",
+   "scale": 0.01953125
+  }
+ }
+]

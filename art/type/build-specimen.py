@@ -85,6 +85,7 @@ def subset_bytes(font, flavor=None):
     s = subset.Subsetter(opts)
     s.populate(unicodes=UNICODES)
     s.subset(font)
+    font.flavor = flavor           # the Options flavor only applies through subset.save_font
     b = io.BytesIO()
     font.save(b)
     return b.getvalue()

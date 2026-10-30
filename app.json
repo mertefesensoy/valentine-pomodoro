@@ -19,6 +19,11 @@
       "buildNumber": "6",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "icon": {
+        "light": "./assets/images/ios-icon-light.png",
+        "dark": "./assets/images/ios-icon-dark.png",
+        "tinted": "./assets/images/ios-icon-tinted.png"
       }
     },
     "android": {
@@ -95,9 +100,14 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash.png",
+          "image": "./assets/images/splash-mark-light.png",
+          "imageWidth": 180,
           "resizeMode": "contain",
-          "backgroundColor": "#FFF8F0"
+          "backgroundColor": "#FFF6F1",
+          "dark": {
+            "image": "./assets/images/splash-mark-dark.png",
+            "backgroundColor": "#221726"
+          }
         }
       ],
       "expo-router"

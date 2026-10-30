@@ -1,0 +1,409 @@
+{
+ "about": "C3: the custom icon set (24 pt grid, 2 pt rounded strokes outlined at build time) and the filled tab icons, exported as template PNGs at 50 and 75 px (25 pt @2x, @3x) for the native tab bar.",
+ "assets": [
+  {
+   "id": "icon-bell",
+   "src": "art/src/icons/bell.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-calendar",
+   "src": "art/src/icons/calendar.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-check",
+   "src": "art/src/icons/check.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-cheer",
+   "src": "art/src/icons/cheer.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-chevron-right",
+   "src": "art/src/icons/chevron-right.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-close",
+   "src": "art/src/icons/close.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-edit",
+   "src": "art/src/icons/edit.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-fly",
+   "src": "art/src/icons/fly.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-garden",
+   "src": "art/src/icons/garden.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-gift",
+   "src": "art/src/icons/gift.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-globe",
+   "src": "art/src/icons/globe.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-goal",
+   "src": "art/src/icons/goal.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-hand",
+   "src": "art/src/icons/hand.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-haptics",
+   "src": "art/src/icons/haptics.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-heart",
+   "src": "art/src/icons/heart.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-info",
+   "src": "art/src/icons/info.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-landed",
+   "src": "art/src/icons/landed.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-language",
+   "src": "art/src/icons/language.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-link",
+   "src": "art/src/icons/link.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-lock",
+   "src": "art/src/icons/lock.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-map",
+   "src": "art/src/icons/map.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-modes",
+   "src": "art/src/icons/modes.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-moon",
+   "src": "art/src/icons/moon.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-notes",
+   "src": "art/src/icons/notes.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-notes-fill",
+   "src": "art/src/icons/notes-fill.svg",
+   "kind": "icon",
+   "png": [
+    50,
+    75
+   ]
+  },
+  {
+   "id": "icon-partner",
+   "src": "art/src/icons/partner.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-pause",
+   "src": "art/src/icons/pause.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-pet",
+   "src": "art/src/icons/pet.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-pin",
+   "src": "art/src/icons/pin.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-play",
+   "src": "art/src/icons/play.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-plus",
+   "src": "art/src/icons/plus.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-reset",
+   "src": "art/src/icons/reset.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-room",
+   "src": "art/src/icons/room.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-route",
+   "src": "art/src/icons/route.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-settings",
+   "src": "art/src/icons/settings.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-settings-fill",
+   "src": "art/src/icons/settings-fill.svg",
+   "kind": "icon",
+   "png": [
+    50,
+    75
+   ]
+  },
+  {
+   "id": "icon-share",
+   "src": "art/src/icons/share.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-skip",
+   "src": "art/src/icons/skip.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-sound",
+   "src": "art/src/icons/sound.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-sound-off",
+   "src": "art/src/icons/sound-off.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-stats",
+   "src": "art/src/icons/stats.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-stats-fill",
+   "src": "art/src/icons/stats-fill.svg",
+   "kind": "icon",
+   "png": [
+    50,
+    75
+   ]
+  },
+  {
+   "id": "icon-sticker",
+   "src": "art/src/icons/sticker.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-stop",
+   "src": "art/src/icons/stop.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-streak",
+   "src": "art/src/icons/streak.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-sun",
+   "src": "art/src/icons/sun.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-timer",
+   "src": "art/src/icons/timer.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-timer-fill",
+   "src": "art/src/icons/timer-fill.svg",
+   "kind": "icon",
+   "png": [
+    50,
+    75
+   ]
+  },
+  {
+   "id": "icon-trash",
+   "src": "art/src/icons/trash.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  },
+  {
+   "id": "icon-update",
+   "src": "art/src/icons/update.svg",
+   "kind": "icon",
+   "png": [
+    72
+   ]
+  }
+ ]
+}

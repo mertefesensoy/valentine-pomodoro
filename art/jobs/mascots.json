@@ -1,0 +1,105 @@
+{
+ "about": "C3: Pomo & Doro, five poses each on the locked construction (gate 1), plus a single-colour version of each. Flat fills, die-cut edge; the first idle drafts are in c3-gate1.json.",
+ "assets": [
+  {
+   "id": "pomo-focusing",
+   "src": "art/src/mascots/pomo-focusing.svg",
+   "kind": "illustration",
+   "png": [
+    512,
+    128,
+    32
+   ]
+  },
+  {
+   "id": "pomo-break",
+   "src": "art/src/mascots/pomo-break.svg",
+   "kind": "illustration",
+   "png": [
+    512,
+    128,
+    32
+   ]
+  },
+  {
+   "id": "pomo-celebrating",
+   "src": "art/src/mascots/pomo-celebrating.svg",
+   "kind": "illustration",
+   "png": [
+    512,
+    128,
+    32
+   ]
+  },
+  {
+   "id": "pomo-sleepy",
+   "src": "art/src/mascots/pomo-sleepy.svg",
+   "kind": "illustration",
+   "png": [
+    512,
+    128,
+    32
+   ]
+  },
+  {
+   "id": "pomo-single-colour",
+   "src": "art/src/mascots/pomo-single-colour.svg",
+   "kind": "illustration",
+   "png": [
+    512,
+    32,
+    16
+   ]
+  },
+  {
+   "id": "doro-focusing",
+   "src": "art/src/mascots/doro-focusing.svg",
+   "kind": "illustration",
+   "png": [
+    512,
+    128,
+    32
+   ]
+  },
+  {
+   "id": "doro-break",
+   "src": "art/src/mascots/doro-break.svg",
+   "kind": "illustration",
+   "png": [
+    512,
+    128,
+    32
+   ]
+  },
+  {
+   "id": "doro-celebrating",
+   "src": "art/src/mascots/doro-celebrating.svg",
+   "kind": "illustration",
+   "png": [
+    512,
+    128,
+    32
+   ]
+  },
+  {
+   "id": "doro-sleepy",
+   "src": "art/src/mascots/doro-sleepy.svg",
+   "kind": "illustration",
+   "png": [
+    512,
+    128,
+    32
+   ]
+  },
+  {
+   "id": "doro-single-colour",
+   "src": "art/src/mascots/doro-single-colour.svg",
+   "kind": "illustration",
+   "png": [
+    512,
+    32,
+    16
+   ]
+  }
+ ]
+}

@@ -150,6 +150,18 @@ for (const job of jobs) {
                 fs.writeFileSync(repo, built);
             }
         }
+        // "ship": { "<px>": "<repo path>" } copies a built PNG to where the app reads it (app.json),
+        // so the shipped file is the pipeline's output and --check covers it too.
+        for (const [px, dest] of Object.entries(asset.ship ?? {})) {
+            const built = fs.readFileSync(path.join(WORK, o.png.find((p) => String(p.px) === px).file));
+            const repo = path.join(ROOT, dest);
+            if (check) {
+                const same = fs.existsSync(repo) && Buffer.compare(built, fs.readFileSync(repo)) === 0;
+                if (!same) { differences++; console.log(`✖ ${dest} is not the pipeline's ${px} px export`); }
+            } else {
+                fs.writeFileSync(repo, built);
+            }
+        }
         console.log(`${check ? '✔ checked' : '✔ built'} ${asset.id}`);
     }
 }

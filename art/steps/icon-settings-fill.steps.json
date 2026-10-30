@@ -1,0 +1,40 @@
+[
+ {
+  "command": "select.all",
+  "params": {}
+ },
+ {
+  "command": "document.save",
+  "params": {
+   "path": "C:/vp-art/art/vc/icon-settings-fill.vectorcraft"
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/icon/icon-settings-fill.svg",
+   "format": "svg",
+   "decimals": 2,
+   "outlineText": true,
+   "minify": true,
+   "objectIds": "minimal",
+   "metadata": false
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/icon/icon-settings-fill-50.png",
+   "format": "png",
+   "scale": 2.0833333333333335
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/icon/icon-settings-fill-75.png",
+   "format": "png",
+   "scale": 3.125
+  }
+ }
+]

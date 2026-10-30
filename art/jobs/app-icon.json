@@ -1,0 +1,72 @@
+{
+ "about": "C3: the iOS app icon from the Same Page mark (owner's pick, option C) in its light, dark and tinted appearances, 1024 px, opaque RGB; and the static splash mark (HIG review H-2: the animation never plays at launch).",
+ "assets": [
+  {
+   "id": "app-icon-light",
+   "src": "art/src/app-icon/icon-light.svg",
+   "kind": "logo",
+   "png": [
+    1024,
+    180,
+    120,
+    87,
+    80,
+    60,
+    40,
+    29,
+    20
+   ],
+   "ship": {
+    "1024": "assets/images/ios-icon-light.png"
+   }
+  },
+  {
+   "id": "app-icon-dark",
+   "src": "art/src/app-icon/icon-dark.svg",
+   "kind": "logo",
+   "png": [
+    1024,
+    180,
+    60
+   ],
+   "ship": {
+    "1024": "assets/images/ios-icon-dark.png"
+   }
+  },
+  {
+   "id": "app-icon-tinted",
+   "src": "art/src/app-icon/icon-tinted.svg",
+   "kind": "logo",
+   "png": [
+    1024,
+    180,
+    60
+   ],
+   "ship": {
+    "1024": "assets/images/ios-icon-tinted.png"
+   }
+  },
+  {
+   "id": "splash-mark-light",
+   "src": "art/src/splash/splash-mark-light.svg",
+   "kind": "logo",
+   "png": [
+    1024
+   ],
+   "ship": {
+    "1024": "assets/images/splash-mark-light.png"
+   }
+  },
+  {
+   "id": "splash-mark-dark",
+   "src": "art/src/splash/splash-mark-dark.svg",
+   "kind": "logo",
+   "png": [
+    1024
+   ],
+   "ship": {
+    "1024": "assets/images/splash-mark-dark.png"
+   }
+  }
+ ]
+}

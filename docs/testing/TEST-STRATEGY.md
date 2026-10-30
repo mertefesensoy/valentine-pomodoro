@@ -39,7 +39,7 @@ How we know the app works, and which checks must pass before work counts as done
 
 Native modules have no Node implementation; [`jest.setup.ts`](../../jest.setup.ts) replaces each with the smallest stub the app needs. The rules:
 
-- Mock at the package boundary, never the app's own modules. The exceptions, each commented where it is: the airport asset reader (B1b), which reads the real file from disk; `FlyModeScreen` in `flyLazyLoad`, to observe when it loads; `useUpdateCheck` in the perf tests; pass-through counting wrappers (`useTimer` in `timerScreenCommits`); and `AdPolicy`/`AdManager` in `timerScreenOverlays` (B5), which tests when the screen asks for an ad, not the policy's caps.
+- Mock at the package boundary, never the app's own modules. The exceptions, each commented where it is: the airport asset reader (B1b), which reads the real file from disk; `FlyModeScreen` in `flyLazyLoad`, to observe when it loads; `useUpdateCheck` in the perf tests; pass-through counting wrappers (`useTimer` in `timerScreenCommits`); `AdPolicy`/`AdManager` in `timerScreenOverlays` (B5), which tests when the screen asks for an ad, not the policy's caps; `appStorage` in `deferredStartup.test.ts`, which gives every simulated launch the same react-native-mmkv mock instance so stored values outlive `jest.resetModules()` (B7); and `react`, pinned with `jest.doMock` in `useUpdateCheck.test.tsx`, so the hook loaded after a module reset renders with RNTL's React (B7).
 - **Jest compiles app code with the React Compiler exactly when `app.json` does** (`jest.babelTransformer.js`, B5; [ADR-0041](../architecture/adr/0041-react-compiler-on.md)). Test files, fixtures, mocks and `jest.setup.ts` are not compiled. Reanimated's mock returns a new `useDerivedValue` object each render, so a compiled screen can re-render a child in Jest that it would skip on a phone: counts under Jest are an upper bound.
 - **Every mock carries a comment saying why.** Workarounds for upstream bugs (the Reanimated 4.7.1 `setCSSEventHandler` stub) say to remove them on the next upgrade.
 - Time is faked with modern fake timers, which also fake `Date.now()`, so clock math and intervals move together. RNTL 14's `render`, `renderHook` and `act` are async and always awaited.
@@ -59,6 +59,9 @@ Native modules have no Node implementation; [`jest.setup.ts`](../../jest.setup.t
 | `src/components/__tests__/reactCompiler.test.tsx` | Jest runs app code compiled exactly when `app.json` turns the React Compiler on (NFR-PERF-003) | Every Expo or Jest upgrade |
 | `src/stores/__tests__/clockStore.test.tsx`, `src/utils/__tests__/clockMath.test.ts` | One notification per displayed second, ε after the boundary; none while paused; completion once (FR-TMR-005, FR-TMR-006; plan §4.2 as corrected in B4) | Phase 3's engine replacement |
 | `src/hooks/__tests__/useSlotClock.test.tsx` | Slot SharedValues written in the store's `set()`, not an effect; the ring's UI-thread path ≡ the render-time formula (FR-TMR-003) | Any ring or Fly animation change |
+| `src/__tests__/router.test.tsx` | Deep links open each tab (FR-NAV-001); hidden tabs commit nothing and catch up on return, and the router's `NavigationContext` reaches a frozen screen (NFR-PERF-003, B4 §3.5); the tab haptic follows the setting (FR-SET-001); a notification tap opens Timer (FR-NTF-003). Mutation-checked in B6 | Any change to `app/`, the tab navigator or `FreezeOnBlur`; every Expo Router upgrade |
+| `src/startup/__tests__/deferredStartup.test.ts` | Deferred start-up work waits for the first frame, falls back after 2 s, and runs at once in the eager arm; the probe's TTI mark comes before the work (NFR-PERF-001; B7, mutation-checked) | Any change to the root layout or the start-up order |
+| `src/ads/__tests__/adReadiness.test.ts`, `src/hooks/__tests__/useUpdateCheck.test.tsx` | With start-up work deferred, the interstitial is ready by the 2nd completed session, and the update check runs once per launch and at once when forced (FR-ADS-001, FR-UPD-001; B7, mutation-checked) | Phase 5's ads rewrite; any change to the start-up order |
 
 The first three were mutation-checked when written (Phase 0 doc §3.2, Stage A doc §3.1).
 
@@ -100,6 +103,8 @@ node scripts/docs/check-docs.mjs  # docs links, IDs, backlinks, traceability
 - [Documentation map](../README.md)
 - [Architecture — Valentine Pomodoro (as built, and the v2 target)](../architecture/ARCHITECTURE.md)
 - ["Phase 1 B5: the React Compiler on, its lint rules back to error"](../implementations/2026-10-30-phase1-b5-react-compiler.md)
+- ["Phase 1 B6: Expo Router with native tabs"](../implementations/2026-10-30-phase1-b6-expo-router.md)
+- ["Phase 1 B7: deferred start-up work, and an on-device TTI probe"](../implementations/2026-10-30-phase1-b7-deferred-startup.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Release process](../process/RELEASE.md)
 - [Evaluation — xtool (cross-platform Xcode replacement) vs staying on Expo/EAS](../proposals/xtool-evaluation.md)

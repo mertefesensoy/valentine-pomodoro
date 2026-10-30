@@ -38,6 +38,8 @@ Around them are a daily goal and streak, love notes, a daily reminder, a first-r
 
 ### 1.3 Work in progress (Phase 1 Stage B), not described as done
 
+> **Update, 2026-10-30 (B6 and B7):** B6 and B7 are merged into `rehaul/v2`: B6 as `1b7a8d7` (`a736b22`, `65fa2ea`, `62fef2e`; [B6 record](../implementations/2026-10-30-phase1-b6-expo-router.md), [ADR-0043](adr/0043-native-tabs-frozen-by-a-wrapper.md)), then B7 as `3d3fbaf` (`6ab3953`…`e0e8f26`; [B7 record](../implementations/2026-10-30-phase1-b7-deferred-startup.md)). Expo Router 58 replaces `src/navigation/`: `index.tsx` imports `expo-router/entry`; `app/_layout.tsx` renders `App` (`src/App.tsx`) around a native stack with `(tabs)` and `+not-found`; `app/(tabs)/_layout.tsx` is the iOS native tab bar. Each tab route renders its screen inside `FreezeOnBlur`, which keeps hidden tabs frozen and lazy. Screens lay out by safe-area insets; the router vendors React Navigation, and the `@react-navigation/*` packages are gone. §5.3 below is current; §5.2 still describes the pre-B6 `App.tsx`. Since B7, `AdManager.init()` and the launch update check wait for the root's first layout (`onLayout={markFirstFrame}` on `App()`'s `GestureHandlerRootView`) and then run in one idle callback (`src/startup/deferredStartup.ts`).
+
 > **Update, 2026-10-30 (B4):** B4 landed, pushed through `178b4ba`, as `b7461f1`, `43cf1a8`, `e9df252`, `040ad32` and `b838ebe` ([B4 record](../implementations/2026-10-30-phase1-b4-rerender-refactor.md)). The F1 chain of §8.1 is gone: the session store has no `tick`, and the engine has no interval. A clock store (`src/stores/clockStore.ts`, `useSyncExternalStore`) samples the wall clock and notifies only when the running slot's displayed second changes. Its scheduler wakes $(r \bmod 1000) + 4$ ms after each sample and also detects completion. Only `<TimerText>` subscribes in the app. The ring's progress is derived on the UI thread from slot SharedValues written in the store's `set()`; Fly's clock SharedValues come from the same hook. Hidden tabs are frozen (`freezeOnBlur`). While a session runs, the Timer screen commits only its `<TimerText>`, once a second. §5, §6.1 and §8.1 below still describe the chain as it was.
 >
 > **Update, 2026-10-30 (B3):** B3 landed locally as `71d836f`, `ca21ef0`, `7863e50` and `e04cc8c` ([B3 record](../implementations/2026-10-30-phase1-b3-zustand-stores.md)). `AppContext` (§5.4) is deleted: five Zustand stores in `src/stores/` hold the state, hydrated synchronously by `StoreGate`, and every consumer reads them through selectors. The clock's ticker now lives in `useSessionClockEngine`, and `useSessionClock` is a read-only facade. The F1 chain of §8.1 still exists, but only the time displays follow it now. R1, R2, R3 and R5 (§11.2) are fixed. §5 and §8 below still describe `5b10a78`.
@@ -196,16 +198,19 @@ flowchart TD
   - `Notifications.setNotificationHandler`, which shows banners and the list but plays no sound (`:26–34`)
   - `SplashScreen.preventAutoHideAsync()` (`:36`)
 - **Provider order** (`:93–103`): `GestureHandlerRootView` → `SafeAreaProvider` → `AppProvider` → `ThemedApp`.
-- **`ThemedApp`** (`:39–91`) is a context consumer through `useTheme()` (`:40`). It runs `useUpdateCheck` (`:45`), calls `AdManager.init()`, adds the notification-tap listener that navigates to `HomeTabs › Timer` (`:48–64`), renders `Navigation` with the `valentinepomodoro://` prefix (`:71–83`) and shows `GiftModeModal` on first launch (`:86–88`).
+- **`ThemedApp`** (`:39–91`) is a context consumer through `useTheme()` (`:40`). It runs `useUpdateCheck` (`:45`), calls `AdManager.init()` (since B7, it and the update check defer their work until after the first frame: `src/startup/deferredStartup.ts`), adds the notification-tap listener that navigates to `HomeTabs › Timer` (`:48–64`), renders `Navigation` with the `valentinepomodoro://` prefix (`:71–83`) and shows `GiftModeModal` on first launch (`:86–88`).
 - **The splash hides in `onReady`** (`:80–82`): when navigation is ready, not when storage has loaded. So the first frame shows default values until each hook's load resolves.
 
 ### 5.3 Navigation
 
-`src/navigation/index.tsx` builds a static React Navigation 7 tree: a native stack (`HomeTabs`, plus `NotFound` on `*`) around a bottom-tab navigator with `Timer`, `Stats`, `Settings` and `LoveNotes` (`:16–85`).
+Expo Router 58 (file routes in `app/`; [ADR-0028](adr/0028-expo-router.md), [ADR-0043](adr/0043-native-tabs-frozen-by-a-wrapper.md)).
 
-- Tabs use `HapticTab`, and an absolute blur background on iOS (`:51–62`).
-- Tabs mount when first visited (React Navigation's default) and then stay mounted.
-- Freezing hidden tabs (`freezeOnBlur`) is not set anywhere in `src/` at HEAD.
+- **Routes:** `app/_layout.tsx` renders `App` from `src/App.tsx` around a native `Stack` holding `(tabs)` and `+not-found`. `app/(tabs)/` holds `index` (Timer, Classic with the Fly switch), `stats`, `settings` and `notes`. URLs: `/`, `/stats`, `/settings`, `/notes`; the `valentinepomodoro://` scheme maps onto them (FR-NAV-001), and any other path is the 404.
+- **The tab bar** is the iOS native one (`expo-router/native-tabs`, a `UITabBarController`), with SF Symbols typed against `IconSymbol`'s mapping. No switch animation. Its `tabPress` listener plays the haptic when Haptics is on (`tabPressHaptic.ts`, DEF-007).
+- **Frozen, lazy tabs:** native tabs mount every tab at launch and never freeze, so each tab route renders its screen inside `FreezeOnBlur` (react-freeze, keyed on `useIsFocused`). A hidden tab stays mounted and keeps its effects; it renders nothing until shown again, and a tab never opened is never rendered.
+- **Safe areas:** each tab has its own `SafeAreaProvider` whose bottom inset includes the bar. Timer pads by it; Stats, Settings and Notes rely on their `SafeAreaView`; the Fly sheet reads the window's inset through `useWindowInsets()`. Every tab sets `disableAutomaticContentInsets`.
+- **One copy of React Navigation:** the router vendors it. `useSlotClock` reads `NavigationContext` from `expo-router/react-navigation`; nothing imports `@react-navigation/*`.
+- **The splash** stays up until `ThemedApp` (below `StoreGate`) has mounted; the router's own hide is blocked by the public `preventAutoHideAsync()`.
 
 ### 5.4 `AppContext`
 
@@ -303,7 +308,7 @@ stateDiagram-v2
 | `useLoveNotes` | → `{ notes, count, isReady, addNote, editNote, deleteNote, resetToDefaults, pickRandomNote }`. Notes are trimmed with whitespace collapsed, and exact duplicates are dropped. A stored empty array falls back to the defaults (`:31`). The anti-repeat pick takes the next index (FR-NTE-001). | `useLoveNotes.ts:10–112` |
 | `useReminder` | → `{ reminder, isReady, enableDailyReminder, disableDailyReminder, setReminderTimeHHMM, setQuietHours }`. Schedules a DAILY calendar trigger, moved out of quiet hours (FR-NTF-002). Reschedules when the time or the quiet hours change while enabled. A scheduling failure leaves it disabled. Off on web. | `useReminder.ts:19–194`; `utils/notifications.ts:19–110` |
 | `useNotifications` | → `{ ensurePermissions, scheduleSessionEnd(endAtMs, title, body), cancelScheduled(id) }`. Asks permission on first use and creates the Android channel `timer`. Returns `null` for an end within 250 ms or when permission is denied. Cancel ignores ids that are gone. | `useNotifications.ts:5–56` |
-| `useUpdateCheck` | `(updateJsonUrl)` → `{ checkForUpdates({ force? }) }`. Runs once per process on mount (§3). | `useUpdateCheck.ts:68–123` |
+| `useUpdateCheck` | `(updateJsonUrl)` → `{ checkForUpdates({ force? }) }`. Runs once per process, after the first frame (B7; §3). | `useUpdateCheck.ts:68–123` |
 | `useGiftMode` | → `{ hasSeenGiftMode, isReady, dismiss }`. Defaults to "seen" until loaded, so the modal doesn't flash. | `useGiftMode.ts:5–37` |
 | `useFlyModeAudio` | `(soundKey, active, enabled)`. Loops `fly-ambient.m4a` while both flags are true. Sets the audio mode so it plays in silent mode and mixes with other audio. Releases the player on unmount. | `useFlyModeAudio.ts:39–83` |
 | `useResponsive` | → `{ width, height, isLandscape, isTablet (narrow side ≥ 600), isShortViewport (height < 500) }` | `useResponsive.ts:16–25` |
@@ -609,6 +614,8 @@ Every value lives in AsyncStorage as JSON text, one key per concern. `storage.ts
 | `session_clock` | `SESSION_CLOCK` | `SessionClockState` | `useSessionClock` `:127` / `:100` | Written on every commit, so every action |
 | `fly_prefs` | `FLY_PREFS` | `{ cameraMode, isGlobe }`, inline (`FlyPrefs` in the fixture) | `FlyModeScreen` `:232` / `:242` | An invalid `cameraMode` falls back to `followPlane` |
 | `ad_policy_v1` | none (`AdPolicy.ts:3`) | `AdState` | `AdPolicy` `:30` / `:90` | **Bypasses `storage.ts`** |
+| `startup_variant_v1` | `STARTUP_VARIANT_KEY` (`src/startup/startupVariant.ts`) | `{ mode: 'deferred' \| 'eager' \| 'alternate', last: 'deferred' \| 'eager' \| null }` | `startupVariant` / the hidden panel, and `alternate` launches | Diagnostics (B7). Written only once the panel has been opened |
+| `startup_probe_v1` | `STARTUP_PROBE_KEY` (`src/startup/startupProbe.ts`) | `ProbeRow[]`, newest 40 | `startupProbe` | Diagnostics (B7). Written only once the panel has been opened; leaves the phone only through the panel's Share |
 
 - The keys are listed in `src/utils/storage.ts:48–61`, except `ad_policy_v1`.
 - `src/__fixtures__/storage/v131.ts` freezes every shape, typed against the readers, so `tsc` fails if one drifts (FR-MIG-001).
@@ -765,8 +772,8 @@ The re-render fix is plan §4.5: the clock store, UI-thread rings, store selecto
 | Phase 1 B3 | Zustand stores (settings, notes, stats, session/clock, UI), hydrated synchronously; `AppContext` becomes a shim, then is deleted | `AppProvider` and the five hosted hooks | **Done** (`71d836f`…`e04cc8c`), pushed; device check passed on TestFlight build 44 |
 | Phase 1 B4 (gated) | `clockStore` with `useSyncExternalStore`, and only `<TimerText>` subscribes; rings driven from `endAt` by SharedValues; `setDisplayTick` removed; `freezeOnBlur` | The re-render chain (§8.1); the React-rendered `CircularProgress` | **Done** (`b7461f1`…`b838ebe`), pushed; guards green and mutation-checked; device check passed (TestFlight build 45) |
 | Phase 1 B5 | The React Compiler on; the lint rules back to `error`; Jest compiles app code as Metro does (`jest.babelTransformer.js`) | The rules at `warn` (`eslint.config.js`); uncompiled components | **Done** (`10811ce`…`6395aee`), pushed; device check passed (TestFlight build 45) |
-| Phase 1 B6 | Expo Router: `app/(tabs)/index`, `stats`, `settings`, `notes`, `+not-found`; the scheme is kept | `src/navigation/` | Not started |
-| Phase 1 B7 | `AdManager.init`, the update check and the audio preload deferred until after the first frame | `App.tsx:45,48–50` | Not started |
+| Phase 1 B6 | Expo Router: `app/(tabs)/index`, `stats`, `settings`, `notes`, `+not-found`; the iOS native tab bar; hidden tabs frozen by `FreezeOnBlur`; the scheme is kept | `src/navigation/` | **Done**, merged as `1b7a8d7` (`a736b22`…`62fef2e`); device check on the B6+B7 TestFlight build |
+| Phase 1 B7 | `AdManager.init` and the launch update check run after the first frame (`src/startup/`); audio had no cold-start work left after B1 | The mount-effect calls in `ThemedApp` | **Done**, merged as `3d3fbaf` (`6ab3953`…`e0e8f26`); TTI measured on the B6+B7 TestFlight build |
 | Phase 1 C–E | Tokens and the contrast script; the display face; VectorCraft icons and mascots; Classic rebuilt with presets; emoji → icons; EN/TR; SoundCraft sounds; on-device migration check | `tokens.ts`, emoji labels, the default notes, the missing sound | Not started |
 | Phase 2 | Supabase schema, RLS and pgTAP; anonymous auth, then Apple, Google or email; account deletion and export; local-to-cloud upload; invites and the website `/invite`; Sentry and `events`; TanStack Query | "Local only"; the README claim | Planned |
 | Phase 3 | The shared session engine: RPCs, the completion worker, pushes, credits, clock offset, presence, the offline queue, cheers, partner notes, the couple streak | The two-slot `useSessionClock` and on-device-only credit | Planned |

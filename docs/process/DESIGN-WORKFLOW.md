@@ -81,6 +81,8 @@ A new tension gets a row here, or an ADR if it is structural.
 - [Changelog](../../CHANGELOG.md)
 - [Documentation map](../README.md)
 - [Design work runs on Impeccable, the Apple HIG skill and Emil Kowalski's skills, in a fixed precedence](../architecture/adr/0042-design-skill-stack.md)
+- [Native tabs, frozen by a route wrapper, laid out by safe-area insets](../architecture/adr/0043-native-tabs-frozen-by-a-wrapper.md)
 - [Design skills — Apple HIG skill and the full Emil Kowalski pack](../implementations/2026-10-30-design-skills.md)
+- ["Phase 1 B6: Expo Router with native tabs"](../implementations/2026-10-30-phase1-b6-expo-router.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

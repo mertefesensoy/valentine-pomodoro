@@ -18,6 +18,7 @@ import GiftModeModal from './components/GiftModeModal';
 import { StoreGate } from './stores/StoreGate';
 import { useUiStore } from './stores/uiStore';
 import { AdManager } from './ads/AdManager';
+import { markFirstFrame } from './startup/deferredStartup';
 
 // GitHub Pages URL for update.json
 const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
@@ -44,7 +45,7 @@ function ThemedApp({ children }: { children: React.ReactNode }) {
   const hasSeenGiftMode = useUiStore((s) => s.hasSeenGiftMode);
   const dismissGiftMode = useUiStore((s) => s.dismissGiftMode);
 
-  // Start-up work (B7 defers this)
+  // Start-up work: each call waits for the first frame itself (Phase 1 B7)
   useUpdateCheck(UPDATE_JSON_URL);
   React.useEffect(() => {
     AdManager.init();
@@ -92,7 +93,8 @@ function ThemedApp({ children }: { children: React.ReactNode }) {
  */
 export function App({ children }: { children: React.ReactNode }) {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    // The root's first layout releases the deferred start-up work (Phase 1 B7)
+    <GestureHandlerRootView style={{ flex: 1 }} onLayout={markFirstFrame}>
       <SafeAreaProvider>
         <WindowInsetsProvider>
           <StoreGate>

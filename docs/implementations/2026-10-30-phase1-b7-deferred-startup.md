@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-29-phase1-b1-lazy-fly-mode, 
 
 # 2026-10-30 — Phase 1 B7: deferred start-up work, and an on-device TTI probe
 
-**Status:** Code done and verified locally, in four code commits after the plan commit (§2). **Not merged, not pushed.** The done-criterion, cold-start TTI measured on the iPhone before and after, waits for the one TestFlight build that carries B6 and B7 (§6.5–6.6).
+**Status:** Code done and verified locally, in four code commits after the plan commit (§2). **Merged into `rehaul/v2` on 2026-10-30 as `3d3fbaf`, after B6 (`1b7a8d7`), with `onLayout={markFirstFrame}` on `App()`'s root view in `src/App.tsx` (§3.6); not pushed yet.** The done-criterion, cold-start TTI measured on the iPhone before and after, waits for the one TestFlight build that carries B6 and B7 (§6.5–6.6).
 **Branch:** `phase1/b7-deferred-startup` (worktree `C:\vp\b7`, cut from `rehaul/v2` at `7034bba`). The parent session merges it after B6 (Expo Router) and adds one call (§3.6).
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md), task B7.
 
@@ -331,8 +331,8 @@ TBD (you, on the B6+B7 TestFlight build): device, iOS version, build, then per a
 
 **Your decisions (none blocks the merge):**
 
-1. **Does the panel ship in the App Store release?** It is invisible without the long-press, writes nothing until it is opened, and sends nothing anywhere: harmless for users and App Review. It is also E3's tool for the Phase 1 TTI measurement. **Recommendation:** keep it through E3, then decide at E4 whether to remove `HiddenStartupDiagnostics` from Settings (one wrapper and one import; the scheduler stays either way).
-2. **How NFR-PERF-001's 1.0 s is read.** The only TTI this build can measure starts at the JS bundle's start (§4.1). The time before it, from the tap through process start and the native React host to Hermes, isn't visible without Instruments, so without a Mac. **Recommendation:** amend NFR-PERF-001's Verify line to define this interval (proposed text below), and keep the 1.0 s target for it.
+1. **Does the panel ship in the App Store release?** It is invisible without the long-press, writes nothing until it is opened, and sends nothing anywhere: harmless for users and App Review. It is also E3's tool for the Phase 1 TTI measurement. **Recommendation:** keep it through E3, then decide at E4 whether to remove `HiddenStartupDiagnostics` from Settings (one wrapper and one import; the scheduler stays either way). **Open:** the panel stays in the TestFlight builds through E3, and you decide at E4.
+2. **How NFR-PERF-001's 1.0 s is read.** The only TTI this build can measure starts at the JS bundle's start (§4.1). The time before it, from the tap through process start and the native React host to Hermes, isn't visible without Instruments, so without a Mac. **Recommendation:** amend NFR-PERF-001's Verify line to define this interval (proposed text below), and keep the 1.0 s target for it. **Decided 2026-10-30: yes.** The SRS text below was applied at the merge.
 
 **Findings:**
 
@@ -340,7 +340,7 @@ TBD (you, on the B6+B7 TestFlight build): device, iOS version, build, then per a
 - **F2. The daily reminder is rescheduled on every launch when it is on** (`useReminderScheduler` in `StoreGate`: a permission read, a cancel and a schedule, all native and async). It is functional B3 code (FR-NTF-002) outside B7's file boundary. A later task can register it with `runAfterFirstFrame` too.
 - **F3. In RN 0.88 bridgeless, `requestAnimationFrame` is `setTimeout(0)`** (`TimerManager.cpp`). Code that expects rAF to wait for a frame doesn't get that. Nothing in the app relies on it today (the animations run on the UI thread through Reanimated).
 - **F4. `requestIdleCallback`'s `timeout` means 10 s + timeout** in RN 0.88 (`getResolvedTimeoutForIdleTask`). Anyone using it with a timeout should know this.
-- **F5. On this branch alone, every deferred launch takes the 2 s fallback,** because `markFirstFrame()` is wired at merge (§3.6). Ads and the update check work either way; only the measurement needs the wiring.
+- **F5. On this branch alone, every deferred launch takes the 2 s fallback,** because `markFirstFrame()` is wired at merge (§3.6). Ads and the update check work either way; only the measurement needs the wiring. Wired at the merge (§3.6).
 
 ## 8. Related Docs
 
@@ -446,5 +446,10 @@ In the Stage B tests bullet, before "Jest runs 134 tests in 26 suites at B5", ad
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Documentation map](../README.md)
+- [Architecture — Valentine Pomodoro (as built, and the v2 target)](../architecture/ARCHITECTURE.md)
+- [2026-10-29 — Phase 1 (v1.4): design system and local re-architecture, plan](2026-10-29-phase1-plan.md)
+- [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
+- [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

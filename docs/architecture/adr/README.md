@@ -13,12 +13,12 @@ One record per significant decision, in the order the decisions were made. [ADR-
 
 Two rules for reading the statuses:
 - **`accepted`** means the decision is made: the owner decided it or approved the plan containing it, whether or not it is built yet. Each record's status note says whether it is built. **`proposed`** is a recommendation not yet decided.
-- **A record is `superseded` only once its successor is built.** Until then the old record stays `accepted` and names its successor in a status note, as the v1 decisions do. The first superseded record is ADR-0035, by ADR-0041 (Phase 1 B5).
+- **A record is `superseded` only once its successor is built.** Until then the old record stays `accepted` and names its successor in a status note, as the v1 decisions do. The first superseded record is ADR-0035, by ADR-0041 (Phase 1 B5). ADR-0002 followed, by ADR-0028 (Phase 1 B6).
 
 | ID | Title | Status | Date |
 |----|-------|--------|------|
 | [ADR-0001](0001-record-architecture-decisions.md) | Record architecture decisions | accepted | 2026-10-30 |
-| [ADR-0002](0002-react-navigation-template.md) | React Navigation bottom tabs from the `with-react-navigation` template | accepted | 2026-01-07 |
+| [ADR-0002](0002-react-navigation-template.md) | React Navigation bottom tabs from the `with-react-navigation` template | superseded by ADR-0028 | 2026-01-07 |
 | [ADR-0003](0003-expo-audio.md) | expo-audio for sound, not expo-av | accepted | 2026-01-07 |
 | [ADR-0004](0004-timestamp-based-timer.md) | Timestamp-based timer | accepted | 2026-01-07 |
 | [ADR-0005](0005-notification-id-tracking.md) | Track and cancel only the session's own notification | accepted | 2026-01-07 |
@@ -59,6 +59,7 @@ Two rules for reading the statuses:
 | [ADR-0040](0040-docs-as-code-generated-backlinks.md) | Docs as code, with generated backlinks and traceability | accepted | 2026-10-30 |
 | [ADR-0041](0041-react-compiler-on.md) | The React Compiler is on, and Jest compiles app code the way Metro does | accepted | 2026-10-30 |
 | [ADR-0042](0042-design-skill-stack.md) | Design work runs on Impeccable, the Apple HIG skill and Emil Kowalski's skills, in a fixed precedence | accepted | 2026-10-30 |
+| [ADR-0043](0043-native-tabs-frozen-by-a-wrapper.md) | Native tabs, frozen by a route wrapper, laid out by safe-area insets | accepted | 2026-10-30 |
 
 **Where the decisions come from:**
 - **v1 (2026-01-07):** [`DECISIONS.md`](../../../DECISIONS.md). Its open questions Q1–Q3 are answered in ADR-0003 and ADR-0027 (Q1), ADR-0008 (Q2) and ADR-0014 (Q3).

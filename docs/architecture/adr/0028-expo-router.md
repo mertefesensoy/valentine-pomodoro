@@ -51,8 +51,10 @@ The Phase 1 shape (task B6):
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Architecture — Valentine Pomodoro (as built, and the v2 target)](../ARCHITECTURE.md)
 - [React Navigation bottom tabs from the with-react-navigation template](0002-react-navigation-template.md)
 - [Native tabs, frozen by a route wrapper, laid out by safe-area insets](0043-native-tabs-frozen-by-a-wrapper.md)
 - [Architecture decision records](README.md)
 - ["Phase 1 B6: Expo Router with native tabs"](../../implementations/2026-10-30-phase1-b6-expo-router.md)
+- [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../../srs/SRS.md)
 <!-- backlinks:end -->

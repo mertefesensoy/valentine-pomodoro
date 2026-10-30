@@ -327,6 +327,8 @@ B3 has no native change, so it could have waited and gone into one build with B4
 - ["Phase 1 B2: MMKV and the one-time AsyncStorage migration"](2026-10-29-phase1-b2-mmkv-migration.md)
 - [2026-10-29 — Phase 1 (v1.4): design system and local re-architecture, plan](2026-10-29-phase1-plan.md)
 - ["Phase 1 B4: the re-render refactor (clock store, UI-thread ring, frozen tabs)"](2026-10-30-phase1-b4-rerender-refactor.md)
+- ["Phase 1 B6: Expo Router with native tabs"](2026-10-30-phase1-b6-expo-router.md)
+- ["Phase 1 B7: deferred start-up work, and an on-device TTI probe"](2026-10-30-phase1-b7-deferred-startup.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)

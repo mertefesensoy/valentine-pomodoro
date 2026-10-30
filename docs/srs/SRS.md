@@ -192,6 +192,7 @@ These were rejected in the [rehaul plan §3.5](../implementations/2026-10-29-cou
 | Modes | `MOD` |
 | Monetization | `MON` |
 | Web | `WEB` |
+| Navigation and deep links | `NAV` |
 
 NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PORT`.
 
@@ -321,7 +322,7 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 
 #### FR-NTF-003
 **Statement:** Tapping a notification shall open the Timer tab.
-**Pri:** Should · **Target:** v1 · **Status:** implemented · **Verify:** D
+**Pri:** Should · **Target:** v1 · **Status:** implemented · **Verify:** T: `src/__tests__/router.test.tsx` (since B6); D: [B6 §6.6](../implementations/2026-10-30-phase1-b6-expo-router.md), item 7
 
 #### FR-NTF-004
 **Statement:** In a shared session, the session-end alert and the partner's pause, resume and skip events shall reach both phones as server pushes, so a sleeping phone never shows a stale local alert.
@@ -457,7 +458,7 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 
 #### FR-UPD-001
 **Statement:** Once per cold launch, the app shall check for a newer store version: iTunes Lookup on iOS, `update.json` elsewhere. When the store version is newer, it shall show a dismissible prompt, at most once per version.
-**Pri:** Should · **Target:** v1 · **Status:** implemented · **Verify:** I: `useUpdateCheck.ts` · **Source:** [update check](../implementations/2026-04-17-app-store-update-check.md)
+**Pri:** Should · **Target:** v1 · **Status:** implemented · **Verify:** I: `useUpdateCheck.ts`; T: `src/hooks/__tests__/useUpdateCheck.test.tsx` (since Phase 1 B7 the launch check runs after the first frame, still once per cold launch; the forced check runs at once) · **Source:** [update check](../implementations/2026-04-17-app-store-update-check.md)
 
 #### 3.2.8 Ads (ADS)
 
@@ -470,7 +471,7 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 
 **Pri:** Must · **Target:** v1 (rules 1–3), Phase 5 (rule 4) · **Status:** implemented / planned
 **Known deviation:** DEF-006; see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
-**Verify:** I: `src/ads/AdPolicy.ts`; T: rule 3 on Classic, `src/screens/__tests__/timerScreenOverlays.test.tsx` (Phase 1 B5); T (Phase 5) · **Source:** PLAN-REHAUL §8.7
+**Verify:** I: `src/ads/AdPolicy.ts`; T: rule 3 on Classic, `src/screens/__tests__/timerScreenOverlays.test.tsx` (Phase 1 B5); T: `src/ads/__tests__/adReadiness.test.ts` (the interstitial is loaded by the 2nd completed session after B7's deferred start); T (Phase 5) · **Source:** PLAN-REHAUL §8.7
 
 #### FR-ADS-002
 **Statement:** No ad request shall be made before Google UMP consent is resolved in the EEA, the UK and Switzerland. Non-personalised ads shall be served when consent is declined.
@@ -637,19 +638,26 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 
 **Pri:** Must · **Target:** Phase 2/6 · **Status:** planned
 
+#### 3.2.17 Navigation (NAV)
+
+#### FR-NAV-001
+**Statement:** A `valentinepomodoro://` link shall open its tab: `valentinepomodoro://` Timer, `valentinepomodoro://stats` Stats, `valentinepomodoro://settings` Settings and `valentinepomodoro://notes` Notes, whether the link launches the app or arrives while it runs. Any other path shall open a not-found screen with a link to Timer.
+**Pri:** Should · **Target:** Phase 1 (B6) · **Status:** implemented (B6, `a736b22`, merged as `1b7a8d7`; device check on the B6+B7 TestFlight build pending)
+**Verify:** T: `src/__tests__/router.test.tsx` (each URL cold and warm, through the router's own URL parsing); D: [B6 §6.6](../implementations/2026-10-30-phase1-b6-expo-router.md), item 6 · **Source:** PLAN-PHASE1 B6, [ADR-0028](../architecture/adr/0028-expo-router.md)
+
 ### 3.3 Non-functional requirements
 
 #### NFR-PERF-001
 **Statement:** Cold-start time-to-interactive shall be ≤ 1.0 s on an iPhone 12-class device.
-**Target:** Phase 1 E3 · **Status:** planned (baseline TBD) · **Verify:** D, measured on a TestFlight build · **Source:** PLAN-REHAUL §6.2
+**Target:** Phase 1 E3 · **Status:** planned (baseline TBD: the B6+B7 TestFlight build measures it with the B7 probe) · **Verify:** D: the B7 start-up probe on a TestFlight build. TTI is the first idle moment after the root's first layout, in ms from the JS bundle's start (`executeJavaScriptBundleEntryPointStart`), the median of ≥ 12 clean cold starts; the owner set this reading of the 1.0 s target on 2026-10-30. The B7 before/after comparison uses the same moment measured from the probe's own start, which needs no native marker ([B7 record §4](../implementations/2026-10-30-phase1-b7-deferred-startup.md#4-mathematical--statistical-details)). The native time before the bundle starts isn't measured (no Mac for Instruments). T: `src/startup/__tests__/deferredStartup.test.ts`, `src/startup/__tests__/probeStats.test.ts`, `src/startup/__tests__/StartupDiagnostics.test.tsx` · **Source:** PLAN-REHAUL §6.2, PLAN-PHASE1 B7
 
 #### NFR-PERF-002
 **Statement:** The startup JavaScript (Hermes bytecode) shall be smaller than the SDK 58 baseline: iOS 3,856,208 B, measured with `npx expo export --platform ios --platform android --dump-sourcemap`.
-**Target:** Phase 1 · **Status:** implemented (met by B1b `0d63145`, held after B2 `dd1e894`: iOS 3,430,632 B, −11.0 % against the baseline; Android 3,518,464 B. Re-measured at E3 before release.) · **Verify:** A: the [B1b record](../implementations/2026-10-29-phase1-b1b-airports-asset.md) and the [B2 record](../implementations/2026-10-29-phase1-b2-mmkv-migration.md) bytecode tables · **Source:** [SDK 58 upgrade §6.1](../implementations/2026-10-29-expo-sdk-58-upgrade.md#61-local-gates-all-passed-at-every-step)
+**Target:** Phase 1 · **Status:** implemented (met by B1b `0d63145`, held after B2 `dd1e894`: iOS 3,430,632 B, −11.0 % against the baseline; Android 3,518,464 B. Re-measured at E3 before release. **Not met after B6** (2026-10-30): iOS 3,894,148 B, 37,940 B (0.98 %) over the baseline, all of it Expo Router ([B6 record §4.2](../implementations/2026-10-30-phase1-b6-expo-router.md#42-the-bytecode)); with B7 merged, 3,912,916 B (56,708 B, 1.47 % over). **Accepted for now by the owner, 2026-10-30, and revisited at E3** with B7's TTI numbers in hand (B6 §7.1, option a).) · **Verify:** A: the [B1b record](../implementations/2026-10-29-phase1-b1b-airports-asset.md) and the [B2 record](../implementations/2026-10-29-phase1-b2-mmkv-migration.md) bytecode tables · **Source:** [SDK 58 upgrade §6.1](../implementations/2026-10-29-expo-sdk-58-upgrade.md#61-local-gates-all-passed-at-every-step)
 
 #### NFR-PERF-003
 **Statement:** While a session runs, a component that doesn't display time shall not re-render. In the Reassure settings-only scenario, renders drop from 14 to ≤ 2, and the timer-text leaf renders once per displayed second.
-**Target:** Phase 1 B4 · **Status:** implemented (B3 brought the settings-only scenario to 1; B4, 2026-10-30, made `<TimerText>` the only per-second commit: the leaf renders 1 + its displayed changes, and the Timer screen re-renders only on session changes. Counts in the [B4 record §4.4](../implementations/2026-10-30-phase1-b4-rerender-refactor.md#44-render-counts-measured). B5, 2026-10-30, turned the React Compiler on with every count unchanged, and made Jest compile app code as the app does: [B5 record §4.3](../implementations/2026-10-30-phase1-b5-react-compiler.md#43-render-counts-measured). B4 and B5 passed their device check on TestFlight build 45, 2026-10-30.) · **Verify:** T: `src/context/__tests__/rerenders.perf-test.tsx`, `src/screens/__tests__/screens.perf-test.tsx`, `src/screens/__tests__/timerScreenCommits.test.tsx`, `src/components/__tests__/TimerText.test.tsx`, `src/components/__tests__/reactCompiler.test.tsx` · **Source:** PLAN-PHASE1 B4, B5
+**Target:** Phase 1 B4 · **Status:** implemented (B3 brought the settings-only scenario to 1; B4, 2026-10-30, made `<TimerText>` the only per-second commit: the leaf renders 1 + its displayed changes, and the Timer screen re-renders only on session changes. Counts in the [B4 record §4.4](../implementations/2026-10-30-phase1-b4-rerender-refactor.md#44-render-counts-measured). B5, 2026-10-30, turned the React Compiler on with every count unchanged, and made Jest compile app code as the app does: [B5 record §4.3](../implementations/2026-10-30-phase1-b5-react-compiler.md#43-render-counts-measured). B4 and B5 passed their device check on TestFlight build 45, 2026-10-30. B6, 2026-10-30, kept hidden tabs frozen under native tabs with a route wrapper (`FreezeOnBlur`), checked in Jest through the real tab navigator; every Reassure count unchanged.) · **Verify:** T: `src/context/__tests__/rerenders.perf-test.tsx`, `src/screens/__tests__/screens.perf-test.tsx`, `src/screens/__tests__/timerScreenCommits.test.tsx`, `src/components/__tests__/TimerText.test.tsx`, `src/components/__tests__/reactCompiler.test.tsx`, `src/__tests__/router.test.tsx` · **Source:** PLAN-PHASE1 B4, B5, B6
 
 #### NFR-PERF-004
 **Statement:** Animations shall hold ≥ 58 fps median on the slowest supported test device, with no frame over 32 ms during the completion moment.
@@ -754,10 +762,10 @@ These are places where the code at `5b10a78` doesn't fully meet a requirement ma
 | DEF-001 | FR-STA-001, FR-STA-002 | Fly Mode credits its minutes without the session's start day or id, so a Fly session that crosses midnight counts toward the wrong day, and a replayed completion isn't de-duplicated. | `FlyModeScreen.tsx:382` calls `stats.incrementFocus(minutes)`; Pomodoro passes both (`useTimer.ts:112`) | Medium | **Fixed** in Phase 1 B3 (`7863e50`) |
 | DEF-002 | FR-STA-002 | The de-duplication key `lastAppliedSessionId` isn't restored when stats load, so it only protects within one run. Across a restart, only the clock's `endAt` guard prevents a double credit. | `useStats.ts:118–145` rebuilds state without it | Low | **Fixed** in Phase 1 B3 (`71d836f`) |
 | DEF-003 | FR-STA-005 | The streak's "yesterday" is computed from the current date, not the credited day. A goal reached by a session that started before midnight and finished after it can reset the streak to 1. | `useStats.ts` (`yesterdayKeyDate = new Date()`), versus the credited `dayKey` | Low | **Fixed** in Phase 1 B3 (`7863e50`) |
-| DEF-004 | FR-TMR-005 | **Reproduced in Phase 1 B3, and wider than suspected:** a session of **either** kind that ends while the app is killed is cleared on relaunch with no credit. `NavigationContainer` renders nothing until `Linking.getInitialURL()` resolves (up to 150 ms), so the screens subscribe after the clock's cold-start completion has fired. Since B2's MMKV load (microtasks) this happens every time; on v1.3.1 it was a race. Affects TestFlight build 43. | `useSessionClock.ts` mount effect; React Navigation 7.5.1 `NavigationContainer.tsx:121–135`; B1 lazy load | **High** (since B2) | **Fixed** in Phase 1 B3 (`e04cc8c`): completions wait for a handler of their kind ([B3 §0](../implementations/2026-10-30-phase1-b3-zustand-stores.md)); device check passed on `v1.4.0-tf.44`, 2026-10-30 |
+| DEF-004 | FR-TMR-005 | **Reproduced in Phase 1 B3, and wider than suspected:** a session of **either** kind that ends while the app is killed is cleared on relaunch with no credit. `NavigationContainer` renders nothing until `Linking.getInitialURL()` resolves (up to 150 ms), so the screens subscribe after the clock's cold-start completion has fired. Since B2's MMKV load (microtasks) this happens every time; on v1.3.1 it was a race. Affects TestFlight build 43. | `useSessionClock.ts` mount effect; React Navigation 7.5.1 `NavigationContainer.tsx:121–135`; B1 lazy load | **High** (since B2) | **Fixed** in Phase 1 B3 (`e04cc8c`): completions wait for a handler of their kind ([B3 §0](../implementations/2026-10-30-phase1-b3-zustand-stores.md)); device check passed on `v1.4.0-tf.44`, 2026-10-30. Under Expo Router (B6) the iOS navigator no longer waits for the launch URL; the fix stays load-bearing for Fly's lazy load, deep-link launches into another tab, and Android ([B6 §3.7](../implementations/2026-10-30-phase1-b6-expo-router.md#37-def-004-under-expo-router)) |
 | DEF-005 | FR-NTF-001 | When scheduling the session-end notification takes more than 1 s, its id is dropped. That notification can't be cancelled, so a paused or skipped session may still alert. | `useTimer.ts:158–170` (`Promise.race` with a 1 s timeout) | Low–Medium | **Open.** Moved out of B3: it is notification scheduling, not store state. Not in B4, which doesn't touch scheduling. Slot TBD (owner); D1 rebuilds Classic's start path |
 | DEF-006 | FR-ADS-001 | The Stats screen shows an AdMob **banner** outside `AdPolicy`, including during a running session; the requirement covers interstitials only. | `StatsScreen.tsx:297` | Product decision | Phase 1 D2: keep it under the policy, or remove it |
-| DEF-007 | FR-SET-001 | The `sound` setting has no effect yet (sounds arrive in D4), and the tab bar's haptic ignores the Haptics setting. | `HapticTab.tsx`; no reader of `settings.sound` | Low | Phase 1 D4 (sound); haptics **fixed** in B3 (`ca21ef0`; device check passed on `v1.4.0-tf.44`, 2026-10-30) |
+| DEF-007 | FR-SET-001 | The `sound` setting has no effect yet (sounds arrive in D4), and the tab bar's haptic ignores the Haptics setting. | `tabPressHaptic.ts` (was `HapticTab.tsx`, until B6); no reader of `settings.sound` | Low | Phase 1 D4 (sound); haptics **fixed** in B3 (`ca21ef0`; device check passed on `v1.4.0-tf.44`, 2026-10-30) |
 
 ---
 
@@ -798,6 +806,8 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - ["Phase 1 B3: Zustand stores, hydrated synchronously from MMKV"](../implementations/2026-10-30-phase1-b3-zustand-stores.md)
 - ["Phase 1 B4: the re-render refactor (clock store, UI-thread ring, frozen tabs)"](../implementations/2026-10-30-phase1-b4-rerender-refactor.md)
 - ["Phase 1 B5: the React Compiler on, its lint rules back to error"](../implementations/2026-10-30-phase1-b5-react-compiler.md)
+- ["Phase 1 B6: Expo Router with native tabs"](../implementations/2026-10-30-phase1-b6-expo-router.md)
+- ["Phase 1 B7: deferred start-up work, and an on-device TTI probe"](../implementations/2026-10-30-phase1-b7-deferred-startup.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Documentation conventions](../process/DOCS.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)

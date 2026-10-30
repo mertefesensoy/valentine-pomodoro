@@ -362,6 +362,7 @@ One build covered this check and B4's; [B4 §6.3](2026-10-30-phase1-b4-rerender-
 - [The React Compiler is on, and Jest compiles app code the way Metro does](../architecture/adr/0041-react-compiler-on.md)
 - [2026-10-29 — Phase 1 (v1.4): design system and local re-architecture, plan](2026-10-29-phase1-plan.md)
 - ["Phase 1 B4: the re-render refactor (clock store, UI-thread ring, frozen tabs)"](2026-10-30-phase1-b4-rerender-refactor.md)
+- ["Phase 1 B6: Expo Router with native tabs"](2026-10-30-phase1-b6-expo-router.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)

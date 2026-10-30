@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-b4-rerender-refact
 
 # 2026-10-30 — Phase 1 B6: Expo Router with native tabs
 
-**Status:** Code done and verified locally, in three code commits after the plan commit (§2). **Not merged, not pushed.** The device check (§6.6) runs on the one TestFlight build that carries B6 and B7, made by the session that started this one, with your go-ahead.
+**Status:** Code done and verified locally, in three code commits after the plan commit (§2). **Merged into `rehaul/v2` on 2026-10-30 as `1b7a8d7`, before B7 (`3d3fbaf`); not pushed yet.** The device check (§6.6) runs on the one TestFlight build that carries B6 and B7, made by the session that started this one, with your go-ahead.
 **Branch:** `phase1/b6-expo-router`, a worktree at `C:\vp\b6`, cut from `rehaul/v2` at `7034bba`. It merges with `phase1/b7-deferred-startup` without conflicts (§6.5).
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md), task B6. Decision: [ADR-0028](../architecture/adr/0028-expo-router.md) (Expo Router, native tabs); how it is built: [ADR-0043](../architecture/adr/0043-native-tabs-frozen-by-a-wrapper.md). Follows [B5](2026-10-30-phase1-b5-react-compiler.md).
 
@@ -381,6 +381,7 @@ Jest's mocks can't show the native tab bar, real safe areas, the scheme registra
    - **(a) Accept it for now, and revisit at E3 with the cold-start time in hand** (recommended). NFR-PERF-002 is a proxy for NFR-PERF-001 (time to interactive), which B7's build measures on the iPhone. The SRS entry in §8 records it as not met.
    - **(b) Add a task to turn on Metro's tree shaking.** Measured at 3,554,012 B (−340 KB, 302 KB under the ceiling). It changes how every module is bundled, under flags named `EXPO_UNSTABLE_*`, so it needs the full test run, the bundle checked for dropped side-effect imports, and its own device check.
    - **(c) Re-baseline NFR-PERF-002** to include the router, as the approved Expo Router decision's cost.
+   - **Decided 2026-10-30: (a).** You accepted the overage for now; it is revisited at E3 with B7's TTI numbers. On the merged tree (B6, B7 and the `markFirstFrame` wiring) the iOS bytecode is 3,912,916 B, 56,708 B (1.47 %) over.
 2. **Native tabs mount every tab at launch and don't freeze** (§1, §3.3). Fixed by `FreezeOnBlur`. The one residual risk is device check 1.
 3. **Expo Router 58 vendors React Navigation** (§3.5). Anyone adding a navigation import should take it from `expo-router` or `expo-router/react-navigation`; the `@react-navigation/*` packages are gone, so the wrong one fails to resolve.
 4. **`NavigationContext` from `expo-router/react-navigation` is deprecated upstream.** When an SDK removes it, move `useSlotProgress`'s focus signal to `FreezeOnBlur`.
@@ -544,8 +545,13 @@ and in the intro, "The first superseded record is ADR-0035, by ADR-0041 (Phase 1
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Documentation map](../README.md)
+- [Architecture — Valentine Pomodoro (as built, and the v2 target)](../architecture/ARCHITECTURE.md)
 - [React Navigation bottom tabs from the with-react-navigation template](../architecture/adr/0002-react-navigation-template.md)
 - [Expo Router for navigation](../architecture/adr/0028-expo-router.md)
 - [Native tabs, frozen by a route wrapper, laid out by safe-area insets](../architecture/adr/0043-native-tabs-frozen-by-a-wrapper.md)
+- [2026-10-29 — Phase 1 (v1.4): design system and local re-architecture, plan](2026-10-29-phase1-plan.md)
+- [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
+- [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

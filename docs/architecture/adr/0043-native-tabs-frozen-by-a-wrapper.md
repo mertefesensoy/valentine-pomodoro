@@ -58,7 +58,12 @@ related: [ADR-0028, ADR-0002, ADR-0031, IMPL-2026-10-30-phase1-b6-expo-router, I
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Changelog](../../../CHANGELOG.md)
+- [Architecture — Valentine Pomodoro (as built, and the v2 target)](../ARCHITECTURE.md)
 - [React Navigation bottom tabs from the with-react-navigation template](0002-react-navigation-template.md)
 - [Expo Router for navigation](0028-expo-router.md)
+- [Architecture decision records](README.md)
+- [2026-10-29 — Phase 1 (v1.4): design system and local re-architecture, plan](../../implementations/2026-10-29-phase1-plan.md)
 - ["Phase 1 B6: Expo Router with native tabs"](../../implementations/2026-10-30-phase1-b6-expo-router.md)
+- [Roadmap — Valentine Pomodoro v2](../../roadmap/ROADMAP.md)
 <!-- backlinks:end -->

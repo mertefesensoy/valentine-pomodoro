@@ -53,6 +53,8 @@ Start here. Every document in the repo is listed below. The rules for writing th
 
 | Date | Record |
 |------|--------|
+| 2026-10-30 | [Phase 1 B7: deferred start-up work and an on-device TTI probe](implementations/2026-10-30-phase1-b7-deferred-startup.md) |
+| 2026-10-30 | [Phase 1 B6: Expo Router with native tabs](implementations/2026-10-30-phase1-b6-expo-router.md) |
 | 2026-10-30 | [Design skills: Apple HIG skill and the full Emil Kowalski pack](implementations/2026-10-30-design-skills.md) |
 | 2026-10-30 | [Phase 1 B5: the React Compiler on, its lint rules back to `error`](implementations/2026-10-30-phase1-b5-react-compiler.md) |
 | 2026-10-30 | [Phase 1 B4: the re-render refactor](implementations/2026-10-30-phase1-b4-rerender-refactor.md) |

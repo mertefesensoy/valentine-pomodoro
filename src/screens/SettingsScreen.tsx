@@ -17,6 +17,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useStatsStore, useStreak } from '../stores/statsStore';
 import { useUpdateCheck } from '../hooks/useUpdateCheck';
+import { HiddenStartupDiagnostics } from '../startup/StartupDiagnostics';
 import { useTheme } from '../theme/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -655,9 +656,12 @@ export default function SettingsScreen() {
                     >
                         <Text style={styles.updateButtonText}>Visit Developer Website</Text>
                     </Pressable>
-                    <Text style={[styles.infoText, { color: colors.textMuted }]}>
-                        Made with ❤️ by Mert Efe Sensoy
-                    </Text>
+                    {/* A 1.5 s long-press opens the start-up probe (Phase 1 B7); the line is unchanged */}
+                    <HiddenStartupDiagnostics>
+                        <Text style={[styles.infoText, { color: colors.textMuted }]}>
+                            Made with ❤️ by Mert Efe Sensoy
+                        </Text>
+                    </HiddenStartupDiagnostics>
                 </View>
 
                 {/* Check for Updates Button */}

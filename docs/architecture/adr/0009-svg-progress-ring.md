@@ -9,7 +9,7 @@ related: [ADR-0014, ADR-0016, ADR-0029]
 
 # ADR-0009: Progress ring drawn with react-native-svg `stroke-dashoffset`
 
-> **Status note:** still in force. Phase 1 B4 (built locally, 2026-10-30; [record](../../implementations/2026-10-30-phase1-b4-rerender-refactor.md)) changed how the ring is *driven*: `strokeDashoffset` is a Reanimated animated prop, computed on the UI thread every frame from the slot's `endAt`, instead of a prop set by a React render each second. The SVG drawing is unchanged.
+> **Status note:** still in force. Phase 1 B4 (built 2026-10-30, pushed; [record](../../implementations/2026-10-30-phase1-b4-rerender-refactor.md)) changed how the ring is *driven*: `strokeDashoffset` is a Reanimated animated prop, computed on the UI thread every frame from the slot's `endAt`, instead of a prop set by a React render each second. The SVG drawing is unchanged.
 
 ## Context
 

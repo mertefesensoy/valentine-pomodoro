@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-b3-zustand-stores,
 
 # 2026-10-30 — Phase 1 B4: the re-render refactor
 
-**Status:** Done locally, in five code commits (§2) and one docs commit. **Not pushed, and not on a device yet.** B4 adds no native code, but it changes how the ring is drawn (Reanimated animated props on an SVG circle) and freezes hidden tabs, so it needs the device check in §6.3 on a TestFlight build, with your go-ahead.
+**Status:** Done, in five code commits (§2) and one docs commit. **Pushed** through `178b4ba` on 2026-10-30 with your OK (CI run 41008338008, in progress at the time of writing). **Not on a device yet.** B4 adds no native code, but it changes how the ring is drawn (Reanimated animated props on an SVG circle) and freezes hidden tabs, so it needs the device check in §6.3 on a TestFlight build, with your go-ahead.
 **Branch:** `rehaul/v2`
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md), task B4 GATE-CHECKED, §4.2, §4.3; [rehaul plan §4.5](2026-10-29-couples-rehaul-plan.md); follows [B3](2026-10-30-phase1-b3-zustand-stores.md)
 

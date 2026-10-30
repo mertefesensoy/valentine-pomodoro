@@ -77,7 +77,7 @@ The v2 rehaul, in progress. Each bullet names its theme: Phase 0 (the foundation
 
 ## [1.4.0-tf.46] - 2026-10-30
 
-*iOS TestFlight build 46, a pre-release and not a store release, source 3369418. Built with EAS (build bf625f5c) and uploaded to App Store Connect for TestFlight (submission a4695d2b); passed the B6 and B7 device check on a physical iPhone, 2026-10-30.*
+*iOS TestFlight build 46, a pre-release and not a store release, source 3369418. Built with EAS (build bf625f5c) and uploaded to App Store Connect for TestFlight (submission a4695d2b); device check on a physical iPhone, 2026-10-30: B7's passed; B6's failed two items. Switching tabs flickers, and the tab bar turns dark on Notes in light mode.*
 
 Its changes are listed under [Unreleased], which covers the whole branch. This build contains everything there up to 3369418, through B6 and B7.
 

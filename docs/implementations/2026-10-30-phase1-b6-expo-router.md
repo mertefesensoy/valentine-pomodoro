@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-b4-rerender-refact
 
 # 2026-10-30 — Phase 1 B6: Expo Router with native tabs
 
-**Status:** Code done and verified locally, in three code commits after the plan commit (§2). **Merged into `rehaul/v2` on 2026-10-30 as `1b7a8d7`, before B7 (`3d3fbaf`); pushed 2026-10-30 (through `3369418`).** The device check (§6.6) passed on TestFlight build 46 (`v1.4.0-tf.46`), 2026-10-30.
+**Status:** Code done and verified locally, in three code commits after the plan commit (§2). **Merged into `rehaul/v2` on 2026-10-30 as `1b7a8d7`, before B7 (`3d3fbaf`); pushed 2026-10-30 (through `3369418`).** The device check (§6.6) on TestFlight build 46 (`v1.4.0-tf.46`), 2026-10-30, **failed items 1 and 2**: every tab switch flickers, and on Notes in light mode the tab bar turns to dark colours. The fix is open (§6.6).
 **Branch:** `phase1/b6-expo-router`, a worktree at `C:\vp\b6`, cut from `rehaul/v2` at `7034bba`. It merges with `phase1/b7-deferred-startup` without conflicts (§6.5).
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md), task B6. Decision: [ADR-0028](../architecture/adr/0028-expo-router.md) (Expo Router, native tabs); how it is built: [ADR-0043](../architecture/adr/0043-native-tabs-frozen-by-a-wrapper.md). Follows [B5](2026-10-30-phase1-b5-react-compiler.md).
 
@@ -350,7 +350,7 @@ After the merge, applying §8 and running `--write` clears all of them.
   - **iOS bytecode 3,912,884 B**: B6's 3,894,148 plus 18,736 B of B7, so **56,676 B (1.47 %) over the ceiling**.
   - Not checked here: B7's `markFirstFrame` call, which the parent adds at merge on `App`'s `GestureHandlerRootView` in `src/App.tsx` (B7 record §3.6). That view is unchanged by B6, and B7's `@/startup/deferredStartup` import resolves under Jest too (jest-expo maps `@/` to `src/`), so the router and splash tests, which render the real `App`, can load it.
 
-### 6.6 Device (iPhone, TestFlight build 46): passed
+### 6.6 Device (iPhone, TestFlight build 46): failed, items 1 and 2
 
 Jest's mocks can't show the native tab bar, real safe areas, the scheme registration, or the timing between UIKit and JavaScript. Install over build 45 (so stats, notes and settings are real), on the iPhone. B7's own checklist (its record §6.5–6.6) runs on the same build.
 
@@ -364,7 +364,12 @@ Jest's mocks can't show the native tab bar, real safe areas, the scheme registra
 | Submission | `a4695d2b-7f17-439b-af67-72bf2d6469b3`, uploaded to App Store Connect, then Apple's processing |
 | Tag | `v1.4.0-tf.46` (annotated, at `3369418`) |
 
-**Result: passed on a physical iPhone (2026-10-30, reported by you: "all passes the verifications").** You ran these eleven checks together with B7's, as one 19-item list, and reported them together, not one by one. Item 1, the one new risk, showed no flash, so ADR-0043's fallback isn't needed.
+**Result: failed on a physical iPhone, items 1 and 2 (2026-10-30).** You first reported the combined 19-item list as "all passes the verifications", then, using the build, reported two failures:
+
+- **Item 1:** "for every page switch the screen kind of flicks and causes an unsettling feeling for the eyes". This is the blank frame ADR-0043 named as B6's one new risk: UIKit shows the tab while React still hides the frozen screen's content, and the content appears only when JavaScript unfreezes it.
+- **Item 2:** "when i switch to notes in light mode the toggle bar kind of bugs out and turns itself to dark mode colors". The Notes screen paints only `colors.bg` and sets the status bar as Timer does, so nothing in its code is dark. The likely cause is the same blank frame: the Liquid Glass bar adapts to the empty view behind it. That is unconfirmed until a fixed build is on the phone.
+
+The other nine items passed. The fix is open: ADR-0043's fallback (remove `FreezeOnBlur`) brings back what B4 §3.5 fixed (the interstitial over Stats, the goal popup dismissed unseen), so it needs Timer to hold its overlays until it is focused.
 
 1. **No flash on switching tabs.** Switch between all four tabs several times, quickly and slowly, then again during a running session. A tab you have opened before must appear with its content, with no blank or background-coloured frame. *If it flashes:* that is the freeze (ADR-0043). The fallback is to remove `FreezeOnBlur` from the routes, then re-check item 8 and the cold-start cost; report it rather than accept it.
 2. **The tab bar:** the system tab bar (on iOS 26, Liquid Glass), with the heart, chart, gear and note icons labelled Timer, Stats, Settings, Notes, in that order. Switching tabs has no animation. Dark mode: the bar follows the phone's appearance, as before.

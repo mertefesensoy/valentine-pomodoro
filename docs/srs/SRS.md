@@ -642,7 +642,7 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 
 #### FR-NAV-001
 **Statement:** A `valentinepomodoro://` link shall open its tab: `valentinepomodoro://` Timer, `valentinepomodoro://stats` Stats, `valentinepomodoro://settings` Settings and `valentinepomodoro://notes` Notes, whether the link launches the app or arrives while it runs. Any other path shall open a not-found screen with a link to Timer.
-**Pri:** Should · **Target:** Phase 1 (B6) · **Status:** implemented (B6, `a736b22`, merged as `1b7a8d7`; device check passed on TestFlight build 46, `v1.4.0-tf.46`, 2026-10-30)
+**Pri:** Should · **Target:** Phase 1 (B6) · **Status:** implemented (B6, `a736b22`, merged as `1b7a8d7`; the deep links passed on TestFlight build 46, `v1.4.0-tf.46`, 2026-10-30)
 **Verify:** T: `src/__tests__/router.test.tsx` (each URL cold and warm, through the router's own URL parsing); D: [B6 §6.6](../implementations/2026-10-30-phase1-b6-expo-router.md), item 6 · **Source:** PLAN-PHASE1 B6, [ADR-0028](../architecture/adr/0028-expo-router.md)
 
 ### 3.3 Non-functional requirements

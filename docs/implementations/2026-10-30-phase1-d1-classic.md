@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 
 # 2026-10-30 — Phase 1 D1: Classic, and the v1.4 welcome screen
 
-**Status:** In progress. The shape step is under way: the Classic direction contract is written, and the welcome screen is being shaped.
+**Status:** In progress. Shape and the HIG check are done for both surfaces; the two direction contracts are with the owner before any screen code.
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.2, which holds the approach, the contracts of each new module, the render budget and the device checklist. This record holds what happened: each step's output, the owner's gates, the scores and the measurements.
 
@@ -19,8 +19,8 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 
 | Step (DESIGN-WORKFLOW §2) | Classic | Welcome screen |
 |---------------------------|---------|----------------|
-| 1. Shape | Brief confirmed at C4. Direction contract written 2026-10-30 (§3.1). | In progress (§3.2) |
-| 2. `/apple-design` on the brief | Good; no Critical; 4 Medium and 3 Low, all dispositioned (§3.1.1) | Pending |
+| 1. Shape | Brief confirmed at C4. Direction contract written 2026-10-30 (§3.1). | The owner chose The diary opens, 2026-10-30; brief and contract written (§3.2) |
+| 2. `/apple-design` on the brief | Good; no Critical; 4 Medium and 3 Low, all dispositioned (§3.1.1) | Good; no Critical; 1 High and 2 Low, dispositioned (§3.2.1) |
 | Owner: direction contracts | Pending | Pending |
 | 3. Build (`animate-expo`) | — | — |
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | — | — |
@@ -40,6 +40,8 @@ See the [Stage D plan §1](2026-10-30-phase1-stage-d.md#1-problem--motivation). 
 |------|--------|
 | `.impeccable/surfaces/app-tabs-index-tsx.md` | The owner's D1 answers folded in: what each preset sets, the built control, copy as EN/TR keys, the love-note sheet that stays until it is dismissed, and the iOS route to the tab colour. Plus the six-block direction contract. |
 | `docs/implementations/2026-10-30-phase1-d1-classic.md` | This record. |
+| `.impeccable/surfaces/app-welcome-tsx.md` | New. The welcome screen's brief and direction contract (§3.2). |
+| `art/review/d1-welcome-*.html` | New. The three decision sketches: the locked composition, plus the two not chosen. |
 | `art/type/build-fonts.py` | New. Builds the two embedded Baloo 2 instances from the hash-checked google/fonts file (§3.3); `--check` rebuilds and compares byte for byte. |
 | `assets/fonts/Baloo2-Medium.ttf`, `assets/fonts/Baloo2-SemiBold.ttf`, `assets/fonts/OFL.txt` | New. The script's output and the licence. Nothing references them until the `expo-font` plugin entry lands with the build. |
 | `.gitattributes` | `assets/fonts/** -text`, so `core.autocrlf` can't rewrite the licence and break the byte check. |
@@ -84,6 +86,47 @@ The brief also settles four points:
 - **The selected tab carries the brand colour,** as `branding.md` suggests ("an icon for the selected tab in a tab bar").
 - **The welcome screen** is where Apple puts branding instead of the launch screen (`branding.md`: "consider displaying a welcome or onboarding screen").
 
+### 3.2 The welcome screen: shaped, with its direction contract
+
+**Discovery (2026-10-30)**, the owner's answers to Impeccable's shape round:
+- the morph, one line, then Start
+- one screen for everyone, with its own line for updaters and for fresh installs
+- replayable from About (D2)
+
+**Mode:** Experience. **Build path:** code-led, because image generation isn't available here (`generate-image` reports `OPENAI_API_KEY is not set`).
+
+**The structure round:**
+- **Seven structures,** ranked by resonance: 1 The Colon, 2 Apart then together, 3 Centre stage, 4 Sticker press, 5 The diary opens, 6 Today's page, 7 Washi tape.
+- **The roll:** `concept-seed --scope surface --mode experience` dealt **5, 1 and 6**, with 5 leading (`seed:4270e69e80262e87`), plus six catalog challengers: drawcord cape, provenance ribbon, moiré gallery, design-annual plates, HyperCard stack and nixie counter.
+- **The challengers:** all six were declined on both axes, audience identification and product clarity. Each brings a material the pinned world refuses (black silk, archival buff, black-and-white op art, print furniture, one-bit dither, neon). Each donated one discipline to the lead, written as a raise line in the brief.
+- **The decision page:** served at `127.0.0.1:57501` with a 390 × 844 HTML sketch per card, built from the real art and an embedded Baloo 2.
+  - The first sketches painted blank: the browser pane holds back `fonts.googleapis.com`, and a pending stylesheet blocks painting. The fix embeds the C2 specimen's Baloo 2 WOFF2 instead.
+  - The page stayed unanswered for about 8 minutes, so the round moved to the structured question, as the skill directs.
+- **The owner chose The diary opens,** the dealt lead (choice recorded with `concept-seed --kind assigned`).
+- **The sketches are kept** in `art/review/d1-welcome-diary-opens.html` (the locked composition), `d1-welcome-colon-not-chosen.html` and `d1-welcome-todays-page-not-chosen.html`.
+
+**The brief:** `.impeccable/surfaces/app-welcome-tsx.md`, written through `impeccable surface-brief write`, with the six-block contract and the seed; all six blocks are present.
+- **The thesis:** the welcome is the diary itself, opened once. It refuses the onboarding carousel and the launch-screen logo moment.
+
+#### 3.2.1 `/apple-design` on the welcome brief (2026-10-30)
+
+**Pages opened:** `onboarding.md`, `launching.md`, `branding.md`, `modality.md`, `motion.md`, `playing-haptics.md`, `accessibility.md`, `dark-mode.md` (via `color.md`).
+
+**Rating: Good.** No Critical findings; one High finding, dispositioned.
+
+| # | Sev. | Finding | Guideline | Disposition |
+|---|------|---------|-----------|-------------|
+| W-H1 | High | The first v1.4 launch can land in the middle of a running or paused session (the clock is timestamp-based, so a session survives the update), or come from a notification. A welcome then covers the work. | `launching.md`: "Restore the previous state when your app restarts so people can continue where they left off"; PRODUCT principle 5, "Quiet during focus". | Brief §4: shown only on a calm entry (no running or paused session, not opened from a notification or deep link); otherwise it waits for Timer to be focused and idle. |
+| W-L1 | Low | A flash between the static splash and the welcome's first frame. | `launching.md`: "Design a launch screen that's nearly identical to the first screen." | The welcome's ground is the splash colour, `#FFF6F1` / `#221726` (equal to the `page` tokens, checked). |
+| W-L2 | Low | The pages-meet haptic. | `playing-haptics.md`: "Use system-provided haptic patterns according to their documented meanings"; "Make haptics optional." | If it stays after the device check: one light impact, following `settings.haptics`. |
+
+**What works:**
+- **It is the welcome screen Apple suggests** in place of a launch-time branding moment (`branding.md`, `launching.md`: "consider displaying it at the beginning of your onboarding flow").
+- **It is brief and asks for nothing** (`onboarding.md`: "design a brief, enjoyable experience that doesn't require people to memorize a lot of information"; "Postpone nonessential setup flows").
+- **It is replayable from About** (`onboarding.md`: "make sure it's easy for people to find if they want to view it later").
+- **Start is live from the first frame** (`motion.md`: "Let people cancel motion").
+- **Reduce Motion gets a crossfade,** and the line, not the motion, carries the meaning (`motion.md`: "Make motion optional").
+
 ### 3.3 Baloo 2, built (ADR-0046)
 
 `python -P art/type/build-fonts.py` makes both files. It runs ahead of the direction-contract gate because ADR-0046 settles the face, and no screen uses the fonts until the build step.
@@ -99,9 +142,6 @@ The brief also settles four points:
 - **Byte for byte:** the first `--check` found the files differed, because fontTools re-stamps `head.modified` on save. The script now copies the source's `head.created` and `head.modified` and turns off `recalcTimestamp`. Two `--check` runs then rebuilt all three files identically.
 - **Size:** together 117,120 B, as ADR-0046 estimated (about 117 KB). They go into the binary, not the bytecode.
 
-### 3.2 The welcome screen
-
-Filled in as the shape step runs.
 
 ## 4. Mathematical / Statistical Details
 

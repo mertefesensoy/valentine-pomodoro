@@ -456,7 +456,7 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 ```
 
 **`docs/roadmap/ROADMAP.md`**, the status board: Phase 1 Stage D → in progress (2026-10-30). Per-task rows:
-- **D1:** in progress (2026-10-30). The Classic direction contract is written; the welcome screen is being shaped.
+- **D1:** in progress (2026-10-30). Both direction contracts (Classic, and the v1.4 welcome screen) are written and HIG-checked; the Baloo 2 fonts are built.
 
 **SRS** status changes: each is added here when its task lands.
 

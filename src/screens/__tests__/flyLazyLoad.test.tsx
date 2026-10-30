@@ -14,6 +14,13 @@ import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 // Jest evaluates a module once per test file, so these tests run in order: the
 // two that expect no evaluation come before the one that opens Fly.
 
+// The first test pays for the first require('../TimerScreen'), which transforms
+// and evaluates the whole screen graph: well under 5 s alone, over Jest's 5 s
+// default during a full parallel run (B6 merge run, Stage C merge run). What the
+// tests assert doesn't depend on time, so a longer limit doesn't weaken them.
+// Same remedy as timerScreenTicks.test.tsx.
+jest.setTimeout(30_000);
+
 const mockFlyModuleEvaluated = jest.fn();
 jest.mock('../FlyModeScreen', () => {
     mockFlyModuleEvaluated();

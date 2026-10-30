@@ -192,6 +192,16 @@ The B1 run (`npx reassure`, compared against `.reassure/baseline.perf` from Stag
 
 Reassure reports no added or removed scenarios and no count changes. That's expected: the Timer scenario runs in Classic, where the Suspense boundary is never mounted.
 
+### 6.2 A flaky first test, fixed (2026-10-30)
+
+**Problem.** `flyLazyLoad.test.tsx` failed now and then in the full suite only, with "Exceeded timeout of 5000 ms": once on the B6 merge run, and once on the Stage C merge run (225/226; the file took 61 s that run). Alone it always passed (3/3).
+
+**Cause.** The first test pays for the first `require('../TimerScreen')`, inside the test so the module factory isn't hit while `mockFlyModuleEvaluated` is in its temporal dead zone. That require transforms and evaluates the whole screen graph. It takes well under 5 s on an idle machine, but more than Jest's 5 s default when the full suite runs its files in parallel. It is the same cost `timerScreenTicks.test.tsx` met in Stage A.
+
+**Fix.** `jest.setTimeout(30_000)` for the file, with a comment saying why: the remedy `timerScreenTicks.test.tsx` already uses. The assertions don't depend on time (whether a module factory ran, what is on screen), so a longer limit weakens nothing.
+
+**Checked.** The file passes alone (3/3). Two full runs both pass 226/226. Lint is unchanged (the file's three deliberate `require()` warnings were there before).
+
 ## 7. Related Docs
 
 - [Phase 1 plan](2026-10-29-phase1-plan.md): B1, B1b, §5 finding 1

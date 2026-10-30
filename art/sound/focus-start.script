@@ -1,0 +1,24 @@
+# Focus start (FR-SET-004): Pomo & Doro's "here we go".
+# Two soft chime plucks rising a fifth, C5 to G5: the phrase opens and waits on the dominant,
+# because the work is ahead (break start comes back down to C5; completion climbs to C6).
+# Quiet, short and quick to fade, so it never reads as an alarm.
+#
+# soundcraft-cli 0.14 script: one `COMMAND JSON` per line. scripts/sound/build.mjs runs it, saves
+# art/sound/focus-start.scraft, then bounces that session with file.bounce_mix.
+# 125 bpm at 960 ticks per quarter makes one tick 0.5 ms, so 220 ticks is 110 ms.
+
+session.new {"name": "focus-start", "sample_rate": 48000, "bit_depth": 24}
+event.tempo {"bpm": 125}
+
+# The diary chime: a sine with a soft triangle an octave up, a short filter blip on the attack
+# (the "tine"), no sustain. Stereo track: SoundCraft 0.14 pans a mono track 6 dB right at centre.
+track.new {"kind": "instrument", "format": "stereo", "name": "Chime", "instrument": "subtractive_synth"}
+mix.instrument {"track": "Chime", "plugin": "subtractive_synth", "params": {"osc1_wave": 2, "osc2_wave": 3, "osc2_semitones": 12, "osc2_detune": 3, "osc_mix": 22, "cutoff": 2400, "resonance": 0, "filter_env_amount": 25, "filter_attack": 0.5, "filter_decay": 120, "filter_sustain": 0, "filter_release": 200, "amp_attack": 4, "amp_decay": 600, "amp_sustain": 0, "amp_release": 300, "glide": 0, "velocity": 60, "level": -6}}
+
+# A small, dark plate: warmth, not a hall. Width 0 keeps left and right within -40 dB of each
+# other; the build folds them to mono by averaging.
+mix.insert {"track": "Chime", "slot": 0, "plugin": "plate_reverb", "params": {"mix": 14, "pre_delay": 12, "decay": 0.6, "size": 35, "damping": 5000, "diffusion": 85, "width": 0, "low_cut": 250}}
+
+midi.new_clip {"track": "Chime", "start": 0, "length": 72000}
+midi.note_add {"clip": 2, "pitch": 72, "start_ticks": 0, "length_ticks": 800, "velocity": 84}
+midi.note_add {"clip": 2, "pitch": 79, "start_ticks": 220, "length_ticks": 1200, "velocity": 100}

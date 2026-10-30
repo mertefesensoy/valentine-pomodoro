@@ -1,0 +1,4 @@
+# The sound pipeline compares rebuilt sessions and reports byte for byte (scripts/sound/build.mjs
+# --check), so every file here must reach each checkout exactly as written: no line-ending
+# conversion, whatever core.autocrlf says (as /.gitattributes does for the art pipeline).
+* -text

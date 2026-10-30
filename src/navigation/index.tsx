@@ -50,6 +50,12 @@ const HomeTabs = createBottomTabNavigator({
   },
   screenOptions: {
     headerShown: false,
+    // A hidden tab is frozen (react-native-screens + react-freeze): React
+    // doesn't re-render it until it is shown again (Phase 1 B4, rehaul plan
+    // §4.5). It stays mounted, so its subscriptions, completion handlers and
+    // timers keep running. Worklets aren't frozen; the ring's frame callback
+    // stops on blur itself (useSlotProgress).
+    freezeOnBlur: true,
     tabBarButton: HapticTab,
     tabBarBackground: TabBarBackground,
     tabBarStyle: Platform.select({

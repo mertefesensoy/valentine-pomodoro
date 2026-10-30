@@ -453,5 +453,6 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 
 ## Backlinks
 <!-- backlinks:start -->
+- ["Phase 1 D4: the SoundCraft sound set, and Fly's loop re-encoded"](2026-10-30-phase1-d4-sounds.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

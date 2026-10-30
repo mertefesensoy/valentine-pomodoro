@@ -174,7 +174,7 @@ Run before C4, as the owner agreed (§3.1), because the design skills didn't yet
 - **The gate page** is `art/review/c3-logo-concepts.html` (208 KB, `node scripts/art/review-logo.mjs`). For each concept it shows the mark large, the case for it (why it fits, wit and warmth, what Pomo & Doro become, risks), every iOS size at its real pixels (1024, 180, 120, 87, 80, 60, 40, 29, 20), and a reversed row.
 - **Recommendation: Same Page**, the only concept that carries all three of the owner's words at once (romantic, couples, studying) and the strongest at 20 px. Red Thread is the more romantic and unusual alternative.
 
-### 2.4 C4 (2026-10-30): the Classic surface brief and its HIG review, waiting for the owner's confirmation
+### 2.4 C4 (2026-10-30): the Classic surface brief and its HIG review, confirmed by the owner
 
 **`/impeccable shape classic`.** Context loaded with `impeccable context --target "app/(tabs)/index.tsx"` (platform `ios`, mode Operate).
 - **Discovery round:** three questions (what stays on the page during focus; where the presets live; how modes are switched). The owner answered with other priorities, the mascot method above, so the brief takes the recommended option for each and **marks them as assumptions to confirm**.
@@ -196,7 +196,7 @@ Run before C4, as the owner agreed (§3.1), because the design skills didn't yet
 | M-5 | Medium | Every tab sets `disableAutomaticContentInsets`, so the controls must clear the floating bar on their own. | `layout.md › Guides and safe areas`: "Respecting the safe area is essential." | Brief: controls sit above the bar's measured height plus the bottom inset. |
 | L-1 | Low | Two lines said the same thing ("until a 5-minute break" and the phase line). | Craft lens, "remove one accessory" (judgment). | Brief: one line, the absolute time ("Break at 10:25"). |
 | L-2 | Low | Press feedback (scale 0.97, 100–150 ms) runs on the most frequent control. | `motion.md › Providing feedback`: "generally avoid adding motion to UI interactions that occur frequently." | Kept: motion precedence goes to Emil's rules (ADR-0042), and the effect is under 150 ms and cancellable; the HIG point is noted for the D1 `review-animations` pass. |
-| L-3 | Low | Button capitalisation: Apple uses title style ("Start Focus"); the brand copy is sentence case. | Skill Lens 5 (Apple's title-style convention). | **The owner decides** at the C4 gate. Turkish keeps sentence case either way. |
+| L-3 | Low | Button capitalisation: Apple uses title style ("Start Focus"); the brand copy is sentence case. | Skill Lens 5 (Apple's title-style convention). | **The owner chose sentence case** at the C4 gate, matching the brand voice and Turkish. |
 | L-4 | Low | `expo-blur` is a dependency, but nothing imports it. | `liquid-glass.md › Where the material belongs` (no hand-made glass). | Noted for D1 or the next `knip` pass; `package.json` is outside Stage C's scope. |
 
 **The Liquid Glass checklist, against the tab bar as fixed for build 47 (`63f1db2`; build 47's device check passed, `4b50570`):**
@@ -207,6 +207,8 @@ Run before C4, as the owner agreed (§3.1), because the design skills didn't yet
 5. **Accessibility states: pass.** The system bar handles Reduce Transparency and Increase Contrast. The tokens meet their floors by default, so no separate high-contrast set is required.
 6. **Scroll edge effect: pass, with a device check.** Nothing is painted under the bar (each screen's page colour runs full-bleed). The edge effect over Facing Pages, scrolling at accessibility sizes, is checked on the iPhone in D1.
 7. **Targets: pass.** System tab items; every custom control is at least 44 × 44 pt.
+
+**Gate (2026-10-30):** the owner **confirmed the brief**, kept all three discovery assumptions, and chose sentence case for English button labels. C4 is done; D1 builds from `.impeccable/surfaces/app-tabs-index-tsx.md` and writes its direction contract before code.
 
 ## 3. Implementation Approach
 

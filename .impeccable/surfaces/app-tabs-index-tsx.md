@@ -84,10 +84,7 @@ The owner chose two of the three dealt structures on 2026-10-30: "both of them s
 - **Platform:** iOS 16.4+, the native tab bar; Liquid Glass only where the system draws it (the tab bar, sheets).
 - **The tab bar, from the HIG review:** D1 sets `NativeTabs`' tint to `primaryInk` (5.75:1 light, 8.91:1 dark on the page), so the selected tab is strawberry, not system blue (H-1); the four tab icons ship as filled variants of the C3 set, as `tab-bars.md` prefers (M-4); the controls sit above the floating bar by its measured height plus the bottom safe area, because every tab sets `disableAutomaticContentInsets` (M-5); nothing is painted under the bar, so the system's scroll edge effect stays, including when Facing Pages scrolls at accessibility text sizes (checked on the device in D1).
 - **Design system:** the C1 tokens (`src/theme/palette.json`); Baloo 2 for the timer only, with tabular figures and the ligatures removed (ADR-0046); the system face for everything else; the C3 icons and Pomo & Doro's five sticker poses (ADR-0047).
-- **Assumptions from the discovery round,** which the owner answered with other priorities, so these are the recommended options, to confirm:
-  1. during focus the page shows today's progress too, nothing more
-  2. the presets live on the page when idle
-  3. a mode button opens a sheet
+- **Confirmed by the owner at the C4 gate, 2026-10-30:** the brief as written; the three discovery assumptions (during focus the page also shows today's progress, nothing more; the presets live on the page when idle; a mode button opens a sheet); and **sentence case** for English button labels ("Start focus", "End session"), as Turkish is written too.
 - **Open:**
   - Does the segmented control use the native module (`@react-native-segmented-control/segmented-control`), which adds native code in D1, or a built control with the same look?
   - Phase 3's partner-slot field order: name, status, intention, local time.

@@ -27,6 +27,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 | 5. `break-ui` (TR at AX5) | 2 Broken and 1 Ugly fixed; 2 Fragile noted (§3.13) | 1 Broken fixed (§3.13) |
 | 6. `polish`, `harden`, `clarify` | Done (§3.12–3.13); the Turkish copy waits for the owner's review | Done; the Turkish copy waits for the owner's review |
 | 7. Device check, build 48 | Build 48 on EAS from `61fd06e` (§3.15). The owner's check, 2026-10-30: four findings (F1–F4, §3.16), fixed for build 49 | The same build. The owner asked for a livelier morph (F5, §3.16), rebuilt for build 49 |
+| 7. Device check, build 49 | Build 49 on EAS from `9f0de71`, submitted to TestFlight, tag `v1.4.0-tf.49` pushed (§3.17); waiting for the owner's device check | The same build |
 | FINISH (both contracts): the finish review, its verdict, DESIGN.md | **Pending:** after the device check, with the owner's iPhone screenshots as the evidence | **Pending:** the same |
 
 **FINISH is not yet discharged.** Each direction contract ends with "this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance". That waits for evidence this machine can't make:
@@ -562,11 +563,18 @@ The owner checked build 48 on an iPhone on 2026-10-30 (22:42) and sent two scree
 | Pre-flight | `expo-doctor`: 19 of 20 checks pass; the one left, `@expo/config-plugins` installed directly, predates D1 (§3.5). EAS account `sensoymertefe` |
 | Version and build | 1.4.0 (49); EAS incremented the remote build number from 48 to 49 |
 | EAS build | `2fe5428c-1bce-40e4-9390-6545d224602c`, queued 2026-10-31 00:11 (UTC+3) |
-| Build result | In progress |
-| TestFlight submission | `c2a26f6b-33a4-4dfb-9f49-fe14f2c9be62`, scheduled to run when the build finishes |
-| Tag | `v1.4.0-tf.49`, annotated in the tf.48 format, on `9f0de71`, pushed once the build and the submission finish |
+| Build result | **Finished** 2026-10-30 21:17 UTC (00:17 UTC+3, 2026-10-31); EAS reports the source as `9f0de717` |
+| TestFlight submission | `c2a26f6b-33a4-4dfb-9f49-fe14f2c9be62`, **finished**: EAS's `submit-ios` workflow started as the build completed and succeeded at 21:17:50 UTC |
+| Tag | `v1.4.0-tf.49`, annotated in the tf.48 format, on `9f0de71`, **pushed**. The remote tag object is `82f66bc` and peels to `9f0de71`; the branch stays unpushed |
 
-It carries the build 48 fixes and the reanimated welcome (§3.16). The device checklist is §6, "build 49".
+**Binary** (no budget exists; a measurement for E3, read like build 48's from the artifact's `Content-Length`):
+
+| Build | IPA (B) |
+|---|---:|
+| 48 | 21,600,473 |
+| **49** | **21,609,366** (+8,893 B, +0.04 % on 48) |
+
+It carries the build 48 fixes and the reanimated welcome (§3.16). The device checklist is §6, "build 49". TestFlight lists the build once Apple finishes processing it.
 
 ## 4. Mathematical / Statistical Details
 

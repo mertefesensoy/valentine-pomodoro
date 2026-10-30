@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sticker Diary swatches</title>
+<style>
+  :root { color-scheme: light; --sheet:#FBF7F5; --sheetInk:#3A2A28; --sheetSoft:#6F5A56; --line:#EADFDB; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--sheet); color: var(--sheetInk); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  .wrap-page { max-width: 1120px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 30px; line-height: 1.15; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .lede { color: var(--sheetSoft); max-width: 70ch; margin: 0 0 8px; }
+  .status { display: inline-block; margin: 10px 0 28px; padding: 6px 12px; border-radius: 999px; font-weight: 600; background: #DDF1DA; color: #24582C; }
+  .theme { background: var(--page); color: var(--ink); border-radius: 22px; padding: 22px 18px; margin: 0 0 28px; border: 1px solid var(--edge); }
+  .th h2 { margin: 0; font-size: 24px; }
+  .th p { margin: 2px 0 16px; color: var(--inkSoft); }
+  h3 { font-size: 15px; margin: 26px 0 10px; color: var(--inkSoft); text-transform: uppercase; letter-spacing: 0.06em; }
+  .paper { background: var(--paper); border: 1px solid var(--edge); border-radius: 22px; padding: 18px; display: grid; gap: 16px; max-width: 560px; }
+  .row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .row > div { min-width: 0; }
+  .timer { font-size: 44px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; line-height: 1; }
+  .soft { color: var(--inkSoft); }
+  .ok { color: var(--successInk); font-weight: 650; font-size: 18px; }
+  .btn { font: inherit; font-weight: 600; font-size: 17px; border: 0; border-radius: 999px; padding: 12px 22px; min-height: 44px; }
+  .btn.primary { background: var(--primary); color: var(--onPrimary); }
+  .btn.success { background: var(--success); color: var(--onSuccess); }
+  .btn.danger { background: var(--danger); color: var(--onDanger); }
+  .pill { border-radius: 8px; padding: 7px 12px; background: var(--field); color: var(--ink); font-weight: 600; }
+  .pill.sel { background: var(--primarySoft); color: var(--primaryInk); }
+  .badge { display: inline-grid; place-items: center; min-width: 26px; height: 26px; border-radius: 999px; background: var(--accent); color: var(--onAccent); font-weight: 700; font-size: 14px; }
+  .input { display: grid; gap: 4px; }
+  .input .ph { display: block; background: var(--field); border: 1.5px solid var(--edgeStrong); border-radius: 14px; padding: 11px 14px; color: var(--inkSoft); }
+  .link { color: var(--primaryInk); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+  .destroy { color: var(--dangerInk); font-weight: 600; }
+  .grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+  .sw { display: flex; gap: 10px; align-items: flex-start; background: var(--paper); border: 1px solid var(--edge); border-radius: 14px; padding: 10px; }
+  .chip { flex: none; width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--edge); }
+  .meta { display: grid; min-width: 0; }
+  .meta code { font: 12px ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--inkSoft); }
+  .meta small, td small { display: block; color: var(--inkSoft); font-size: 12px; line-height: 1.35; }
+  .scroll { overflow-x: auto; background: var(--paper); border: 1px solid var(--edge); border-radius: 14px; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--edge); vertical-align: middle; }
+  th { font-size: 12px; color: var(--inkSoft); font-weight: 600; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .verdict { font-weight: 700; color: var(--successInk); }
+  tr.fail .verdict { color: var(--dangerInk); }
+  .sample { display: inline-flex; align-items: center; justify-content: center; min-width: 132px; height: 38px; padding: 0 10px; border-radius: 10px; font-weight: 600; white-space: nowrap; }
+  .sample i { display: block; width: 72px; height: 8px; border-radius: 99px; }
+  .choice { background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 20px 18px; margin: 0 0 28px; }
+  .choice h2 { margin: 0 0 4px; font-size: 20px; }
+  .choice p { margin: 0 0 14px; color: var(--sheetSoft); max-width: 70ch; }
+  .opts { display: flex; flex-wrap: wrap; gap: 16px; }
+  .opt { border: 1px solid var(--line); border-radius: 14px; padding: 14px; background: #FFF6F1; min-width: 240px; }
+  .opt b { display: block; margin-bottom: 8px; }
+  .opt .btn { margin-bottom: 8px; }
+  footer { color: var(--sheetSoft); font-size: 13px; }
+  code { overflow-wrap: anywhere; }
+  @media (max-width: 560px) {
+    h1 { font-size: 24px; }
+    .theme { padding: 18px 12px; border-radius: 18px; }
+    .paper { padding: 14px; }
+    .timer { font-size: 38px; }
+    .opt { min-width: 0; flex: 1 1 100%; }
+    .grid { grid-template-columns: 1fr; }
+  }
+</style></head>
+<body><div class="wrap-page">
+  <h1>The Sticker Diary: theme tokens</h1>
+  <p class="lede">Phase 1, C1. Two free themes with the same roles: <b>Strawberry Milk</b> (light) and <b>Midnight Plum</b> (dark). Every text and background pair the interface will draw is listed under its theme, with its contrast ratio. Text needs <b>4.5:1</b>; large text, icons and non-text marks (the ring, input boundaries) need <b>3:1</b>.</p>
+  <p class="lede">The ratios on this page come from the same function and the same file that CI checks (<code>npm run check:contrast</code>), so what you approve is what ships. The tomato disc is a placeholder showing the sticker edge and shadow; Pomo &amp; Doro come in C3.</p>
+  <span class="status">All 52 pairs pass</span>
+
+  <section class="choice">
+    <h2>One choice for you: the primary button</h2>
+    <p>A pastel strawberry can't carry white text at 4.5:1. So either the fill stays soft and the label is cocoa (proposed: it reads like stationery and keeps the deeper pink for text and the ring), or the fill goes deep and the label is white (more conventional, louder).</p>
+    <div class="opts">
+      <div class="opt"><b>A · Proposed</b><button class="btn" style="background:#F7A9BE;color:#4A2C29">Start focus</button><div style="color:#7D5A54">Cocoa on pastel strawberry · 6.76:1</div></div>
+      <div class="opt"><b>B · Alternative</b><button class="btn" style="background:#B03158;color:#FFFFFF">Start focus</button><div style="color:#7D5A54">White on deep strawberry · 6.13:1</div></div>
+    </div>
+  </section>
+
+  <section class="theme" style="--page:#FFF6F1;--paper:#FFFDFB;--field:#FBEAE4;--edge:#F0DAD3;--edgeStrong:#A07A72;--ink:#4A2C29;--inkSoft:#7D5A54;--primary:#F7A9BE;--onPrimary:#4A2C29;--primaryInk:#B03158;--primarySoft:#FDE4EB;--accent:#C93A24;--onAccent:#FFFFFF;--success:#BFE5B5;--onSuccess:#4A2C29;--successInk:#2F7339;--danger:#A82431;--onDanger:#FFFFFF;--dangerInk:#A82431">
+      <header class="th">
+        <h2>Strawberry Milk</h2>
+        <p>Light default · Free · <b>26 of 26</b> pairs pass</p>
+      </header>
+
+      <div class="demo">
+        <div class="paper">
+          <div class="row">
+            <svg viewBox="0 0 84 84" width="84" height="84" aria-hidden="true">
+      <circle cx="42" cy="42" r="34" fill="none" stroke="#FBEDE8" stroke-width="9"/>
+      <circle cx="42" cy="42" r="34" fill="none" stroke="#D64B76" stroke-width="9" stroke-linecap="round"
+        stroke-dasharray="153.8 213.6" transform="rotate(-90 42 42)"/>
+    </svg>
+            <div><div class="timer">24:59</div><div class="soft">Focus · Chapter 4 notes</div></div>
+            <svg viewBox="0 0 96 96" width="76" height="76" aria-hidden="true" style="filter: drop-shadow(1.5px 3px 3px rgba(74,44,41,0.16))">
+      <circle cx="48" cy="52" r="38" fill="#FFFFFF"/>
+      <circle cx="48" cy="52" r="32" fill="#C93A24"/>
+      <path d="M48 22 l5 8 9-3-5 8 8 5-10 1-7 6-1-9-9-4 9-3z" fill="#4F9A57" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round"/>
+    </svg>
+          </div>
+          <div class="row wrap">
+            <button class="btn primary">Start focus</button>
+            <span class="pill sel">25 / 5</span><span class="pill">50 / 10</span>
+            <span class="badge">3</span>
+          </div>
+          <label class="input"><span class="soft">Intention</span><span class="ph">What are you studying?</span></label>
+          <div class="row wrap">
+            <svg viewBox="0 0 84 84" width="84" height="84" aria-hidden="true">
+      <circle cx="42" cy="42" r="34" fill="none" stroke="#FBEDE8" stroke-width="9"/>
+      <circle cx="42" cy="42" r="34" fill="none" stroke="#428C4E" stroke-width="9" stroke-linecap="round"
+        stroke-dasharray="153.8 213.6" transform="rotate(-90 42 42)"/>
+    </svg>
+            <div><div class="ok">Goal reached</div><div class="soft">4 of 4 sessions today</div></div>
+            <button class="btn success">Take a break</button>
+          </div>
+          <div class="row wrap"><a class="link">Edit love notes</a><a class="destroy">Reset today</a><button class="btn danger">Delete</button></div>
+        </div>
+      </div>
+
+      <h3>Tokens</h3>
+      <ul class="grid"><li class="sw">
+          <span class="chip" style="background:#FFF6F1"></span>
+          <span class="meta"><b>page</b><code>#FFF6F1</code><small>The diary page: the ground of every screen.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#FFFDFB"></span>
+          <span class="meta"><b>paper</b><code>#FFFDFB</code><small>Paper fields and list groups that sit on the page, separated by tone and a crisp edge, never a shadow.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#FBEAE4"></span>
+          <span class="meta"><b>field</b><code>#FBEAE4</code><small>Inputs, segmented-control tracks and other wells inside paper.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#F0DAD3"></span>
+          <span class="meta"><b>edge</b><code>#F0DAD3</code><small>The paper's crisp edge. Decorative: never the only cue for a control.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#A07A72"></span>
+          <span class="meta"><b>edgeStrong</b><code>#A07A72</code><small>Boundaries that identify a control, such as a text input (3:1).</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#4A2C29"></span>
+          <span class="meta"><b>ink</b><code>#4A2C29</code><small>Cocoa: body text, headings, the timer and icons.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#7D5A54"></span>
+          <span class="meta"><b>inkSoft</b><code>#7D5A54</code><small>Secondary text and icons, tinted from cocoa, never grey.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#F7A9BE"></span>
+          <span class="meta"><b>primary</b><code>#F7A9BE</code><small>Strawberry: the primary action's fill. A soft fill, so it carries a dark label.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#4A2C29"></span>
+          <span class="meta"><b>onPrimary</b><code>#4A2C29</code><small>The label on a primary fill.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#B03158"></span>
+          <span class="meta"><b>primaryInk</b><code>#B03158</code><small>Strawberry as text or an icon: links, selected labels, the selected tab.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#FDE4EB"></span>
+          <span class="meta"><b>primarySoft</b><code>#FDE4EB</code><small>A selected chip or row, tinted from strawberry.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#C93A24"></span>
+          <span class="meta"><b>accent</b><code>#C93A24</code><small>Tomato: the brand's red, used small and rarely (a badge, the sticker moment). A strong fill, so it carries a light label.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#FFFFFF"></span>
+          <span class="meta"><b>onAccent</b><code>#FFFFFF</code><small>The label on a tomato fill.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#C03A24"></span>
+          <span class="meta"><b>accentInk</b><code>#C03A24</code><small>Tomato as text: rare emphasis.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#BFE5B5"></span>
+          <span class="meta"><b>success</b><code>#BFE5B5</code><small>Leaf: goal reached, garden growth. A soft fill with a dark label.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#4A2C29"></span>
+          <span class="meta"><b>onSuccess</b><code>#4A2C29</code><small>The label on a leaf fill.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#2F7339"></span>
+          <span class="meta"><b>successInk</b><code>#2F7339</code><small>Leaf as text or an icon.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#A82431"></span>
+          <span class="meta"><b>danger</b><code>#A82431</code><small>Destructive actions only (reset, delete), kept apart from the brand tomato so the brand colour never means loss.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#FFFFFF"></span>
+          <span class="meta"><b>onDanger</b><code>#FFFFFF</code><small>The label on a destructive fill.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#A82431"></span>
+          <span class="meta"><b>dangerInk</b><code>#A82431</code><small>A destructive text action.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#FBEDE8"></span>
+          <span class="meta"><b>ringTrack</b><code>#FBEDE8</code><small>The timer ring's unfilled track; also chart baselines.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#D64B76"></span>
+          <span class="meta"><b>ringFocus</b><code>#D64B76</code><small>The ring during focus, and focus data marks in Stats (3:1 on the page and the track).</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#428C4E"></span>
+          <span class="meta"><b>ringBreak</b><code>#428C4E</code><small>The ring during a break, and break data marks.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#FFFFFF"></span>
+          <span class="meta"><b>stickerEdge</b><code>#FFFFFF</code><small>The die-cut border around every sticker, in both themes. Stickers only, never chrome.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#E2D6D1"></span>
+          <span class="meta"><b>stickerShadow</b><code>#4A2C2929</code><small>The sticker's soft, offset shadow, tinted from the theme. Stickers are the only things that lift.</small></span>
+        </li></ul>
+
+      <h3>Every pair, as CI checks it</h3>
+      <div class="scroll"><table>
+        <thead><tr><th>Sample</th><th>Pair and use</th><th class="num">Ratio</th><th class="num">Floor</th><th></th></tr></thead>
+        <tbody><tr class="">
+          <td><span class="sample" style="background:#FFF6F1;color:#4A2C29">Odaklan · 24:59</span></td>
+          <td><b>ink</b> on <b>page</b><small>Body text, headings and the timer on the page</small></td>
+          <td class="num">11.70</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FFFDFB;color:#4A2C29">Odaklan · 24:59</span></td>
+          <td><b>ink</b> on <b>paper</b><small>Body text on a paper field</small></td>
+          <td class="num">12.29</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FBEAE4;color:#4A2C29">Odaklan · 24:59</span></td>
+          <td><b>ink</b> on <b>field</b><small>Text typed into an input</small></td>
+          <td class="num">10.69</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FFF6F1;color:#7D5A54">Odaklan · 24:59</span></td>
+          <td><b>inkSoft</b> on <b>page</b><small>Secondary text on the page</small></td>
+          <td class="num">5.69</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FFFDFB;color:#7D5A54">Odaklan · 24:59</span></td>
+          <td><b>inkSoft</b> on <b>paper</b><small>Secondary text on paper</small></td>
+          <td class="num">5.98</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FBEAE4;color:#7D5A54">Odaklan · 24:59</span></td>
+          <td><b>inkSoft</b> on <b>field</b><small>Placeholder and hint text in an input</small></td>
+          <td class="num">5.20</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#F7A9BE;color:#4A2C29">Odaklan · 24:59</span></td>
+          <td><b>onPrimary</b> on <b>primary</b><small>The primary button's label (17 pt semibold is not large text)</small></td>
+          <td class="num">6.76</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FFF6F1;color:#B03158">Odaklan · 24:59</span></td>
+          <td><b>primaryInk</b> on <b>page</b><small>Links, selected labels and the selected tab on the page</small></td>
+          <td class="num">5.75</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FFFDFB;color:#B03158">Odaklan · 24:59</span></td>
+          <td><b>primaryInk</b> on <b>paper</b><small>Links and selected labels on paper</small></td>
+          <td class="num">6.04</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FDE4EB;color:#4A2C29">Odaklan · 24:59</span></td>
+          <td><b>ink</b> on <b>primarySoft</b><small>Text on a selected chip or row</small></td>
+          <td class="num">10.38</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FDE4EB;color:#B03158">Odaklan · 24:59</span></td>
+          <td><b>primaryInk</b> on <b>primarySoft</b><small>A selected chip's label in strawberry</small></td>
+          <td class="num">5.10</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#C93A24;color:#FFFFFF">Odaklan · 24:59</span></td>
+          <td><b>onAccent</b> on <b>accent</b><small>A badge's label on tomato</small></td>
+          <td class="num">5.10</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FFF6F1;color:#C03A24">Odaklan · 24:59</span></td>
+          <td><b>accentInk</b> on <b>page</b><small>Tomato emphasis on the page</small></td>
+          <td class="num">5.09</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FFFDFB;color:#C03A24">Odaklan · 24:59</span></td>
+          <td><b>accentInk</b> on <b>paper</b><small>Tomato emphasis on paper</small></td>
+          <td class="num">5.34</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#BFE5B5;color:#4A2C29">Odaklan · 24:59</span></td>
+          <td><b>onSuccess</b> on <b>success</b><small>A label on a leaf fill</small></td>
+          <td class="num">8.96</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FFF6F1;color:#2F7339">Odaklan · 24:59</span></td>
+          <td><b>successInk</b> on <b>page</b><small>&quot;Goal reached&quot; text and leaf icons on the page</small></td>
+          <td class="num">5.42</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FFFDFB;color:#2F7339">Odaklan · 24:59</span></td>
+          <td><b>successInk</b> on <b>paper</b><small>Leaf text and icons on paper</small></td>
+          <td class="num">5.70</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#A82431;color:#FFFFFF">Odaklan · 24:59</span></td>
+          <td><b>onDanger</b> on <b>danger</b><small>A destructive button's label</small></td>
+          <td class="num">7.09</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FFF6F1;color:#A82431">Odaklan · 24:59</span></td>
+          <td><b>dangerInk</b> on <b>page</b><small>A destructive text action on the page</small></td>
+          <td class="num">6.65</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FFFDFB;color:#A82431">Odaklan · 24:59</span></td>
+          <td><b>dangerInk</b> on <b>paper</b><small>A destructive text action on paper</small></td>
+          <td class="num">6.99</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FFF6F1"><i style="background:#D64B76"></i></span></td>
+          <td><b>ringFocus</b> on <b>page</b><small>The focus ring and focus data marks against the page</small></td>
+          <td class="num">3.84</td>
+          <td class="num">≥ 3</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FBEDE8"><i style="background:#D64B76"></i></span></td>
+          <td><b>ringFocus</b> on <b>ringTrack</b><small>The focus ring against its own track</small></td>
+          <td class="num">3.58</td>
+          <td class="num">≥ 3</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FFF6F1"><i style="background:#428C4E"></i></span></td>
+          <td><b>ringBreak</b> on <b>page</b><small>The break ring and break data marks against the page</small></td>
+          <td class="num">3.87</td>
+          <td class="num">≥ 3</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FBEDE8"><i style="background:#428C4E"></i></span></td>
+          <td><b>ringBreak</b> on <b>ringTrack</b><small>The break ring against its own track</small></td>
+          <td class="num">3.61</td>
+          <td class="num">≥ 3</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FFFDFB"><i style="background:#A07A72"></i></span></td>
+          <td><b>edgeStrong</b> on <b>paper</b><small>An input's boundary on paper</small></td>
+          <td class="num">3.75</td>
+          <td class="num">≥ 3</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FFF6F1"><i style="background:#A07A72"></i></span></td>
+          <td><b>edgeStrong</b> on <b>page</b><small>An input's boundary on the page</small></td>
+          <td class="num">3.57</td>
+          <td class="num">≥ 3</td>
+          <td class="verdict">Pass</td>
+        </tr></tbody>
+      </table></div>
+    </section>
+<section class="theme" style="--page:#221726;--paper:#2E2033;--field:#3A2A40;--edge:#44324A;--edgeStrong:#9A80A3;--ink:#FFF3EE;--inkSoft:#CDB3C6;--primary:#F7A9BE;--onPrimary:#221726;--primaryInk:#FF9EBB;--primarySoft:#4D2B45;--accent:#FF7A5E;--onAccent:#221726;--success:#8ED493;--onSuccess:#221726;--successInk:#8ED493;--danger:#FF8A80;--onDanger:#221726;--dangerInk:#FF9A90">
+      <header class="th">
+        <h2>Midnight Plum</h2>
+        <p>Dark default · Free · <b>26 of 26</b> pairs pass</p>
+      </header>
+
+      <div class="demo">
+        <div class="paper">
+          <div class="row">
+            <svg viewBox="0 0 84 84" width="84" height="84" aria-hidden="true">
+      <circle cx="42" cy="42" r="34" fill="none" stroke="#3D2C44" stroke-width="9"/>
+      <circle cx="42" cy="42" r="34" fill="none" stroke="#FF8FB1" stroke-width="9" stroke-linecap="round"
+        stroke-dasharray="153.8 213.6" transform="rotate(-90 42 42)"/>
+    </svg>
+            <div><div class="timer">24:59</div><div class="soft">Focus · Chapter 4 notes</div></div>
+            <svg viewBox="0 0 96 96" width="76" height="76" aria-hidden="true" style="filter: drop-shadow(1.5px 3px 3px rgba(13,7,15,0.40))">
+      <circle cx="48" cy="52" r="38" fill="#FFF6F1"/>
+      <circle cx="48" cy="52" r="32" fill="#C93A24"/>
+      <path d="M48 22 l5 8 9-3-5 8 8 5-10 1-7 6-1-9-9-4 9-3z" fill="#4F9A57" stroke="#FFF6F1" stroke-width="3" stroke-linejoin="round"/>
+    </svg>
+          </div>
+          <div class="row wrap">
+            <button class="btn primary">Start focus</button>
+            <span class="pill sel">25 / 5</span><span class="pill">50 / 10</span>
+            <span class="badge">3</span>
+          </div>
+          <label class="input"><span class="soft">Intention</span><span class="ph">What are you studying?</span></label>
+          <div class="row wrap">
+            <svg viewBox="0 0 84 84" width="84" height="84" aria-hidden="true">
+      <circle cx="42" cy="42" r="34" fill="none" stroke="#3D2C44" stroke-width="9"/>
+      <circle cx="42" cy="42" r="34" fill="none" stroke="#8ED493" stroke-width="9" stroke-linecap="round"
+        stroke-dasharray="153.8 213.6" transform="rotate(-90 42 42)"/>
+    </svg>
+            <div><div class="ok">Goal reached</div><div class="soft">4 of 4 sessions today</div></div>
+            <button class="btn success">Take a break</button>
+          </div>
+          <div class="row wrap"><a class="link">Edit love notes</a><a class="destroy">Reset today</a><button class="btn danger">Delete</button></div>
+        </div>
+      </div>
+
+      <h3>Tokens</h3>
+      <ul class="grid"><li class="sw">
+          <span class="chip" style="background:#221726"></span>
+          <span class="meta"><b>page</b><code>#221726</code><small>The diary page: the ground of every screen.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#2E2033"></span>
+          <span class="meta"><b>paper</b><code>#2E2033</code><small>Paper fields and list groups that sit on the page, separated by tone and a crisp edge, never a shadow.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#3A2A40"></span>
+          <span class="meta"><b>field</b><code>#3A2A40</code><small>Inputs, segmented-control tracks and other wells inside paper.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#44324A"></span>
+          <span class="meta"><b>edge</b><code>#44324A</code><small>The paper's crisp edge. Decorative: never the only cue for a control.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#9A80A3"></span>
+          <span class="meta"><b>edgeStrong</b><code>#9A80A3</code><small>Boundaries that identify a control, such as a text input (3:1).</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#FFF3EE"></span>
+          <span class="meta"><b>ink</b><code>#FFF3EE</code><small>Cocoa: body text, headings, the timer and icons.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#CDB3C6"></span>
+          <span class="meta"><b>inkSoft</b><code>#CDB3C6</code><small>Secondary text and icons, tinted from cocoa, never grey.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#F7A9BE"></span>
+          <span class="meta"><b>primary</b><code>#F7A9BE</code><small>Strawberry: the primary action's fill. A soft fill, so it carries a dark label.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#221726"></span>
+          <span class="meta"><b>onPrimary</b><code>#221726</code><small>The label on a primary fill.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#FF9EBB"></span>
+          <span class="meta"><b>primaryInk</b><code>#FF9EBB</code><small>Strawberry as text or an icon: links, selected labels, the selected tab.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#4D2B45"></span>
+          <span class="meta"><b>primarySoft</b><code>#4D2B45</code><small>A selected chip or row, tinted from strawberry.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#FF7A5E"></span>
+          <span class="meta"><b>accent</b><code>#FF7A5E</code><small>Tomato: the brand's red, used small and rarely (a badge, the sticker moment). A strong fill, so it carries a light label.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#221726"></span>
+          <span class="meta"><b>onAccent</b><code>#221726</code><small>The label on a tomato fill.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#FF8C73"></span>
+          <span class="meta"><b>accentInk</b><code>#FF8C73</code><small>Tomato as text: rare emphasis.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#8ED493"></span>
+          <span class="meta"><b>success</b><code>#8ED493</code><small>Leaf: goal reached, garden growth. A soft fill with a dark label.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#221726"></span>
+          <span class="meta"><b>onSuccess</b><code>#221726</code><small>The label on a leaf fill.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#8ED493"></span>
+          <span class="meta"><b>successInk</b><code>#8ED493</code><small>Leaf as text or an icon.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#FF8A80"></span>
+          <span class="meta"><b>danger</b><code>#FF8A80</code><small>Destructive actions only (reset, delete), kept apart from the brand tomato so the brand colour never means loss.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#221726"></span>
+          <span class="meta"><b>onDanger</b><code>#221726</code><small>The label on a destructive fill.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#FF9A90"></span>
+          <span class="meta"><b>dangerInk</b><code>#FF9A90</code><small>A destructive text action.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#3D2C44"></span>
+          <span class="meta"><b>ringTrack</b><code>#3D2C44</code><small>The timer ring's unfilled track; also chart baselines.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#FF8FB1"></span>
+          <span class="meta"><b>ringFocus</b><code>#FF8FB1</code><small>The ring during focus, and focus data marks in Stats (3:1 on the page and the track).</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#8ED493"></span>
+          <span class="meta"><b>ringBreak</b><code>#8ED493</code><small>The ring during a break, and break data marks.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#FFF6F1"></span>
+          <span class="meta"><b>stickerEdge</b><code>#FFF6F1</code><small>The die-cut border around every sticker, in both themes. Stickers only, never chrome.</small></span>
+        </li><li class="sw">
+          <span class="chip" style="background:#1A111D"></span>
+          <span class="meta"><b>stickerShadow</b><code>#0D070F66</code><small>The sticker's soft, offset shadow, tinted from the theme. Stickers are the only things that lift.</small></span>
+        </li></ul>
+
+      <h3>Every pair, as CI checks it</h3>
+      <div class="scroll"><table>
+        <thead><tr><th>Sample</th><th>Pair and use</th><th class="num">Ratio</th><th class="num">Floor</th><th></th></tr></thead>
+        <tbody><tr class="">
+          <td><span class="sample" style="background:#221726;color:#FFF3EE">Odaklan · 24:59</span></td>
+          <td><b>ink</b> on <b>page</b><small>Body text, headings and the timer on the page</small></td>
+          <td class="num">15.84</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#2E2033;color:#FFF3EE">Odaklan · 24:59</span></td>
+          <td><b>ink</b> on <b>paper</b><small>Body text on a paper field</small></td>
+          <td class="num">14.09</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#3A2A40;color:#FFF3EE">Odaklan · 24:59</span></td>
+          <td><b>ink</b> on <b>field</b><small>Text typed into an input</small></td>
+          <td class="num">12.18</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#221726;color:#CDB3C6">Odaklan · 24:59</span></td>
+          <td><b>inkSoft</b> on <b>page</b><small>Secondary text on the page</small></td>
+          <td class="num">8.91</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#2E2033;color:#CDB3C6">Odaklan · 24:59</span></td>
+          <td><b>inkSoft</b> on <b>paper</b><small>Secondary text on paper</small></td>
+          <td class="num">7.92</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#3A2A40;color:#CDB3C6">Odaklan · 24:59</span></td>
+          <td><b>inkSoft</b> on <b>field</b><small>Placeholder and hint text in an input</small></td>
+          <td class="num">6.85</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#F7A9BE;color:#221726">Odaklan · 24:59</span></td>
+          <td><b>onPrimary</b> on <b>primary</b><small>The primary button's label (17 pt semibold is not large text)</small></td>
+          <td class="num">9.33</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#221726;color:#FF9EBB">Odaklan · 24:59</span></td>
+          <td><b>primaryInk</b> on <b>page</b><small>Links, selected labels and the selected tab on the page</small></td>
+          <td class="num">8.91</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#2E2033;color:#FF9EBB">Odaklan · 24:59</span></td>
+          <td><b>primaryInk</b> on <b>paper</b><small>Links and selected labels on paper</small></td>
+          <td class="num">7.92</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#4D2B45;color:#FFF3EE">Odaklan · 24:59</span></td>
+          <td><b>ink</b> on <b>primarySoft</b><small>Text on a selected chip or row</small></td>
+          <td class="num">11.05</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#4D2B45;color:#FF9EBB">Odaklan · 24:59</span></td>
+          <td><b>primaryInk</b> on <b>primarySoft</b><small>A selected chip's label in strawberry</small></td>
+          <td class="num">6.22</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FF7A5E;color:#221726">Odaklan · 24:59</span></td>
+          <td><b>onAccent</b> on <b>accent</b><small>A badge's label on tomato</small></td>
+          <td class="num">6.73</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#221726;color:#FF8C73">Odaklan · 24:59</span></td>
+          <td><b>accentInk</b> on <b>page</b><small>Tomato emphasis on the page</small></td>
+          <td class="num">7.59</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#2E2033;color:#FF8C73">Odaklan · 24:59</span></td>
+          <td><b>accentInk</b> on <b>paper</b><small>Tomato emphasis on paper</small></td>
+          <td class="num">6.75</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#8ED493;color:#221726">Odaklan · 24:59</span></td>
+          <td><b>onSuccess</b> on <b>success</b><small>A label on a leaf fill</small></td>
+          <td class="num">9.84</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#221726;color:#8ED493">Odaklan · 24:59</span></td>
+          <td><b>successInk</b> on <b>page</b><small>&quot;Goal reached&quot; text and leaf icons on the page</small></td>
+          <td class="num">9.84</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#2E2033;color:#8ED493">Odaklan · 24:59</span></td>
+          <td><b>successInk</b> on <b>paper</b><small>Leaf text and icons on paper</small></td>
+          <td class="num">8.75</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#FF8A80;color:#221726">Odaklan · 24:59</span></td>
+          <td><b>onDanger</b> on <b>danger</b><small>A destructive button's label</small></td>
+          <td class="num">7.55</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#221726;color:#FF9A90">Odaklan · 24:59</span></td>
+          <td><b>dangerInk</b> on <b>page</b><small>A destructive text action on the page</small></td>
+          <td class="num">8.43</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#2E2033;color:#FF9A90">Odaklan · 24:59</span></td>
+          <td><b>dangerInk</b> on <b>paper</b><small>A destructive text action on paper</small></td>
+          <td class="num">7.50</td>
+          <td class="num">≥ 4.5</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#221726"><i style="background:#FF8FB1"></i></span></td>
+          <td><b>ringFocus</b> on <b>page</b><small>The focus ring and focus data marks against the page</small></td>
+          <td class="num">8.06</td>
+          <td class="num">≥ 3</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#3D2C44"><i style="background:#FF8FB1"></i></span></td>
+          <td><b>ringFocus</b> on <b>ringTrack</b><small>The focus ring against its own track</small></td>
+          <td class="num">5.98</td>
+          <td class="num">≥ 3</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#221726"><i style="background:#8ED493"></i></span></td>
+          <td><b>ringBreak</b> on <b>page</b><small>The break ring and break data marks against the page</small></td>
+          <td class="num">9.84</td>
+          <td class="num">≥ 3</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#3D2C44"><i style="background:#8ED493"></i></span></td>
+          <td><b>ringBreak</b> on <b>ringTrack</b><small>The break ring against its own track</small></td>
+          <td class="num">7.30</td>
+          <td class="num">≥ 3</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#2E2033"><i style="background:#9A80A3"></i></span></td>
+          <td><b>edgeStrong</b> on <b>paper</b><small>An input's boundary on paper</small></td>
+          <td class="num">4.37</td>
+          <td class="num">≥ 3</td>
+          <td class="verdict">Pass</td>
+        </tr><tr class="">
+          <td><span class="sample" style="background:#221726"><i style="background:#9A80A3"></i></span></td>
+          <td><b>edgeStrong</b> on <b>page</b><small>An input's boundary on the page</small></td>
+          <td class="num">4.92</td>
+          <td class="num">≥ 3</td>
+          <td class="verdict">Pass</td>
+        </tr></tbody>
+      </table></div>
+    </section>
+
+  <footer>Generated by <code>scripts/design/check-contrast.mjs</code> from <code>src/theme/palette.json</code>. WCAG 2 relative luminance; translucent colours are composited over their background before the check (Phase 1 plan §4.1).</footer>
+</div></body></html>

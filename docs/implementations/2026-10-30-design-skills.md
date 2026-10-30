@@ -71,5 +71,6 @@ Not applicable (no formulas or algorithms).
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Documentation map](../README.md)
 - [Design work runs on Impeccable, the Apple HIG skill and Emil Kowalski's skills, in a fixed precedence](../architecture/adr/0042-design-skill-stack.md)
 <!-- backlinks:end -->

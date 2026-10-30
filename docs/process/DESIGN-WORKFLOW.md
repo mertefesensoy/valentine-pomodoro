@@ -78,6 +78,7 @@ A new tension gets a row here, or an ADR if it is structural.
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Documentation map](../README.md)
 - [Design work runs on Impeccable, the Apple HIG skill and Emil Kowalski's skills, in a fixed precedence](../architecture/adr/0042-design-skill-stack.md)
 - [Design skills — Apple HIG skill and the full Emil Kowalski pack](../implementations/2026-10-30-design-skills.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)

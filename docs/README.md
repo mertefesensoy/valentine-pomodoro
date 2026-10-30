@@ -51,6 +51,7 @@ Start here. Every document in the repo is listed below. The rules for writing th
 
 | Date | Record |
 |------|--------|
+| 2026-10-30 | [Design skills: Apple HIG skill and the full Emil Kowalski pack](implementations/2026-10-30-design-skills.md) |
 | 2026-10-30 | [Phase 1 B5: the React Compiler on, its lint rules back to `error`](implementations/2026-10-30-phase1-b5-react-compiler.md) |
 | 2026-10-30 | [Phase 1 B4: the re-render refactor](implementations/2026-10-30-phase1-b4-rerender-refactor.md) |
 | 2026-10-30 | [Phase 1 B3: Zustand stores, hydrated synchronously](implementations/2026-10-30-phase1-b3-zustand-stores.md) |
@@ -93,6 +94,7 @@ Start here. Every document in the repo is listed below. The rules for writing th
 | [Documentation conventions](process/DOCS.md) | Front-matter, IDs, statuses, backlinks, the checker |
 | [Branching model](process/BRANCHING.md) | Trunk-based with release tags; the `rehaul/v2` transition |
 | [Release process](process/RELEASE.md) | Versions, tags, the release checklist, expiring credentials |
+| [Design workflow](process/DESIGN-WORKFLOW.md) | Which design skill owns which layer (Impeccable, Apple HIG, Emil Kowalski), the per-screen pipeline, precedence when they disagree |
 | [CHANGELOG.md](../CHANGELOG.md) | Every version since 1.0.0 |
 
 ## History and archive

@@ -58,6 +58,7 @@ Two rules for reading the statuses:
 | [ADR-0039](0039-testflight-prerelease-tags.md) | TestFlight builds get SemVer pre-release tags (`-tf.N`) | accepted | 2026-10-30 |
 | [ADR-0040](0040-docs-as-code-generated-backlinks.md) | Docs as code, with generated backlinks and traceability | accepted | 2026-10-30 |
 | [ADR-0041](0041-react-compiler-on.md) | The React Compiler is on, and Jest compiles app code the way Metro does | accepted | 2026-10-30 |
+| [ADR-0042](0042-design-skill-stack.md) | Design work runs on Impeccable, the Apple HIG skill and Emil Kowalski's skills, in a fixed precedence | accepted | 2026-10-30 |
 
 **Where the decisions come from:**
 - **v1 (2026-01-07):** [`DECISIONS.md`](../../../DECISIONS.md). Its open questions Q1–Q3 are answered in ADR-0003 and ADR-0027 (Q1), ADR-0008 (Q2) and ADR-0014 (Q3).

@@ -284,7 +284,7 @@ The owner chose **both** placements: "First pairing and 1.4 welcome screen". The
 
 ### 3.4 D3, EN/TR (FR-SET-005, NFR-I18N-001, NFR-A11Y-003)
 
-- **Plumbing, moved into D1 by the owner (Q1):** `expo-localization` with `i18next` and `react-i18next`. D3 finishes what D1 started.
+- **Plumbing, moved into D1 by the owner (Q1):** `expo-localization` with an in-house translator. The owner replaced `i18next` for the bytecode on 2026-10-30 ([ADR-0048](../architecture/adr/0048-in-house-translator.md)). D3 finishes what D1 started.
   - The language follows the device.
   - `ios.infoPlist.CFBundleLocalizations: ["en", "tr"]`, so iOS offers the per-app language setting.
   - Turkish casing goes through one helper using `toLocaleUpperCase('tr-TR')` (İ/ı), never a bare `toUpperCase()`.
@@ -470,6 +470,14 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 - Classic rebuilt in the Sticker Diary design (Phase 1 D1): the Strawberry Milk and Midnight Plum themes, Baloo 2 with steady timer digits, The Ring and Facing Pages layouts, presets (25/5, 50/10, 52/17, 90/20), today's stickers with the sticker placement, the love note as a sheet, a mode sheet, the custom tab icons, a one-time welcome where Pomo & Doro become the Same Page mark, and English and Turkish groundwork.
 ```
 
+**ADR index (`docs/architecture/adr/README.md`)**, a row after ADR-0047:
+
+```markdown
+| [ADR-0048](0048-in-house-translator.md) | An in-house translator over i18next, for English and Turkish | accepted | 2026-10-30 |
+```
+
+**NFR-PERF-002:** add to the status note: "D1 (2026-10-30): iOS 4,026,408 B with the in-house translator (ADR-0048), 4.41 % over the limit; revisited at E3 (D1 record §4.1)."
+
 **`docs/process/DESIGN-WORKFLOW.md` §3**, two rows for the tensions D1 decided:
 
 ```markdown
@@ -485,6 +493,7 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 
 ## Backlinks
 <!-- backlinks:start -->
+- [An in-house translator over i18next, for English and Turkish](../architecture/adr/0048-in-house-translator.md)
 - ["Phase 1 D1: Classic rebuilt in the Sticker Diary design, with the v1.4 welcome screen"](2026-10-30-phase1-d1-classic.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

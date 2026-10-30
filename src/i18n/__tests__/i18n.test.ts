@@ -74,3 +74,31 @@ describe('Turkish casing', () => {
         expect(upper('istatistik', 'en')).toBe('ISTATISTIK');
     });
 });
+
+describe('the in-house translator (i18next replaced, D1 record §4.1)', () => {
+    it('returns a missing key as itself, never throws', () => {
+        expect(t('no.such.key')).toBe('no.such.key');
+        expect(t('timer')).toBe('timer'); // a branch, not a string
+    });
+
+    it('leaves a placeholder with no value as it is', () => {
+        expect(t('timer.session', { n: 2 })).toBe('session 2 of {{total}}');
+    });
+
+    it("falls back to English's rule when Intl.PluralRules is missing", () => {
+        jest.isolateModules(() => {
+            // Simulating a runtime without Intl.PluralRules (read-only in the types, writable at runtime).
+            const intl = Intl as unknown as { PluralRules: unknown };
+            const real = intl.PluralRules;
+            intl.PluralRules = undefined;
+            try {
+                const { fixedT: fresh } = jest.requireActual<typeof import('../index')>('../index');
+                expect(fresh('en')('today.a11y', { count: 1 })).toBe('1 session today');
+                expect(fresh('en')('today.a11y', { count: 5 })).toBe('5 sessions today');
+                expect(fresh('tr')('today.a11y', { count: 5 })).toBe('Bugün 5 oturum');
+            } finally {
+                intl.PluralRules = real;
+            }
+        });
+    });
+});

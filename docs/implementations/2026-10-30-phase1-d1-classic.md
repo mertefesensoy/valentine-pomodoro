@@ -26,7 +26,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | Critique 31 → **35/40**; audit **16/20**; HIG Good, no Critical; motion clean after fixes (§3.12) | Critique **30/32**; audit **19/20**; HIG Good, no Critical; motion clean (§3.12) |
 | 5. `break-ui` (TR at AX5) | 2 Broken and 1 Ugly fixed; 2 Fragile noted (§3.13) | 1 Broken fixed (§3.13) |
 | 6. `polish`, `harden`, `clarify` | Done (§3.12–3.13); the Turkish copy waits for the owner's review | Done; the Turkish copy waits for the owner's review |
-| 7. Device check, build 48 | Waiting for the owner's OK (build, submit, tag) | Waiting for the owner's OK |
+| 7. Device check, build 48 | The owner's OK, 2026-10-30: "Build, submit and tag"; build pending | The same |
 | FINISH (both contracts): the finish review, its verdict, DESIGN.md | **Pending:** after the device check, with the owner's iPhone screenshots as the evidence | **Pending:** the same |
 
 **FINISH is not yet discharged.** Each direction contract ends with "this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance". That waits for evidence this machine can't make:
@@ -209,9 +209,9 @@ The brief also settles four points:
 
 The owner moved D3's plumbing into D1 (Stage D plan §3.1).
 - **The language:** `src/i18n/index.ts` picks the app's language from the device's preferred locales: the first Turkish or English one, otherwise English. iOS relaunches an app when its language changes, so the language is fixed for the process.
-- **No `react-i18next`:** `t()` is i18next's own, bound once and initialised synchronously with both resources bundled. Calling it in render is pure, so it adds nothing to the Reassure counts and no bytecode for a binding library.
+- **No i18next any more** (the owner's choice for the bytecode; [ADR-0048](../architecture/adr/0048-in-house-translator.md)). `t()` is our own: dotted keys, the device language then English, `{{name}}` interpolation, plurals through `Intl.PluralRules` (with `_zero` for 0, and English's rule if `Intl` is missing). Calling it in render is pure, so it adds nothing to the Reassure counts.
 - **Turkish casing** goes through `upper()`, with `toLocaleUpperCase('tr-TR')`.
-- **Versions:** `i18next` 26.4.6 (15 October) is pinned exactly, at least two weeks old where a newer release exists. `expo-localization` started at 58.0.4 on the same rule. Before the build, `expo-doctor` flagged it against SDK 58's expected `~58.0.5`, so it moved to that (Expo's own release, published 19 October): for a native module, the version the SDK is tested with outweighs the age rule. `expo-doctor` then passes 19 of 20; the one left, `@expo/config-plugins` installed directly, predates D1.
+- **Versions:** `i18next` 26.4.6 was pinned first, then removed (above). `expo-localization` started at 58.0.4 on a two-weeks-old rule. Before the build, `expo-doctor` flagged it against SDK 58's expected `~58.0.5`, so it moved to that (Expo's own release, published 19 October): for a native module, the version the SDK is tested with outweighs the age rule. `expo-doctor` then passes 19 of 20; the one left, `@expo/config-plugins` installed directly, predates D1.
 - **The strings:** only D1's new strings are keys so far. The test checks key and placeholder parity between the languages, plurals (English one/other and a zero form; Turkish uses one form after a number), and casing (`istatistik` → `İSTATİSTİK` in Turkish, `ISTATISTIK` in English).
 - **Device check:** Hermes's `toLocaleUpperCase('tr-TR')` on the iPhone.
 
@@ -409,7 +409,13 @@ There is no overshoot anywhere. A light haptic fires as p passes 0.6 (`useAnimat
 - **Turkish is partial by design.** The Timer, the welcome, the love-note and mode sheets and the tab labels are in Turkish; Stats, Settings, Notes and the gift screen stay English until D2 and D3. On a Turkish device that mix is expected.
 - **`Baloo2-Medium` and `useBoldText` ship unused in D1.** Every display string on these surfaces is SemiBold, so the Bold Text step-up (HIG D1-M4) is first exercised when D2 adds Medium roles. The fonts check still builds and verifies both instances.
 
-**One decision for the owner: the goal moment's order.** The confirmed brief lists the sticker placement, then the love-note sheet, then "goal reached" inline. The build keeps the screen's existing order (§3.9): the goal moment with the placement, then the note, then the ad. Placed after the note, "goal reached" would appear only once the note was dismissed, cut off from the completion that caused it.
+**The owner's decisions before build 48 (2026-10-30):**
+- **Build 48:** "Build, submit and tag". The EAS production build, the TestFlight submission, and the tag `v1.4.0-tf.48` pushed by commit ID. The branch itself stays unpushed.
+- **The goal moment's order:** "Keep as built".
+- **The bytecode:** "Replace i18next" (§4.1).
+- **The Turkish copy:** "On the device, build 48". The owner sends corrections from the device check.
+
+**The goal moment's order, as put to the owner.** The confirmed brief lists the sticker placement, then the love-note sheet, then "goal reached" inline. The build keeps the screen's existing order (§3.9): the goal moment with the placement, then the note, then the ad. Placed after the note, "goal reached" would appear only once the note was dismissed, cut off from the completion that caused it.
 
 ## 4. Mathematical / Statistical Details
 
@@ -444,6 +450,17 @@ Against NFR-PERF-002's limit of 3,856,208 B, D1 is **+223,548 B (+5.80 %) over**
 - **(b) A small in-house `t()`** (interpolation, plus plurals through `Intl.PluralRules`, about 2 KB) in place of `i18next`. The handover names `i18next`.
 
 Together they would bring D1 to about +1.5 % over the base. **E3 re-measures with the pinned two-platform command.**
+
+**The owner chose (b), 2026-10-30 ("Replace i18next")**, recorded as [ADR-0048](../architecture/adr/0048-in-house-translator.md). Measured again with the same command at `1e232b1` plus the replacement:
+
+| Export | iOS bytecode (B) |
+|---|---:|
+| D1 with i18next | 4,079,756 |
+| D1 with the in-house translator | **4,026,408** (−53,348) |
+| Against the base `ed8ab00` | +107,592 (+2.75 %) |
+| Against NFR-PERF-002's limit | **+170,200 (+4.41 %)** |
+
+The art stays SVG for now; E3 revisits both the limit and lever (a).
 
 ## 5. Design Decisions
 
@@ -546,5 +563,6 @@ Every string build 48 carries in Turkish, beside its English (generated from `sr
 
 ## Backlinks
 <!-- backlinks:start -->
+- [An in-house translator over i18next, for English and Turkish](../architecture/adr/0048-in-house-translator.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

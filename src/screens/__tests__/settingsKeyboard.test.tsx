@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Keyboard, Platform } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { router } from 'expo-router';
 import { StoreGate } from '../../stores/StoreGate';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import { useSettingsStore } from '../../stores/settingsStore';
@@ -10,6 +11,10 @@ import SettingsScreen, { numberDoneId } from '../SettingsScreen';
 
 jest.mock('../../hooks/useUpdateCheck', () => ({
     useUpdateCheck: () => ({ checkForUpdates: jest.fn() }),
+}));
+jest.mock('expo-router', () => ({
+    ...jest.requireActual('expo-router'),
+    router: { push: jest.fn(), back: jest.fn(), canGoBack: () => true },
 }));
 
 function Providers({ children }: { children: ReactNode }) {
@@ -127,5 +132,17 @@ describe("Settings' durations are Custom's", () => {
         const { settings } = useSettingsStore.getState();
         expect(settings.presetChoice).toBe('50-10');
         expect(settings.durations).toEqual({ focus: 50, shortBreak: 10, longBreak: 30 });
+    });
+});
+
+// covers: NFR-A11Y-004
+// The welcome shows once; About replays it (the welcome brief; pulled forward for build 49, F5).
+describe('About replays the welcome', () => {
+    beforeEach(() => resetStorage());
+
+    it('opens the welcome screen again', async () => {
+        await renderSettings();
+        await fireEvent.press(screen.getByRole('button', { name: 'Watch the welcome again' }));
+        expect(router.push).toHaveBeenCalledWith('/welcome');
     });
 });

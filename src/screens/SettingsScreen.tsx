@@ -16,6 +16,7 @@ import {
     View,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { router } from 'expo-router';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useStatsStore, useStreak } from '../stores/statsStore';
 import { useUpdateCheck } from '../hooks/useUpdateCheck';
@@ -694,6 +695,15 @@ export default function SettingsScreen() {
                         onPress={() => Linking.openURL('https://valentine-pomodoro-developer-websit.vercel.app/')}
                     >
                         <Text style={[styles.updateButtonText, { color: colors.onAccent }]}>Visit Developer Website</Text>
+                    </Pressable>
+                    {/* The welcome brief's replay from About (pulled forward from D2 for build 49's device
+                        check, F5): the welcome shows once, so a phone that saw it needs a way back. */}
+                    <Pressable
+                        style={[styles.updateButton, { backgroundColor: colors.accentPurple }]}
+                        onPress={() => router.push('/welcome')}
+                        accessibilityRole="button"
+                    >
+                        <Text style={[styles.updateButtonText, { color: colors.onAccent }]}>{t('welcome.replay')}</Text>
                     </Pressable>
                     {/* A 1.5 s long-press opens the start-up probe (Phase 1 B7); the line is unchanged */}
                     <HiddenStartupDiagnostics>

@@ -125,6 +125,7 @@ CI runs the check on every push (non-blocking until the Phase 1 Stage B sessions
 - [Docs as code, with generated backlinks and traceability](../architecture/adr/0040-docs-as-code-generated-backlinks.md)
 - [Architecture decision records](../architecture/adr/README.md)
 - [Documentation system, release history and branch cleanup](../implementations/2026-10-30-documentation-system.md)
+- ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](../implementations/2026-10-30-phase1-stage-d.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

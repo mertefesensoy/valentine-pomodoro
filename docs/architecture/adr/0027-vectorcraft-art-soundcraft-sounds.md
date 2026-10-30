@@ -60,4 +60,5 @@ Both are owner decisions from 2026-10-29.
 - [The Same Page mark, Pomo & Doro as The Colon's two round characters, and no tomato anywhere](0047-same-page-mark-and-the-colon-characters.md)
 - [Architecture decision records](README.md)
 - ["Phase 1 Stage C (C1–C4): the Sticker Diary design system, display face, Classic brief and art"](../../implementations/2026-10-30-phase1-stage-c-design.md)
+- ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](../../implementations/2026-10-30-phase1-stage-d.md)
 <!-- backlinks:end -->

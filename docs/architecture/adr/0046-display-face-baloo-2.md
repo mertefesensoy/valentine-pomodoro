@@ -52,5 +52,6 @@ related: [ADR-0012, IMPL-2026-10-30-phase1-stage-c-design, IMPL-2026-10-29-phase
 - [System fonts only](0012-system-fonts.md)
 - [Architecture decision records](README.md)
 - ["Phase 1 Stage C (C1–C4): the Sticker Diary design system, display face, Classic brief and art"](../../implementations/2026-10-30-phase1-stage-c-design.md)
+- ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](../../implementations/2026-10-30-phase1-stage-d.md)
 - [Requirements traceability (generated)](../../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

@@ -569,6 +569,7 @@ and in the intro, "The first superseded record is ADR-0035, by ADR-0041 (Phase 1
 - [Native tabs, frozen by a route wrapper, laid out by safe-area insets](../architecture/adr/0043-native-tabs-frozen-by-a-wrapper.md)
 - [2026-10-29 — Phase 1 (v1.4): design system and local re-architecture, plan](2026-10-29-phase1-plan.md)
 - ["Phase 1 B7: deferred start-up work, and an on-device TTI probe"](2026-10-30-phase1-b7-deferred-startup.md)
+- ["Settings: the number pad can be dismissed (DEF-008)"](2026-10-30-settings-keyboard-dismiss.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)

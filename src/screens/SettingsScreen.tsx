@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import {
     Alert,
+    InputAccessoryView,
+    Keyboard,
     KeyboardAvoidingView,
     Linking,
     Platform,
@@ -24,6 +26,10 @@ import type { ThemeMode } from '../types';
 
 const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
 const GOAL_PRESETS = [25, 50, 75, 100];
+
+// iOS's number pad has no return key, so every number field shares one "Done"
+// bar above the keyboard (DEF-008). Dismissing blurs the field, which applies it.
+export const NUMBER_DONE_ID = 'settings-number-done';
 
 function isValidHHMM(s: string) {
     return /^\d{2}:\d{2}$/.test(s);
@@ -134,6 +140,7 @@ export default function SettingsScreen() {
                     isTablet && styles.scrollContentTablet,
                 ]}
                 keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
             >
                 <Text style={[styles.header, { color: colors.text }]}>Settings ⚙️</Text>
 
@@ -158,6 +165,7 @@ export default function SettingsScreen() {
                             onChangeText={setFocusDraft}
                             onBlur={handleFocusBlur}
                             keyboardType="number-pad"
+                            inputAccessoryViewID={NUMBER_DONE_ID}
                             maxLength={3}
                         />
                     </View>
@@ -177,6 +185,7 @@ export default function SettingsScreen() {
                             onChangeText={setShortBreakDraft}
                             onBlur={handleShortBreakBlur}
                             keyboardType="number-pad"
+                            inputAccessoryViewID={NUMBER_DONE_ID}
                             maxLength={2}
                         />
                     </View>
@@ -196,6 +205,7 @@ export default function SettingsScreen() {
                             onChangeText={setLongBreakDraft}
                             onBlur={handleLongBreakBlur}
                             keyboardType="number-pad"
+                            inputAccessoryViewID={NUMBER_DONE_ID}
                             maxLength={3}
                         />
                     </View>
@@ -217,6 +227,7 @@ export default function SettingsScreen() {
                             onChangeText={setLongBreakEveryDraft}
                             onBlur={handleLongBreakEveryBlur}
                             keyboardType="number-pad"
+                            inputAccessoryViewID={NUMBER_DONE_ID}
                             maxLength={2}
                         />
                     </View>
@@ -408,6 +419,7 @@ export default function SettingsScreen() {
                                         }
                                     }}
                                     keyboardType="number-pad"
+                                    inputAccessoryViewID={NUMBER_DONE_ID}
                                     maxLength={4}
                                 />
                             </View>
@@ -685,6 +697,22 @@ export default function SettingsScreen() {
                 </Text>
             </ScrollView>
             </KeyboardAvoidingView>
+
+            {/* The number pad's "Done" bar (iOS only; Android's number keyboard has its own) */}
+            {Platform.OS === 'ios' && (
+                <InputAccessoryView nativeID={NUMBER_DONE_ID}>
+                    <View style={[styles.keyboardDoneBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
+                        <Pressable
+                            onPress={() => Keyboard.dismiss()}
+                            accessibilityRole="button"
+                            accessibilityLabel="Done"
+                            style={styles.keyboardDoneButton}
+                        >
+                            <Text style={[styles.keyboardDoneText, { color: colors.accent }]}>Done</Text>
+                        </Pressable>
+                    </View>
+                </InputAccessoryView>
+            )}
         </SafeAreaView>
     );
 }
@@ -693,6 +721,23 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         // backgroundColor removed - now inline
+    },
+    keyboardDoneBar: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        borderTopWidth: StyleSheet.hairlineWidth,
+        paddingHorizontal: 8,
+    },
+    keyboardDoneButton: {
+        minHeight: 44,
+        minWidth: 64,
+        paddingHorizontal: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    keyboardDoneText: {
+        fontSize: 17,
+        fontWeight: '600',
     },
     scrollContent: {
         padding: 16,

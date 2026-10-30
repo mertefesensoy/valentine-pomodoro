@@ -62,6 +62,7 @@ The v2 rehaul, in progress. Each bullet names its theme: Phase 0 (the foundation
 - **Stage B:** DEF-004: a Pomodoro or a flight that ended while the app was killed was cleared on relaunch, with no credit. In 1.3.1 it was a race; B2's faster storage load made it happen every time, so TestFlight build 43 has it. Completions now wait for a handler of their kind (e04cc8c), confirmed by build 44's device check.
 - **Stage B:** Fly Mode credited its minutes without the session's start day or id, so a flight across midnight counted on the wrong day and a replayed completion wasn't de-duplicated (DEF-001). The streak's "yesterday" came from the current date, not the credited day, so a goal reached by a session that crossed midnight could reset the streak to 1 (DEF-003) (7863e50).
 - **Stage B:** The stats de-duplication key wasn't restored on load, so it only protected within one run (DEF-002, 71d836f). The tab bar's haptic ignored the Haptics setting (DEF-007, ca21ef0); the Sound setting still has no effect until sounds arrive in D4.
+- **iOS-first:** On iPhone, the Settings number fields (the durations, "Long break every N sessions" and the custom goal) opened a number pad with no way to close it, a bug since v1 (DEF-008). A "Done" bar now sits above the number pad, and scrolling the list also closes the keyboard; either way the field's value is applied, as before.
 
 ### Removed
 

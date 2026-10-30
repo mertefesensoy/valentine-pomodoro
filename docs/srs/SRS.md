@@ -398,11 +398,11 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 #### FR-SET-001
 **Statement:** The settings shall persist across restarts: durations, notifications, sound, haptics, love notes on or off, theme mode (system, light or dark), background animations, and the Fly ambient sound.
 **Pri:** Must · **Target:** v1 · **Status:** implemented
-**Known deviation:** DEF-007 (the haptics half fixed in Phase 1 B3, `ca21ef0`; the sound half open until D4); see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
+**Known deviation:** DEF-007 (the haptics half fixed in Phase 1 B3, `ca21ef0`; the sound half open until D4) and DEF-008 (fixed 2026-10-30); see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
 **Accept:**
 - The defaults are those in `src/constants/defaults.ts`.
 - New fields merge into saved settings without loss.
-**Verify:** T: `src/__fixtures__/storage/__tests__/v131.test.tsx` (shapes) · **Source:** code
+**Verify:** T: `src/__fixtures__/storage/__tests__/v131.test.tsx` (shapes); T: `src/screens/__tests__/settingsKeyboard.test.tsx` (the number fields can be left, DEF-008) · **Source:** code
 
 #### FR-SET-002
 **Statement:** The app shall offer the Strawberry Milk (light) and Midnight Plum (dark) themes, generated from tokens whose text and background pairs meet the contrast floor ([NFR-A11Y-001](#nfr-a11y-001)).
@@ -766,6 +766,7 @@ These are places where the code at `5b10a78` doesn't fully meet a requirement ma
 | DEF-005 | FR-NTF-001 | When scheduling the session-end notification takes more than 1 s, its id is dropped. That notification can't be cancelled, so a paused or skipped session may still alert. | `useTimer.ts:158–170` (`Promise.race` with a 1 s timeout) | Low–Medium | **Open.** Moved out of B3: it is notification scheduling, not store state. Not in B4, which doesn't touch scheduling. Slot TBD (owner); D1 rebuilds Classic's start path |
 | DEF-006 | FR-ADS-001 | The Stats screen shows an AdMob **banner** outside `AdPolicy`, including during a running session; the requirement covers interstitials only. | `StatsScreen.tsx:297` | Product decision | Phase 1 D2: keep it under the policy, or remove it |
 | DEF-007 | FR-SET-001 | The `sound` setting has no effect yet (sounds arrive in D4), and the tab bar's haptic ignores the Haptics setting. | `tabPressHaptic.ts` (was `HapticTab.tsx`, until B6); no reader of `settings.sound` | Low | Phase 1 D4 (sound); haptics **fixed** in B3 (`ca21ef0`; device check passed on `v1.4.0-tf.44`, 2026-10-30) |
+| DEF-008 | FR-SET-001 | **Found on TestFlight build 46 (2026-10-30), present since v1:** on iPhone the five Settings number fields (the durations, "Long break every N sessions", the custom goal) open the number pad, which has no return key, and nothing in Settings dismissed it. A field couldn't be left once edited, so its value applied only on the next tap elsewhere. | `SettingsScreen.tsx` at `v1.3.1` and `3369418`: `keyboardType="number-pad"`, no `keyboardDismissMode`, accessory view or `Keyboard.dismiss()` | Medium | **Fixed** 2026-10-30: a "Done" bar above the number pad and dismiss on scroll ([record](../implementations/2026-10-30-settings-keyboard-dismiss.md)); device check on TestFlight build 47 |
 
 ---
 
@@ -808,6 +809,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - ["Phase 1 B5: the React Compiler on, its lint rules back to error"](../implementations/2026-10-30-phase1-b5-react-compiler.md)
 - ["Phase 1 B6: Expo Router with native tabs"](../implementations/2026-10-30-phase1-b6-expo-router.md)
 - ["Phase 1 B7: deferred start-up work, and an on-device TTI probe"](../implementations/2026-10-30-phase1-b7-deferred-startup.md)
+- ["Settings: the number pad can be dismissed (DEF-008)"](../implementations/2026-10-30-settings-keyboard-dismiss.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Documentation conventions](../process/DOCS.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)

@@ -53,6 +53,7 @@ Start here. Every document in the repo is listed below. The rules for writing th
 
 | Date | Record |
 |------|--------|
+| 2026-10-30 | [Settings: the number pad can be dismissed (DEF-008)](implementations/2026-10-30-settings-keyboard-dismiss.md) |
 | 2026-10-30 | [Phase 1 B7: deferred start-up work and an on-device TTI probe](implementations/2026-10-30-phase1-b7-deferred-startup.md) |
 | 2026-10-30 | [Phase 1 B6: Expo Router with native tabs](implementations/2026-10-30-phase1-b6-expo-router.md) |
 | 2026-10-30 | [Design skills: Apple HIG skill and the full Emil Kowalski pack](implementations/2026-10-30-design-skills.md) |

@@ -456,7 +456,7 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 ```
 
 **`docs/roadmap/ROADMAP.md`**, the status board: Phase 1 Stage D → in progress (2026-10-30). Per-task rows:
-- **D1:** in progress (2026-10-30). Built, reviewed and hardened: the theme switch, EN/TR plumbing, Baloo 2, the tab bar, the icon and sticker components, Classic (The Ring and Facing Pages, presets, the sticker placement, the love-note and mode sheets) and the v1.4 welcome screen. Critique 35/40, audit 16/20, HIG no Critical, motion clean. Waiting: the owner's OK for build 48, the device check, and the finish review.
+- **D1:** in progress (2026-10-30). Built, reviewed and hardened: the theme switch, EN/TR plumbing, Baloo 2, the tab bar, the icon and sticker components, Classic (The Ring and Facing Pages, presets, the sticker placement, the love-note and mode sheets) and the v1.4 welcome screen. Critique 35/40, audit 16/20, HIG no Critical, motion clean. Build 48 (`v1.4.0-tf.48`) was device-checked by the owner, with five findings; the fixes and the reanimated welcome are built for build 49 (D1 record §3.16). Waiting: the owner's OK for build 49, its device check, and the finish review.
 
 **SRS** status changes, added as each task lands:
 - **FR-SET-002** → `implemented` (Verify: T, `src/theme/__tests__/legacyColors.test.ts` and `src/__tests__/router.test.tsx`; D, the D1 device check). `useTheme` returns Strawberry Milk or Midnight Plum from `palette.ts` (D1, `46a5b00`).
@@ -484,6 +484,28 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 | HIG: prefer the platform's segmented control. Brief: presets spoken in words, Turkish wrapping at AX5, an in-place crossfade | A built control with native sizing, placement and behaviour; each segment a button with a selected state, its words and its position (never a "tab") | Phase 1 D1 |
 | Brand colour on the tab bar vs Liquid Glass's adaptive monochrome | Only the selected tab carries `primaryInk`; the unselected items stay the system's | Phase 1 D1 |
 ```
+
+**After the build 48 device check (D1 record §3.16):**
+
+- **SRS FR-TMR-010**, the statement and its acceptance, replacing the current text:
+
+```markdown
+**Statement:** The user shall be able to pick a session preset on Classic: 25/5, 50/10 or 90/20, or Custom, which uses the durations set in Settings.
+**Pri:** Should · **Target:** Phase 1 (D1) · **Status:** implemented
+**Accept:**
+- Choosing a preset sets the focus, short-break and long-break lengths (25/5/15, 50/10/30, 90/20/20).
+- Choosing Custom applies the durations typed in Settings, which no preset overwrites; editing one in Settings selects Custom.
+**Verify:** T: `src/constants/__tests__/presets.test.tsx`, `src/screens/__tests__/classic.test.tsx`, `src/screens/__tests__/settingsKeyboard.test.tsx` · **Source:** the owner, 2026-10-30 (build 48 device check)
+```
+
+- **SRS §3.4, DEF-008:** add "Reopened by the build 48 device check: on the New Architecture an `InputAccessoryView` binds to the first input carrying its `nativeID` and no other, so the shared Done bar reached Focus only. Fixed 2026-10-30 (`cec4319`) with one bar per field."
+- **SRS FR-SET-001**, the settings list: add "the Timer's preset and Custom's durations (`presetChoice`, `customDurations`; optional, derived from `durations` when absent)".
+- **`docs/architecture/ARCHITECTURE.md`**:
+  - The `TimerScreen` row: replace "with `ModeSwitcher` outside the boundary" with "with the Modes button (opening the `/modes` sheet) outside the boundary".
+  - The shared-components list: drop `ModeSwitcher`.
+  - The sequence diagram's `ModeSwitcher` participant: rename it to the Modes sheet.
+- **The CHANGELOG line above:** "presets (25/5, 50/10, 52/17, 90/20)" becomes "presets (25/5, 50/10, 90/20 and Custom)".
+- **NFR-PERF-002's status note:** "Build 49 candidate: 4,043,564 B, 4.86 % over (D1 record §3.16.3)."
 
 **Phase 2 inherits (the owner, Q3, 2026-10-30):** the pages-to-logo morph also plays at the first pairing. It reuses D1's welcome-screen choreography (§3.2.11). For the rehaul plan's Phase 2 section and the ROADMAP's Phase 2 row:
 

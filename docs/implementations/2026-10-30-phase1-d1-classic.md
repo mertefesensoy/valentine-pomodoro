@@ -89,6 +89,12 @@ See the [Stage D plan §1](2026-10-30-phase1-stage-d.md#1-problem--motivation). 
 | `src/utils/easing.ts`, `src/utils/__tests__/easing.test.ts` | New. Cubic-bezier easing sampled in a worklet, tested against the linear identity, CSS's symmetric ease-in-out and the morph's own curve. |
 | `src/screens/welcome/__tests__/welcome.test.tsx` | New. The gate: fresh installs wait behind the gift screen, an existing install is greeted once, a seen welcome never returns, a surviving session holds it until idle, a notification launch defers it. The screen: each audience's line, and Start marks it seen in storage. |
 | `src/screens/__tests__/timerScreenOverlays.test.tsx`, `timerScreenTicks.test.tsx`, `flyLazyLoad.test.tsx`, `flyCredit.test.tsx`, `src/__tests__/router.test.tsx`, `splash.test.tsx` | Updated for "Start focus", the Modes sheet in place of Classic's inline Fly switch, the inline goal moment and the love-note sheet that stays until it is closed. Every ordering assertion is kept. |
+| `src/screens/SettingsScreen.tsx`, `src/screens/__tests__/settingsKeyboard.test.tsx` | Build 49 (§3.16). F1: each number field renders its own Done bar (`NumberField`, with a unique `nativeID`), and each field now has an accessibility label. F4: the durations shown are Custom's. F5: About replays the welcome. |
+| `src/navigation/sheetOptions.ts`, `src/navigation/__tests__/sheetOptions.test.ts`, `app/_layout.tsx`, `src/components/modes/ModeSheet.tsx` | Build 49, F2. New: theme-aware sheet options that give each sheet's Screen its own surface colour. The Modes sheet's root is now a ScrollView. |
+| `src/screens/TimerScreen.tsx`, `src/components/ModeSwitcher.tsx` (removed), `src/screens/__tests__/flyLazyLoad.test.tsx` | Build 49, F3: Fly's way back is Classic's Modes button and sheet, kept outside `Suspense`. |
+| `src/constants/presets.ts`, `src/types/index.ts`, `src/screens/classic/ClassicControls.tsx`, `src/i18n/en.json`, `tr.json`, `src/constants/__tests__/presets.test.tsx`, `src/screens/__tests__/classic.test.tsx`, `classicWorstCase.test.tsx` | Build 49, F4. The presets are 25/5, 50/10, 90/20 and Custom. Two optional settings fields, `presetChoice` and `customDurations`, are read defensively. The patches are pure, with tests, and the Custom key is in English and Turkish. |
+| `src/screens/welcome/choreography.ts`, `src/screens/welcome/__tests__/choreography.test.ts`, `src/screens/welcome/WelcomeScreen.tsx`, `.impeccable/surfaces/app-welcome-tsx.md` | Build 49, F5. New: the welcome's keyframed timeline as a pure module, and its tests. The screen now runs on that timeline, and the brief carries the owner's amendment. |
+| `scripts/art/review-welcome-choreography.mjs`, `art/review/d1-welcome-choreography.html` | Build 49, F5. New: the browser preview of that same timeline, sampled at 60 Hz, for the owner. It is deterministic. |
 
 ## 3. Implementation Approach
 
@@ -490,6 +496,60 @@ The owner checked build 48 on an iPhone on 2026-10-30 (22:42) and sent two scree
   - **An owner preview:** because there's no Simulator, a script samples the same module at 60 fps into an HTML preview in `art/review/`, so the owner can watch the choreography in a browser before build 49.
 - **After the five:** the guards (§3.6 of the plan), the record, the Turkish copy table for the new strings, and the shared-doc text for FR-TMR-010, DEF-008 and ARCHITECTURE's `ModeSwitcher` row. Then the owner's OK for build 49. D2 waits until these are done.
 
+#### 3.16.1 Built, finding by finding
+
+| # | Commit | What shipped | Beyond the plan, and why |
+|---|---|---|---|
+| — | `9b0dafb` | This plan, committed before any code | |
+| F1 | `cec4319` | One `InputAccessoryView` per field (Focus, Short Break, Long Break, the long-break interval and the custom goal), each with its own `nativeID`, placed after its input in the same row. An accessory lays out as its own root (`InputAccessoryShadowNode` is a root node, positioned absolutely), so it takes no room in the row. | Each field also gained an `accessibilityLabel`: VoiceOver had been reading only its value. |
+| F2 | `1234ae8` | `sheetOptions(tokens)` gives each sheet's Screen its own surface colour: paper for the love note, page for Modes. | The Modes sheet's root became a ScrollView. Reading `react-native-screens` showed two things. The native stack already passes the theme's page colour as `contentStyle`, so `contentStyle` alone may not be what was missing. And the library sizes a sheet's root scroll view to the whole sheet (`coerceChildScrollViewComponentSizeToSize`), which is how the love note already paints its full surface. Both now hold for both sheets. Without a Simulator, which one closes the gap is left to the device check. The ScrollView also lets Modes scroll at AX sizes. |
+| F3 | `eeeeef4` | A 44 pt paper chip with Classic's Modes glyph and label, at the top leading corner of Fly, opens the same sheet. `ModeSwitcher.tsx` is deleted, along with its emoji. | |
+| F4 | `a3007ca` | As planned. The control reads 25/5 · 50/10 · 90/20 · Custom. With Custom selected, its key says "Custom: 40 / 8 min, set in Settings", and VoiceOver hears the same in the segment's label. Settings' Timer Durations notes that Custom uses them. A field left unchanged doesn't switch to Custom. | |
+| F5 | `bdf2c14` | The timeline in `choreography.ts` (§4.2), the screen on it, the brief amended, and the preview. | <ul><li>**The cover now turns in perspective** (`rotateY` about the spine, with `perspective`), handing over to the left page at edge-on. Build 48's flat `scaleX` opening is gone: it was the device check's open question, whether it read as a squash. React Native builds `rotateY` and `perspective` as CSS does (`Transform.cpp`: m13 = −sin θ, m34 = −1/d), so the browser preview shows the phone's direction.</li><li>**The characters went from 0.22 to 0.26 of the art's width.** The preview showed the page faces' eyes peeking out beside their heads.</li><li>**The page dip was added during the review.** The plan named it, but the first build missed it.</li><li>**In dark mode, Pomo's sparkles are milk-white.** Pink sparkles vanished against the dark theme's pink pages.</li><li>**The art keeps headroom above it** for the leaps, so the ScrollView never clips a head at AX sizes or in landscape.</li></ul> |
+| F5 | `a35e725` | Settings › About gains "Watch the welcome again", the brief's D2 replay pulled forward. The welcome shows once, and the owner's phone saw build 48's, so build 49 needs a way back to it. | |
+
+**Skills:**
+- **`animate-expo`** resolved and ran for F5. Its gate: the rare, first-time tier, with the purpose delight and explanation.
+- **`review-animations`** is installed in the worktree, but this session doesn't offer it as a skill. Its standards were read from `.claude/skills/review-animations/SKILL.md` and applied by hand (§3.16.2).
+
+#### 3.16.2 `review-animations` on the rebuilt welcome
+
+| Before | After | Why |
+| --- | --- | --- |
+| `diaryPose` computed in each of five styles every frame; `characterPose` twice per character | `useDerivedValue`, once per frame per pose | A missed simplification: one computation per frame, with every layer reading it |
+| No give under the landing, though the plan promised it | `SPREAD_DIP` on the inner spread, with Pomo & Doro riding it; Doro's landing spot tracks it, which the continuity test caught | Follow-through: the pages take the impact |
+| Pink sparkles on the dark theme's pink pages | Milk-white glints for Pomo in dark | Half the burst was invisible in one theme |
+
+**Verdict:**
+- **Feel-breaking regressions:** none.
+- **Performance:** transform and opacity only: `perspective` and `rotateY` are transforms. About 22 animated views run from one shared value on the UI thread, with no React render. The Reassure counts are unchanged.
+- **Origin and physicality:**
+  - The characters scale about their feet (93 % of their square), the diary about the closed cover's foot, and the spread about the spine's foot.
+  - Nothing scales from 0: sparkles start at 0.5 with no opacity, and the characters end at 0.42 to 0.62 with no opacity.
+- **Accessibility:** Reduce Motion fades in the settled mark; the characters and sparkles aren't rendered.
+- **Tensions kept, with their reasons:**
+  - **The length, 4.2 s, is past the 300 ms UI budget.** It's the rare tier, shown once, and Start is live from the first frame, so it never delays anyone.
+  - **`in` (u²) on the fall and the dive.** That is character physics, not a UI response: the fall accelerates under gravity, and the dive's fade ends as the spread's bump and the sparkles begin, which mask the hand-over.
+  - **A haptic on an entrance the user didn't cause.** It has been kept since D1, and the device decides.
+- **Decision: Approve.**
+
+#### 3.16.3 Guards and measurements (after `a35e725`)
+
+| Guard | Result |
+|---|---|
+| Jest | 47 suites, 357 tests, all passing |
+| Lint (`npm run lint`) | 0 errors, 31 warnings (33 at D1; the deleted switcher took two) |
+| React Compiler | 67 compiled, 6 skipped: no new skip and no worklet-count change. `NumberField`, `Diary`, `Character` and `Sparkle` compile; `SettingsScreen` was already skipped |
+| Reassure | Unchanged: settings-only 1, Timer 13, Stats 1, Settings 2, Notes 1, leaf 12 |
+| `timerTextTicks` and the two real-screen timer guards | Pass (in Jest) |
+| `check:contrast` | 52 pairs in 2 themes, none under its floor |
+| Art | `build.mjs --check`: every export matches a clean rebuild; `check-budgets`: 89 assets, none over budget |
+| iOS bytecode (`expo export --platform ios`) | **4,043,564 B**: +17,156 B (+0.43 %) on build 48, mostly the timeline and the welcome's components. Now **4.86 % over** NFR-PERF-002's limit (4.41 % at build 48); E3 revisits |
+
+**Fragile, for D2.** React Native 0.88 marks `InputAccessoryView` deprecated, and Jest logs the warning. It works today. D2's Settings rebuild should consider a stepper or a picker for these bounded numbers (HIG `entering-data.md` prefers choices over typing), or `react-native-keyboard-controller`'s toolbar.
+
+**The owner's preview.** Run `node scripts/art/review-welcome-choreography.mjs`, then open `art/review/d1-welcome-choreography.html`. It has replay, 1× to 0.1× speed, a scrubber and a light/dark switch, and the page marks the haptic's frame.
+
 ## 4. Mathematical / Statistical Details
 
 The numeric rules D1 implements are in the [Stage D plan §4](2026-10-30-phase1-stage-d.md#4-mathematical--statistical-details): contrast, tabular digits, the font build, the sticker spring, "Break at" and bytecode.
@@ -535,12 +595,72 @@ Together they would bring D1 to about +1.5 % over the base. **E3 re-measures wit
 
 The art stays SVG for now; E3 revisits both the limit and lever (a).
 
+### 4.2 The welcome's choreography (build 49, F5; `src/screens/welcome/choreography.ts`)
+
+**Units.** Time *t* is in milliseconds since the morph began, from 0 to 4,200. Positions are shares of the art box (x of its width W, y of its height H = 0.7347 W). Angles are in degrees.
+
+**Keyframe tracks.** A track is a list of keys (tᵢ, vᵢ, easeᵢ). Between keys i−1 and i:
+
+  v(t) = vᵢ₋₁ + (vᵢ − vᵢ₋₁) · easeᵢ(u),  u = (t − tᵢ₋₁) / (tᵢ − tᵢ₋₁)
+
+The track holds v₀ before the first key and the last value after the last key.
+
+**Easings,** in closed form so a worklet captures no functions. Each maps [0, 1] onto [0, 1]:
+
+| Name | Formula | Used for |
+|---|---|---|
+| `lin` | u | constant speed |
+| `sine` | (1 − cos πu) / 2 | breathing, settling: slow in and slow out |
+| `inOut` | 4u³, or 1 − (2 − 2u)³ / 2 past u = ½ | deliberate moves (the crouch, the cover's turn, the slide to centre) |
+| `out` | 1 − (1 − u)⁴ | explosive starts that brake (take-off, impact, rebound, the line landing) |
+| `in` | u² | accelerating bodies (the last instants of the fall, the dive) |
+
+**The leaps are projectiles.** With s = (t − launch) / air in [0, 1]:
+
+  x(s) = x₀ + (x₁ − x₀) s,  y(s) = y₀ + (y₁ − y₀) s − 4H′ s (1 − s)
+
+- (x₀, y₀) is the cover's top edge at take-off; (x₁, y₁) is the face's spot on the page, which moves with the pages' dip.
+- H′ = lift × room.
+- y is quadratic in t, so the vertical acceleration is constant: gravity. The leap is slowest at the apex, s* = (1 − (y₁ − y₀) / 4H′) / 2, and fastest at both ends.
+
+| | Launch (ms) | Air (ms) | lift | Apex above take-off |
+|---|---|---|---|---|
+| Pomo | 1,010 | 640 | 0.36 | ≈ 0.13 H |
+| Doro | 1,080 | 600 | 0.30 | ≈ 0.09 H |
+
+`room` is 1, or 0.5 in a compact height.
+
+**Squash and stretch** are keyframed scaleX and scaleY pairs about the feet:
+
+| | Crouch | Take-off | Impact |
+|---|---|---|---|
+| Pomo | 0.78 × 1.16 | 1.2 × 0.85 | 0.66 × 1.32 |
+| Doro | 0.74 × 1.2 | 1.16 × 0.88 | 0.6 × 1.45 |
+
+Through the hop, the area sx·sy stays within 0.85 to 1.15, which the tests check, so the bodies read as soft but solid.
+
+**The cover's turn,** θ(t): it leans back to +8° (anticipation), then swings to −192° (towards the viewer, so the near edge grows in perspective, d = 3W). It comes back to −177° and settles at −180°. The left page's angle is θ + 180°, so it overshoots flat by 12° and settles. One face shows at a time: the cover while θ > −90°, the page from then on.
+
+**The headroom.**
+- **Seated:** a head reaches 0.93 × 0.26 / 0.7347 − 0.059 ≈ 0.27 H above the art.
+- **The apex:** Pomo's leap adds up to 0.14 H × room.
+- **The bound:** the screen keeps `headroom(room)` = (0.28 + 0.14 room) H above the art, and the tests check it bounds every head on every frame.
+
+**The sparkles.** There are ten, five per face. Sparkle k flies at angle −90° ∓ (−50° + 30°k), a fan over the upper 120°, to a reach of 0.12 to 0.155 W with the `out` easing. It falls 0.06 H × u² under gravity over 560 ms, fading in over the first 12 % and out as 1 − ((u − 0.12) / 0.88)².
+
+**The haptic** fires once, as *t* crosses 1,650 ms. That is Pomo's launch plus her air time, the frame her feet reach the page.
+
 ## 5. Design Decisions
 
 | Decision | Alternatives considered | Why this one |
 |----------|------------------------|--------------|
 | The love-note sheet stays until it is dismissed | Keep v1's 8 s auto-close | A sheet that closes itself takes the text away from someone reading at a large size (WCAG 2.2.1, Timing Adjustable). The interstitial already waits for the sheet to close, so the ad policy is unchanged. |
 | Run stage-d's Impeccable launcher, not stage-c's | Use the base directory the Skill tool reports | The copies are identical; stage-d's own launcher keeps every read and write inside this worktree. |
+| Build 49, F4: Custom stores its own durations beside the active ones | (a) Custom as the absence of a match, which build 48 had. (b) A Custom segment that opens Settings | (a) loses the typed durations the moment a preset is chosen: the owner's "useless". (b) makes one segment an action among selections. Storing `customDurations` keeps them, and the engine still reads only `durations`. |
+| Build 49, F3: Fly's Modes button at the top leading corner | Move Fly's compass; keep the old pill | The compass belongs to the map and has its own landscape placement (FlySheet). The pill was a second way to switch modes, with emoji. |
+| Build 49, F5: a keyframed timeline on one shared value | Springs per element; Lottie | One driver keeps every layer, the arcs and the haptic's frame in step and testable. Lottie would mean new art outside VectorCraft. Springs can't be audited beat by beat, nor sampled for the owner's preview. |
+| Build 49, F5: the cover turns with `rotateY` in perspective | Keep build 48's `scaleX` | A flat scale reads as a squash, which was the device check's open question. A turn about the spine is how a book opens, and React Native's matrices match the preview's CSS. |
+| Build 49, F5: About replays the welcome now | Wait for D2 | The owner's phone has already seen build 48's welcome, so without a replay the rebuilt one couldn't be checked on build 49. |
 
 ## 6. Verification
 
@@ -560,6 +680,21 @@ The art stays SVG for now; E3 revisits both the limit and lever (a).
   9. The scroll edge effect under the bar when Facing Pages scrolls at accessibility sizes.
   10. The welcome: the Timer paints first, then the welcome fades in (never at launch); it shows once over the update from build 47, once on a fresh install (after the gift screen), never again; never over a running session. The morph's feel, whether its flat opening reads as a squash, the pages-meet haptic, and the Reduce Motion fade.
   11. `toLocaleUpperCase('tr-TR')` on Hermes (§3.5).
+- [ ] **The device check, build 49** (after the owner's OK for the build), for the build 48 findings (§3.16):
+  1. **F1:** every Settings number field (Focus, Short Break, Long Break, the long-break interval, the custom goal) shows the Done bar, and Done closes the keyboard.
+  2. **F2:** no strip at the bottom of the Modes sheet or the love-note sheet, in light and dark. Modes scrolls at the largest text size.
+  3. **F3:** in Fly, the top-left Modes button opens the sheet, and Classic returns from it, including while Fly is still loading.
+  4. **F4:**
+     - The presets read 25/5 · 50/10 · 90/20 · Custom.
+     - Custom brings back the durations typed in Settings after a preset.
+     - Editing a duration in Settings selects Custom.
+     - The Custom key wraps cleanly in Turkish at AX5.
+  5. **F5, the welcome,** through Settings › About › "Watch the welcome again":
+     - The anticipation reads, and the cover's turn reads as a book opening.
+     - The landing haptic lands on the frame of contact.
+     - Nothing is clipped at the largest text size or in landscape.
+     - Pomo's glints show in dark.
+     - Reduce Motion is still a fade.
 
 ## 7. Related Docs
 
@@ -633,6 +768,15 @@ Every string build 48 carries in Turkish, beside its English (generated from `sr
 | `welcome.fresh` | Meet Pomo & Doro. | Pomo ve Doro ile tanış. |
 | `welcome.start` | Start | Başla |
 | `welcome.art` | Pomo and Doro become the pages of one diary | Pomo ve Doro tek bir günlüğün sayfalarına dönüşüyor |
+
+**Added for build 49 (§3.16):**
+
+| Key | English | Turkish (draft) |
+|---|---|---|
+| `presets.customLabel` | Custom: {{focus}} minutes focus, {{rest}} minutes break, set in Settings | Özel: {{focus}} dakika odak, {{rest}} dakika mola; Ayarlar'da belirlenir |
+| `presets.customKey` | Custom: {{focus}} / {{rest}} min, set in Settings | Özel: {{focus}} / {{rest}} dk, Ayarlar'da belirlenir |
+| `presets.settingsNote` | Custom on the Timer uses these durations. | Zamanlayıcıdaki Özel seçeneği bu süreleri kullanır. |
+| `welcome.replay` | Watch the welcome again | Karşılamayı yeniden izle |
 
 ## Backlinks
 <!-- backlinks:start -->

@@ -4,6 +4,9 @@
     "slug": "valentine-pomodoro",
     "version": "1.4.0",
     "orientation": "default",
+    "experiments": {
+      "reactCompiler": true
+    },
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
     "scheme": "valentinepomodoro",

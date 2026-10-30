@@ -6,3 +6,11 @@ art/out/** -text
 art/steps/** -text
 art/src/** -text
 art/jobs/** -text
+# The brand kit is checked the same way (python brand/tools/check_brand.py --rebuild).
+brand/svg/** -text
+brand/png/** -text
+brand/pdf/** -text
+brand/eps/** -text
+brand/source/** -text
+brand/web/** -text
+brand/guide/** -text

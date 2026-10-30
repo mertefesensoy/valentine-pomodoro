@@ -4,7 +4,8 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StoreGate } from '../../stores/StoreGate';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
-import SettingsScreen, { NUMBER_DONE_ID } from '../SettingsScreen';
+import { useStatsStore } from '../../stores/statsStore';
+import SettingsScreen, { numberDoneId } from '../SettingsScreen';
 
 jest.mock('../../hooks/useUpdateCheck', () => ({
     useUpdateCheck: () => ({ checkForUpdates: jest.fn() }),
@@ -49,25 +50,34 @@ describe('Settings number fields can be left (DEF-008)', () => {
         expect(Platform.OS).toBe('ios');
     });
 
-    it('attaches the Done bar to every duration field', async () => {
+    // Build 48 (F1): an InputAccessoryView binds to the first input carrying its
+    // nativeID and to no other, so one shared bar reached Focus only. Each field
+    // needs its own: a distinct ID, and an accessory in the tree with that ID.
+    it('gives every number field its own Done bar', async () => {
+        // The daily goal's custom field mounts only while a goal is on (50 by default).
+        expect(useStatsStore.getState().goalMinutes).toBeGreaterThan(0);
         await renderSettings();
-        // The defaults: Focus 25, Short Break 5, Long Break 15, a long break every 4
-        for (const value of ['25', '5', '15', '4']) {
-            const input = screen.getByDisplayValue(value);
+        const tree = screen.toJSON();
+        // The defaults: Focus 25, Short Break 5, Long Break 15, a long break every 4, the goal 50
+        const fields = ['25', '5', '15', '4', '50'].map((value) => screen.getByDisplayValue(value));
+        const ids = fields.map((input) => input.props.inputAccessoryViewID as string);
+        expect(new Set(ids).size).toBe(fields.length);
+        for (const [i, input] of fields.entries()) {
             expect(input.props.keyboardType).toBe('number-pad');
-            expect(input.props.inputAccessoryViewID).toBe(NUMBER_DONE_ID);
+            expect(ids[i]).toMatch(/^settings-number-done-/);
+            expect(findNode(tree, (n) => n.props?.nativeID === ids[i])).toBeDefined();
         }
+        expect(ids).toEqual(['focus', 'shortBreak', 'longBreak', 'longBreakEvery', 'goal'].map(numberDoneId));
     });
 
-    it('dismisses the keyboard from the Done bar', async () => {
+    it("dismisses the keyboard from any field's Done bar", async () => {
         const dismiss = jest.spyOn(Keyboard, 'dismiss');
         await renderSettings();
 
-        const bar = findNode(screen.toJSON(), (n) => n.props?.nativeID === NUMBER_DONE_ID);
-        expect(bar).toBeDefined();
-
-        await fireEvent.press(screen.getByRole('button', { name: 'Done' }));
-        expect(dismiss).toHaveBeenCalledTimes(1);
+        const bars = screen.getAllByRole('button', { name: 'Done' });
+        expect(bars).toHaveLength(5);
+        for (const bar of bars) await fireEvent.press(bar);
+        expect(dismiss).toHaveBeenCalledTimes(5);
         dismiss.mockRestore();
     });
 

@@ -21,6 +21,7 @@ import { useStatsStore, useStreak } from '../stores/statsStore';
 import { useUpdateCheck } from '../hooks/useUpdateCheck';
 import { HiddenStartupDiagnostics } from '../startup/StartupDiagnostics';
 import { useTheme } from '../theme/useTheme';
+import type { LegacyColors } from '../theme/legacyColors';
 import { useResponsive } from '../hooks/useResponsive';
 import type { ThemeMode } from '../types';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
@@ -30,9 +31,63 @@ import { t } from '../i18n';
 const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
 const GOAL_PRESETS = [25, 50, 75, 100];
 
-// iOS's number pad has no return key, so every number field shares one "Done"
-// bar above the keyboard (DEF-008). Dismissing blurs the field, which applies it.
-export const NUMBER_DONE_ID = 'settings-number-done';
+// iOS's number pad has no return key, so each number field carries a "Done" bar
+// above the keyboard (DEF-008). Dismissing blurs the field, which applies it.
+// One bar per field: on the New Architecture an InputAccessoryView binds to the
+// first input with its nativeID and to no other (RCTInputAccessoryComponentView,
+// didMoveToWindow), so the one shared bar reached Focus only (build 48, F1).
+export const numberDoneId = (field: string) => `settings-number-done-${field}`;
+
+type NumberFieldProps = {
+    field: string;
+    label: string;
+    value: string;
+    onChangeText: (text: string) => void;
+    onBlur: () => void;
+    maxLength: number;
+    colors: LegacyColors;
+};
+
+function NumberField({ field, label, value, onChangeText, onBlur, maxLength, colors }: NumberFieldProps) {
+    const doneId = numberDoneId(field);
+    return (
+        <>
+            <TextInput
+                style={[
+                    styles.input,
+                    {
+                        backgroundColor: colors.inputBg,
+                        borderColor: colors.accentPurple,
+                        color: colors.text,
+                    },
+                ]}
+                value={value}
+                onChangeText={onChangeText}
+                onBlur={onBlur}
+                keyboardType="number-pad"
+                inputAccessoryViewID={doneId}
+                maxLength={maxLength}
+                accessibilityLabel={label}
+            />
+            {/* An accessory takes no room in the row: it lays out as its own root, off-screen
+                (InputAccessoryShadowNode). iOS only; Android's number keyboard has its own. */}
+            {Platform.OS === 'ios' && (
+                <InputAccessoryView nativeID={doneId}>
+                    <View style={[styles.keyboardDoneBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
+                        <Pressable
+                            onPress={() => Keyboard.dismiss()}
+                            accessibilityRole="button"
+                            accessibilityLabel="Done"
+                            style={styles.keyboardDoneButton}
+                        >
+                            <Text style={[styles.keyboardDoneText, { color: colors.accent }]}>Done</Text>
+                        </Pressable>
+                    </View>
+                </InputAccessoryView>
+            )}
+        </>
+    );
+}
 
 function isValidHHMM(s: string) {
     return /^\d{2}:\d{2}$/.test(s);
@@ -155,61 +210,40 @@ export default function SettingsScreen() {
 
                     <View style={[styles.row, { borderBottomColor: colors.border }]}>
                         <Text style={[styles.label, { color: colors.text }]}>Focus</Text>
-                        <TextInput
-                            style={[
-                                styles.input,
-                                {
-                                    backgroundColor: colors.inputBg,
-                                    borderColor: colors.accentPurple,
-                                    color: colors.text,
-                                },
-                            ]}
+                        <NumberField
+                            field="focus"
+                            label="Focus"
                             value={focusDraft}
                             onChangeText={setFocusDraft}
                             onBlur={handleFocusBlur}
-                            keyboardType="number-pad"
-                            inputAccessoryViewID={NUMBER_DONE_ID}
                             maxLength={3}
+                            colors={colors}
                         />
                     </View>
 
                     <View style={[styles.row, { borderBottomColor: colors.border }]}>
                         <Text style={[styles.label, { color: colors.text }]}>Short Break</Text>
-                        <TextInput
-                            style={[
-                                styles.input,
-                                {
-                                    backgroundColor: colors.inputBg,
-                                    borderColor: colors.accentPurple,
-                                    color: colors.text,
-                                },
-                            ]}
+                        <NumberField
+                            field="shortBreak"
+                            label="Short Break"
                             value={shortBreakDraft}
                             onChangeText={setShortBreakDraft}
                             onBlur={handleShortBreakBlur}
-                            keyboardType="number-pad"
-                            inputAccessoryViewID={NUMBER_DONE_ID}
                             maxLength={2}
+                            colors={colors}
                         />
                     </View>
 
                     <View style={[styles.row, { borderBottomColor: colors.border }]}>
                         <Text style={[styles.label, { color: colors.text }]}>Long Break</Text>
-                        <TextInput
-                            style={[
-                                styles.input,
-                                {
-                                    backgroundColor: colors.inputBg,
-                                    borderColor: colors.accentPurple,
-                                    color: colors.text,
-                                },
-                            ]}
+                        <NumberField
+                            field="longBreak"
+                            label="Long Break"
                             value={longBreakDraft}
                             onChangeText={setLongBreakDraft}
                             onBlur={handleLongBreakBlur}
-                            keyboardType="number-pad"
-                            inputAccessoryViewID={NUMBER_DONE_ID}
                             maxLength={3}
+                            colors={colors}
                         />
                     </View>
 
@@ -217,21 +251,14 @@ export default function SettingsScreen() {
                         <Text style={[styles.label, { color: colors.text }]}>
                             Long break every N sessions
                         </Text>
-                        <TextInput
-                            style={[
-                                styles.input,
-                                {
-                                    backgroundColor: colors.inputBg,
-                                    borderColor: colors.accentPurple,
-                                    color: colors.text,
-                                },
-                            ]}
+                        <NumberField
+                            field="longBreakEvery"
+                            label="Long break every N sessions"
                             value={longBreakEveryDraft}
                             onChangeText={setLongBreakEveryDraft}
                             onBlur={handleLongBreakEveryBlur}
-                            keyboardType="number-pad"
-                            inputAccessoryViewID={NUMBER_DONE_ID}
                             maxLength={2}
+                            colors={colors}
                         />
                     </View>
                 </View>
@@ -413,15 +440,10 @@ export default function SettingsScreen() {
 
                             <View style={[styles.row, { borderBottomColor: colors.border }]}>
                                 <Text style={[styles.label, { color: colors.text }]}>Custom Goal (minutes)</Text>
-                                <TextInput
-                                    style={[
-                                        styles.input,
-                                        {
-                                            backgroundColor: colors.inputBg,
-                                            borderColor: colors.accentPurple,
-                                            color: colors.text,
-                                        },
-                                    ]}
+                                <NumberField
+                                    field="goal"
+                                    label="Custom Goal (minutes)"
+                                    colors={colors}
                                     value={goalDraft}
                                     onChangeText={setGoalDraft}
                                     onBlur={() => {
@@ -432,8 +454,6 @@ export default function SettingsScreen() {
                                             setGoalDraft(goalMinutes.toString());
                                         }
                                     }}
-                                    keyboardType="number-pad"
-                                    inputAccessoryViewID={NUMBER_DONE_ID}
                                     maxLength={4}
                                 />
                             </View>
@@ -712,21 +732,6 @@ export default function SettingsScreen() {
             </ScrollView>
             </KeyboardAvoidingView>
 
-            {/* The number pad's "Done" bar (iOS only; Android's number keyboard has its own) */}
-            {Platform.OS === 'ios' && (
-                <InputAccessoryView nativeID={NUMBER_DONE_ID}>
-                    <View style={[styles.keyboardDoneBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
-                        <Pressable
-                            onPress={() => Keyboard.dismiss()}
-                            accessibilityRole="button"
-                            accessibilityLabel="Done"
-                            style={styles.keyboardDoneButton}
-                        >
-                            <Text style={[styles.keyboardDoneText, { color: colors.accent }]}>Done</Text>
-                        </Pressable>
-                    </View>
-                </InputAccessoryView>
-            )}
         </SafeAreaView>
     );
 }

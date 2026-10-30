@@ -76,13 +76,15 @@ for (const file of sourceFiles(path.join(ROOT, 'src'))) {
     const off = transform(file, false);
     const compiled = on.events.filter((e) => e.kind === 'CompileSuccess').map((e) => e.fnName || '(anonymous)');
     const skipped = on.events.filter((e) => e.kind === 'CompileError' || e.kind === 'CompileSkip' || e.kind === 'PipelineError');
+    // One skipped function can log several errors; count the function once.
+    const skippedFns = new Set(skipped.map((e) => e.fnLoc?.start?.index ?? e.fnLoc?.start?.line ?? reasonOf(e))).size;
     compiledTotal += compiled.length;
-    skippedTotal += skipped.length;
+    skippedTotal += skippedFns;
     if (on.worklets !== off.worklets) workletMismatch++;
     if (!compiled.length && !skipped.length && !on.worklets && !off.worklets) continue;
     const rel = path.relative(ROOT, file).replace(/\\/g, '/');
     rows.push(
-        `${rel}: compiled ${compiled.length ? compiled.join(', ') : '-'}; skipped ${skipped.length}; worklets ${on.worklets} (off: ${off.worklets})${on.worklets !== off.worklets ? '  <-- MISMATCH' : ''}`,
+        `${rel}: compiled ${compiled.length ? compiled.join(', ') : '-'}; skipped ${skippedFns}; worklets ${on.worklets} (off: ${off.worklets})${on.worklets !== off.worklets ? '  <-- MISMATCH' : ''}`,
     );
     if (VERBOSE) {
         const reasons = new Map();
@@ -94,5 +96,5 @@ for (const file of sourceFiles(path.join(ROOT, 'src'))) {
     }
 }
 console.log(rows.join('\n'));
-console.log(`\nfunctions compiled: ${compiledTotal}; skip events: ${skippedTotal}; files whose worklet count changes: ${workletMismatch}`);
+console.log(`\nfunctions compiled: ${compiledTotal}; functions skipped: ${skippedTotal}; files whose worklet count changes: ${workletMismatch}`);
 process.exit(workletMismatch ? 1 : 0);

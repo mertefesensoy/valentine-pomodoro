@@ -580,7 +580,7 @@ and in the intro, "The first superseded record is ADR-0035, by ADR-0041 (Phase 1
 | `de45489` | This section's plan, before any code. |
 | `1fc37d8` | **fix(b6):** `LazyTab` replaces `FreezeOnBlur`; `runAfterInteractive`; the focus hooks; Timer's and Fly's focus gates; Fly's frame callback off while hidden; the banner waits for Stats' first focus and records its result (`bannerStatus.ts`); `react-freeze` dropped as a direct dependency; the router and scheduler tests. |
 | `16a6752` | **feat(b6):** B7's hidden panel shows the banner's line, and its shared data carries it. |
-| this commit | This record's §9 and §6.6, and ADR-0043's amendment. |
+| `747edf1` | This record's §9 and §6.6, and ADR-0043's amendment. |
 
 ### 9.1 Problem
 

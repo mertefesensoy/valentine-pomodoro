@@ -553,6 +553,21 @@ The owner checked build 48 on an iPhone on 2026-10-30 (22:42) and sent two scree
 
 **The owner's preview.** Run `node scripts/art/review-welcome-choreography.mjs`, then open `art/review/d1-welcome-choreography.html`. It has replay, 1× to 0.1× speed, a scrubber and a light/dark switch, and the page marks the haptic's frame.
 
+### 3.17 Build 49 (the owner's OK, 2026-10-31: "Build 49")
+
+| Item | Value |
+|---|---|
+| Commit | `9f0de71` on `phase1/stage-d` (the branch stays unpushed; EAS reports the source as `9f0de717`) |
+| Command | `eas build --platform ios --profile production --non-interactive --no-wait --auto-submit --json` |
+| Pre-flight | `expo-doctor`: 19 of 20 checks pass; the one left, `@expo/config-plugins` installed directly, predates D1 (§3.5). EAS account `sensoymertefe` |
+| Version and build | 1.4.0 (49); EAS incremented the remote build number from 48 to 49 |
+| EAS build | `2fe5428c-1bce-40e4-9390-6545d224602c`, queued 2026-10-31 00:11 (UTC+3) |
+| Build result | In progress |
+| TestFlight submission | `c2a26f6b-33a4-4dfb-9f49-fe14f2c9be62`, scheduled to run when the build finishes |
+| Tag | `v1.4.0-tf.49`, annotated in the tf.48 format, on `9f0de71`, pushed once the build and the submission finish |
+
+It carries the build 48 fixes and the reanimated welcome (§3.16). The device checklist is §6, "build 49".
+
 ## 4. Mathematical / Statistical Details
 
 The numeric rules D1 implements are in the [Stage D plan §4](2026-10-30-phase1-stage-d.md#4-mathematical--statistical-details): contrast, tabular digits, the font build, the sticker spring, "Break at" and bytecode.

@@ -759,7 +759,7 @@ The re-render fix is plan §4.5: the clock store, UI-thread rings, store selecto
 | Phase 1 B1 | `FlyModeScreen` behind `React.lazy` | The static import in `TimerScreen` | **Done** (`5b10a78`) |
 | Phase 1 B1b | `airports.json` becomes an asset read through `expo-asset` and `expo-file-system`, parsed when Fly first opens | The JSON module in the bytecode (`FlyModeScreen.tsx:46`) | **Done** (`0d63145`) |
 | Phase 1 B2 | MMKV, with a one-time migration of every AsyncStorage key; the flag is written last, and AsyncStorage is kept for one release | `storage.ts`, and `AdPolicy`'s direct AsyncStorage use | **Done** (`dd1e894`) |
-| Phase 1 B3 | Zustand stores (settings, notes, stats, session/clock, UI), hydrated synchronously; `AppContext` becomes a shim, then is deleted | `AppProvider` and the five hosted hooks | **Done locally** (`71d836f`…`e04cc8c`), not pushed |
+| Phase 1 B3 | Zustand stores (settings, notes, stats, session/clock, UI), hydrated synchronously; `AppContext` becomes a shim, then is deleted | `AppProvider` and the five hosted hooks | **Done** (`71d836f`…`e04cc8c`), pushed; on TestFlight build 44 |
 | Phase 1 B4 (gated) | `clockStore` with `useSyncExternalStore`, and only `<TimerText>` subscribes; rings driven from `endAt` by SharedValues; `setDisplayTick` removed; `freezeOnBlur` | The re-render chain (§8.1); the React-rendered `CircularProgress` | Not started; needs the A1 guards and Reassure 14 → ≤ 2 |
 | Phase 1 B5 | The React Compiler on; the lint rules back to `error` | `eslint.config.js:11–24` | Not started |
 | Phase 1 B6 | Expo Router: `app/(tabs)/index`, `stats`, `settings`, `notes`, `+not-found`; the scheme is kept | `src/navigation/` | Not started |

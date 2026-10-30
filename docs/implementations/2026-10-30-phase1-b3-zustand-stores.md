@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-29-phase1-b2-mmkv-migration,
 
 # 2026-10-30 — Phase 1 B3: Zustand stores, hydrated synchronously from MMKV
 
-**Status:** Done locally, in four commits (§2), with a fifth for the docs. **Not pushed, and not on a device.** B3 adds no native code, but the device check still needs an EAS iOS build plus TestFlight, with your go-ahead (§6.3).
+**Status:** Done, in four commits (§2), with two more for the docs. **Pushed** through `1e2316b` on 2026-10-30 (CI run 40982469277 green). **On TestFlight as build 44** (`v1.4.0-tf.44`, EAS `7fcac2fb-000e-4b2d-ad09-b2203c1042a4`), built and submitted with your go-ahead on 2026-10-30. **The device check is open** (§6.3).
 **Branch:** `rehaul/v2`
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md), task B3; [ADR-0029](../architecture/adr/0029-zustand-and-tanstack-query.md); follows [B2](2026-10-29-phase1-b2-mmkv-migration.md)
 
@@ -276,9 +276,21 @@ grep -rn "useSessionClock()" src --include=*.tsx --include=*.ts
 
 Expect only `TimerScreen`, `FlyModeScreen` and test probes. A new caller re-renders every second while a session runs.
 
-### 6.3 Device (iPhone, TestFlight): not done
+### 6.3 Device (iPhone, TestFlight build 44): open
 
-B3 has no native change. Bundling it with B4 into one build saves a build and a review; that's your call.
+B3 has no native change, so it could have waited and gone into one build with B4. You chose to build it alone, to get the DEF-004 fix onto the phone sooner, since build 43 has the bug.
+
+**The build (2026-10-30, your go-ahead):**
+
+| | |
+|--|--|
+| Command | `eas build --platform ios --profile production --non-interactive --auto-submit` |
+| EAS build | `7fcac2fb-000e-4b2d-ad09-b2203c1042a4`, **v1.4.0, build 44**, FINISHED |
+| Source | EAS recorded `1e2316b`, the last B3 commit; CI run 40982469277 was green on it before the build |
+| Submission | `977f92f0-3db4-4433-be1a-994713cf191e`, uploaded to App Store Connect, then Apple's processing |
+| Tag | `v1.4.0-tf.44` (annotated, at `1e2316b`) |
+
+**Checks.** Install build 44 over build 43, or over App Store 1.3.1:
 
 1. **Cold start shows stored values at once.** Change theme and goal, then kill and relaunch. Stats and Notes never show "Loading…", and the theme doesn't flash.
 2. **DEF-004.** Start a 1-minute focus session (set Focus to 1), kill the app, wait 2 minutes, relaunch.

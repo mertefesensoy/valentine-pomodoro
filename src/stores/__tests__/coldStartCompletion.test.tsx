@@ -13,9 +13,9 @@ import type { SessionKind, SessionSlot } from '../../types';
 // rendered nothing until Linking.getInitialURL() resolved (at most 150 ms).
 // Since Phase 1 B6, Expo Router reads the launch URL synchronously on iOS, so
 // the first tab mounts at once. Subscribers still mount late after Fly's lazy
-// load, on a cold start through a deep link into another tab (the Timer tab is
-// frozen until first shown), and on Android, where the router still waits up
-// to 150 ms for the URL.
+// load, on a cold start through a deep link into another tab (the Timer tab
+// renders only when first shown or at start-up idle, B6 fix), and on Android,
+// where the router still waits up to 150 ms for the URL.
 jest.useFakeTimers();
 
 type Handler = (slot: SessionSlot, kind: SessionKind) => void;

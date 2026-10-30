@@ -220,6 +220,109 @@ describe('runAfterFirstFrame, deferred arm', () => {
     });
 });
 
+// Phase 1 B6 fix (B6 record §9): the tabs' pre-render waits for the interactive
+// mark in both arms, after the deferred drain, one task per idle callback.
+// covers: NFR-PERF-001
+describe('runAfterInteractive', () => {
+    // Idle callbacks queued and run one at a time, in request order, as the
+    // runtime's idle-priority tasks with one timeout are.
+    let idleQueue: IdleCallback[] = [];
+    function installManualIdle() {
+        idleQueue = [];
+        (globalThis as { requestIdleCallback?: unknown }).requestIdleCallback = (callback: IdleCallback) => {
+            idleQueue.push(callback);
+        };
+    }
+    function runNextIdle() {
+        idleQueue.shift()!({ didTimeout: false, timeRemaining: () => 50 });
+    }
+
+    it('deferred arm: after the interactive mark and the drain, one task per idle callback', () => {
+        installManualIdle();
+        const { scheduler, probe } = launch();
+        const ran: string[] = [];
+        scheduler.runAfterInteractive('tab.stats', () => ran.push('stats'));
+        scheduler.runAfterInteractive('tab.notes', () => ran.push('notes'));
+        scheduler.runAfterFirstFrame('ads.init', () => ran.push('ads'));
+        jest.advanceTimersByTime(scheduler.FIRST_FRAME_FALLBACK_MS - 1);
+        expect(ran).toEqual([]);
+
+        scheduler.markFirstFrame();
+        expect(idleQueue).toHaveLength(2); // the interactive mark, then the drain
+        runNextIdle();
+        expect(ran).toEqual([]);
+        expect(idleQueue).toHaveLength(2); // the drain, then the first tab
+        runNextIdle();
+        expect(ran).toEqual(['ads']);
+        runNextIdle();
+        expect(ran).toEqual(['ads', 'stats']);
+        runNextIdle();
+        expect(ran).toEqual(['ads', 'stats', 'notes']);
+        expect(idleQueue).toHaveLength(0);
+
+        const order = Object.keys(probe.currentProbeRow().marks);
+        expect(order.indexOf('interactive')).toBeLessThan(order.indexOf('drainEnd'));
+        expect(order.indexOf('drainEnd')).toBeLessThan(order.indexOf('tab.stats:start'));
+        expect(order.indexOf('tab.stats:start')).toBeLessThan(order.indexOf('tab.notes:start'));
+    });
+
+    it('eager arm: still waits for the interactive mark, unlike runAfterFirstFrame', () => {
+        installManualIdle();
+        const { scheduler } = launch({ mode: 'eager' });
+        const tab = jest.fn();
+        const ads = jest.fn();
+        scheduler.runAfterInteractive('tab.stats', tab);
+        scheduler.runAfterFirstFrame('ads.init', ads);
+        expect(ads).toHaveBeenCalledTimes(1);
+        expect(tab).not.toHaveBeenCalled();
+
+        scheduler.markFirstFrame();
+        runNextIdle(); // the interactive mark
+        expect(tab).not.toHaveBeenCalled();
+        runNextIdle();
+        expect(tab).toHaveBeenCalledTimes(1);
+    });
+
+    it('a task registered after the interactive mark runs at the next idle moment', () => {
+        installManualIdle();
+        const { scheduler } = launch();
+        scheduler.markFirstFrame();
+        runNextIdle();
+
+        const late = jest.fn();
+        scheduler.runAfterInteractive('tab.notes', late);
+        expect(late).not.toHaveBeenCalled();
+        runNextIdle();
+        expect(late).toHaveBeenCalledTimes(1);
+    });
+
+    it('cancel removes a task that has not started', () => {
+        installIdle();
+        const { scheduler } = launch();
+        const kept = jest.fn();
+        const cancelled = jest.fn();
+        scheduler.runAfterInteractive('tab.stats', kept);
+        const cancel = scheduler.runAfterInteractive('tab.notes', cancelled);
+        cancel();
+
+        scheduler.markFirstFrame();
+        jest.advanceTimersByTime(1_000);
+        expect(kept).toHaveBeenCalledTimes(1);
+        expect(cancelled).not.toHaveBeenCalled();
+    });
+
+    it('never runs without the first-frame signal: a tab then renders on its first focus', () => {
+        installIdle();
+        jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const { scheduler } = launch();
+        const tab = jest.fn();
+        scheduler.runAfterInteractive('tab.stats', tab);
+        scheduler.runAfterFirstFrame('ads.init', () => {});
+        jest.advanceTimersByTime(60_000);
+        expect(tab).not.toHaveBeenCalled();
+    });
+});
+
 // covers: NFR-PERF-001
 describe('the before/after switch', () => {
     it('eager: the pre-B7 path, every task runs when it is registered', () => {

@@ -114,7 +114,7 @@ describe('useSlotProgress', () => {
         await act(() => session.start({ kind: 'pomodoro', durationMs: 60_000 }));
         expect(last()).toBe(true);
 
-        // The Timer tab hidden (freezeOnBlur doesn't stop worklets) and shown again.
+        // The Timer tab hidden (worklets keep running in a hidden tab) and shown again.
         await act(() => listeners.blur());
         expect(last()).toBe(false);
         await act(() => listeners.focus());

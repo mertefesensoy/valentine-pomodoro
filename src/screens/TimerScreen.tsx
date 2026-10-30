@@ -18,6 +18,7 @@ import { useStatsStore } from "../stores/statsStore";
 import { useUiStore } from "../stores/uiStore";
 import { useTheme } from "../theme/useTheme";
 import { useResponsive } from "../hooks/useResponsive";
+import { useScreenFocused } from "../hooks/useScreenFocus";
 import { AdManager } from "../ads/AdManager";
 import { AdPolicy } from "../ads/AdPolicy";
 
@@ -55,6 +56,11 @@ export default function TimerScreen() {
   // Session state and actions: re-renders on session changes, not each second.
   // The time is <TimerText>'s and the ring's (Phase 1 B4).
   const session = useSessionState();
+  // The tab is never hidden or frozen (B6 fix, record §9), so what must happen
+  // in front of the user waits until Timer is focused: the celebration, the
+  // love note (both start auto-dismiss timers) and the interstitial. Before,
+  // the frozen tab held them (B4 record §3.5). Always true outside a navigator.
+  const focused = useScreenFocused();
   const { colors, isDark } = useTheme();
 
   // Interstitials the ad policy has allowed, one per completion it said yes
@@ -129,6 +135,7 @@ export default function TimerScreen() {
   const adsServedRef = useRef(0);
   useEffect(() => {
     if (adRequests === adsServedRef.current) return;
+    if (!focused) return;
     if (goalPopup || showLoveNoteCard) return;
 
     adsServedRef.current = adRequests;
@@ -136,7 +143,7 @@ export default function TimerScreen() {
       // Callback after ad is closed (or if it failed/skipped)
       // We could resume music or do other cleanup here if needed
     });
-  }, [adRequests, goalPopup, showLoveNoteCard]);
+  }, [adRequests, goalPopup, showLoveNoteCard, focused]);
 
   // Compact spacing flag — reduce margins on small landscape viewports
   const tightSpacing = isLandscape || isShortViewport;
@@ -395,13 +402,13 @@ export default function TimerScreen() {
 
           {/* Overlays — rendered outside the scroll so they always fill the screen */}
           <GoalReachedPopup
-            visible={!!goalPopup}
+            visible={!!goalPopup && focused}
             newStreak={goalPopup?.newStreak ?? 0}
             animationsEnabled={settings.animationsEnabled}
             autoDismissMs={1400}
             onClose={clearGoalHitPulse}
           />
-          {!goalPopup && showLoveNoteCard && lastLoveNote && (
+          {focused && !goalPopup && showLoveNoteCard && lastLoveNote && (
             <LoveNoteCard note={lastLoveNote} onDismiss={dismissLoveNote} />
           )}
         </View>

@@ -1,10 +1,10 @@
-import { FreezeOnBlur } from '../../src/components/FreezeOnBlur';
+import { LazyTab } from '../../src/components/LazyTab';
 import StatsScreen from '../../src/screens/StatsScreen';
 
 export default function StatsRoute() {
   return (
-    <FreezeOnBlur>
+    <LazyTab name="stats">
       <StatsScreen />
-    </FreezeOnBlur>
+    </LazyTab>
   );
 }

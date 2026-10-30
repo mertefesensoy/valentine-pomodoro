@@ -14,8 +14,9 @@ const ICONS = {
 
 // The iOS native tab bar (Phase 1 B6, ADR-0043). UIKit switches tabs without
 // an animation. Every tab handles its own safe areas, as before the native
-// bar (disableAutomaticContentInsets), and freezes while hidden
-// (FreezeOnBlur, in each route file).
+// bar (disableAutomaticContentInsets). Each route file renders its screen in
+// a LazyTab: rendered on first focus or at start-up idle, then never hidden
+// (B6 fix, record §9).
 export default function TabLayout() {
   return (
     <NativeTabs screenListeners={{ tabPress: tabPressHaptic }}>

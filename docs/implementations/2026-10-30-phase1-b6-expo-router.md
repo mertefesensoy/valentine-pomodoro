@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-b4-rerender-refact
 
 # 2026-10-30 — Phase 1 B6: Expo Router with native tabs
 
-**Status:** Code done and verified locally, in three code commits after the plan commit (§2). **Merged into `rehaul/v2` on 2026-10-30 as `1b7a8d7`, before B7 (`3d3fbaf`); pushed 2026-10-30 (through `3369418`).** The device check (§6.6) on TestFlight build 46 (`v1.4.0-tf.46`), 2026-10-30, **failed items 1 and 2**: every tab switch flickers, and on Notes in light mode the tab bar turns to dark colours. **The fix is §9, on branch `phase1/b6-tabs-fix` (from `c628453`): tabs never freeze. Not merged, not pushed; its device check is the build-47 list in §6.6.**
+**Status:** Code done and verified locally, in three code commits after the plan commit (§2). **Merged into `rehaul/v2` on 2026-10-30 as `1b7a8d7`, before B7 (`3d3fbaf`); pushed 2026-10-30 (through `3369418`).** The device check (§6.6) on TestFlight build 46 (`v1.4.0-tf.46`), 2026-10-30, **failed items 1 and 2**: every tab switch flickers, and on Notes in light mode the tab bar turns to dark colours. **The fix is §9, from branch `phase1/b6-tabs-fix` (cut from `c628453`): tabs never freeze. Merged into `rehaul/v2` on 2026-10-30 as `63f1db2`; its device check is the build-47 list in §6.6.**
 **Branch:** `phase1/b6-expo-router`, a worktree at `C:\vp\b6`, cut from `rehaul/v2` at `7034bba`. It merges with `phase1/b7-deferred-startup` without conflicts (§6.5).
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md), task B6. Decision: [ADR-0028](../architecture/adr/0028-expo-router.md) (Expo Router, native tabs); how it is built: [ADR-0043](../architecture/adr/0043-native-tabs-frozen-by-a-wrapper.md). Follows [B5](2026-10-30-phase1-b5-react-compiler.md).
 
@@ -573,7 +573,7 @@ and in the intro, "The first superseded record is ADR-0035, by ADR-0041 (Phase 1
 
 ## 9. The fix for build 46: tabs that never freeze
 
-**Status:** Code done and verified locally (§9.4). **Not merged, not pushed, no build.** Branch `phase1/b6-tabs-fix`, cut from `c628453` (B6 and B7 merged, the `markFirstFrame` wiring, build 46's result). Approved by you through the session that started this one: "Stop freezing tabs." §9.1–9.3 are the plan, written before any code (`de45489`); where the build differs from it, §9.2 says so.
+**Status:** Code done and verified locally (§9.4). **Merged into `rehaul/v2` on 2026-10-30 as `63f1db2`, with the shared docs of §9.6 in the commit after it; its device check is TestFlight build 47.** Branch `phase1/b6-tabs-fix`, cut from `c628453` (B6 and B7 merged, the `markFirstFrame` wiring, build 46's result). Approved by you through the session that started this one: "Stop freezing tabs." §9.1–9.3 are the plan, written before any code (`de45489`); where the build differs from it, §9.2 says so.
 
 | Commit | Content |
 |--------|---------|

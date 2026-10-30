@@ -84,8 +84,10 @@ describe('Classic, worst case, in Turkish', () => {
         expect(screen.getByText('Odağı başlat')).toBeOnTheScreen();
         expect(screen.getByText('Atla')).toBeOnTheScreen();
         expect(screen.getByText('Pomo ve Doro hazır, sen ne zaman istersen')).toBeOnTheScreen();
-        // No preset matches custom durations: none is selected.
+        // No preset matches these durations, so Custom holds them, selected, with its key (build 48, F4).
         expect(screen.getByLabelText('25 dakika odak, 5 dakika mola')).not.toBeSelected();
+        expect(screen.getByLabelText("Özel: 180 dakika odak, 30 dakika mola; Ayarlar'da belirlenir")).toBeSelected();
+        expect(screen.getByText("Özel: 180 / 30 dk, Ayarlar'da belirlenir", { includeHiddenElements: true })).toBeOnTheScreen();
     });
 
     it('shows a 30-day streak in the goal moment, wrapping within the row', async () => {

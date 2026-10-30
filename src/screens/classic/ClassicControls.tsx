@@ -3,7 +3,7 @@ import Animated, { css, cubicBezier } from 'react-native-reanimated';
 
 import { PressableScale } from '../../components/ui/PressableScale';
 import { SegmentedControl, type Segment } from '../../components/ui/SegmentedControl';
-import type { PresetId } from '../../constants/presets';
+import type { PresetChoice } from '../../constants/presets';
 import type { ThemeTokens } from '../../theme/palette';
 import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
 import { t } from '../../i18n';
@@ -17,9 +17,11 @@ type Props = {
     onPrimary: () => void;
     onSkip: () => void;
     onEnd: () => void;
-    presets: readonly Segment<PresetId>[];
-    preset: PresetId | null;
-    onPreset: (id: PresetId) => void;
+    presets: readonly Segment<PresetChoice>[];
+    preset: PresetChoice;
+    /** The line under the presets: their key, or Custom's durations and where they're set. */
+    presetKey: string;
+    onPreset: (choice: PresetChoice) => void;
     /** Focus sessions done in this cycle, and the cycle's length. */
     cycleDone: number;
     cycleLength: number;
@@ -75,7 +77,7 @@ export function ClassicControls(p: Props) {
                         accessibilityElementsHidden
                         importantForAccessibility="no-hide-descendants"
                     >
-                        {t('presets.key')}
+                        {p.presetKey}
                     </Text>
                 </Animated.View>
                 <Animated.View style={[styles.layer, styles.fade, styles.centre, { opacity: p.idle ? 0 : 1 }]} pointerEvents="none">

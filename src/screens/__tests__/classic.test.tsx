@@ -67,6 +67,27 @@ describe('Classic', () => {
         expect(screen.getByLabelText('25 minutes focus, 5 minutes break')).not.toBeSelected();
     });
 
+    // Build 48 (F4): 25/5, 50/10, 90/20 and Custom; 52/17 is gone.
+    it("offers 25/5, 50/10, 90/20 and Custom, and Custom brings back Settings' durations after a preset", async () => {
+        const mine = { focus: 40, shortBreak: 8, longBreak: 20 };
+        await act(async () => useSettingsStore.getState().updateSettings({ durations: mine, presetChoice: 'custom', customDurations: mine }));
+        await show(<TimerScreen />);
+        expect(screen.queryByLabelText(/52 minutes/)).toBeNull();
+        const custom = screen.getByLabelText('Custom: 40 minutes focus, 8 minutes break, set in Settings');
+        expect(custom).toBeSelected();
+        expect(custom.props.accessibilityValue).toEqual({ text: '4 of 4' });
+        // The key is for sight; VoiceOver hears the same in the segment's label.
+        expect(screen.getByText('Custom: 40 / 8 min, set in Settings', { includeHiddenElements: true })).toBeOnTheScreen();
+
+        await press(screen.getByLabelText('90 minutes focus, 20 minutes break'));
+        expect(screen.getByText('90:00')).toBeOnTheScreen();
+        expect(screen.getByText('focus / break, in minutes', { includeHiddenElements: true })).toBeOnTheScreen();
+
+        await press(screen.getByLabelText('Custom: 40 minutes focus, 8 minutes break, set in Settings'));
+        expect(useSettingsStore.getState().settings.durations).toEqual(mine);
+        expect(screen.getByText('40:00')).toBeOnTheScreen();
+    });
+
     it('speaks each preset in words with its position, never as a tab (HIG D1-M2)', async () => {
         await show(<TimerScreen />);
         const first = screen.getByLabelText('25 minutes focus, 5 minutes break');

@@ -50,7 +50,10 @@
     "label": "{{focus}} dakika odak, {{rest}} dakika mola",
     "position": "{{total}} seçenekten {{n}}.",
     "custom": "Özel",
-    "key": "odak / mola, dakika"
+    "key": "odak / mola, dakika",
+    "customLabel": "Özel: {{focus}} dakika odak, {{rest}} dakika mola; Ayarlar'da belirlenir",
+    "customKey": "Özel: {{focus}} / {{rest}} dk, Ayarlar'da belirlenir",
+    "settingsNote": "Zamanlayıcıdaki Özel seçeneği bu süreleri kullanır."
   },
   "modes": {
     "button": "Modlar",

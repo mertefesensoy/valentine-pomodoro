@@ -21,7 +21,7 @@ import { edgeWidth, minTarget, space } from "../theme/layout";
 import { useScreenFocused } from "../hooks/useScreenFocus";
 import { AdManager } from "../ads/AdManager";
 import { AdPolicy } from "../ads/AdPolicy";
-import { PRESETS, classicLayoutOf, durationsOf, presetFor, type PresetId } from "../constants/presets";
+import { PRESETS, choosePresetPatch, classicLayoutOf, customDurationsOf, presetChoiceOf, type PresetChoice } from "../constants/presets";
 import { language, t } from "../i18n";
 import { getTodayKey } from "../utils/time";
 import { PhaseRing } from "./classic/PhaseRing";
@@ -284,19 +284,29 @@ export default function TimerScreen() {
     ]);
   };
 
-  const preset = presetFor(settings.durations)?.id ?? null;
+  // 25/5, 50/10, 90/20 and Custom, the durations typed in Settings (build 48, F4).
+  const preset = presetChoiceOf(settings);
+  const custom = customDurationsOf(settings);
   const presetSegments = useMemo(
-    () =>
-      PRESETS.map((p) => ({
-        value: p.id,
+    () => [
+      ...PRESETS.map((p) => ({
+        value: p.id as PresetChoice,
         label: `${p.focus}/${p.shortBreak}`,
         accessibilityLabel: t('presets.label', { focus: p.focus, rest: p.shortBreak }),
       })),
-    [],
+      {
+        value: 'custom' as const,
+        label: t('presets.custom'),
+        accessibilityLabel: t('presets.customLabel', { focus: custom.focus, rest: custom.shortBreak }),
+      },
+    ],
+    [custom.focus, custom.shortBreak],
   );
-  const choosePreset = (id: PresetId) => {
-    const p = PRESETS.find((x) => x.id === id);
-    if (p) updateSettings({ durations: durationsOf(p) });
+  const presetKey = preset === 'custom'
+    ? t('presets.customKey', { focus: custom.focus, rest: custom.shortBreak })
+    : t('presets.key');
+  const choosePreset = (choice: PresetChoice) => {
+    updateSettings(choosePresetPatch(useSettingsStore.getState().settings, choice));
   };
 
   // "Break at 10:25": the minute the running phase ends, from its endAt, so it
@@ -412,6 +422,7 @@ export default function TimerScreen() {
       onEnd={handleEnd}
       presets={presetSegments}
       preset={preset}
+      presetKey={presetKey}
       onPreset={choosePreset}
       cycleDone={completedFocusCountInCycle}
       cycleLength={cycleTotal}

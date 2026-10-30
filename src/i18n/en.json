@@ -50,7 +50,10 @@
     "label": "{{focus}} minutes focus, {{rest}} minutes break",
     "position": "{{n}} of {{total}}",
     "custom": "Custom",
-    "key": "focus / break, in minutes"
+    "key": "focus / break, in minutes",
+    "customLabel": "Custom: {{focus}} minutes focus, {{rest}} minutes break, set in Settings",
+    "customKey": "Custom: {{focus}} / {{rest}} min, set in Settings",
+    "settingsNote": "Custom on the Timer uses these durations."
   },
   "modes": {
     "button": "Modes",

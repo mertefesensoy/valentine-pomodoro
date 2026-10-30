@@ -25,7 +25,7 @@ import type { LegacyColors } from '../theme/legacyColors';
 import { useResponsive } from '../hooks/useResponsive';
 import type { ThemeMode } from '../types';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
-import { classicLayoutOf, type ClassicLayout } from '../constants/presets';
+import { DURATION_LIMITS, classicLayoutOf, customDurationsOf, editCustomPatch, type ClassicLayout } from '../constants/presets';
 import { t } from '../i18n';
 
 const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
@@ -109,10 +109,12 @@ export default function SettingsScreen() {
     const { colors } = useTheme();
     const { isTablet } = useResponsive();
 
-    // Local draft state for number inputs
-    const [focusDraft, setFocusDraft] = useState(settings.durations.focus.toString());
-    const [shortBreakDraft, setShortBreakDraft] = useState(settings.durations.shortBreak.toString());
-    const [longBreakDraft, setLongBreakDraft] = useState(settings.durations.longBreak.toString());
+    // Local draft state for number inputs. The durations here are Custom's (build 48, F4): the
+    // Timer's presets never overwrite them, and editing one selects Custom (presets.ts).
+    const custom = customDurationsOf(settings);
+    const [focusDraft, setFocusDraft] = useState(custom.focus.toString());
+    const [shortBreakDraft, setShortBreakDraft] = useState(custom.shortBreak.toString());
+    const [longBreakDraft, setLongBreakDraft] = useState(custom.longBreak.toString());
     const [longBreakEveryDraft, setLongBreakEveryDraft] = useState(settings.longBreakEvery.toString());
     const [goalDraft, setGoalDraft] = useState(goalMinutes.toString());
     const [statusText, setStatusText] = useState('');
@@ -123,32 +125,22 @@ export default function SettingsScreen() {
     const [showQuietEndPicker, setShowQuietEndPicker] = useState(false);
     const [reminderBusy, setReminderBusy] = useState(false); // Fix 1: busy flag
 
-    const handleFocusBlur = () => {
-        const val = parseInt(focusDraft, 10);
-        if (!isNaN(val) && val > 0 && val <= 180) {
-            updateSettings({ durations: { ...settings.durations, focus: val } });
+    // A valid value becomes Custom's and is applied; anything else restores the field. An
+    // unchanged value is left alone, so leaving a field never switches a preset to Custom.
+    const commitDuration = (field: keyof typeof DURATION_LIMITS, draft: string, restore: (text: string) => void) => {
+        const val = parseInt(draft, 10);
+        const { min, max } = DURATION_LIMITS[field];
+        if (val === custom[field]) {
+            restore(val.toString());
+        } else if (!isNaN(val) && val >= min && val <= max) {
+            updateSettings(editCustomPatch(settings, field, val));
         } else {
-            setFocusDraft(settings.durations.focus.toString());
+            restore(custom[field].toString());
         }
     };
-
-    const handleShortBreakBlur = () => {
-        const val = parseInt(shortBreakDraft, 10);
-        if (!isNaN(val) && val > 0 && val <= 60) {
-            updateSettings({ durations: { ...settings.durations, shortBreak: val } });
-        } else {
-            setShortBreakDraft(settings.durations.shortBreak.toString());
-        }
-    };
-
-    const handleLongBreakBlur = () => {
-        const val = parseInt(longBreakDraft, 10);
-        if (!isNaN(val) && val > 0 && val <= 120) {
-            updateSettings({ durations: { ...settings.durations, longBreak: val } });
-        } else {
-            setLongBreakDraft(settings.durations.longBreak.toString());
-        }
-    };
+    const handleFocusBlur = () => commitDuration('focus', focusDraft, setFocusDraft);
+    const handleShortBreakBlur = () => commitDuration('shortBreak', shortBreakDraft, setShortBreakDraft);
+    const handleLongBreakBlur = () => commitDuration('longBreak', longBreakDraft, setLongBreakDraft);
 
     const handleLongBreakEveryBlur = () => {
         const val = parseInt(longBreakEveryDraft, 10);
@@ -171,6 +163,8 @@ export default function SettingsScreen() {
                     onPress: () => {
                         updateSettings({
                             durations: { focus: 25, shortBreak: 5, longBreak: 15 },
+                            presetChoice: '25-5',
+                            customDurations: { focus: 25, shortBreak: 5, longBreak: 15 },
                             longBreakEvery: 4,
                             notifications: true,
                             sound: true,
@@ -207,6 +201,7 @@ export default function SettingsScreen() {
                     <Text style={[styles.sectionTitle, { color: colors.text }]}>
                         Timer Durations (minutes)
                     </Text>
+                    <Text style={[styles.sectionNote, { color: colors.textMuted }]}>{t('presets.settingsNote')}</Text>
 
                     <View style={[styles.row, { borderBottomColor: colors.border }]}>
                         <Text style={[styles.label, { color: colors.text }]}>Focus</Text>
@@ -780,6 +775,11 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         // color removed - now inline
         marginBottom: 12,
+    },
+    sectionNote: {
+        fontSize: 14,
+        marginTop: -8,
+        marginBottom: 4,
     },
     row: {
         flexDirection: 'row',

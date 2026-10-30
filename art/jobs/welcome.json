@@ -1,0 +1,85 @@
+{
+ "about": "D1: the v1.4 welcome screen's morph (welcome brief, .impeccable/surfaces/app-welcome-tsx.md). The Same Page mark split into its four layers (left and right die-cut edges under the left and right pages with their faces), on the mark's own 784 x 576 artboard so they stack into the identity sheet's mark exactly, plus the closed diary's cover, hinged at the spine; each in colour and reversed (dark grounds, C5). The ribbon is milk (plum when reversed), so Pomo & Doro are the only colour until they hand over.",
+ "assets": [
+  {
+   "id": "welcome-cover-colour",
+   "src": "art/src/welcome/welcome-cover-colour.svg",
+   "kind": "illustration",
+   "png": [
+    392
+   ]
+  },
+  {
+   "id": "welcome-cover-reversed",
+   "src": "art/src/welcome/welcome-cover-reversed.svg",
+   "kind": "illustration",
+   "png": [
+    392
+   ]
+  },
+  {
+   "id": "welcome-edge-left-colour",
+   "src": "art/src/welcome/welcome-edge-left-colour.svg",
+   "kind": "illustration",
+   "png": [
+    392
+   ]
+  },
+  {
+   "id": "welcome-edge-left-reversed",
+   "src": "art/src/welcome/welcome-edge-left-reversed.svg",
+   "kind": "illustration",
+   "png": [
+    392
+   ]
+  },
+  {
+   "id": "welcome-edge-right-colour",
+   "src": "art/src/welcome/welcome-edge-right-colour.svg",
+   "kind": "illustration",
+   "png": [
+    392
+   ]
+  },
+  {
+   "id": "welcome-edge-right-reversed",
+   "src": "art/src/welcome/welcome-edge-right-reversed.svg",
+   "kind": "illustration",
+   "png": [
+    392
+   ]
+  },
+  {
+   "id": "welcome-page-left-colour",
+   "src": "art/src/welcome/welcome-page-left-colour.svg",
+   "kind": "illustration",
+   "png": [
+    392
+   ]
+  },
+  {
+   "id": "welcome-page-left-reversed",
+   "src": "art/src/welcome/welcome-page-left-reversed.svg",
+   "kind": "illustration",
+   "png": [
+    392
+   ]
+  },
+  {
+   "id": "welcome-page-right-colour",
+   "src": "art/src/welcome/welcome-page-right-colour.svg",
+   "kind": "illustration",
+   "png": [
+    392
+   ]
+  },
+  {
+   "id": "welcome-page-right-reversed",
+   "src": "art/src/welcome/welcome-page-right-reversed.svg",
+   "kind": "illustration",
+   "png": [
+    392
+   ]
+  }
+ ]
+}

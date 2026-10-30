@@ -22,7 +22,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 | 1. Shape | Brief confirmed at C4. Direction contract written 2026-10-30 (§3.1). | The owner chose The diary opens, 2026-10-30; brief and contract written (§3.2) |
 | 2. `/apple-design` on the brief | Good; no Critical; 4 Medium and 3 Low, all dispositioned (§3.1.1) | Good; no Critical; 1 High and 2 Low, dispositioned (§3.2.1) |
 | Owner: direction contracts | **Approved**, 2026-10-30 ("Approve, build D1") | **Approved**, 2026-10-30 ("Approve, build D1") |
-| 3. Build (`animate-expo`) | — | — |
+| 3. Build (`animate-expo`) | Built, `635eb0a` (§3.9–3.10) | Built (§3.11) |
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | — | — |
 | 5. `break-ui` (TR at AX5) | — | — |
 | 6. `polish`, `harden`, `clarify` | — | — |
@@ -73,6 +73,12 @@ See the [Stage D plan §1](2026-10-30-phase1-stage-d.md#1-problem--motivation). 
 | `src/components/{GoalReachedPopup,CircularProgress,CalmBackground,PremiumCalmBackground}.tsx`, `package.json` | Removed with their last caller; `expo-linear-gradient` with them. |
 | `src/i18n/en.json`, `tr.json` | `timer.session` added for the phase line. |
 | `src/screens/__tests__/classic.test.tsx` | New. The Baloo timer with tabular figures and one VoiceOver element; a preset writes three durations and moves the selection; segments speak in words with a position, as buttons; End only while paused, with the stamp; Facing Pages; the mode sheet sets the layout and opens Fly. |
+| `art/src/welcome/*.svg`, `art/jobs/welcome.json`, `art/steps/welcome-*.steps.json`, `art/vc/welcome-*.vectorcraft`, `art/out/illustration/welcome-*` | New. The welcome morph's art, built by VectorCraft (§3.11). |
+| `scripts/art/build-icon-components.mjs`, `src/components/stickers/art/welcome*.ts` | The generator includes the welcome layers; the 10 generated modules. |
+| `src/utils/storage.ts`, `src/stores/uiStore.ts`, `src/App.tsx`, `src/__fixtures__/storage/__tests__/v131.test.tsx` | The additive `welcome_v14` key; the welcome flag, its audience and the notification deferral; the fixture test's list of keys new since v1.3.1. |
+| `src/screens/welcome/WelcomeScreen.tsx`, `useWelcomeGate.ts`, `app/welcome.tsx`, `app/_layout.tsx`, `src/screens/TimerScreen.tsx` | New. The welcome screen and its morph, the calm-entry gate, the full-screen route (§3.11). |
+| `src/utils/easing.ts`, `src/utils/__tests__/easing.test.ts` | New. Cubic-bezier easing sampled in a worklet, tested against the linear identity, CSS's symmetric ease-in-out and the morph's own curve. |
+| `src/screens/welcome/__tests__/welcome.test.tsx` | New. The gate: fresh installs wait behind the gift screen, an existing install is greeted once, a seen welcome never returns, a surviving session holds it until idle, a notification launch defers it. The screen: each audience's line, and Start marks it seen in storage. |
 | `src/screens/__tests__/timerScreenOverlays.test.tsx`, `timerScreenTicks.test.tsx`, `flyLazyLoad.test.tsx`, `flyCredit.test.tsx`, `src/__tests__/router.test.tsx`, `splash.test.tsx` | Updated for "Start focus", the Modes sheet in place of Classic's inline Fly switch, the inline goal moment and the love-note sheet that stays until it is closed. Every ordering assertion is kept. |
 
 ## 3. Implementation Approach
@@ -271,6 +277,41 @@ None of it renders React per frame. Under Reduce Motion the placement is a 200 m
 - The route closes the store when it unmounts, however it was closed, and `TimerScreen` then calls the engine's own `dismissLoveNote`. `useTimer` is unchanged.
 
 **The mode sheet** is `/modes`. Classic is its first row, shown with the mark as a sticker and the layout choice under it; Fly is the second, where it can open.
+
+### 3.11 The welcome screen, built (welcome brief and contract)
+
+**The art (VectorCraft, `art/jobs/welcome.json`).** The morph needed one new drawing: the closed diary's cover.
+- **The cover** is hinged at the spine, with a white die-cut edge. Its ribbon is milk, so Pomo & Doro stay the only colour until the handover ("Colour as event").
+- **The mark's four layers,** copied exactly from the identity sources: the left and right die-cut edges (the spine goes with the left), under the left and right pages with their faces.
+- **One artboard.** Everything sits on the mark's own 784 × 576 artboard, so the layers stack into the identity sheet's mark exactly (checked on a contact sheet).
+- **Both themes:** colour and reversed, for dark grounds (C5), so 10 drawings of 1.2–1.8 KB each. All 89 assets pass `check-budgets.mjs`.
+
+**The morph** runs on one shared value from 0 to 1 over 2.4 s ("One cord"):
+
+| Span | What happens | Easing |
+|------|--------------|--------|
+| 0.15–0.55 | The cover scales shut toward the spine while both pages unfold out of it (scale-X about the box's centre, which is the spine). The closed diary's offset eases back, so the spread ends centred. | ease-out |
+| 0.25–0.60 | Pomo & Doro walk from the cover's top edge to the two faces, shrinking by a quarter. | ease-in-out |
+| 0.55–0.75 | They fade over the faces ("Layered handover"; "Unbroken custody": the faces were already part of the pages unfolding under them). | ease-out |
+| 0.60–1.00 | The mark settles from 0.96 to 1; the line lands from 0.75. | ease-out |
+
+There is no overshoot anywhere. A light haptic fires as p passes 0.6 (`useAnimatedReaction`, then `scheduleOnRN`), following Settings › Haptics; whether it stays is the device check's call. Under Reduce Motion the settled mark fades in.
+- **The easing is sampled in a worklet** (`src/utils/easing.ts`, tested): Reanimated's `Easing.bezier` is a factory for `withTiming`, and its Jest mock has no `bezierFn`.
+
+**The calm-entry gate** (`useWelcomeGate`; HIG W-H1) pushes `/welcome` once per process when all of these hold:
+- Timer is focused and idle, in Classic, with no goal moment or love note pending.
+- The store is hydrated.
+- The first-launch gift screen is already dismissed, so two first-run screens never stack.
+- The welcome isn't seen yet.
+- The app wasn't opened from a notification (`deferWelcome()`, set in `App.tsx`'s notification listener).
+
+**The audience is fixed at hydrate.** An install that had already seen the v1 gift screen is an existing user ("Your diary has a new look."); anything else is fresh ("Meet Pomo & Doro.").
+
+**Storage:** one new additive key, `welcome_v14` (`{ seen: true }`), written by Start. The v1.3.1 fixture test lists it as new since v1.3.1. Nothing else changes, and the B2 migration is untouched.
+
+**Presentation:** `fullScreenModal` with a fade, gestures off. Start fades it back into the Timer tab ("Same object").
+
+**Found for D2.** Fresh installs still get v1's first-launch gift modal before the welcome. D2's Gift brief should decide whether the welcome replaces it for fresh installs.
 
 ## 4. Mathematical / Statistical Details
 

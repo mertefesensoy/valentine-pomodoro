@@ -22,6 +22,8 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="love-note" options={SHEET} />
         <Stack.Screen name="modes" options={SHEET} />
+        {/* The one-time v1.4 welcome: full screen, in and out by a fade, closed only by Start (welcome brief). */}
+        <Stack.Screen name="welcome" options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false }} />
         <Stack.Screen name="+not-found" options={{ headerShown: true, title: '404' }} />
       </Stack>
     </App>

@@ -59,7 +59,9 @@ function ThemedApp({ children }: { children: React.ReactNode }) {
         console.log('[App] Notification tapped:', response.notification.request.content);
       }
 
-      // The Timer tab is the index route (FR-NTF-003)
+      // The Timer tab is the index route (FR-NTF-003). Opened from a notification, the
+      // user came for the timer: the v1.4 welcome waits for a later launch (welcome brief §4).
+      useUiStore.getState().deferWelcome();
       router.navigate('/');
     });
 

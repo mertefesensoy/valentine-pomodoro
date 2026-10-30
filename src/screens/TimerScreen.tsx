@@ -30,6 +30,7 @@ import { PoseSticker, poseFor } from "./classic/PoseSticker";
 import { SpreadPages } from "./classic/SpreadPages";
 import { TodayStickers } from "./classic/TodayStickers";
 import { ClassicControls } from "./classic/ClassicControls";
+import { useWelcomeGate } from "./welcome/useWelcomeGate";
 
 // Fly Mode is split out (Phase 1 task B1): FlyModeScreen and everything only it
 // imports (react-native-maps, FlySheet, Fly's audio) are evaluated the first time
@@ -223,6 +224,10 @@ export default function TimerScreen() {
 
   const paused = !isRunning && remainingMs !== null && remainingMs < totalMs;
   const idle = !isRunning && !paused;
+
+  // The one-time v1.4 welcome, on a calm entry only: Timer in front, idle, in Classic, with
+  // nothing pending after a completion (welcome brief §4; HIG W-H1).
+  useWelcomeGate(focused && idle && activeMode !== 'fly' && !goalPopup && !showLoveNoteCard);
   const isBreak = phase !== 'focus';
   const phaseLabel = t(`timer.phase.${phase}`);
   const sessionN = completedFocusCountInCycle + 1;

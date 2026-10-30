@@ -1,0 +1,40 @@
+[
+ {
+  "command": "select.all",
+  "params": {}
+ },
+ {
+  "command": "object.expand",
+  "params": {
+   "object": true,
+   "fill": true,
+   "stroke": true
+  }
+ },
+ {
+  "command": "document.save",
+  "params": {
+   "path": "C:/vp-art/art/vc/welcome-edge-right-reversed.vectorcraft"
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/illustration/welcome-edge-right-reversed.svg",
+   "format": "svg",
+   "decimals": 2,
+   "outlineText": true,
+   "minify": true,
+   "objectIds": "minimal",
+   "metadata": false
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/illustration/welcome-edge-right-reversed-392.png",
+   "format": "png",
+   "scale": 0.5
+  }
+ }
+]

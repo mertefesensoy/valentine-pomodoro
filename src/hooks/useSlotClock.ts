@@ -19,7 +19,8 @@ import { useContext, useEffect, useMemo } from 'react';
 // Expo Router's own copy of React Navigation's context, the one its screens
 // provide. `@react-navigation/native` exports a different object, which reads
 // undefined inside a router screen (Phase 1 B6). Deprecated upstream: when it
-// is removed, take the focus signal from FreezeOnBlur instead.
+// is removed, take the focus signal from the router's IsFocusedContext, as
+// useScreenFocus.ts already does.
 import { NavigationContext } from 'expo-router/react-navigation';
 import { useDerivedValue, useFrameCallback, useSharedValue, type SharedValue } from 'react-native-reanimated';
 import { getClockNow } from '../stores/clockStore';
@@ -99,11 +100,12 @@ export function useSlotSharedValues(kind: SessionKind): SlotSharedValues {
  * (clockMath; pinned equal by useSlotClock.test).
  *
  * While the slot runs, a frame callback advances `now` each frame. It runs only
- * while the slot runs **and the screen is focused**: freezeOnBlur suspends
- * React in a hidden tab, not worklets, so the hook switches the callback off on
- * `blur` and back on on `focus`, in the navigation listeners themselves (a
- * frozen screen wouldn't commit a state update). Outside a navigator (tests)
- * the screen counts as focused.
+ * while the slot runs **and the screen is focused**: a hidden tab keeps
+ * running worklets, so the hook switches the callback off on `blur` and back
+ * on on `focus`, in the navigation listeners themselves. (B4 wrote it this way
+ * because a frozen screen couldn't commit a state update; since the B6 fix
+ * tabs are never frozen, and the listeners still need no render.) Outside a
+ * navigator (tests) the screen counts as focused.
  */
 export function useSlotProgress(kind: SessionKind, totalMs: number): SharedValue<number> {
     const clock = useSlotSharedValues(kind);

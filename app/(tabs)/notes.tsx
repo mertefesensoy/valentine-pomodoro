@@ -1,10 +1,10 @@
-import { FreezeOnBlur } from '../../src/components/FreezeOnBlur';
+import { LazyTab } from '../../src/components/LazyTab';
 import LoveNotesScreen from '../../src/screens/LoveNotesScreen';
 
 export default function NotesRoute() {
   return (
-    <FreezeOnBlur>
+    <LazyTab name="notes">
       <LoveNotesScreen />
-    </FreezeOnBlur>
+    </LazyTab>
   );
 }

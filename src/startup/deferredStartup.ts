@@ -38,6 +38,10 @@ let released = false;
 let drainScheduled = false;
 let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
 const queue: Task[] = [];
+// runAfterInteractive (Phase 1 B6 fix): released by the interactive mark, in both arms.
+let interactiveSeen = false;
+let afterInteractiveScheduled = false;
+const afterInteractive: Task[] = [];
 
 function arm(): StartupArm {
     if (launchArm === null) {
@@ -134,19 +138,62 @@ export function runAfterFirstFrame(name: string, run: () => unknown): () => void
     };
 }
 
+/** Runs the next after-interactive task in its own idle callback, then schedules the one after. */
+function scheduleAfterInteractive(): void {
+    if (afterInteractiveScheduled || afterInteractive.length === 0) return;
+    afterInteractiveScheduled = true;
+    whenIdle(() => {
+        afterInteractiveScheduled = false;
+        const task = afterInteractive.shift();
+        if (task) startTask(task);
+        scheduleAfterInteractive();
+    });
+}
+
+/**
+ * Runs `run` once start-up has gone idle after the interactive mark (Phase 1
+ * B6 fix, B6 record §9): the tabs' pre-render.
+ *
+ * - Waits for the interactive mark in **both** arms. Unlike runAfterFirstFrame,
+ *   it never runs at registration, so it changes neither arm's TTI.
+ * - The first task's idle callback is requested from inside the interactive
+ *   callback, so it lands after the deferred drain (same timeout, FIFO): the
+ *   interactive mark, then the deferred start-up work, then these. TTI⁺
+ *   (max of the mark and `drainEnd`, marked synchronously) doesn't move either.
+ * - **One task per idle callback**, in registration order, so each piece of
+ *   work is its own slice of the JS thread.
+ * - No fallback: without markFirstFrame() these never run. Their callers
+ *   (LazyTab) have another trigger, a tab's first focus.
+ *
+ * @returns a cancel function: removes the task if it hasn't started yet
+ */
+export function runAfterInteractive(name: string, run: () => unknown): () => void {
+    const task: Task = { name, run };
+    afterInteractive.push(task);
+    if (interactiveSeen) scheduleAfterInteractive();
+    return () => {
+        const i = afterInteractive.indexOf(task);
+        if (i >= 0) afterInteractive.splice(i, 1);
+    };
+}
+
 /**
  * The first-frame signal: call it from the root view's `onLayout`. Only the
  * first call counts, so it can be the handler itself (it fires again on
  * rotation). Records the probe's first-layout mark, times the first idle
  * moment after it (requested before the drain, so it fires first), then lets
- * the queue drain.
+ * the queue drain. The interactive callback also releases runAfterInteractive.
  */
 export function markFirstFrame(): void {
     if (firstFrameSeen) return;
     firstFrameSeen = true;
     arm();
     markStartup('firstLayout');
-    whenIdle(() => noteInteractive());
+    whenIdle(() => {
+        noteInteractive();
+        interactiveSeen = true;
+        scheduleAfterInteractive();
+    });
 
     if (fallbackTimer !== null) {
         clearTimeout(fallbackTimer);

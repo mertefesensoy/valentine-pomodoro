@@ -35,6 +35,7 @@ import FlyTimerPill from '../components/FlyTimerPill';
 import TimerText from '../components/TimerText';
 import { useResponsive } from '../hooks/useResponsive';
 import { useWindowInsets } from '../hooks/useWindowInsets';
+import { useScreenFocused } from '../hooks/useScreenFocus';
 import { ValentineSpec } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 import AirportPicker, { Airport } from '../components/AirportPicker';
@@ -128,6 +129,10 @@ export default function FlyModeScreen() {
     // The sheet sits above the tab bar already (TimerScreen pads for it), so its
     // own bottom padding is the window's inset, not the tab's (Phase 1 B6).
     const windowInsets = useWindowInsets();
+    // The Timer tab is never frozen (B6 fix, record §9): while it is hidden,
+    // the landing note and the interstitial wait, and the frame callback below
+    // stops. Always true outside a navigator.
+    const focused = useScreenFocused();
     const { colors, isDark } = useTheme();
 
     // Sheet animation state — sheetProgress 0=peek, 1=full
@@ -340,7 +345,7 @@ export default function FlyModeScreen() {
     //
     // Date.now() is used (not info.timestamp) because flyEndAtSV was written
     // with a Date.now() basis — they must share the same clock source.
-    useFrameCallback((info) => {
+    const flyFrame = useFrameCallback((info) => {
         'worklet';
         if (!flyIsRunningSV.value || flyEndAtSV.value === Number.NEGATIVE_INFINITY || flyDurationSV.value <= 0) return;
 
@@ -371,6 +376,14 @@ export default function FlyModeScreen() {
             runOnJS(setBearingDeg)(bearing);
         }
     });
+
+    // Off while the Timer tab is hidden: its 15 Hz runOnJS would re-render this
+    // screen for nobody (the freeze used to suspend those renders). The plane is
+    // a pure function of the clock (ADR-0019), so the first frame back is exact.
+    // useSlotProgress gates the ring the same way (B4).
+    useEffect(() => {
+        flyFrame.setActive(focused);
+    }, [flyFrame, focused]);
 
     // Mirror fly slot's notifId in a ref for unmount cancel (can't read state in cleanup)
     const flyNotifIdRef = useRef<string | null>(null);
@@ -581,13 +594,14 @@ export default function FlyModeScreen() {
         if (adRequests === adsServedRef.current) return;
         if (timerRunning || paused) return; // safety gate
         if (landingLoveNote) return;        // wait for love note to close
+        if (!focused) return;               // and for the Timer tab to be shown
 
         // Served before showing, so a re-run can't show a second ad for them.
         adsServedRef.current = adRequests;
         AdManager.showIfReady(() => {
             // onClose: ambient sound already stopped, nothing else to do
         });
-    }, [adRequests, timerRunning, paused, landingLoveNote]);
+    }, [adRequests, timerRunning, paused, landingLoveNote, focused]);
 
     // ── Cleanup on unmount ─────────────────────────────────────────────────
     // Session clock persists clock state automatically — no FLY_SESSION save needed.
@@ -1010,7 +1024,7 @@ export default function FlyModeScreen() {
             </FlySheet>
 
             {/* ── Love note — shown after landing if enabled ───────────────── */}
-            {landingLoveNote && (
+            {landingLoveNote && focused && (
                 <LoveNoteCard
                     note={landingLoveNote}
                     onDismiss={() => setLandingLoveNote(null)}

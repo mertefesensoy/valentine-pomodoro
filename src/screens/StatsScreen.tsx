@@ -1,11 +1,14 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStatsStore, useStatsViews } from '../stores/statsStore';
 import { useTheme } from '../theme/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 import { BANNER_ID } from '../ads/AdConfig';
+import { noteBannerFailed, noteBannerLayout, noteBannerLoaded, noteBannerRequested } from '../ads/bannerStatus';
+import { useHasBeenFocused } from '../hooks/useScreenFocus';
 
 type Metric = 'sessions' | 'minutes';
 
@@ -34,7 +37,23 @@ export default function StatsScreen() {
     const goalMinutes = useStatsStore((s) => s.goalMinutes);
     const { today, totals, last7Days, streak } = useStatsViews();
     const { colors } = useTheme();
-    const { isTablet } = useResponsive();
+    const { isTablet, height } = useResponsive();
+    const insets = useSafeAreaInsets();
+
+    // The banner (B6 fix, record §9). The tab is rendered before it is first
+    // opened (LazyTab), so the ad waits for Stats' first focus: no request for
+    // a screen nobody has looked at. Its container is there from the start, as
+    // before. bannerStatus keeps the load result and where the container
+    // landed, for B7's hidden panel: build 46 showed no banner, cause unknown.
+    const bannerAllowed = useHasBeenFocused();
+    useEffect(() => {
+        if (bannerAllowed) noteBannerRequested();
+    }, [bannerAllowed]);
+    const bannerBoxRef = useRef<React.ComponentRef<typeof View>>(null);
+    // Its bottom edge against the tab bar's top edge, both in window coordinates.
+    const onBannerBoxLayout = () => {
+        bannerBoxRef.current?.measureInWindow((_x, y, _w, h) => noteBannerLayout(y + h, height - insets.bottom));
+    };
 
     const [metric, setMetric] = useState<Metric>('minutes');
     const [barAreaWidth, setBarAreaWidth] = useState(0);
@@ -286,18 +305,22 @@ export default function StatsScreen() {
                 </View>
             </ScrollView>
             {/* The SafeAreaView's bottom inset includes the native tab bar (Phase 1 B6). */}
-            <View style={{
+            <View ref={bannerBoxRef} onLayout={onBannerBoxLayout} style={{
                 backgroundColor: colors.card,
                 borderTopWidth: 1,
                 borderTopColor: colors.border,
                 alignItems: 'center',
                 paddingVertical: 8,
             }}>
-                <BannerAd
-                    unitId={BANNER_ID}
-                    size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-                    requestOptions={{ requestNonPersonalizedAdsOnly: true }}
-                />
+                {bannerAllowed && (
+                    <BannerAd
+                        unitId={BANNER_ID}
+                        size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+                        requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+                        onAdLoaded={noteBannerLoaded}
+                        onAdFailedToLoad={noteBannerFailed}
+                    />
+                )}
             </View>
         </SafeAreaView >
     );

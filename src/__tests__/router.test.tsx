@@ -1,14 +1,15 @@
-import { Profiler, useContext, useEffect } from 'react';
+import { useContext, useEffect } from 'react';
+import { Text } from 'react-native';
 // The router's testing library installs its own mocks when imported (expo-linking
 // among them), so it comes before the modules it mocks.
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { NavigationContext } from 'expo-router/react-navigation';
-import { FreezeOnBlur } from '../components/FreezeOnBlur';
-import TimerText from '../components/TimerText';
-import { useSessionStore } from '../stores/sessionStore';
+import { AdManager } from '../ads/AdManager';
+import { useHasBeenFocused, useScreenFocused } from '../hooks/useScreenFocus';
 import { useSettingsStore } from '../stores/settingsStore';
+import { useStatsStore } from '../stores/statsStore';
 import { useUiStore } from '../stores/uiStore';
 import { resetStorage } from '../__fixtures__/storage/resetStorage';
 
@@ -38,8 +39,22 @@ jest.mock('expo-notifications', () => ({
 }));
 jest.mock('expo-haptics', () => ({
     impactAsync: jest.fn(async () => {}),
+    selectionAsync: jest.fn(async () => {}),
+    notificationAsync: jest.fn(async () => {}),
     ImpactFeedbackStyle: { Light: 'light' },
+    NotificationFeedbackType: { Success: 'success' },
 }));
+// jest.setup.ts renders the banner as nothing; here it leaves a marker, so a
+// test can see whether Stats asked for one. AdManager and AdPolicy, the
+// package's other users, are mocked below.
+jest.mock('react-native-google-mobile-ads', () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+        BannerAd: () => <View testID="banner-ad" />,
+        BannerAdSize: { ANCHORED_ADAPTIVE_BANNER: 'ANCHORED_ADAPTIVE_BANNER' },
+        TestIds: { BANNER: 'test-banner', INTERSTITIAL: 'test-interstitial' },
+    };
+});
 jest.mock('expo-splash-screen', () => ({
     preventAutoHideAsync: jest.fn(async () => true),
     hideAsync: jest.fn(async () => {}),
@@ -51,6 +66,29 @@ jest.mock('../hooks/useUpdateCheck', () => ({
 }));
 jest.mock('../ads/AdManager', () => ({
     AdManager: { init: jest.fn(async () => {}), preload: jest.fn(), showIfReady: jest.fn(() => false) },
+}));
+// The policy says yes to every completion: what's tested is when Timer asks.
+jest.mock('../ads/AdPolicy', () => ({
+    AdPolicy: {
+        init: jest.fn(async () => {}),
+        recordSessionCompletion: jest.fn(async () => {}),
+        shouldShowAd: jest.fn(() => true),
+    },
+}));
+// The tabs' pre-render at start-up idle (B6 fix). markFirstFrame never fires
+// under Jest (no layout), and the scheduler's module state can't be reset
+// between launches in one file, so a test fires the pre-render itself
+// (startupIdle). deferredStartup.test.ts tests the real scheduler.
+const mockPrerenders: (() => unknown)[] = [];
+jest.mock('../startup/deferredStartup', () => ({
+    ...jest.requireActual('../startup/deferredStartup'),
+    runAfterInteractive: (_name: string, run: () => unknown) => {
+        mockPrerenders.push(run);
+        return () => {
+            const i = mockPrerenders.indexOf(run);
+            if (i >= 0) mockPrerenders.splice(i, 1);
+        };
+    },
 }));
 
 // What each tab shows, and nothing else does.
@@ -101,6 +139,19 @@ async function openUrl(url: string) {
     await act(async () => urlListener!({ url }));
 }
 
+/** Start-up has gone idle after the interactive mark: the hidden tabs pre-render. */
+async function startupIdle() {
+    await act(async () => {
+        for (const run of mockPrerenders.splice(0)) run();
+    });
+}
+
+async function tick(ms: number) {
+    await act(() => jest.advanceTimersByTime(ms));
+    // AdPolicy.recordSessionCompletion() resolves on a microtask.
+    await act(async () => {});
+}
+
 function findHost(type: string) {
     const stack = [screen.root];
     while (stack.length) {
@@ -120,7 +171,9 @@ beforeEach(async () => {
     await resetStorage();
     urlListener = null;
     mockNotificationTap = null;
+    mockPrerenders.length = 0;
     jest.mocked(Haptics.impactAsync).mockClear();
+    jest.mocked(AdManager.showIfReady).mockClear();
 });
 
 // covers: FR-NAV-001
@@ -130,7 +183,7 @@ describe('deep links', () => {
 
         expect(result.getPathname()).toBe(path);
         expect(screen.getByText(text)).toBeOnTheScreen();
-        // The other tabs are frozen from launch, so they haven't rendered.
+        // The other tabs render only once start-up has gone idle (LazyTab).
         for (const other of TABS.filter((t) => t.path !== path)) {
             expect(screen.queryByText(other.text)).toBeNull();
         }
@@ -191,15 +244,98 @@ describe('the tab bar', () => {
     });
 });
 
-// The Timer route's FreezeOnBlur, with a counted <TimerText> in place of the
-// whole screen, and a probe of what useSlotProgress (B4) relies on: the
-// router's NavigationContext, and its blur and focus events reaching a frozen
-// screen. The rest of the app/ tree is real.
-let leafCommits = 0;
+// Tabs render late, then are never hidden (B6 fix, record §9). On native tabs
+// UIKit shows a tab before JavaScript can react, so anything that hides a
+// tab's content shows as a blank frame on every switch (build 46).
+// covers: NFR-PERF-003
+describe('tabs render late, then never hide', () => {
+    const bannerHosts = () => screen.queryAllByTestId('banner-ad');
+
+    it('the other tabs render at start-up idle; Stats requests no banner until it is opened', async () => {
+        await launch(null);
+        expect(screen.queryByText('Today Sessions')).toBeNull();
+        expect(mockPrerenders).toHaveLength(3);
+
+        await startupIdle();
+        expect(screen.getByText('Today Sessions')).toBeOnTheScreen();
+        expect(screen.getByText('Settings ⚙️')).toBeOnTheScreen();
+        expect(screen.getByText(/^Love Notes/)).toBeOnTheScreen();
+        expect(bannerHosts()).toHaveLength(0);
+
+        await act(() => router.navigate('/stats'));
+        expect(bannerHosts()).toHaveLength(1);
+        // Once requested, it stays: leaving Stats doesn't take it down.
+        await act(() => router.navigate('/'));
+        expect(bannerHosts()).toHaveLength(1);
+    });
+
+    it('a tab opened before start-up idle renders on its first focus', async () => {
+        const result = await launch(null);
+        await act(() => router.navigate('/notes'));
+        expect(result.getPathname()).toBe('/notes');
+        expect(screen.getByText(/^Love Notes/)).toBeOnTheScreen();
+    });
+
+    it('a hidden tab stays visible to queries: nothing hides its content', async () => {
+        // RNTL leaves out display: none content by default, as a freeze hides it.
+        await launch(null);
+        await startupIdle();
+        await act(() => router.navigate('/stats'));
+        expect(screen.getByText('Start')).toBeOnTheScreen();
+        await act(() => router.navigate('/'));
+        expect(screen.getByText('Today Sessions')).toBeOnTheScreen();
+    });
+
+    // covers: FR-ADS-001, FR-NTE-001
+    it('a focus that ends while Stats shows holds its celebration, love note and ad until Timer is shown', async () => {
+        const CELEBRATION = 'daily goal reached';
+        const LOVE_NOTE_CLOSE = 'Close';
+        const result = await launch(null);
+        await act(() => {
+            useSettingsStore.getState().updateSettings({
+                durations: { ...useSettingsStore.getState().settings.durations, focus: 1 },
+                showLoveNotes: true,
+                // GoalReachedPopup then closes without its exit animation.
+                animationsEnabled: false,
+            });
+            useStatsStore.getState().setGoalMinutes(1);
+        });
+        await act(async () => fireEvent.press(screen.getByText('Start')));
+        await act(() => router.navigate('/stats'));
+
+        // It ends on Stats: credited at once, nothing shown, nothing timing out.
+        await tick(61_000);
+        expect(result.getPathname()).toBe('/stats');
+        expect(useStatsStore.getState().goalHitPulse).not.toBeNull();
+        expect(screen.queryByText(CELEBRATION)).toBeNull();
+        expect(screen.queryByText(LOVE_NOTE_CLOSE)).toBeNull();
+        expect(AdManager.showIfReady).not.toHaveBeenCalled();
+        await tick(30_000);
+        expect(useStatsStore.getState().goalHitPulse).not.toBeNull();
+        expect(AdManager.showIfReady).not.toHaveBeenCalled();
+
+        // Back on Timer: the celebration, then the love note, then the ad.
+        await act(() => router.navigate('/'));
+        expect(screen.getByText(CELEBRATION)).toBeOnTheScreen();
+        expect(AdManager.showIfReady).not.toHaveBeenCalled();
+        await tick(1_400);
+        expect(screen.queryByText(CELEBRATION)).toBeNull();
+        expect(screen.getByText(LOVE_NOTE_CLOSE)).toBeOnTheScreen();
+        expect(AdManager.showIfReady).not.toHaveBeenCalled();
+        await act(async () => fireEvent.press(screen.getByText(LOVE_NOTE_CLOSE)));
+        expect(AdManager.showIfReady).toHaveBeenCalledTimes(1);
+    });
+});
+
+// What useSlotProgress (B4), useScreenFocused and useHasBeenFocused read: the
+// router's NavigationContext and its focus and blur events. The probe replaces
+// the Timer route; the rest of the app/ tree is real.
 const navigationEvents: string[] = [];
 
-function NavigationProbe() {
+function FocusProbe() {
     const navigation = useContext(NavigationContext);
+    const focused = useScreenFocused();
+    const seen = useHasBeenFocused();
     useEffect(() => {
         navigationEvents.push(navigation ? 'navigation' : 'no navigation');
         if (!navigation) return;
@@ -210,52 +346,31 @@ function NavigationProbe() {
             offFocus();
         };
     }, [navigation]);
-    return null;
+    return <Text>{`focused ${focused ? 'yes' : 'no'}, seen ${seen ? 'yes' : 'no'}`}</Text>;
 }
 
-function ProbeTimerRoute() {
-    return (
-        <FreezeOnBlur>
-            <Profiler id="leaf" onRender={() => leafCommits++}>
-                <TimerText kind="pomodoro" idleMs={25 * 60_000} />
-            </Profiler>
-            <NavigationProbe />
-        </FreezeOnBlur>
-    );
-}
+const PROBE_APP = { appDir: './app', overrides: { '(tabs)/index': FocusProbe } };
 
-const PROBE_APP = { appDir: './app', overrides: { '(tabs)/index': ProbeTimerRoute } };
-
-// covers: NFR-PERF-003
-describe('hidden tabs are frozen', () => {
+describe('focus inside a native tab', () => {
     beforeEach(() => {
-        leafCommits = 0;
         navigationEvents.length = 0;
     });
 
-    it('a hidden tab commits nothing during a session, and catches up when shown', async () => {
-        const result = await launch(null, PROBE_APP);
-        await act(() => useSessionStore.getState().start({ kind: 'pomodoro', durationMs: 25 * 60_000 }));
-        await act(() => jest.advanceTimersByTime(3_000));
-        expect(screen.getByText('24:57')).toBeOnTheScreen();
-
-        await act(() => router.navigate('/stats'));
-        expect(result.getPathname()).toBe('/stats');
-        const hidden = leafCommits;
-        await act(() => jest.advanceTimersByTime(10_000));
-        expect(leafCommits).toBe(hidden);
-
-        await act(() => router.navigate('/'));
-        expect(leafCommits).toBe(hidden + 1);
-        expect(screen.getByText('24:47')).toBeOnTheScreen();
-    });
-
-    it("a screen in a tab gets the router's navigation, and hears blur and focus while frozen", async () => {
+    it("a screen gets the router's navigation, and hears blur and focus", async () => {
         await launch(null, PROBE_APP);
         await act(() => router.navigate('/stats'));
         await act(() => router.navigate('/'));
         // The first focus is the initial route's, emitted once it has mounted.
         expect(navigationEvents).toEqual(['navigation', 'focus', 'blur', 'focus']);
+    });
+
+    it('useScreenFocused follows the tab; useHasBeenFocused stays true', async () => {
+        await launch(null, PROBE_APP);
+        expect(screen.getByText('focused yes, seen yes')).toBeOnTheScreen();
+        await act(() => router.navigate('/stats'));
+        expect(screen.getByText('focused no, seen yes')).toBeOnTheScreen();
+        await act(() => router.navigate('/'));
+        expect(screen.getByText('focused yes, seen yes')).toBeOnTheScreen();
     });
 });
 

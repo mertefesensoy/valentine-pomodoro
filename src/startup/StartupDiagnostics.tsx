@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import * as Application from 'expo-application';
 import { useTheme } from '../theme/useTheme';
+import { bannerStatus, bannerStatusLine } from '../ads/bannerStatus';
 import { hodgesLehmann, summarize, type Summary } from './probeStats';
 import {
     clearProbeRows,
@@ -128,6 +129,8 @@ function StartupDiagnosticsPanel() {
             build,
             os: `${Platform.OS} ${String(Platform.Version)}`,
             rows: snap.rows,
+            // This launch's Stats banner (B6 fix, B6 record §9).
+            banner: bannerStatus(),
         };
         void Share.share({ message: JSON.stringify(data) });
     };
@@ -137,6 +140,7 @@ function StartupDiagnosticsPanel() {
         <View style={[styles.panel, { borderColor: colors.border }]}>
             <Text style={[styles.title, { color: colors.text }]}>Start-up probe (ms)</Text>
             <Text style={textStyle}>{thisLaunch}</Text>
+            <Text style={textStyle}>{bannerStatusLine()}</Text>
 
             <Text style={textStyle}>Next launches:</Text>
             <View style={styles.modes}>

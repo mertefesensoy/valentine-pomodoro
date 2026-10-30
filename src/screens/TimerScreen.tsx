@@ -58,6 +58,20 @@ export default function TimerScreen() {
   const session = useSessionState();
   const { colors, isDark } = useTheme();
   const tabBarHeight = useBottomTabBarHeight();
+
+  // Interstitials the ad policy has allowed, one per completion it said yes
+  // to. The effect further down shows one when none is showing yet and no
+  // overlay is up (FR-ADS-001).
+  const [adRequests, setAdRequests] = useState(0);
+
+  // Helper: check ad policy when session ends
+  const handleTimerComplete = async () => {
+    await AdPolicy.recordSessionCompletion();
+    if (AdPolicy.shouldShowAd()) {
+      setAdRequests((n) => n + 1);
+    }
+  };
+
   const {
     phase,
     isRunning,
@@ -82,17 +96,6 @@ export default function TimerScreen() {
     session,
   );
 
-  // Ad State
-  const [isAdPending, setIsAdPending] = useState(false);
-
-  // Helper: check ad policy when session ends
-  const handleTimerComplete = async () => {
-    await AdPolicy.recordSessionCompletion();
-    if (AdPolicy.shouldShowAd()) {
-      setIsAdPending(true);
-    }
-  };
-
   // ── Mode switching — delegate to session clock ──────────────────────────
   // session.switchTo auto-pauses the running slot and saves its remainingMs.
   // useTimer's internal effect cancels the scheduled notification when
@@ -111,57 +114,31 @@ export default function TimerScreen() {
     }
   }, [activeMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Goal celebration popup state
-  const [goalPopup, setGoalPopup] = useState<null | { dayKey: string; newStreak: number }>(null);
-  const [queuedLoveNote, setQueuedLoveNote] = useState<typeof lastLoveNote | null>(null);
-  const lastCelebratedDayKeyRef = useRef<string | null>(null);
+  // The overlays after a completed focus, in order: the goal celebration, then
+  // the love note, then the interstitial (FR-ADS-001, FR-NTE-001). Derived from
+  // state, not synchronised by effects (Phase 1 B5, react-hooks/set-state-in-effect).
+  // - The celebration is the stats store's pulse itself: set only when a
+  //   completion first reaches a day's goal (goalHit is sticky, so never twice
+  //   for one day), cleared when the popup closes.
+  // - A love note waits while it shows: the overlays below render the note
+  //   only when no celebration is up, so the card mounts, and starts its own
+  //   8 s timer, after the celebration closes.
+  const goalPopup = goalHitPulse;
 
-  // 1) When goalHitPulse arrives -> show popup.
-  // If a love note is currently showing, queue it and dismiss it so overlays never overlap.
+  // The interstitial: shown once no overlay is up, for requests not yet
+  // served. Marking the requests served before showing means a re-run of the
+  // effect can't show a second ad for them.
+  const adsServedRef = useRef(0);
   useEffect(() => {
-    const pulse = goalHitPulse;
-    if (!pulse) return;
+    if (adRequests === adsServedRef.current) return;
+    if (goalPopup || showLoveNoteCard) return;
 
-    // Prevent double celebration for same day
-    if (lastCelebratedDayKeyRef.current === pulse.dayKey) {
-      clearGoalHitPulse();
-      return;
-    }
-    lastCelebratedDayKeyRef.current = pulse.dayKey;
-
-    // If love note is visible now, queue + dismiss it
-    if (showLoveNoteCard && lastLoveNote) {
-      setQueuedLoveNote((prev) => prev ?? lastLoveNote);
-      dismissLoveNote();
-    }
-
-    setGoalPopup(pulse);
-  }, [goalHitPulse, clearGoalHitPulse, showLoveNoteCard, lastLoveNote, dismissLoveNote]);
-
-  // 2) If a love note tries to show while goal popup is already visible, queue + dismiss it.
-  useEffect(() => {
-    if (!goalPopup) return;
-    if (!showLoveNoteCard || !lastLoveNote) return;
-
-    setQueuedLoveNote((prev) => prev ?? lastLoveNote);
-    dismissLoveNote();
-  }, [goalPopup, showLoveNoteCard, lastLoveNote, dismissLoveNote]);
-
-  // 3) Interstitial Ad Queue
-  // Only show if: Ad is pending AND Goal Popup is gone AND Love Note is gone
-  useEffect(() => {
-    if (!isAdPending) return;
-
-    // Waiting for overlays to clear...
-    if (goalPopup || showLoveNoteCard || queuedLoveNote) return;
-
-    // Ready to show!
-    setIsAdPending(false); // Clear pending flag strictly before attempting show to avoid loops
+    adsServedRef.current = adRequests;
     AdManager.showIfReady(() => {
       // Callback after ad is closed (or if it failed/skipped)
       // We could resume music or do other cleanup here if needed
     });
-  }, [isAdPending, goalPopup, showLoveNoteCard, queuedLoveNote]);
+  }, [adRequests, goalPopup, showLoveNoteCard]);
 
   // Compact spacing flag — reduce margins on small landscape viewports
   const tightSpacing = isLandscape || isShortViewport;
@@ -423,21 +400,10 @@ export default function TimerScreen() {
             newStreak={goalPopup?.newStreak ?? 0}
             animationsEnabled={settings.animationsEnabled}
             autoDismissMs={1400}
-            onClose={() => {
-              setGoalPopup(null);
-              clearGoalHitPulse();
-            }}
+            onClose={clearGoalHitPulse}
           />
-          {!goalPopup && (
-            <>
-              {queuedLoveNote ? (
-                <LoveNoteCard note={queuedLoveNote} onDismiss={() => setQueuedLoveNote(null)} />
-              ) : (
-                showLoveNoteCard && lastLoveNote && (
-                  <LoveNoteCard note={lastLoveNote} onDismiss={dismissLoveNote} />
-                )
-              )}
-            </>
+          {!goalPopup && showLoveNoteCard && lastLoveNote && (
+            <LoveNoteCard note={lastLoveNote} onDismiss={dismissLoveNote} />
           )}
         </View>
       )}

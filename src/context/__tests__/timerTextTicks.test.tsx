@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Text } from 'react-native';
 import { act, render, screen } from '@testing-library/react-native';
 import { StoreGate } from '../../stores/StoreGate';
@@ -17,7 +18,11 @@ let session: UseSessionClockReturn | null = null;
 
 function TimerTextProbe() {
     const clock = useSessionClock();
-    session = clock;
+    // Captured after commit, not during render (Phase 1 B5, react-hooks/globals).
+    // The test calls session.start() only after the first render has settled.
+    useEffect(() => {
+        session = clock;
+    });
     return <Text testID="timer-text">{formatTime(clock.displayMs)}</Text>;
 }
 

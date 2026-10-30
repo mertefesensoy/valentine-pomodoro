@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
-import { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, useAnimatedValue } from 'react-native';
+import { useEffect } from 'react';
 import { useTheme } from '../theme/useTheme';
 
 interface LoveNoteCardProps {
@@ -9,8 +9,9 @@ interface LoveNoteCardProps {
 
 export default function LoveNoteCard({ note, onDismiss }: LoveNoteCardProps) {
     const { colors } = useTheme();
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const scaleAnim = useRef(new Animated.Value(0.8)).current;
+    // Created once, without reading a ref during render (Phase 1 B5).
+    const fadeAnim = useAnimatedValue(0);
+    const scaleAnim = useAnimatedValue(0.8);
 
     useEffect(() => {
         // Fade in + scale animation

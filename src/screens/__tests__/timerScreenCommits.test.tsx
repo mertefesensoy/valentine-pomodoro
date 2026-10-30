@@ -9,18 +9,23 @@ import TimerScreen from '../TimerScreen';
 
 // What the Timer screen commits while a session runs (Phase 1 B4). Reassure
 // measures the same scenario (screens.perf-test.tsx); this pins it in the
-// ordinary suite. The ring is a plain child of the screen, so its renders
-// count the screen's own renders.
+// ordinary suite. The screen calls useTimer once per render, so its calls
+// count the screen's own renders. (Until Phase 1 B5 this counted the ring's
+// renders; with the React Compiler on, the screen memoizes the ring's element,
+// so on a phone the ring renders only when its props change. Under Jest it
+// still re-rendered, but only because Reanimated's mock returns a new
+// useDerivedValue object on every render.)
 jest.useFakeTimers();
 jest.setTimeout(30_000);
 
-let mockRingRenders = 0;
-jest.mock('../../components/CircularProgress', () => {
-    const actual = jest.requireActual('../../components/CircularProgress');
+let mockScreenRenders = 0;
+jest.mock('../../hooks/useTimer', () => {
+    const actual = jest.requireActual('../../hooks/useTimer');
     return {
-        CircularProgress: (props: object) => {
-            mockRingRenders++;
-            return actual.CircularProgress(props);
+        ...actual,
+        useTimer: (...args: Parameters<typeof actual.useTimer>) => {
+            mockScreenRenders++;
+            return actual.useTimer(...args);
         },
     };
 });
@@ -41,7 +46,7 @@ let commits = 0;
 beforeEach(async () => {
     await resetStorage();
     commits = 0;
-    mockRingRenders = 0;
+    mockScreenRenders = 0;
 });
 
 // covers: NFR-PERF-003, FR-TMR-006
@@ -60,7 +65,7 @@ describe('the Timer screen during a session', () => {
         );
         await act(async () => {});
         expect(commits).toBe(1);
-        expect(mockRingRenders).toBe(1);
+        expect(mockScreenRenders).toBe(1);
 
         // One commit. Before B4 a second one followed it: PremiumCalmBackground's
         // unchanged setReduceMotion(false), queued at the Default lane on mount
@@ -68,15 +73,15 @@ describe('the Timer screen during a session', () => {
         const session = useSessionStore.getState();
         await act(() => session.start({ kind: 'pomodoro', durationMs: 25 * 60_000 }));
         expect(commits).toBe(2);
-        expect(mockRingRenders).toBe(2);
+        expect(mockScreenRenders).toBe(2);
 
         await act(() => jest.advanceTimersByTime(10_000));
         expect(screen.getByText('24:50')).toBeOnTheScreen();
         expect(commits).toBe(2 + 10);
-        expect(mockRingRenders).toBe(2);
+        expect(mockScreenRenders).toBe(2);
 
         await act(() => session.stop());
         expect(commits).toBe(13);
-        expect(mockRingRenders).toBe(3);
+        expect(mockScreenRenders).toBe(3);
     });
 });

@@ -9,17 +9,17 @@ module.exports = defineConfig([
     ignores: ['dist/*', '.claude/**'],
   },
   {
-    // eslint-config-expo 56 turned on the React Compiler rules as errors. They flag
-    // patterns the current v1 code relies on (Animated.Value refs read in render,
-    // Reanimated .value writes, Date.now() in render). Phase 1's re-render refactor
-    // (plan §4.5) rewrites exactly that code and sets these back to 'error'.
-    // Counts on 2026-10-29: refs 75, immutability 18, set-state-in-effect 7, purity 3, globals 2.
+    // The React Compiler rules, at 'error' again since Phase 1 B5 turned the
+    // compiler on (app.json experiments.reactCompiler; ADR-0041). They were
+    // held at 'warn' from the SDK 56 step until B5 fixed the findings
+    // (ADR-0035). eslint-config-expo already sets them to 'error'; they are
+    // spelled out so an upstream change can't quietly relax them.
     rules: {
-      'react-hooks/refs': 'warn',
-      'react-hooks/immutability': 'warn',
-      'react-hooks/set-state-in-effect': 'warn',
-      'react-hooks/purity': 'warn',
-      'react-hooks/globals': 'warn',
+      'react-hooks/refs': 'error',
+      'react-hooks/immutability': 'error',
+      'react-hooks/set-state-in-effect': 'error',
+      'react-hooks/purity': 'error',
+      'react-hooks/globals': 'error',
     },
   },
   {

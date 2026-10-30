@@ -12,7 +12,7 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { useAudioPlayer, setAudioModeAsync } from 'expo-audio';
+import { useAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio';
 
 // ─── Sound registry ───────────────────────────────────────────────────────────
 
@@ -24,6 +24,20 @@ const SOUND_SOURCES = {
 } as const;
 
 export type FlySound = keyof typeof SOUND_SOURCES;
+
+/**
+ * Starts `player` looping at full volume. `loop` and `volume` are setters on
+ * the native player (expo-audio has no methods for them), so this is a command
+ * to the player, like play(). It lives outside the hook because the React
+ * Compiler's rules treat a property write on a hook's return value as
+ * mutating React-owned data (Phase 1 B5, react-hooks/immutability); the player
+ * is never read during render, so nothing memoized depends on these fields.
+ */
+function playLooping(player: AudioPlayer): void {
+    player.loop = true;
+    player.volume = 1.0; // explicit full volume
+    player.play();
+}
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
@@ -60,9 +74,7 @@ export function useFlyModeAudio(
 
     useEffect(() => {
         if (active && enabled) {
-            player.loop = true;
-            player.volume = 1.0;  // explicit full volume
-            player.play();
+            playLooping(player);
             hasPlayedRef.current = true;
         } else {
             // Only pause if we've previously started playing (avoids spurious pauses on mount)

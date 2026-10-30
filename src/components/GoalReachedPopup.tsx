@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Modal, Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Animated, Easing, Pressable, StyleSheet, Text, View, useAnimatedValue } from 'react-native';
 import { useTheme } from '../theme/useTheme';
 
 type Props = {
@@ -19,9 +19,10 @@ export default function GoalReachedPopup({
 }: Props) {
     const { colors } = useTheme();
 
-    const backdrop = useRef(new Animated.Value(0)).current;
-    const card = useRef(new Animated.Value(0)).current;
-    const rotate = useRef(new Animated.Value(0)).current;
+    // Created once, without reading a ref during render (Phase 1 B5).
+    const backdrop = useAnimatedValue(0);
+    const card = useAnimatedValue(0);
+    const rotate = useAnimatedValue(0);
 
     const closingRef = useRef(false);
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

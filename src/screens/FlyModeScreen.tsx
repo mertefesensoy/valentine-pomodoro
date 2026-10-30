@@ -186,8 +186,13 @@ export default function FlyModeScreen() {
     // (Phase 1 B4), so this screen doesn't re-render each second.
     const idleMs: number | null = flightData ? flightData.totalSeconds * 1000 : null;
 
-    // Ad state
-    const [isAdPending, setIsAdPending] = useState(false);
+    // Interstitials the ad policy has allowed after a landing, and how many of
+    // them are served (shown, or dropped by a reset). The effect near the end
+    // shows one when some are unserved and nothing else is up (FR-ADS-001).
+    // A count, not a pending flag the effect clears, so the effect sets no
+    // state (Phase 1 B5, react-hooks/set-state-in-effect).
+    const [adRequests, setAdRequests] = useState(0);
+    const adsServedRef = useRef(0);
     const [flightComplete, setFlightComplete] = useState(false);
 
     // Love note shown after landing (null = hidden)
@@ -216,6 +221,10 @@ export default function FlyModeScreen() {
         flySlotRestoredRef.current = true;
         const orig = airports.find(a => a.iata === slot.originIata);
         const dest = airports.find(a => a.iata === slot.destinationIata);
+        // A one-time restore once the asynchronously loaded airport table
+        // arrives; deriving the selection instead would rework the restore and
+        // reset paths of a screen Phase 4b replaces (Phase 1 B5 record §5).
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time restore from async data; Phase 4b
         if (orig) setOrigin(orig);
         if (dest) setDestination(dest);
 
@@ -233,7 +242,10 @@ export default function FlyModeScreen() {
             }
             if (typeof prefs.isGlobe === 'boolean') setIsGlobe(prefs.isGlobe);
         }).catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // The deps are complete (the setters are stable), so no lint suppression
+        // here: a next-line or block suppression of the exhaustive-deps rule
+        // anywhere in this component makes the React Compiler skip all of it,
+        // as one here did until Phase 1 B5.
     }, []);
 
     useEffect(() => {
@@ -245,7 +257,7 @@ export default function FlyModeScreen() {
     // Written here on the JS thread whenever cameraMode state changes.
     const cameraModeSV = useSharedValue<string>(DEFAULT_CAMERA_MODE);
     useEffect(() => {
-        cameraModeSV.value = cameraMode;
+        cameraModeSV.set(cameraMode);
     }, [cameraMode, cameraModeSV]);
 
     // Reanimated progress (0 = origin, 1 = destination)
@@ -282,7 +294,7 @@ export default function FlyModeScreen() {
     // the next re-render.
     const mapHeadingSV = useSharedValue(0);
     useEffect(() => {
-        mapHeadingSV.value = mapHeading;
+        mapHeadingSV.set(mapHeading);
     }, [mapHeading, mapHeadingSV]);
 
     // Plane rotation is *relative to the screen*, not absolute from north.
@@ -296,7 +308,7 @@ export default function FlyModeScreen() {
 
     // Sync waypoints to UI thread whenever flight changes
     useEffect(() => {
-        waypointsSV.value = flightData?.waypoints ?? [];
+        waypointsSV.set(flightData?.waypoints ?? []);
     }, [flightData, waypointsSV]);
 
     // ── Marker + bearing restore after flightData is computed ──────────────
@@ -307,12 +319,12 @@ export default function FlyModeScreen() {
 
         const totalMs = flightData.totalSeconds * 1000;
         const progress = Math.max(0, Math.min(1, 1 - (restoredRemainingRef.current / totalMs)));
-        progressSV.value = progress;
+        progressSV.set(progress);
 
         const { coord, bearing } = interpolateAlongPath(flightData.waypoints, progress);
         setMarkerCoord(coord);
         setBearingDeg(bearing);
-        bearingSV.value = bearing;
+        bearingSV.set(bearing);
 
         restoredRemainingRef.current = null;
     }, [flightData, progressSV, bearingSV]);
@@ -331,13 +343,13 @@ export default function FlyModeScreen() {
         const now = Date.now();
         const remaining = Math.max(0, flyEndAtSV.value - now);
         const progress = Math.min(1, Math.max(0, (flyDurationSV.value - remaining) / flyDurationSV.value));
-        progressSV.value = progress;
+        progressSV.set(progress);
 
         const wps = waypointsSV.value;
         if (wps.length < 2) return;
 
         const { coord, bearing } = interpolateAlongPathWorklet(wps, progress);
-        bearingSV.value = bearing;
+        bearingSV.set(bearing);
 
         // Throttle runOnJS to MARKER_HZ — Marker coord needs JS-thread state but
         // bridging at 60fps wastes CPU and causes map jitter on low-end devices.
@@ -348,9 +360,9 @@ export default function FlyModeScreen() {
         // phase drift over a 25-min session (still within the ±0.5 s spec, but
         // perceptible if you're watching the plane vs. the timer closely).
         const dt = info.timeSincePreviousFrame ?? 16.67;
-        markerUpdateAccSV.value += dt;
+        markerUpdateAccSV.set(markerUpdateAccSV.value + dt);
         if (markerUpdateAccSV.value >= 1000 / MARKER_HZ) {
-            markerUpdateAccSV.value -= 1000 / MARKER_HZ;
+            markerUpdateAccSV.set(markerUpdateAccSV.value - 1000 / MARKER_HZ);
             runOnJS(setMarkerCoord)(coord);
             runOnJS(setBearingDeg)(bearing);
         }
@@ -389,7 +401,7 @@ export default function FlyModeScreen() {
             }
 
             AdPolicy.recordSessionCompletion().then(() => {
-                if (AdPolicy.shouldShowAd()) setIsAdPending(true);
+                if (AdPolicy.shouldShowAd()) setAdRequests((n) => n + 1);
             }).catch(console.warn);
         }, 'fly');
     }, [session.onComplete, settings, incrementFocus, pickRandomNote]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -415,8 +427,8 @@ export default function FlyModeScreen() {
         restoredRemainingRef.current = null;
         flySlotRestoredRef.current = true; // session will carry origin/dest; no re-restore needed
         setFlightComplete(false);
-        progressSV.value = 0;
-        markerUpdateAccSV.value = 0;
+        progressSV.set(0);
+        markerUpdateAccSV.set(0);
         setMarkerCoord(flightData.waypoints[0]);
         setBearingDeg(
             flightData.waypoints.length > 1
@@ -472,17 +484,17 @@ export default function FlyModeScreen() {
         if (notifId) cancelScheduled(notifId).catch(console.warn);
         session.stop();
 
-        waypointsSV.value = []; // clear UI-thread waypoints first — stops frame callback interpolating
-        progressSV.value = 0;
-        markerUpdateAccSV.value = 0;
+        waypointsSV.set([]); // clear UI-thread waypoints first — stops frame callback interpolating
+        progressSV.set(0);
+        markerUpdateAccSV.set(0);
         setMarkerCoord(null);
         setFlightComplete(false);
-        setIsAdPending(false);
+        adsServedRef.current = adRequests; // a pending interstitial is dropped
         setLandingLoveNote(null);
         setCameraMode(DEFAULT_CAMERA_MODE);
         restoredRemainingRef.current = null;
         flySlotRestoredRef.current = false;
-    }, [session, cancelScheduled, progressSV, waypointsSV, markerUpdateAccSV]);
+    }, [session, cancelScheduled, progressSV, waypointsSV, markerUpdateAccSV, adRequests]);
 
     // ── Pan/rotate: enter free mode so camera stops chasing the plane.
     // The cycle button exits free mode. This replaces the old 4-second
@@ -532,7 +544,11 @@ export default function FlyModeScreen() {
         });
         // Write SV synchronously — avoids the one-frame stale-heading lag
         // where markerAnimatedStyle reads mapHeadingSV before the useEffect mirror runs.
-        mapHeadingSV.value = bearingDeg;
+        mapHeadingSV.set(bearingDeg);
+        // The map's heading follows the plane while the camera does; leaving
+        // follow mode keeps the last bearing, which a derived heading would
+        // lose. Phase 4b replaces this map (Phase 1 B5 record §5).
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- heading kept in step with the followed camera; Phase 4b
         setMapHeading(bearingDeg);
     }, [markerCoord, cameraMode, bearingDeg]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -558,20 +574,21 @@ export default function FlyModeScreen() {
     // ── Show interstitial ad after flight completion
     // Wait for any love note overlay to be dismissed first — never stack UI layers
     useEffect(() => {
-        if (!isAdPending) return;
+        if (adRequests === adsServedRef.current) return;
         if (timerRunning || paused) return; // safety gate
         if (landingLoveNote) return;        // wait for love note to close
 
-        setIsAdPending(false);
+        // Served before showing, so a re-run can't show a second ad for them.
+        adsServedRef.current = adRequests;
         AdManager.showIfReady(() => {
             // onClose: ambient sound already stopped, nothing else to do
         });
-    }, [isAdPending, timerRunning, paused, landingLoveNote]);
+    }, [adRequests, timerRunning, paused, landingLoveNote]);
 
     // ── Cleanup on unmount ─────────────────────────────────────────────────
     // Session clock persists clock state automatically — no FLY_SESSION save needed.
     // Cancel landing notification so it doesn't fire while fly mode is paused.
-    // progressSV and bearingSV are written via direct .value assignment (not animations),
+    // progressSV and bearingSV are written with set() (not animations),
     // so no cancelAnimation needed — the frame callback stops on unmount automatically.
     useEffect(() => {
         return () => {

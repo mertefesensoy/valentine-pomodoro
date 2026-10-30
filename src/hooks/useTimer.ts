@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { TimerPhase, Settings, SessionSlot, PomodoroState } from '../types';
+import { getClockNow } from '../stores/clockStore';
 import { INITIAL_POMODORO, useSessionStore } from '../stores/sessionStore';
+import { slotRemainingMs } from '../utils/clockMath';
 import { minutesToMs, getDayKeyFromDate, getTodayKey } from '../utils/time';
 import { useNotifications, getNotificationContent } from './useNotifications';
 import * as Haptics from 'expo-haptics';
@@ -205,13 +207,14 @@ export function useTimer(
     // changes, not each second, so while running this is the value at the
     // last change: TimerScreen reads it only when not running (the button),
     // and shows the time through <TimerText> and the ring.
-    const remainingMs = (() => {
-        if (!pomodoroSlot) return minutesToMs(getCurrentDuration());
-        if (pomodoroSlot.isRunning && pomodoroSlot.endAt) {
-            return Math.max(0, pomodoroSlot.endAt - Date.now());
-        }
-        return pomodoroSlot.pausedRemainingMs ?? minutesToMs(getCurrentDuration());
-    })();
+    // "Now" is the clock store's sample, not Date.now(), so a render is a pure
+    // function of the stores (Phase 1 B5, react-hooks/purity). The store
+    // samples on every session change, before anything renders, so this
+    // differs from the old Date.now() only by the ms between the change and
+    // the render after it. Same rule as before: no slot, or a paused one with
+    // no remainder, shows the phase's full length.
+    const idleMs = minutesToMs(getCurrentDuration());
+    const remainingMs = slotRemainingMs(pomodoroSlot, idleMs, getClockNow()) ?? idleMs;
 
     return {
         phase: pomodoroState.phase,

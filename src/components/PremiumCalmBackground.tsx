@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { View, StyleSheet, Animated, Easing, AccessibilityInfo, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, Animated, Easing, AccessibilityInfo, useAnimatedValue, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../theme/useTheme';
@@ -81,16 +81,16 @@ export default function PremiumCalmBackground({ enabled }: { enabled: boolean })
     const reduceMotionRef = useRef(false);
     const { width, height } = useWindowDimensions(); // 5. Responsive sizing
 
-    // --- Animation Values (Stable Refs) ---
-    const aurora1Anim = useRef(new Animated.Value(0)).current;
-    const aurora2Anim = useRef(new Animated.Value(0)).current;
-    const crossfadeAnim = useRef(new Animated.Value(0)).current;
+    // --- Animation Values (created once) ---
+    // Not useRef(...).current: reading a ref during render stops the React
+    // Compiler from compiling this component (Phase 1 B5, react-hooks/refs).
+    const aurora1Anim = useAnimatedValue(0);
+    const aurora2Anim = useAnimatedValue(0);
+    const crossfadeAnim = useAnimatedValue(0);
 
-    // Hearts
-    const heartsAnim = useRef(HEARTS.map(() => new Animated.Value(0))).current;
-
-    // Sparkles
-    const sparklesAnim = useRef(SPARKLES.map(() => new Animated.Value(0))).current;
+    // Hearts and sparkles: a lazy useState initializer makes each array once.
+    const [heartsAnim] = useState(() => HEARTS.map(() => new Animated.Value(0)));
+    const [sparklesAnim] = useState(() => SPARKLES.map(() => new Animated.Value(0)));
 
     useEffect(() => {
         let mounted = true;
@@ -203,7 +203,9 @@ export default function PremiumCalmBackground({ enabled }: { enabled: boolean })
             heartLoops.forEach(l => l.stop());
             sparkleLoops.forEach(l => l.stop());
         };
-    }, [enabled, reduceMotion]);
+        // The animated values never change identity, so only enabled and
+        // reduceMotion restart the loops.
+    }, [enabled, reduceMotion, aurora1Anim, aurora2Anim, crossfadeAnim, heartsAnim, sparklesAnim]);
 
     // --- Interpolations ---
 

@@ -1,10 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import {
     Animated,
     Modal,
     Pressable,
     StyleSheet,
     Text,
+    useAnimatedValue,
     View,
 } from 'react-native';
 
@@ -14,16 +15,18 @@ interface GiftModeModalProps {
 }
 
 export default function GiftModeModal({ visible, onDismiss }: GiftModeModalProps) {
-    // Animated heart positions
-    const heart1Y = useRef(new Animated.Value(0)).current;
-    const heart2Y = useRef(new Animated.Value(0)).current;
-    const heart3Y = useRef(new Animated.Value(0)).current;
+    // Animated heart positions. useAnimatedValue creates each value once, like
+    // the useRef(...).current it replaces, without reading a ref during render
+    // (Phase 1 B5, react-hooks/refs).
+    const heart1Y = useAnimatedValue(0);
+    const heart2Y = useAnimatedValue(0);
+    const heart3Y = useAnimatedValue(0);
 
-    const heart1Opacity = useRef(new Animated.Value(0)).current;
-    const heart2Opacity = useRef(new Animated.Value(0)).current;
-    const heart3Opacity = useRef(new Animated.Value(0)).current;
+    const heart1Opacity = useAnimatedValue(0);
+    const heart2Opacity = useAnimatedValue(0);
+    const heart3Opacity = useAnimatedValue(0);
 
-    const titleScale = useRef(new Animated.Value(0.8)).current;
+    const titleScale = useAnimatedValue(0.8);
 
     useEffect(() => {
         if (!visible) return;

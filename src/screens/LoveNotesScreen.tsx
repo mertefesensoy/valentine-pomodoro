@@ -80,7 +80,7 @@ export default function LoveNotesScreen() {
             <View style={styles.header}>
                 <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
                 <Pressable onPress={openAdd} style={[styles.addButton, { backgroundColor: colors.accent }]}>
-                    <Text style={[styles.addButtonText, { color: '#FFFFFF' }]}>Add</Text>
+                    <Text style={[styles.addButtonText, { color: colors.onAccent }]}>Add</Text>
                 </Pressable>
             </View>
 
@@ -155,7 +155,7 @@ export default function LoveNotesScreen() {
                                 </Pressable>
 
                                 <Pressable onPress={onSave} style={[styles.modalButton, styles.modalButtonPrimary, { backgroundColor: colors.accent, borderColor: colors.accent }]}>
-                                    <Text style={[styles.modalButtonTextPrimary, { color: '#FFFFFF' }]}>Save</Text>
+                                    <Text style={[styles.modalButtonTextPrimary, { color: colors.onAccent }]}>Save</Text>
                                 </Pressable>
                             </View>
                         </ScrollView>

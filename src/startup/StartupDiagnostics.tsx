@@ -156,7 +156,7 @@ function StartupDiagnosticsPanel() {
                                 active && { backgroundColor: colors.accentPurple },
                             ]}
                         >
-                            <Text style={[styles.chipText, { color: active ? '#fff' : colors.text }]}>
+                            <Text style={[styles.chipText, { color: active ? colors.onAccent : colors.text }]}>
                                 {MODE_LABEL[mode]}
                             </Text>
                         </Pressable>

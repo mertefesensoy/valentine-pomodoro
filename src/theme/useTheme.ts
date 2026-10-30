@@ -1,13 +1,25 @@
 /**
  * Theme Resolver Hook
- * Returns current theme colors based on user preference and system settings
+ * Returns the Sticker Diary theme (Phase 1 D1: Strawberry Milk or Midnight Plum from
+ * `palette.ts`) for the user's preference and the system appearance.
+ *
+ * - `tokens`: the palette roles, for screens built in the new design.
+ * - `colors`: the v1 names mapped onto those roles (`legacyColors.ts`), for the screens D2
+ *   hasn't rebuilt yet. Deleted at D2's end.
  */
 
 import { useColorScheme } from 'react-native';
 import { useSettingsStore } from '../stores/settingsStore';
-import { LightTheme, DarkTheme, ThemeColors } from './tokens';
+import { legacyColors, type LegacyColors } from './legacyColors';
+import { MidnightPlum, StrawberryMilk, type Theme, type ThemeTokens } from './palette';
 
-export function useTheme(): { colors: ThemeColors; isDark: boolean } {
+// Built once, so each theme hands out the same objects on every render.
+const LEGACY: Record<Theme['id'], LegacyColors> = {
+    strawberryMilk: legacyColors(StrawberryMilk.tokens),
+    midnightPlum: legacyColors(MidnightPlum.tokens),
+};
+
+export function useTheme(): { theme: Theme; tokens: ThemeTokens; colors: LegacyColors; isDark: boolean } {
     const systemScheme = useColorScheme();
     const themeMode = useSettingsStore((s) => s.settings.themeMode);
 
@@ -22,8 +34,6 @@ export function useTheme(): { colors: ThemeColors; isDark: boolean } {
         isDark = systemScheme === 'dark';
     }
 
-    return {
-        colors: isDark ? DarkTheme : LightTheme,
-        isDark,
-    };
+    const theme = isDark ? MidnightPlum : StrawberryMilk;
+    return { theme, tokens: theme.tokens, colors: LEGACY[theme.id], isDark };
 }

@@ -256,7 +256,7 @@ export default function SettingsScreen() {
                                     <Text
                                         style={[
                                             styles.themeOptionText,
-                                            { color: active ? '#FFFFFF' : colors.text },
+                                            { color: active ? colors.onAccent : colors.text },
                                         ]}
                                     >
                                         {mode.charAt(0).toUpperCase() + mode.slice(1)}
@@ -387,7 +387,7 @@ export default function SettingsScreen() {
                                     >
                                         <Text
                                             style={{
-                                                color: goalMinutes === preset ? '#fff' : colors.text,
+                                                color: goalMinutes === preset ? colors.onAccent : colors.text,
                                                 fontWeight: '600',
                                             }}
                                         >
@@ -664,7 +664,7 @@ export default function SettingsScreen() {
                         style={[styles.updateButton, { backgroundColor: colors.accentPurple }]}
                         onPress={() => Linking.openURL('https://valentine-pomodoro-developer-websit.vercel.app/')}
                     >
-                        <Text style={styles.updateButtonText}>Visit Developer Website</Text>
+                        <Text style={[styles.updateButtonText, { color: colors.onAccent }]}>Visit Developer Website</Text>
                     </Pressable>
                     {/* A 1.5 s long-press opens the start-up probe (Phase 1 B7); the line is unchanged */}
                     <HiddenStartupDiagnostics>
@@ -679,7 +679,7 @@ export default function SettingsScreen() {
                     style={[styles.updateButton, { backgroundColor: colors.accentPurple }]}
                     onPress={() => checkForUpdates({ force: true })}
                 >
-                    <Text style={styles.updateButtonText}>Check for Updates</Text>
+                    <Text style={[styles.updateButtonText, { color: colors.onAccent }]}>Check for Updates</Text>
                 </Pressable>
 
                 {/* Reset Button */}
@@ -687,7 +687,7 @@ export default function SettingsScreen() {
                     style={[styles.resetButton, { backgroundColor: colors.accent }]}
                     onPress={confirmReset}
                 >
-                    <Text style={styles.resetButtonText}>Reset to Defaults</Text>
+                    <Text style={[styles.resetButtonText, { color: colors.onAccent }]}>Reset to Defaults</Text>
                 </Pressable>
 
                 {/* Info Note */}
@@ -813,7 +813,6 @@ const styles = StyleSheet.create({
         marginTop: 12,
     },
     resetButtonText: {
-        color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '600',
     },
@@ -826,7 +825,6 @@ const styles = StyleSheet.create({
         marginTop: 12,
     },
     updateButtonText: {
-        color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '600',
     },

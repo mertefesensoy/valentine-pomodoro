@@ -6,7 +6,7 @@ configureReanimatedLogger({ level: ReanimatedLogLevel.warn, strict: false });
 
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
-import { DarkTheme, DefaultTheme, router, ThemeProvider } from 'expo-router';
+import { router, ThemeProvider } from 'expo-router';
 import * as React from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -14,6 +14,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useUpdateCheck } from './hooks/useUpdateCheck';
 import { WindowInsetsProvider } from './hooks/useWindowInsets';
 import { useTheme } from './theme/useTheme';
+import { navigationThemes } from './theme/navigationTheme';
 import GiftModeModal from './components/GiftModeModal';
 import { StoreGate } from './stores/StoreGate';
 import { useUiStore } from './stores/uiStore';
@@ -41,7 +42,7 @@ SplashScreen.preventAutoHideAsync();
 
 // Inner component: everything below StoreGate, so the stores are hydrated
 function ThemedApp({ children }: { children: React.ReactNode }) {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
   const hasSeenGiftMode = useUiStore((s) => s.hasSeenGiftMode);
   const dismissGiftMode = useUiStore((s) => s.dismissGiftMode);
 
@@ -73,8 +74,8 @@ function ThemedApp({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    // Navigation theme based on app theme
-    <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
+    // The navigator draws its backgrounds from the Sticker Diary tokens (Phase 1 D1)
+    <ThemeProvider value={navigationThemes[theme.id]}>
       {children}
 
       {/* Gift Mode - shows only on first launch */}

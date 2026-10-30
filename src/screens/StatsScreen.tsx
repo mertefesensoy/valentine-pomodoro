@@ -197,7 +197,7 @@ export default function StatsScreen() {
                                 <Text
                                     style={[
                                         styles.segmentText,
-                                        { color: metric === 'minutes' ? '#FFFFFF' : colors.textMuted },
+                                        { color: metric === 'minutes' ? colors.onAccent : colors.textMuted },
                                     ]}
                                 >
                                     Minutes
@@ -216,7 +216,7 @@ export default function StatsScreen() {
                                 <Text
                                     style={[
                                         styles.segmentText,
-                                        { color: metric === 'sessions' ? '#FFFFFF' : colors.textMuted },
+                                        { color: metric === 'sessions' ? colors.onAccent : colors.textMuted },
                                     ]}
                                 >
                                     Sessions

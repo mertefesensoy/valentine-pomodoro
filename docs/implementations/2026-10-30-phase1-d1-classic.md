@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 
 # 2026-10-30 — Phase 1 D1: Classic, and the v1.4 welcome screen
 
-**Status:** In progress. Shape and the HIG check are done for both surfaces; the two direction contracts are with the owner before any screen code.
+**Status:** In progress. The owner approved both direction contracts on 2026-10-30 ("Approve, build D1"); the build is under way.
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.2, which holds the approach, the contracts of each new module, the render budget and the device checklist. This record holds what happened: each step's output, the owner's gates, the scores and the measurements.
 
@@ -21,7 +21,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 |---------------------------|---------|----------------|
 | 1. Shape | Brief confirmed at C4. Direction contract written 2026-10-30 (§3.1). | The owner chose The diary opens, 2026-10-30; brief and contract written (§3.2) |
 | 2. `/apple-design` on the brief | Good; no Critical; 4 Medium and 3 Low, all dispositioned (§3.1.1) | Good; no Critical; 1 High and 2 Low, dispositioned (§3.2.1) |
-| Owner: direction contracts | Pending | Pending |
+| Owner: direction contracts | **Approved**, 2026-10-30 ("Approve, build D1") | **Approved**, 2026-10-30 ("Approve, build D1") |
 | 3. Build (`animate-expo`) | — | — |
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | — | — |
 | 5. `break-ui` (TR at AX5) | — | — |
@@ -45,6 +45,11 @@ See the [Stage D plan §1](2026-10-30-phase1-stage-d.md#1-problem--motivation). 
 | `art/type/build-fonts.py` | New. Builds the two embedded Baloo 2 instances from the hash-checked google/fonts file (§3.3); `--check` rebuilds and compares byte for byte. |
 | `assets/fonts/Baloo2-Medium.ttf`, `assets/fonts/Baloo2-SemiBold.ttf`, `assets/fonts/OFL.txt` | New. The script's output and the licence. Nothing references them until the `expo-font` plugin entry lands with the build. |
 | `.gitattributes` | `assets/fonts/** -text`, so `core.autocrlf` can't rewrite the licence and break the byte check. |
+| `src/theme/useTheme.ts` | Returns the Sticker Diary theme from `palette.ts`: `theme`, `tokens`, `isDark`, plus the transitional `colors` (FR-SET-002; §3.4). |
+| `src/theme/legacyColors.ts` | New. The v1 colour names mapped onto palette roles for the screens D2 hasn't rebuilt; gradients drawn flat; deleted at D2's end. |
+| `src/theme/navigationTheme.ts`, `src/App.tsx` | The navigator's backgrounds come from the tokens instead of React Navigation's default light and dark themes. |
+| `src/screens/{Stats,Settings,LoveNotes}Screen.tsx`, `src/startup/StartupDiagnostics.tsx` | Hard-coded white labels on `accent` and `accentPurple` fills now use `colors.onAccent`, which passes in both themes. |
+| `src/theme/__tests__/legacyColors.test.ts` | New. Every legacy pair those screens draw, in both themes, at its floor; the gradients drawn flat. |
 
 ## 3. Implementation Approach
 
@@ -142,6 +147,24 @@ The brief also settles four points:
 - **Byte for byte:** the first `--check` found the files differed, because fontTools re-stamps `head.modified` on save. The script now copies the source's `head.created` and `head.modified` and turns off `recalcTimestamp`. Two `--check` runs then rebuilt all three files identically.
 - **Size:** together 117,120 B, as ADR-0046 estimated (about 117 KB). They go into the binary, not the bytecode.
 
+
+### 3.4 The theme switch (FR-SET-002)
+
+`useTheme()` now returns `StrawberryMilk` or `MidnightPlum`, which makes FR-SET-002 implemented on this branch (§9 of the Stage D plan carries the SRS line for the merge).
+
+**The adapter.** Stats, Settings, Notes, Gift and Fly's chrome still read the v1 names. `legacyColors()` maps each name onto a palette role, so they lose the purple aurora at once without being rebuilt twice. The mapping is in the Stage D plan §3.2.2. It also adds one key, `onAccent`.
+- **Why `onAccent`:** v1 drew white labels on `accent` fills. Mapped to `primaryInk`, white passes in Strawberry Milk (6.1:1) but fails in Midnight Plum, where `primaryInk` is a light pink. The labels now take `onAccent`: white in light, plum `#221726` in dark (8.9:1).
+- **The test,** `legacyColors.test.ts`, checks 14 pairs in each theme, every one at its floor.
+
+**The navigator** draws its backgrounds (stack, sheets, tab scenes) from `page`, `paper`, `ink` and `edge`, instead of React Navigation's white and grey.
+
+**Guards at this step:**
+- Jest: 37 suites, 256 tests.
+- `tsc`: clean.
+- Lint: 0 errors (42 warnings, all in files D1 hasn't touched yet).
+- Compiler report: unchanged, 47 compiled, 7 skipped, no worklet change.
+- Contrast: 52/52 pairs.
+- Reassure: unchanged. Settings-only 1, Timer 13, Stats 1, Settings 2, Notes 1, leaf 12.
 
 ## 4. Mathematical / Statistical Details
 

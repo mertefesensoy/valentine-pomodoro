@@ -144,7 +144,14 @@ Run before C4, as the owner agreed (§3.1), because the design skills didn't yet
 **Gate (2026-10-30), the owner's words:** "We will use the logo of the Same Page and the mascots of The Colon. We will have many animations with pomo and doro and one of them is that they turn themselves into pages and creates the logo design of the Valentine Pomodoro."
 - **The mark: Same Page.** It goes into colour, then the app icon, the splash and the mark in context.
 - **Pomo & Doro: The Colon's two round characters.** They are designed in C3 with the five sticker poses, and they must differ in silhouette, not by a gendered cue.
-- **One face for both:** the characters and the mark share the same eyes and smile, so the signature animation (the two of them turning into the two pages and forming the mark) reads as one continuous move. Where it plays is a D-stage motion decision, under the rules in [ADR-0047](../architecture/adr/0047-same-page-mark-and-the-colon-characters.md).
+- **The characters and the mark are designed separately.** A first reading here said they must share one face so the signature animation (the two of them turning into the two pages and forming the mark) reads as one move; the owner corrected it the same day: "not actually". The animation morphs between two different designs. Where it plays is a D-stage motion decision, under the rules in [ADR-0047](../architecture/adr/0047-same-page-mark-and-the-colon-characters.md).
+- **The mascot method (the owner, 2026-10-30).** Pomo & Doro are built as a system, in this order:
+  1. A **brand personality map**: tone of voice, audience, and the visual language that audience already responds to.
+  2. A **rendering style** that matches where the brand sits (line weight, fills, shading, level of detail). A mismatch reads as cheap or overdone.
+  3. A **construction grid with locked proportions** (head, eye shape, smile curve), so the characters stay recognisable across years of use.
+  4. A **set of poses and expressions built for variation,** never one inseparable drawing: the five sticker poses first, then waves, surprise, and a version without the sticker edge.
+  5. A **flat single-colour version** for one-colour uses.
+  6. A **legibility test in every application context:** app icon, notification, social avatar, sticker, print and merchandise, down to 16 × 16 px.
 - **ADRs written:** [ADR-0045](../architecture/adr/0045-theme-tokens-and-contrast-gate.md) (tokens and the contrast gate, supersedes ADR-0013), [ADR-0046](../architecture/adr/0046-display-face-baloo-2.md) (Baloo 2, partly supersedes ADR-0012) and ADR-0047 (the mark, the characters, no tomato).
 - **After the move into the worktree, `/impeccable` and `/apple-design` resolve** (the session's directory changed to `C:\vp\stage-c` at the end of the previous turn), so C4 runs next.
 
@@ -358,7 +365,7 @@ Ready-to-paste text, applied by the merging session. Filled in as each task land
 
 | Where | Today | Replace with |
 |-------|-------|--------------|
-| `PRODUCT.md`, Brand Commitments (through `/impeccable`) | "A kawaii tomato couple, binding. *Pomodoro* is Italian for tomato, so the mascots are two small original tomatoes, **Pomo & Doro**…" | "**A kawaii couple of two, binding; no tomato anywhere** (owner, 2026-10-30, ADR-0047). The mascots are **Pomo & Doro**, two small round characters who are, together, the colon in the timer. The mark is **Same Page**: two pages of one open diary, each with a face, leaning in. The characters and the mark share one face, and the two of them can turn into the two pages and form the mark. No tomato, clock or heart in the mark or the art: those are the category's habits." |
+| `PRODUCT.md`, Brand Commitments (through `/impeccable`) | "A kawaii tomato couple, binding. *Pomodoro* is Italian for tomato, so the mascots are two small original tomatoes, **Pomo & Doro**…" | "**A kawaii couple of two, binding; no tomato anywhere** (owner, 2026-10-30, ADR-0047). The mascots are **Pomo & Doro**, two small round characters who are, together, the colon in the timer. The mark is **Same Page**: two pages of one open diary, each with a face, leaning in. In one signature animation the two of them turn into the two pages and form the mark. No tomato, clock or heart in the mark or the art: those are the category's habits." |
 | `PRODUCT.md`, Undecided; SRS §6 open-decisions row; ADR-0020 TBD | Candidates "Pomo Pair, Tomatwo, Pomo & Doro, Two Tomatoes" | Add: "Tomatwo and Two Tomatoes conflict with the no-tomato direction (2026-10-30)." |
 | `DESIGN.md` description, line 4 (through `/impeccable`) | "Pomo & Doro, two little tomatoes, keep a sticker diary…" | "Pomo & Doro, two little round characters, keep a sticker diary…" |
 | `DESIGN.md` pinned-direction note, line 9 | "The kawaii tomato-couple direction" | "The kawaii couple direction (no tomato, owner 2026-10-30)" |

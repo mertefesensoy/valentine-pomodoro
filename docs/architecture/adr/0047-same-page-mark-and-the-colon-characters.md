@@ -24,8 +24,8 @@ The owner's words (2026-10-30): "We will use the logo of the Same Page and the m
 1. **No tomato anywhere:** not in the mark, the app icon, the characters, any illustration or any placeholder. No clock, ring or heart in the mark either.
 2. **The mark is Same Page:** two pages of one open diary, each with a face, leaning in. The couple is on the same page, apart at the edges and bound at the spine.
 3. **Pomo & Doro are The Colon's characters:** two small round characters. Together they are the colon in the timer (24:59), and in lettering the colon between *pomo* and *doro*.
-4. **One face for both.** The characters and the mark share one face design (the same eye size, spacing and smile), so that the signature animation, Pomo & Doro turning themselves into the two pages and forming the mark, reads as one continuous move.
-5. **Pomo & Doro need telling apart:** a difference in silhouette, not a gendered cue. It is designed in C3 with the five sticker poses.
+4. **The characters and the mark are designed separately.** They need not share a face (the owner, 2026-10-30, correcting a first reading that they must). The signature animation, Pomo & Doro turning themselves into the two pages and forming the mark, is a motion moment, not a geometry rule: it may morph between two different designs.
+5. **Pomo & Doro are designed as a mascot system,** by the method the owner gave on 2026-10-30: a brand personality map first; a rendering style that matches where the brand sits; a locked construction grid and proportions; a set of poses and expressions built for variation, not one inseparable drawing; a flat single-colour version; and a legibility test at every application size, down to 16 × 16 px. They differ in silhouette, never by a gendered cue.
 
 ## Consequences
 
@@ -35,7 +35,7 @@ The owner's words (2026-10-30): "We will use the logo of the Same Page and the m
 - The pages-to-logo animation links the mascots to the mark, so the identity holds where the mark isn't shown.
 
 **Negative**
-- Round blob characters are common in kawaii art; their identity has to come from the faces, the poses and the colon idea, which C3's originality check records.
+- Round blob characters are common in kawaii art; their identity has to come from the personality map, the construction, the poses and the colon idea, which C3's originality check records.
 - `PRODUCT.md`'s binding line, the rehaul plan §3.1 and two of the four name candidates (Tomatwo, Two Tomatoes) no longer fit; the record lists the replacements.
 - The morph animation is a new motion moment. Where it plays (launch, onboarding, pairing, recap) is decided with the motion rules: one delight per screen, Reduce Motion falls back to a crossfade, and nothing may slow the cold start (NFR-PERF-001).
 

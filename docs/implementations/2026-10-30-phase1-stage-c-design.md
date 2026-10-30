@@ -21,6 +21,12 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-29-couples-rehaul-plan, DESI
 - **Two blockers were found during set-up, and are reported rather than worked around:**
   1. **`/impeccable` and `/apple-design` don't resolve in this session.** Both are installed in the worktree, but this session started in the parent folder `BengisumPomodro`, which isn't the repository, and skills are discovered only when a session starts. The Skill tool answers "Unknown skill" for both. C4 needs a session started inside `C:\vp\stage-c`. That session will also need Impeccable's engine binary, which is git-ignored and so absent from a fresh worktree (`.claude/skills/impeccable/scripts/bin/` exists only in the main checkout): run `npx impeccable install --providers=claude --scope=project --no-hooks -y` there first, or copy `bin/` across.
   2. **VectorCraft is 0.18.0, not the 0.16 named in the brief and ADR-0027** (`vectorcraft-cli --version`, `C:\Program Files\VectorCraft`). Its command catalogue (822 commands) has everything §5.4 needs: `run --commands <file>`, `convert --decimals 2 --outline-text`, `object.path.offsetPath` (the die-cut edge), `object.path.outlineStroke`, the Pathfinder set and global swatches. The version is recorded here and in the shared-doc updates (§9).
+- **The owner withdrew the tomato from the whole design (2026-10-30, at the C1 gate).** Their words, verbatim: on the palette, "Approve, option A but why there is a tomato there? It can be simillar to other pomodoros so let's not use any tomato in the design"; on the logo, "no tomato. brainstorm a more unique approach".
+  - **The reading taken here:** no tomato anywhere in the design. That covers the logo, the app icon, the mascots, every illustration and every placeholder.
+  - **What stays pinned:** "The Sticker Diary", the couple of two, the die-cut sticker form, and never-punish.
+  - **Pomo & Doro** remain the *working names* of two characters whose species is now open. They are brainstormed with the logo concepts (C3), before C4, with an originality survey that now covers study and habit apps' mascots (owls, birds, plants, blobs), not only Pomodoro tomatoes and clocks.
+  - **This reverses a "binding" line in `PRODUCT.md`** ("A kawaii tomato couple, binding"). `PRODUCT.md` and `DESIGN.md` are edited through `/impeccable` (DOCS §1), so the change is written there once the skill loads; until then the ready-to-paste text is in §9. An ADR (≥ 0045) waits until the owner picks the characters, because "not tomatoes" alone records nothing durable.
+  - **The palette is unchanged:** the accent keeps its approved red; only its name loses "tomato" (`palette.json` role text).
 - **No app screen changes.** `src/` screens, navigation and stores belong to D1–D4. Stage C adds new files (tokens, the contrast math, art) that D1 wires in. The existing `src/theme/tokens.ts`, which every screen imports, is left exactly as it is.
 
 ## 1. Problem / Motivation
@@ -53,7 +59,9 @@ Filled in as each task lands. Planned files:
 | `assets/images/icon.png`, `splash.png` | **C3,** after the owner picks the logo and its colour. The Android adaptive and monochrome icons wait (§3b of the Phase 1 plan). |
 | `docs/architecture/adr/0045-…`, `0046-…` | New ADRs once the owner decides: the token set and contrast gate (supersedes ADR-0013), and the display face (supersedes ADR-0012 for headings and the timer). |
 
-### 2.1 C1 result (2026-10-30): built, waiting for the owner's gate
+### 2.1 C1 result (2026-10-30): approved by the owner, option A
+
+**Gate:** the owner approved the palette on 2026-10-30 with **option A**, the pastel strawberry button with a cocoa label (6.76:1). With it came the no-tomato decision (§0): the swatch sheet's placeholder sticker is now a plain "done" check, and the accent role is "the brand's red". No hex value changed.
 
 **All 52 pairs pass** (26 declared pairs × 2 themes). Output of `npm run check:contrast`:
 
@@ -267,6 +275,21 @@ Ready-to-paste text, applied by the merging session. Filled in as each task land
 ```
 
 **ADR-0027**, a status note: "VectorCraft is 0.18.0 as of 2026-10-30 (the Stage C record §0); the pipeline is unchanged."
+
+**ADR-0013**, a status note, when the ADR for the token set (≥ 0045) is written: "Superseded by ADR-00NN: the Strawberry Milk and Midnight Plum token sets, approved by the owner on 2026-10-30 (option A), checked by `npm run check:contrast` in CI."
+
+**The no-tomato decision (§0), 2026-10-30.** Final wording waits for the owner's pick of the characters; these are the lines it changes:
+
+| Where | Today | Replace with |
+|-------|-------|--------------|
+| `PRODUCT.md`, Brand Commitments (through `/impeccable`) | "A kawaii tomato couple, binding. *Pomodoro* is Italian for tomato, so the mascots are two small original tomatoes, **Pomo & Doro**…" | "**A kawaii couple of two, binding; no tomato anywhere** (owner, 2026-10-30). The mascots are two small original characters, working names **Pomo & Doro**, chosen with the logo in Phase 1 C3. They star in every mode and in the app icon. No tomato, clock or heart in the mark or the art, the category's habits." |
+| `PRODUCT.md`, Undecided; SRS §6 open-decisions row; ADR-0020 TBD | Candidates "Pomo Pair, Tomatwo, Pomo & Doro, Two Tomatoes" | Add: "Tomatwo and Two Tomatoes conflict with the no-tomato direction (2026-10-30)." |
+| `DESIGN.md` description, line 4 (through `/impeccable`) | "Pomo & Doro, two little tomatoes, keep a sticker diary…" | "Pomo & Doro, two little original characters, keep a sticker diary…" |
+| `DESIGN.md` pinned-direction note, line 9 | "The kawaii tomato-couple direction" | "The kawaii couple direction (no tomato, owner 2026-10-30)" |
+| `DESIGN.md` North Star, line 15 | "Pomo & Doro, two small original tomatoes, are drawn as stickers… ripe garden tomato…" | "Pomo & Doro, two small original characters, are drawn as stickers… a ripe garden harvest…" |
+| `DESIGN.md` Colors, Secondary | "**Tomato Red:** the accent of the brand and the mascots" | "**Accent Red:** the brand's accent" (the hex values are in `src/theme/palette.json`) |
+| Rehaul plan §3.1, §3.3 (Shared Garden "grows plants and tomatoes"), §5.2 ("tomato-red accent") | Tomato wording | Point at this record's §0; the garden grows plants without tomatoes. |
+| Phase 1 plan, C3 row | (no tomato wording; "Pomo & Doro as stickers") | Add: "Characters chosen with the logo; no tomato (owner, 2026-10-30)." |
 
 ## Backlinks
 <!-- backlinks:start -->

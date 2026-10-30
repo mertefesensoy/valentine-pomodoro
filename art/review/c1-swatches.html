@@ -67,7 +67,7 @@
 <body><div class="wrap-page">
   <h1>The Sticker Diary: theme tokens</h1>
   <p class="lede">Phase 1, C1. Two free themes with the same roles: <b>Strawberry Milk</b> (light) and <b>Midnight Plum</b> (dark). Every text and background pair the interface will draw is listed under its theme, with its contrast ratio. Text needs <b>4.5:1</b>; large text, icons and non-text marks (the ring, input boundaries) need <b>3:1</b>.</p>
-  <p class="lede">The ratios on this page come from the same function and the same file that CI checks (<code>npm run check:contrast</code>), so what you approve is what ships. The tomato disc is a placeholder showing the sticker edge and shadow; Pomo &amp; Doro come in C3.</p>
+  <p class="lede">The ratios on this page come from the same function and the same file that CI checks (<code>npm run check:contrast</code>), so what you approve is what ships. The tilted check is a placeholder sticker showing the die-cut edge and the shadow; the characters come in C3.</p>
   <span class="status">All 52 pairs pass</span>
 
   <section class="choice">
@@ -95,9 +95,9 @@
     </svg>
             <div><div class="timer">24:59</div><div class="soft">Focus · Chapter 4 notes</div></div>
             <svg viewBox="0 0 96 96" width="76" height="76" aria-hidden="true" style="filter: drop-shadow(1.5px 3px 3px rgba(74,44,41,0.16))">
-      <circle cx="48" cy="52" r="38" fill="#FFFFFF"/>
-      <circle cx="48" cy="52" r="32" fill="#C93A24"/>
-      <path d="M48 22 l5 8 9-3-5 8 8 5-10 1-7 6-1-9-9-4 9-3z" fill="#4F9A57" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round"/>
+      <rect x="10" y="12" width="76" height="72" rx="26" fill="#FFFFFF" transform="rotate(-6 48 48)"/>
+      <rect x="16" y="18" width="64" height="60" rx="21" fill="#F7A9BE" transform="rotate(-6 48 48)"/>
+      <path d="M33 49 l10 10 20-22" fill="none" stroke="#4A2C29" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
           </div>
           <div class="row wrap">
@@ -155,13 +155,13 @@
           <span class="meta"><b>primarySoft</b><code>#FDE4EB</code><small>A selected chip or row, tinted from strawberry.</small></span>
         </li><li class="sw">
           <span class="chip" style="background:#C93A24"></span>
-          <span class="meta"><b>accent</b><code>#C93A24</code><small>Tomato: the brand's red, used small and rarely (a badge, the sticker moment). A strong fill, so it carries a light label.</small></span>
+          <span class="meta"><b>accent</b><code>#C93A24</code><small>The brand's red, used small and rarely (a badge, the sticker moment). A strong fill, so it carries a light label.</small></span>
         </li><li class="sw">
           <span class="chip" style="background:#FFFFFF"></span>
-          <span class="meta"><b>onAccent</b><code>#FFFFFF</code><small>The label on a tomato fill.</small></span>
+          <span class="meta"><b>onAccent</b><code>#FFFFFF</code><small>The label on a red accent fill.</small></span>
         </li><li class="sw">
           <span class="chip" style="background:#C03A24"></span>
-          <span class="meta"><b>accentInk</b><code>#C03A24</code><small>Tomato as text: rare emphasis.</small></span>
+          <span class="meta"><b>accentInk</b><code>#C03A24</code><small>The accent red as text: rare emphasis.</small></span>
         </li><li class="sw">
           <span class="chip" style="background:#BFE5B5"></span>
           <span class="meta"><b>success</b><code>#BFE5B5</code><small>Leaf: goal reached, garden growth. A soft fill with a dark label.</small></span>
@@ -173,7 +173,7 @@
           <span class="meta"><b>successInk</b><code>#2F7339</code><small>Leaf as text or an icon.</small></span>
         </li><li class="sw">
           <span class="chip" style="background:#A82431"></span>
-          <span class="meta"><b>danger</b><code>#A82431</code><small>Destructive actions only (reset, delete), kept apart from the brand tomato so the brand colour never means loss.</small></span>
+          <span class="meta"><b>danger</b><code>#A82431</code><small>Destructive actions only (reset, delete), kept apart from the brand red so the brand colour never means loss.</small></span>
         </li><li class="sw">
           <span class="chip" style="background:#FFFFFF"></span>
           <span class="meta"><b>onDanger</b><code>#FFFFFF</code><small>The label on a destructive fill.</small></span>
@@ -268,19 +268,19 @@
           <td class="verdict">Pass</td>
         </tr><tr class="">
           <td><span class="sample" style="background:#C93A24;color:#FFFFFF">Odaklan · 24:59</span></td>
-          <td><b>onAccent</b> on <b>accent</b><small>A badge's label on tomato</small></td>
+          <td><b>onAccent</b> on <b>accent</b><small>A badge's label on the accent red</small></td>
           <td class="num">5.10</td>
           <td class="num">≥ 4.5</td>
           <td class="verdict">Pass</td>
         </tr><tr class="">
           <td><span class="sample" style="background:#FFF6F1;color:#C03A24">Odaklan · 24:59</span></td>
-          <td><b>accentInk</b> on <b>page</b><small>Tomato emphasis on the page</small></td>
+          <td><b>accentInk</b> on <b>page</b><small>Accent emphasis on the page</small></td>
           <td class="num">5.09</td>
           <td class="num">≥ 4.5</td>
           <td class="verdict">Pass</td>
         </tr><tr class="">
           <td><span class="sample" style="background:#FFFDFB;color:#C03A24">Odaklan · 24:59</span></td>
-          <td><b>accentInk</b> on <b>paper</b><small>Tomato emphasis on paper</small></td>
+          <td><b>accentInk</b> on <b>paper</b><small>Accent emphasis on paper</small></td>
           <td class="num">5.34</td>
           <td class="num">≥ 4.5</td>
           <td class="verdict">Pass</td>
@@ -375,9 +375,9 @@
     </svg>
             <div><div class="timer">24:59</div><div class="soft">Focus · Chapter 4 notes</div></div>
             <svg viewBox="0 0 96 96" width="76" height="76" aria-hidden="true" style="filter: drop-shadow(1.5px 3px 3px rgba(13,7,15,0.40))">
-      <circle cx="48" cy="52" r="38" fill="#FFF6F1"/>
-      <circle cx="48" cy="52" r="32" fill="#C93A24"/>
-      <path d="M48 22 l5 8 9-3-5 8 8 5-10 1-7 6-1-9-9-4 9-3z" fill="#4F9A57" stroke="#FFF6F1" stroke-width="3" stroke-linejoin="round"/>
+      <rect x="10" y="12" width="76" height="72" rx="26" fill="#FFF6F1" transform="rotate(-6 48 48)"/>
+      <rect x="16" y="18" width="64" height="60" rx="21" fill="#F7A9BE" transform="rotate(-6 48 48)"/>
+      <path d="M33 49 l10 10 20-22" fill="none" stroke="#221726" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
           </div>
           <div class="row wrap">
@@ -435,13 +435,13 @@
           <span class="meta"><b>primarySoft</b><code>#4D2B45</code><small>A selected chip or row, tinted from strawberry.</small></span>
         </li><li class="sw">
           <span class="chip" style="background:#FF7A5E"></span>
-          <span class="meta"><b>accent</b><code>#FF7A5E</code><small>Tomato: the brand's red, used small and rarely (a badge, the sticker moment). A strong fill, so it carries a light label.</small></span>
+          <span class="meta"><b>accent</b><code>#FF7A5E</code><small>The brand's red, used small and rarely (a badge, the sticker moment). A strong fill, so it carries a light label.</small></span>
         </li><li class="sw">
           <span class="chip" style="background:#221726"></span>
-          <span class="meta"><b>onAccent</b><code>#221726</code><small>The label on a tomato fill.</small></span>
+          <span class="meta"><b>onAccent</b><code>#221726</code><small>The label on a red accent fill.</small></span>
         </li><li class="sw">
           <span class="chip" style="background:#FF8C73"></span>
-          <span class="meta"><b>accentInk</b><code>#FF8C73</code><small>Tomato as text: rare emphasis.</small></span>
+          <span class="meta"><b>accentInk</b><code>#FF8C73</code><small>The accent red as text: rare emphasis.</small></span>
         </li><li class="sw">
           <span class="chip" style="background:#8ED493"></span>
           <span class="meta"><b>success</b><code>#8ED493</code><small>Leaf: goal reached, garden growth. A soft fill with a dark label.</small></span>
@@ -453,7 +453,7 @@
           <span class="meta"><b>successInk</b><code>#8ED493</code><small>Leaf as text or an icon.</small></span>
         </li><li class="sw">
           <span class="chip" style="background:#FF8A80"></span>
-          <span class="meta"><b>danger</b><code>#FF8A80</code><small>Destructive actions only (reset, delete), kept apart from the brand tomato so the brand colour never means loss.</small></span>
+          <span class="meta"><b>danger</b><code>#FF8A80</code><small>Destructive actions only (reset, delete), kept apart from the brand red so the brand colour never means loss.</small></span>
         </li><li class="sw">
           <span class="chip" style="background:#221726"></span>
           <span class="meta"><b>onDanger</b><code>#221726</code><small>The label on a destructive fill.</small></span>
@@ -548,19 +548,19 @@
           <td class="verdict">Pass</td>
         </tr><tr class="">
           <td><span class="sample" style="background:#FF7A5E;color:#221726">Odaklan · 24:59</span></td>
-          <td><b>onAccent</b> on <b>accent</b><small>A badge's label on tomato</small></td>
+          <td><b>onAccent</b> on <b>accent</b><small>A badge's label on the accent red</small></td>
           <td class="num">6.73</td>
           <td class="num">≥ 4.5</td>
           <td class="verdict">Pass</td>
         </tr><tr class="">
           <td><span class="sample" style="background:#221726;color:#FF8C73">Odaklan · 24:59</span></td>
-          <td><b>accentInk</b> on <b>page</b><small>Tomato emphasis on the page</small></td>
+          <td><b>accentInk</b> on <b>page</b><small>Accent emphasis on the page</small></td>
           <td class="num">7.59</td>
           <td class="num">≥ 4.5</td>
           <td class="verdict">Pass</td>
         </tr><tr class="">
           <td><span class="sample" style="background:#2E2033;color:#FF8C73">Odaklan · 24:59</span></td>
-          <td><b>accentInk</b> on <b>paper</b><small>Tomato emphasis on paper</small></td>
+          <td><b>accentInk</b> on <b>paper</b><small>Accent emphasis on paper</small></td>
           <td class="num">6.75</td>
           <td class="num">≥ 4.5</td>
           <td class="verdict">Pass</td>

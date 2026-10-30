@@ -76,14 +76,14 @@ function ring(t, color) {
     </svg>`;
 }
 
-/** A placeholder sticker (a plain tomato disc) to show the die-cut edge and the tinted shadow. */
+/** A placeholder sticker (a plain "done" sticker) to show the die-cut edge and the tinted shadow. */
 function sticker(t) {
     const sh = parseHex(t.stickerShadow);
     const shadow = `rgba(${sh.r},${sh.g},${sh.b},${sh.a.toFixed(2)})`;
     return `<svg viewBox="0 0 96 96" width="76" height="76" aria-hidden="true" style="filter: drop-shadow(1.5px 3px 3px ${shadow})">
-      <circle cx="48" cy="52" r="38" fill="${t.stickerEdge}"/>
-      <circle cx="48" cy="52" r="32" fill="${palette.themes.strawberryMilk.tokens.accent}"/>
-      <path d="M48 22 l5 8 9-3-5 8 8 5-10 1-7 6-1-9-9-4 9-3z" fill="#4F9A57" stroke="${t.stickerEdge}" stroke-width="3" stroke-linejoin="round"/>
+      <rect x="10" y="12" width="76" height="72" rx="26" fill="${t.stickerEdge}" transform="rotate(-6 48 48)"/>
+      <rect x="16" y="18" width="64" height="60" rx="21" fill="${t.primary}" transform="rotate(-6 48 48)"/>
+      <path d="M33 49 l10 10 20-22" fill="none" stroke="${t.onPrimary}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>`;
 }
 
@@ -229,7 +229,7 @@ function swatchSheet() {
 <body><div class="wrap-page">
   <h1>The Sticker Diary: theme tokens</h1>
   <p class="lede">Phase 1, C1. Two free themes with the same roles: <b>Strawberry Milk</b> (light) and <b>Midnight Plum</b> (dark). Every text and background pair the interface will draw is listed under its theme, with its contrast ratio. Text needs <b>4.5:1</b>; large text, icons and non-text marks (the ring, input boundaries) need <b>3:1</b>.</p>
-  <p class="lede">The ratios on this page come from the same function and the same file that CI checks (<code>npm run check:contrast</code>), so what you approve is what ships. The tomato disc is a placeholder showing the sticker edge and shadow; Pomo &amp; Doro come in C3.</p>
+  <p class="lede">The ratios on this page come from the same function and the same file that CI checks (<code>npm run check:contrast</code>), so what you approve is what ships. The tilted check is a placeholder sticker showing the die-cut edge and the shadow; the characters come in C3.</p>
   <span class="status">${allPass ? `All ${total.length} pairs pass` : `${total.filter((r) => !r.pass).length} pair(s) fail`}</span>
 
   <section class="choice">

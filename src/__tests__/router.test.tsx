@@ -94,7 +94,7 @@ jest.mock('../startup/deferredStartup', () => ({
 
 // What each tab shows, and nothing else does.
 const TABS = [
-    { path: '/', url: 'valentinepomodoro://', text: 'Start' },
+    { path: '/', url: 'valentinepomodoro://', text: 'Start focus' },
     { path: '/stats', url: 'valentinepomodoro://stats', text: 'Today Sessions' },
     { path: '/settings', url: 'valentinepomodoro://settings', text: 'Settings ⚙️' },
     { path: '/notes', url: 'valentinepomodoro://notes', text: /^Love Notes/ },
@@ -208,7 +208,7 @@ describe('deep links', () => {
 
         await act(async () => fireEvent.press(screen.getByText('Go to Home')));
         expect(result.getPathname()).toBe('/');
-        expect(screen.getByText('Start')).toBeOnTheScreen();
+        expect(screen.getByText('Start focus')).toBeOnTheScreen();
     });
 });
 
@@ -300,26 +300,24 @@ describe('tabs render late, then never hide', () => {
         await launch(null);
         await startupIdle();
         await act(() => router.navigate('/stats'));
-        expect(screen.getByText('Start')).toBeOnTheScreen();
+        expect(screen.getByText('Start focus')).toBeOnTheScreen();
         await act(() => router.navigate('/'));
         expect(screen.getByText('Today Sessions')).toBeOnTheScreen();
     });
 
     // covers: FR-ADS-001, FR-NTE-001
     it('a focus that ends while Stats shows holds its celebration, love note and ad until Timer is shown', async () => {
-        const CELEBRATION = 'daily goal reached';
+        const CELEBRATION = 'Goal reached';
         const LOVE_NOTE_CLOSE = 'Close';
         const result = await launch(null);
         await act(() => {
             useSettingsStore.getState().updateSettings({
                 durations: { ...useSettingsStore.getState().settings.durations, focus: 1 },
                 showLoveNotes: true,
-                // GoalReachedPopup then closes without its exit animation.
-                animationsEnabled: false,
             });
             useStatsStore.getState().setGoalMinutes(1);
         });
-        await act(async () => fireEvent.press(screen.getByText('Start')));
+        await act(async () => fireEvent.press(screen.getByText('Start focus')));
         await act(() => router.navigate('/stats'));
 
         // It ends on Stats: credited at once, nothing shown, nothing timing out.
@@ -401,7 +399,7 @@ describe('the root', () => {
 
         await act(async () => mockNotificationTap!({ notification: { request: { content: {} } } }));
         expect(result.getPathname()).toBe('/');
-        expect(screen.getByText('Start')).toBeOnTheScreen();
+        expect(screen.getByText('Start focus')).toBeOnTheScreen();
     });
 
     it('shows Gift Mode on the first launch only', async () => {

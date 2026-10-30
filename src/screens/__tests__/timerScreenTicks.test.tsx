@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StoreGate } from '../../stores/StoreGate';
+import { useUiStore } from '../../stores/uiStore';
 import TimerScreen from '../TimerScreen';
 import { flightDurationToSeconds, haversineDistance } from '../../utils/geoMath';
 import { parseAirports } from '../../utils/airportData';
@@ -78,7 +79,7 @@ describe('timer text on the real TimerScreen', () => {
     it('counts down every second in Classic mode', async () => {
         await renderTimerScreen();
 
-        await press(screen.getByText('Start'));
+        await press(screen.getByText('Start focus'));
         expect(screen.getByText('25:00')).toBeOnTheScreen();
 
         await tick(1_000);
@@ -99,7 +100,9 @@ describe('timer text on the real TimerScreen', () => {
         expect(flightDurationToSeconds(distanceKm)).toBe(25 * 60);
 
         await renderTimerScreen();
-        await press(screen.getByLabelText('Switch to fly mode'));
+        // Classic's Modes button opens the /modes sheet (Phase 1 D1), which needs a navigator; its
+        // Fly row calls this same store action (modeSheet.test.tsx covers the sheet itself).
+        await act(async () => useUiStore.getState().setActiveMode('fly'));
         expect(screen.getByTestId('map-view')).toBeOnTheScreen();
         await pickAirport('From', 'istanbul', 'IST');
         await pickAirport('To', 'lublin', 'LUZ');

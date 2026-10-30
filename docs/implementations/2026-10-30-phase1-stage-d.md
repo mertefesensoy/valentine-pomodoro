@@ -215,7 +215,7 @@ The responsive rules are keyed to size classes (brief §6, HIG M-1). VoiceOver o
 
 - **The love note becomes a native sheet:** an Expo Router `formSheet` route (`app/love-note.tsx`, the system's own sheet). The Timer screen opens it when the note is due and Timer is focused, and closing it calls `dismissLoveNote`.
   - **It stays until it is dismissed** (the direction contract; `accessibility.md › Minimize use of time-boxed interface elements`). It closes on a swipe down or its "Close" button.
-  - **It fits at every text size (HIG D1-M3):** a fitted detent plus a large one, with the grabber visible, and the note scrolls inside. A short title names the moment (`modality.md › Make it easy to identify a modal view's task`).
+  - **It fits at every text size (HIG D1-M3):** the sheet is sized to its content (`fitToContents`), and a long note at AX5 reaches full height and scrolls. It isn't resizable, so it has no grabber (`sheets.md`). A short title names the moment (`modality.md › Make it easy to identify a modal view's task`). (Built this way in place of the first disposition, a fitted plus a large detent; D1 record §3.9.)
 - **"Goal reached" becomes an inline moment** on the today row. It is not a modal.
 - **The ad policy is unchanged:** the interstitial waits until the sheet has closed (FR-ADS-001). `timerScreenOverlays.test.tsx` keeps its three orderings, asserted on the new surfaces.
 
@@ -456,9 +456,10 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 ```
 
 **`docs/roadmap/ROADMAP.md`**, the status board: Phase 1 Stage D → in progress (2026-10-30). Per-task rows:
-- **D1:** in progress (2026-10-30). Both direction contracts (Classic, and the v1.4 welcome screen) are written and HIG-checked; the Baloo 2 fonts are built.
+- **D1:** in progress (2026-10-30). Both direction contracts approved by the owner. Built: the theme switch, EN/TR plumbing, Baloo 2, the tab bar, the icon and sticker components, and Classic (The Ring and Facing Pages, presets, the sticker placement, the love-note and mode sheets). The welcome screen, the reviews and the device check on build 48 follow.
 
-**SRS** status changes: each is added here when its task lands.
+**SRS** status changes, added as each task lands:
+- **FR-SET-002** → `implemented` (Verify: T, `src/theme/__tests__/legacyColors.test.ts` and `src/__tests__/router.test.tsx`; D, the D1 device check). `useTheme` returns Strawberry Milk or Midnight Plum from `palette.ts` (D1, `46a5b00`).
 
 **Phase 2 inherits (the owner, Q3, 2026-10-30):** the pages-to-logo morph also plays at the first pairing. It reuses D1's welcome-screen choreography (§3.2.11). For the rehaul plan's Phase 2 section and the ROADMAP's Phase 2 row:
 

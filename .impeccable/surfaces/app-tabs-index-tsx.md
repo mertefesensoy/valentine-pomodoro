@@ -70,7 +70,7 @@ The owner chose two of the three dealt structures on 2026-10-30: "both of them s
 - **Labels for icon-only and numeric controls:** the mode button reads "Modes"; each preset reads in words, "25 minutes focus, 5 minutes break" (HIG review M-3).
 - **Overlays:** the love note becomes a native sheet (small detent); "goal reached" becomes an inline moment; the interstitial keeps its policy and shows only after the completion sheet closes.
   - **The love-note sheet stays until it is dismissed** (D1): a swipe down, or its "Close" button. The v1 card closed itself after 8 s, but a self-closing sheet fails someone reading at a large text size (WCAG 2.2.1). FR-NTE-001 doesn't fix the timing.
-  - **The sheet fits at every text size:** a detent fitted to the note plus a large one, the grabber visible, the note scrolling inside, and a short title naming the moment (D1 HIG D1-M3).
+  - **The sheet fits at every text size:** it is sized to its content (`fitToContents`); a long note at AX5 reaches full height and scrolls. It isn't resizable, so it has no grabber. A short title names the moment (D1 HIG D1-M3).
 - **Motion:**
   - tab switches: none
   - phase change: the ring colour and Pomo & Doro's pose crossfade over 200–300 ms

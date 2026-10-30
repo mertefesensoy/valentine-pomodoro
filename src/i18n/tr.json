@@ -12,6 +12,7 @@
       "longBreak": "Uzun mola"
     },
     "phaseLine": "{{phase}} · {{total}} oturumdan {{n}}.",
+    "session": "{{total}} oturumdan {{n}}.",
     "nextChange": {
       "break": "Mola: {{time}}",
       "focus": "Odak: {{time}}"

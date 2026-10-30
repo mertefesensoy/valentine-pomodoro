@@ -45,6 +45,7 @@ export interface Settings {
     themeMode: ThemeMode; // 'system' | 'light' | 'dark'
     animationsEnabled: boolean; // Background animations toggle
     flyModeSound: boolean; // Ambient cabin sound during Fly Mode sessions
+    classicLayout: 'ring' | 'spread'; // Classic's layout (Phase 1 D1); additive, defaults to 'ring'
 }
 
 // Stats per day (keyed by YYYY-MM-DD)

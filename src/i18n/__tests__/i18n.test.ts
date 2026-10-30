@@ -1,9 +1,7 @@
 // covers: FR-SET-005, NFR-I18N-001
-import i18next from 'i18next';
-
 import en from '../en.json';
 import tr from '../tr.json';
-import { pickLanguage, t } from '../index';
+import { fixedT, pickLanguage, t } from '../index';
 import { upper } from '../casing';
 
 type Tree = { [k: string]: string | Tree };
@@ -59,7 +57,7 @@ describe('the language', () => {
         expect(t('today.a11y', { count: 0 })).toBe('No sessions yet today');
         expect(t('today.a11y', { count: 1 })).toBe('1 session today');
         expect(t('today.a11y', { count: 3 })).toBe('3 sessions today');
-        const trT = i18next.getFixedT('tr');
+        const trT = fixedT('tr');
         expect(trT('timer.phaseLine', { phase: 'Odak', n: 2, total: 4 })).toBe('Odak · 4 oturumdan 2.');
         expect(trT('today.a11y', { count: 3 })).toBe('Bugün 3 oturum');
         expect(trT('timer.a11y.minutes', { count: 1 })).toBe('1 dakika');

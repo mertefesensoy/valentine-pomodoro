@@ -63,6 +63,17 @@ See the [Stage D plan §1](2026-10-30-phase1-stage-d.md#1-problem--motivation). 
 | `src/components/icons/Icon.tsx`, `src/components/icons/art/*.ts` | New. `<Icon glyph size color>` draws a C3 icon in `currentColor`; the 50 generated glyph modules. |
 | `src/components/stickers/Sticker.tsx`, `src/components/stickers/art/*.ts` | New. `<Sticker art width>` draws a pose or a mark version in its own fills; the 16 generated modules. |
 | `src/components/icons/__tests__/Icon.test.tsx` | New. Icons draw in the caller's colour and hide from VoiceOver without a label; stickers keep their fills and proportions; the generator's `--check` runs in Jest, so art and code can't drift apart. |
+| `src/constants/presets.ts`, `src/constants/defaults.ts`, `src/types/index.ts`, `src/constants/__tests__/presets.test.tsx` | The four presets, each setting all three durations; the additive `classicLayout` setting (default `'ring'`), read defensively; tests that a v1.3.1 install hydrates to the Ring with every other value kept (FR-SET-001). |
+| `src/__fixtures__/storage/v131.ts` | Types only: the v1.3.1 and v1.0 settings shapes omit `classicLayout`, which those versions never wrote. The pinned data is unchanged. |
+| `src/theme/layout.ts` | New. The spacing scale (4 pt base) that DESIGN.md left to implementation, beside its radii, the edge weight and the 44 pt target. |
+| `src/components/ui/PressableScale.tsx`, `src/components/ui/SegmentedControl.tsx` | New. Press feedback (0.97, 120 ms, haptic on press-in; dimming under Reduce Motion); the built segmented control (§3.9). |
+| `src/components/TimerText.tsx` | An optional VoiceOver label builder (one element, the `timer` role) and fit-to-width, so "180:00" never clips. |
+| `src/screens/TimerScreen.tsx`, `src/screens/classic/*` | Classic rebuilt: The Ring and Facing Pages on one component set, with the partner slot, today's stickers and the placement, the controls, the Modes button and the size-class layouts (§3.9). The engine wiring, the ad logic and the Fly branch are unchanged. |
+| `app/_layout.tsx`, `app/love-note.tsx`, `app/modes.tsx`, `src/components/loveNote/LoveNoteSheet.tsx`, `src/components/modes/ModeSheet.tsx`, `src/stores/loveNoteSheetStore.ts` | New. The love note and the mode sheet as native form sheets over the tabs (§3.10). |
+| `src/components/{GoalReachedPopup,CircularProgress,CalmBackground,PremiumCalmBackground}.tsx`, `package.json` | Removed with their last caller; `expo-linear-gradient` with them. |
+| `src/i18n/en.json`, `tr.json` | `timer.session` added for the phase line. |
+| `src/screens/__tests__/classic.test.tsx` | New. The Baloo timer with tabular figures and one VoiceOver element; a preset writes three durations and moves the selection; segments speak in words with a position, as buttons; End only while paused, with the stamp; Facing Pages; the mode sheet sets the layout and opens Fly. |
+| `src/screens/__tests__/timerScreenOverlays.test.tsx`, `timerScreenTicks.test.tsx`, `flyLazyLoad.test.tsx`, `flyCredit.test.tsx`, `src/__tests__/router.test.tsx`, `splash.test.tsx` | Updated for "Start focus", the Modes sheet in place of Classic's inline Fly switch, the inline goal moment and the love-note sheet that stays until it is closed. Every ordering assertion is kept. |
 
 ## 3. Implementation Approach
 
@@ -217,6 +228,49 @@ D1 needs the "modes" icon and Pomo & Doro's poses, so the generator the plan put
 - **Strict input.** `build-icon-components.mjs` reads each SVG's viewBox and `<path>` elements (`d`, `fill`, `fill-rule`, `opacity`), and stops on anything else, so a future exporter change can't be dropped silently.
 - **Two outputs.** Icons ignore their exported fill and draw in `currentColor`. Stickers keep theirs, die-cut white edge included.
 - **Enforced in Jest.** `--check` is byte-exact against the committed files, and a Jest test runs it.
+
+### 3.9 Classic, built (brief and contract; DESIGN-WORKFLOW §2 step 3)
+
+**The page.** It follows the contract's first viewport:
+- the phase line ("Focus · session 2 of 4") with the Modes button
+- the face: The Ring, or Facing Pages
+- Pomo & Doro's strip and line, today's stickers, then the controls in thumb reach
+
+Both layouts share `TimerText`, the poses, the row and the controls; `classicLayout` picks the face.
+- **Sizes:** the ring is the smallest of 86 % of the readable width, 36 % of the height and 340 pt. The Baloo timer is a quarter of the ring and shrinks to fit one line, so "180:00" never clips.
+- **Size classes:** compact height puts the face leading and a column trailing; regular width centres at 560 pt; at AX sizes Facing Pages stacks its pages.
+
+**Motion, through `animate-expo`:**
+
+| Motion | Gate | Tool | Values |
+|---|---|---|---|
+| Press | tens a day, feedback | CSS transition | scale 0.97, 120 ms, `(0.23, 1, 0.32, 1)`; dimming under Reduce Motion |
+| Presets | occasional, state | CSS transition on the indicator's own-width translate | 200 ms, `(0.77, 0, 0.175, 1)`; the selection haptic on the change |
+| Presets ↔ cycle row | per session, state | CSS opacity | 200 ms, in place |
+| Phase change | per phase, state | two ring arcs (and two spine-bar fills) crossfading on CSS opacity, poses on keyed fades | 250 ms |
+| Sticker placement | rare, delight | a custom entering layout animation | spring 450 ms at damping ratio 0.75; 12 paper bits over 600 ms; success haptic on the frame it lands; skipped for stickers already there |
+
+None of it renders React per frame. Under Reduce Motion the placement is a 200 ms fade with no burst.
+
+**Decisions made in the build:**
+- **The goal moment keeps its place in the order.** The brief listed "the sticker placement, then the love-note sheet, then 'goal reached'". The build keeps the order the screen and its tests already had: the goal moment is part of the placement, inline on today's row for 1.4 s, then the love note, then the ad. Placed after the sheet, "goal reached" would appear only once the user had dismissed the note, cut off from the completion that caused it. The owner sees it at the device check.
+- **The love-note sheet is `fitToContents` with no grabber.** That replaces the "fitted plus large detent" of HIG D1-M3: a single sized detent fits the note at every text size, reaching full height and scrolling at AX5. Because it isn't resizable, `sheets.md` asks for no grabber.
+- **Paused shows a quiet stamp,** rotated −3°, in `primaryInk`, in place of the "Break at" line.
+
+**Guards:**
+- Jest: 40 suites, 277 tests, plus the 8 Classic tests.
+- `tsc`: clean.
+- Lint: 0 errors; warnings down from 42 to 35, none in D1's new files.
+- Compiler: 59 compiled, 6 skipped (one fewer), no worklet change; every new component compiles.
+- Reassure: unchanged. Settings-only 1, **Timer 13**, Stats 1, Settings 2, Notes 1, leaf 12.
+
+### 3.10 The love note and the mode sheet (brief §6)
+
+**The love-note sheet** is the `/love-note` form-sheet route.
+- `TimerScreen` hands the note to a non-persisted store (`loveNoteSheetStore`) and pushes the route once the goal moment has gone and Timer is focused.
+- The route closes the store when it unmounts, however it was closed, and `TimerScreen` then calls the engine's own `dismissLoveNote`. `useTimer` is unchanged.
+
+**The mode sheet** is `/modes`. Classic is its first row, shown with the mark as a sticker and the layout choice under it; Fly is the second, where it can open.
 
 ## 4. Mathematical / Statistical Details
 

@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StoreGate } from '../../stores/StoreGate';
+import { useUiStore } from '../../stores/uiStore';
 import TimerScreen from '../TimerScreen';
 import { load, STORAGE_KEYS } from '../../utils/storage';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
@@ -57,7 +58,8 @@ describe('a Fly session that lands after midnight (DEF-001)', () => {
         );
         await act(async () => {});
 
-        await press(screen.getByLabelText('Switch to fly mode'));
+        // Classic's Modes button opens the /modes sheet (Phase 1 D1); its Fly row calls this store action.
+        await act(async () => useUiStore.getState().setActiveMode('fly'));
         await pickAirport('From', 'istanbul', 'IST');
         await pickAirport('To', 'lublin', 'LUZ');
         await press(screen.getByText('✈️  Start Flight'));

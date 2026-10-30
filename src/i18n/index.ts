@@ -11,7 +11,7 @@
  *   - Turkish upper case goes through `upper()` in `./casing`, never a bare
  *     `toUpperCase()` (İ/ı).
  */
-import i18next from 'i18next';
+import { createInstance } from 'i18next';
 import { getLocales } from 'expo-localization';
 
 import en from './en.json';
@@ -40,7 +40,9 @@ function deviceLanguage(): Language {
 
 export const language: Language = deviceLanguage();
 
-i18next.init({
+// A dedicated instance, so nothing else that imports i18next can change the app's language.
+const i18n = createInstance();
+i18n.init({
     lng: language,
     fallbackLng: 'en',
     resources: { en: { translation: en }, tr: { translation: tr } },
@@ -49,4 +51,7 @@ i18next.init({
     initAsync: false,
 });
 
-export const t = i18next.t.bind(i18next);
+export const t = i18n.t.bind(i18n);
+
+/** A translator fixed to one language, whatever the device's (tests, previews). */
+export const fixedT = (lng: Language) => i18n.getFixedT(lng);

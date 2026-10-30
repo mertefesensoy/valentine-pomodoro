@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StoreGate } from '../../stores/StoreGate';
+import { useUiStore } from '../../stores/uiStore';
 import { save, STORAGE_KEYS } from '../../utils/storage';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 
@@ -61,7 +62,7 @@ describe('Fly Mode is loaded lazily (B1)', () => {
         setPlatform('ios');
         await renderTimerScreen();
 
-        expect(screen.getByText('Start')).toBeOnTheScreen();
+        expect(screen.getByText('Start focus')).toBeOnTheScreen();
         expect(mockFlyModuleEvaluated).not.toHaveBeenCalled();
     });
 
@@ -70,7 +71,7 @@ describe('Fly Mode is loaded lazily (B1)', () => {
         await save(STORAGE_KEYS.APP_MODE, 'fly');
         await renderTimerScreen();
 
-        expect(screen.getByText('Start')).toBeOnTheScreen();
+        expect(screen.getByText('Start focus')).toBeOnTheScreen();
         expect(screen.queryByLabelText('Switch to fly mode')).toBeNull();
         expect(mockFlyModuleEvaluated).not.toHaveBeenCalled();
     });
@@ -79,9 +80,8 @@ describe('Fly Mode is loaded lazily (B1)', () => {
         setPlatform('ios');
         await renderTimerScreen();
 
-        await act(async () => {
-            await fireEvent.press(screen.getByLabelText('Switch to fly mode'));
-        });
+        // Classic's Modes button opens the /modes sheet (Phase 1 D1); its Fly row calls this store action.
+        await act(async () => useUiStore.getState().setActiveMode('fly'));
 
         expect(await screen.findByText('Fly Mode stub')).toBeOnTheScreen();
         expect(mockFlyModuleEvaluated).toHaveBeenCalledTimes(1);

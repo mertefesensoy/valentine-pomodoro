@@ -12,6 +12,7 @@
       "longBreak": "Long break"
     },
     "phaseLine": "{{phase}} · session {{n}} of {{total}}",
+    "session": "session {{n}} of {{total}}",
     "nextChange": {
       "break": "Break at {{time}}",
       "focus": "Focus at {{time}}"

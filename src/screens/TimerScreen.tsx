@@ -1,26 +1,35 @@
-import { View, Text, Pressable, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { useTimer } from "../hooks/useTimer";
-import LoveNoteCard from "../components/LoveNoteCard";
-import GoalReachedPopup from "../components/GoalReachedPopup";
-import { CircularProgress } from "../components/CircularProgress";
-import TimerText from "../components/TimerText";
-import CalmBackground from "../components/CalmBackground";
-import ModeSwitcher from "../components/ModeSwitcher";
-import { isFlyModeAvailable } from "../constants/features";
+import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
+import { useTimer } from "../hooks/useTimer";
+import TimerText from "../components/TimerText";
+import ModeSwitcher from "../components/ModeSwitcher";
+import { Icon } from "../components/icons/Icon";
+import { modes as modesGlyph } from "../components/icons/art/modes";
+import { PressableScale } from "../components/ui/PressableScale";
 import { useSessionState } from "../hooks/useSessionClock";
 import { useSlotProgress } from "../hooks/useSlotClock";
 import { useNotesStore } from "../stores/notesStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useStatsStore } from "../stores/statsStore";
 import { useUiStore } from "../stores/uiStore";
+import { useLoveNoteSheet } from "../stores/loveNoteSheetStore";
 import { useTheme } from "../theme/useTheme";
-import { useResponsive } from "../hooks/useResponsive";
+import { type } from "../theme/type";
+import { minTarget, space } from "../theme/layout";
 import { useScreenFocused } from "../hooks/useScreenFocus";
 import { AdManager } from "../ads/AdManager";
 import { AdPolicy } from "../ads/AdPolicy";
+import { PRESETS, classicLayoutOf, durationsOf, presetFor, type PresetId } from "../constants/presets";
+import { language, t } from "../i18n";
+import { getTodayKey } from "../utils/time";
+import { PhaseRing } from "./classic/PhaseRing";
+import { PoseSticker, poseFor } from "./classic/PoseSticker";
+import { SpreadPages } from "./classic/SpreadPages";
+import { TodayStickers } from "./classic/TodayStickers";
+import { ClassicControls } from "./classic/ClassicControls";
 
 // Fly Mode is split out (Phase 1 task B1): FlyModeScreen and everything only it
 // imports (react-native-maps, FlySheet, Fly's audio) are evaluated the first time
@@ -43,13 +52,40 @@ function FlyModePlaceholder() {
   );
 }
 
+// AX1 and up (iOS reports a font scale of about 1.65 there): Facing Pages stacks its pages.
+const STACK_FONT_SCALE = 1.6;
+// Compact height (an iPhone in landscape): the timer leads and a column trails (brief §6, HIG M-1).
+const COMPACT_HEIGHT = 500;
+// Regular width (iPad, wide windows): both layouts centre at a readable width.
+const READABLE_WIDTH = 560;
+
+/** The wall-clock minute a running phase ends in, seconds dropped (Stage D plan §4.6). */
+function clockMinute(epochMs: number): string {
+  return new Date(epochMs).toLocaleTimeString(language === "tr" ? "tr-TR" : "en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+/**
+ * Classic, the focus page (Phase 1 D1; brief `.impeccable/surfaces/app-tabs-index-tsx.md`).
+ * Two layouts on one component set: The Ring (default) and Facing Pages, chosen by the
+ * additive `classicLayout` setting. The timer is the only large type; Pomo & Doro sit in the
+ * partner slot; completions press stickers onto today's row (the one delight). Fly is its own
+ * screen (Phase 4b) and keeps its switcher.
+ *
+ * Render budget (Reassure, NFR-PERF-003): this screen renders on session events only. The time
+ * is <TimerText>'s, the ring's and the spine bar's progress run on the UI thread, and every new
+ * piece reads a value that changes on an event (a phase change, a completion, a setting).
+ */
 export default function TimerScreen() {
-  const { height, isLandscape, isTablet, isShortViewport } = useResponsive();
+  const { width, height, fontScale } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const settings = useSettingsStore((s) => s.settings);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
   const incrementFocus = useStatsStore((s) => s.incrementFocus);
   const goalHitPulse = useStatsStore((s) => s.goalHitPulse);
   const clearGoalHitPulse = useStatsStore((s) => s.clearGoalHitPulse);
+  // Today's stickers and goal: both change only when a focus completes.
+  const todayCount = useStatsStore((s) => s.days[getTodayKey()]?.focusSessions ?? 0);
+  const goalHitToday = useStatsStore((s) => Boolean(s.days[getTodayKey()]?.goalHit));
   const pickRandomNote = useNotesStore((s) => s.pickRandomNote);
   const activeMode = useUiStore((s) => s.activeMode);
   const setActiveMode = useUiStore((s) => s.setActiveMode);
@@ -57,11 +93,10 @@ export default function TimerScreen() {
   // The time is <TimerText>'s and the ring's (Phase 1 B4).
   const session = useSessionState();
   // The tab is never hidden or frozen (B6 fix, record §9), so what must happen
-  // in front of the user waits until Timer is focused: the celebration, the
-  // love note (both start auto-dismiss timers) and the interstitial. Before,
-  // the frozen tab held them (B4 record §3.5). Always true outside a navigator.
+  // in front of the user waits until Timer is focused: the goal moment, the
+  // love note and the interstitial. Always true outside a navigator.
   const focused = useScreenFocused();
-  const { colors, isDark } = useTheme();
+  const { tokens, isDark } = useTheme();
 
   // Interstitials the ad policy has allowed, one per completion it said yes
   // to. The effect further down shows one when none is showing yet and no
@@ -118,16 +153,30 @@ export default function TimerScreen() {
     }
   }, [activeMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // The overlays after a completed focus, in order: the goal celebration, then
-  // the love note, then the interstitial (FR-ADS-001, FR-NTE-001). Derived from
-  // state, not synchronised by effects (Phase 1 B5, react-hooks/set-state-in-effect).
-  // - The celebration is the stats store's pulse itself: set only when a
+  // The moments after a completed focus, in order: the goal moment (inline on
+  // today's row), then the love note (a native sheet), then the interstitial
+  // (FR-ADS-001, FR-NTE-001). Derived from state, not synchronised by effects
+  // (Phase 1 B5, react-hooks/set-state-in-effect).
+  // - The goal moment is the stats store's pulse itself: set only when a
   //   completion first reaches a day's goal (goalHit is sticky, so never twice
-  //   for one day), cleared when the popup closes.
-  // - A love note waits while it shows: the overlays below render the note
-  //   only when no celebration is up, so the card mounts, and starts its own
-  //   8 s timer, after the celebration closes.
+  //   for one day), cleared when the moment has played (1.4 s).
+  // - The love note waits for the goal moment, then goes to the /love-note
+  //   sheet; the sheet reports back when it closes, however it closes.
   const goalPopup = goalHitPulse;
+
+  const loveNoteDue = focused && !goalPopup && showLoveNoteCard && !!lastLoveNote;
+  useEffect(() => {
+    if (!loveNoteDue || useLoveNoteSheet.getState().note !== null) return;
+    useLoveNoteSheet.getState().open(lastLoveNote!);
+    router.push("/love-note");
+  }, [loveNoteDue, lastLoveNote]);
+  useEffect(
+    () =>
+      useLoveNoteSheet.subscribe((s, prev) => {
+        if (prev.note !== null && s.note === null) dismissLoveNote();
+      }),
+    [dismissLoveNote],
+  );
 
   // The interstitial: shown once no overlay is up, for requests not yet
   // served. Marking the requests served before showing means a re-run of the
@@ -145,19 +194,17 @@ export default function TimerScreen() {
     });
   }, [adRequests, goalPopup, showLoveNoteCard, focused]);
 
-  // Compact spacing flag — reduce margins on small landscape viewports
-  const tightSpacing = isLandscape || isShortViewport;
-
-  // Dynamic progress ring size
-  const ringSize = useMemo(() => {
-    if (isLandscape) {
-      return isTablet ? 320 : Math.min(height * 0.7, 280);
+  // The sticker placement's success haptic, on the frame its sticker lands: a
+  // completion while Timer is in front (HIG D1-L1: once per completion, and it
+  // follows Settings › Haptics).
+  const prevCountRef = useRef(todayCount);
+  useEffect(() => {
+    const grew = todayCount > prevCountRef.current;
+    prevCountRef.current = todayCount;
+    if (grew && focused && useSettingsStore.getState().settings.haptics) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     }
-    if (isTablet) {
-      return 300;
-    }
-    return 260;
-  }, [isLandscape, isTablet, height]);
+  }, [todayCount, focused]);
 
   // Calculate progress for current phase
   const totalMs = useMemo(() => {
@@ -174,34 +221,23 @@ export default function TimerScreen() {
   // (Phase 1 B4): it moves every frame with no render of this screen.
   const ringProgress = useSlotProgress('pomodoro', totalMs);
 
-  // Phase label
-  const getPhaseLabel = () => {
-    switch (phase) {
-      case 'focus':
-        return 'Focus';
-      case 'shortBreak':
-        return 'Short Break';
-      case 'longBreak':
-        return 'Long Break';
-    }
-  };
+  const paused = !isRunning && remainingMs !== null && remainingMs < totalMs;
+  const idle = !isRunning && !paused;
+  const isBreak = phase !== 'focus';
+  const phaseLabel = t(`timer.phase.${phase}`);
+  const sessionN = completedFocusCountInCycle + 1;
+  const cycleTotal = settings.longBreakEvery;
 
-  // Primary button label
-  const getPrimaryButtonLabel = () => {
-    if (isRunning) return 'Pause';
-    if (remainingMs < (phase === 'focus' ? settings.durations.focus * 60 * 1000 : settings.durations.shortBreak * 60 * 1000)) {
-      return 'Resume';
-    }
-    return 'Start';
-  };
+  const primaryLabel = isRunning
+    ? t('controls.pause')
+    : paused
+      ? t('controls.resume')
+      : phase === 'focus'
+        ? t('controls.startFocus')
+        : t('controls.startBreak');
 
-  // Primary button action
+  // The haptic is the pill's own, on press-in (PressableScale).
   const handlePrimaryAction = () => {
-    // Light haptic on button press
-    if (settings.haptics) {
-      Haptics.selectionAsync().catch(() => { }); // Catch failures (e.g. web)
-    }
-
     if (isRunning) {
       pause();
     } else if (remainingMs !== null && remainingMs < totalMs) {
@@ -211,138 +247,157 @@ export default function TimerScreen() {
     }
   };
 
-  // Reset with confirmation
-  const handleReset = () => {
+  // Ending a session early: only while paused, behind a native alert with a
+  // destructive button (brief §2).
+  const handleEnd = () => {
     if (Platform.OS === 'web') {
-      const confirmed = window.confirm('Are you sure you want to reset the timer?');
-      if (confirmed) {
-        reset();
-      }
-    } else {
-      Alert.alert(
-        'Reset Timer',
-        'Are you sure you want to reset the timer?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Reset', style: 'destructive', onPress: () => reset() },
-        ]
-      );
+      if (window.confirm(t('controls.endConfirm.title'))) reset();
+      return;
     }
+    Alert.alert(t('controls.endConfirm.title'), t('controls.endConfirm.message'), [
+      { text: t('controls.endConfirm.cancel'), style: 'cancel' },
+      { text: t('controls.endConfirm.end'), style: 'destructive', onPress: () => reset() },
+    ]);
   };
 
-  // Content components
-  const timerContent = (
-    <>
-      {/* Header */}
-      <Text style={[
-        styles.header,
-        isTablet && styles.headerTablet,
-        tightSpacing && styles.headerTight,
-        { color: colors.text }
-      ]}>
-        Valentine Pomodoro 💗
+  const preset = presetFor(settings.durations)?.id ?? null;
+  const presetSegments = useMemo(
+    () =>
+      PRESETS.map((p) => ({
+        value: p.id,
+        label: `${p.focus}/${p.shortBreak}`,
+        accessibilityLabel: t('presets.label', { focus: p.focus, rest: p.shortBreak }),
+      })),
+    [],
+  );
+  const choosePreset = (id: PresetId) => {
+    const p = PRESETS.find((x) => x.id === id);
+    if (p) updateSettings({ durations: durationsOf(p) });
+  };
+
+  // "Break at 10:25": the minute the running phase ends, from its endAt, so it
+  // changes on a session event, never each second. Paused, a quiet stamp instead.
+  const endAt = session.state.pomodoro?.endAt ?? null;
+  const nextLine = isRunning && endAt
+    ? t(phase === 'focus' ? 'timer.nextChange.break' : 'timer.nextChange.focus', { time: clockMinute(endAt) })
+    : null;
+
+  const timerLabel = (seconds: number | null) => {
+    const s = seconds ?? Math.round(totalMs / 1000);
+    return t('timer.a11y.remaining', {
+      minutes: t('timer.a11y.minutes', { count: Math.floor(s / 60) }),
+      seconds: t('timer.a11y.seconds', { count: s % 60 }),
+      phase: phaseLabel,
+      n: sessionN,
+      total: cycleTotal,
+    });
+  };
+
+  const layout = classicLayoutOf(settings);
+  const compactHeight = height < COMPACT_HEIGHT;
+  const pageWidth = Math.min(width, READABLE_WIDTH) - space.xl * 2;
+  const pose = poseFor(phase, isRunning);
+
+  const subLine = paused ? (
+    <View style={[styles.stamp, { borderColor: tokens.primaryInk }]}>
+      <Text style={[styles.stampText, { color: tokens.primaryInk }]} maxFontSizeMultiplier={1.4}>
+        {t('timer.paused')}
       </Text>
+    </View>
+  ) : nextLine ? (
+    <Text style={[styles.nextLine, { color: tokens.inkSoft }]} maxFontSizeMultiplier={1.4}>
+      {nextLine}
+    </Text>
+  ) : null;
 
-      {/* Status chip */}
-      <View style={[
-        styles.statusChip,
-        tightSpacing && styles.statusChipTight,
-        { backgroundColor: colors.surfaceTint }
-      ]}>
-        <Text style={[styles.statusText, isTablet && styles.statusTextTablet, { color: colors.accent }]}>
-          {getPhaseLabel()}
-        </Text>
-      </View>
-
-      {/* Progress ring + timer display */}
-      <View style={[styles.progressContainer, tightSpacing && styles.progressContainerTight]}>
-        <CircularProgress
-          size={ringSize}
-          progress={ringProgress}
-          trackColor={colors.surfaceTint}
-          progressColor={colors.accent}
-        />
-        <View style={styles.timerOverlay}>
-          {/* The only part of this screen that re-renders each second (Phase 1 B4) */}
-          <TimerText
-            kind="pomodoro"
-            idleMs={totalMs}
-            style={[
-              styles.timer,
-              isTablet && styles.timerTablet,
-              isLandscape && styles.timerLandscape,
-              { color: colors.text }
-            ]}
-          />
-        </View>
-      </View>
-
-      {/* Cycle indicator */}
-      <Text style={[
-        styles.cycleText,
-        isTablet && styles.cycleTextTablet,
-        tightSpacing && styles.cycleTextTight,
-        { color: colors.textMuted }
-      ]}>
-        Session {completedFocusCountInCycle + 1} of {settings.longBreakEvery}
-      </Text>
-    </>
+  const timer = (fontSize: number) => (
+    // The only part of this screen that re-renders each second (Phase 1 B4)
+    <TimerText
+      kind="pomodoro"
+      idleMs={totalMs}
+      fitWidth
+      accessibilityLabelFor={timerLabel}
+      style={[type.timer, styles.timer, { fontSize, color: tokens.ink }]}
+    />
   );
 
-  const controlsContent = (
-    <>
-      {/* Primary action button */}
-      <Pressable
-        style={({ pressed }) => [
-          styles.primaryButton,
-          { backgroundColor: colors.accent },
-          isTablet && styles.primaryButtonTablet,
-          pressed && { transform: [{ scale: 0.98 }] },
-        ]}
-        onPress={handlePrimaryAction}
-      >
-        <Text style={[styles.primaryButtonText, isTablet && styles.primaryButtonTextTablet]}>
-          {getPrimaryButtonLabel()}
-        </Text>
-      </Pressable>
+  const ringSize = compactHeight
+    ? Math.min(height - insets.top - insets.bottom - space.xl, width * 0.42)
+    : Math.min(pageWidth * 0.86, height * 0.36, 340);
 
-      {/* Secondary actions */}
-      <View style={styles.secondaryActions}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.secondaryButton,
-            { borderColor: colors.accentPurple },
-            isTablet && styles.secondaryButtonTablet,
-            pressed && { transform: [{ scale: 0.98 }] },
-          ]}
-          onPress={skip}
-        >
-          <Text style={[styles.secondaryButtonText, isTablet && styles.secondaryButtonTextTablet, { color: colors.accentPurple }]}>
-            Skip
-          </Text>
-        </Pressable>
-        <Pressable
-          style={({ pressed }) => [
-            styles.secondaryButton,
-            { borderColor: colors.accentPurple },
-            isTablet && styles.secondaryButtonTablet,
-            pressed && { transform: [{ scale: 0.98 }] },
-          ]}
-          onPress={handleReset}
-        >
-          <Text style={[styles.secondaryButtonText, isTablet && styles.secondaryButtonTextTablet, { color: colors.accentPurple }]}>
-            Reset
-          </Text>
-        </Pressable>
-      </View>
-    </>
+  const face =
+    layout === 'spread' ? (
+      <SpreadPages
+        tokens={tokens}
+        width={compactHeight ? Math.min(pageWidth, width * 0.5) : pageWidth}
+        stacked={fontScale >= STACK_FONT_SCALE}
+        pose={pose}
+        progress={ringProgress}
+        isBreak={isBreak}
+      >
+        {timer(56)}
+        {subLine}
+      </SpreadPages>
+    ) : (
+      <PhaseRing
+        size={ringSize}
+        progress={ringProgress}
+        isBreak={isBreak}
+        trackColor={tokens.ringTrack}
+        focusColor={tokens.ringFocus}
+        breakColor={tokens.ringBreak}
+      >
+        {timer(Math.round(ringSize * 0.25))}
+        {subLine}
+      </PhaseRing>
+    );
+
+  const partner = (
+    <View style={styles.partner}>
+      {layout === 'ring' && (
+        <View style={styles.pair} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <PoseSticker who="pomo" pose={pose} width={44} />
+          <PoseSticker who="doro" pose={pose} width={44} />
+        </View>
+      )}
+      <Text style={[styles.partnerLine, { color: tokens.inkSoft }]}>{t('partner.studying')}</Text>
+    </View>
+  );
+
+  const today = (
+    <TodayStickers
+      tokens={tokens}
+      count={todayCount}
+      goalHit={goalHitToday}
+      goalStreak={goalPopup && focused ? goalPopup.newStreak : null}
+      onGoalMomentDone={clearGoalHitPulse}
+      animate={focused}
+    />
+  );
+
+  const controls = (
+    <ClassicControls
+      tokens={tokens}
+      idle={idle}
+      paused={paused}
+      primaryLabel={primaryLabel}
+      onPrimary={handlePrimaryAction}
+      onSkip={skip}
+      onEnd={handleEnd}
+      presets={presetSegments}
+      preset={preset}
+      onPreset={choosePreset}
+      cycleDone={completedFocusCountInCycle}
+      cycleLength={cycleTotal}
+    />
   );
 
   return (
     <View style={[
       styles.container,
-      activeMode === 'fly' ? styles.containerFly : { backgroundColor: colors.bg },
-      // Inside a native tab the bottom inset includes the tab bar (Phase 1 B6).
+      activeMode === 'fly' ? styles.containerFly : { backgroundColor: tokens.page },
+      // Inside a native tab the bottom inset includes the tab bar (Phase 1 B6),
+      // so the controls clear the floating bar with nothing added (HIG M-5).
       { paddingBottom: insets.bottom },
     ]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
@@ -360,58 +415,54 @@ export default function TimerScreen() {
           </View>
         </View>
       ) : (
-        // ── Default Mode ──────────────────────────────────────────────────────
-        // Wrapper holds both the scrollable content and absolute overlays.
-        <View style={styles.defaultModeWrapper}>
-          <CalmBackground enabled={settings.animationsEnabled} />
+        // ── Classic ──────────────────────────────────────────────────────────
+        // VoiceOver order, both layouts (brief §6): the phase line, the timer,
+        // the partner slot, today's row, then the controls.
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[styles.page, { paddingTop: insets.top + space.s }]}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={[styles.column, { width: pageWidth }]}>
+            <View style={styles.topRow}>
+              <Text style={styles.phaseLine} maxFontSizeMultiplier={1.6} accessibilityRole="header">
+                <Text style={{ color: tokens.ink }}>{phaseLabel}</Text>
+                <Text style={{ color: tokens.inkSoft }}>
+                  {' · '}
+                  {t('timer.session', { n: sessionN, total: cycleTotal })}
+                </Text>
+              </Text>
+              <PressableScale
+                onPress={() => router.push('/modes')}
+                haptic={false}
+                accessibilityLabel={t('modes.button')}
+                style={styles.modeButton}
+              >
+                <Icon glyph={modesGlyph} size={24} color={tokens.ink} />
+              </PressableScale>
+            </View>
 
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={[
-              styles.contentWrapper,
-              isTablet && styles.contentWrapperTablet,
-              isLandscape && styles.contentWrapperLandscape,
-              { paddingTop: insets.top + 20 },
-            ]}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Mode switcher — sits above the header; hidden where Fly can't open */}
-            {isFlyModeAvailable() && (
-              <ModeSwitcher activeMode={activeMode} onModeChange={setActiveMode} />
-            )}
-
-            {isLandscape ? (
-              // Landscape: two-column layout
-              <>
-                <View style={styles.leftPane}>
-                  {timerContent}
+            {compactHeight ? (
+              <View style={styles.compact}>
+                <View style={styles.centre}>{face}</View>
+                <View style={styles.trailing}>
+                  {partner}
+                  {today}
+                  {controls}
                 </View>
-                <View style={styles.rightPane}>
-                  {controlsContent}
-                </View>
-              </>
+              </View>
             ) : (
-              // Portrait: stacked layout
               <>
-                {timerContent}
-                {controlsContent}
+                <View style={styles.centre}>
+                  {face}
+                  {partner}
+                  {today}
+                </View>
+                {controls}
               </>
             )}
-          </ScrollView>
-
-          {/* Overlays — rendered outside the scroll so they always fill the screen */}
-          <GoalReachedPopup
-            visible={!!goalPopup && focused}
-            newStreak={goalPopup?.newStreak ?? 0}
-            animationsEnabled={settings.animationsEnabled}
-            autoDismissMs={1400}
-            onClose={clearGoalHitPulse}
-          />
-          {focused && !goalPopup && showLoveNoteCard && lastLoveNote && (
-            <LoveNoteCard note={lastLoveNote} onDismiss={dismissLoveNote} />
-          )}
-        </View>
+          </View>
+        </ScrollView>
       )}
     </View>
   );
@@ -444,153 +495,82 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 100,
   },
-  // Default mode: fills available space, hosts scrollable content + absolute overlays
-  defaultModeWrapper: {
+  scroll: {
     flex: 1,
-    width: '100%',
   },
-  scrollView: {
-    flex: 1,
-    width: '100%',
-  },
-  contentWrapper: {
-    width: '100%',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+  page: {
     flexGrow: 1,
-    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: space.l,
   },
-  contentWrapperTablet: {
-    maxWidth: 900,
+  column: {
+    flexGrow: 1,
+    gap: space.l,
   },
-  contentWrapperLandscape: {
+  topRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    maxWidth: 1200,
-    gap: 40,
+    minHeight: minTarget,
   },
-  leftPane: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  rightPane: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  progressContainer: {
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  progressContainerTight: {
-    marginVertical: 8,
-  },
-  timerOverlay: {
-    position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  header: {
-    fontSize: 24,
+  phaseLine: {
+    fontSize: 17,
     fontWeight: '600',
-    // color removed - now inline
-    marginBottom: 32,
+    flexShrink: 1,
   },
-  headerTablet: {
-    fontSize: 28,
+  modeButton: {
+    width: minTarget,
+    height: minTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  headerTight: {
-    marginBottom: 10,
+  centre: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space.l,
   },
-  statusChip: {
-    // backgroundColor removed - now inline
-    paddingHorizontal: 24,
-    paddingVertical: 8,
-    borderRadius: 999,
-    marginBottom: 24,
+  compact: {
+    flexGrow: 1,
+    flexDirection: 'row',
+    gap: space.xl,
   },
-  statusChipTight: {
-    marginBottom: 10,
-  },
-  statusText: {
-    fontSize: 16,
-    fontWeight: '600',
-    // color removed - now inline
-  },
-  statusTextTablet: {
-    fontSize: 18,
+  trailing: {
+    flex: 1,
+    justifyContent: 'center',
+    gap: space.l,
   },
   timer: {
-    fontSize: 72,
-    fontWeight: '700',
-    // color removed - now inline
-    marginBottom: 16,
+    textAlign: 'center',
+    alignSelf: 'stretch',
+  },
+  nextLine: {
+    fontSize: 15,
+    fontWeight: '500',
     fontVariant: ['tabular-nums'],
   },
-  timerTablet: {
-    fontSize: 84,
+  stamp: {
+    borderWidth: 1.5,
+    borderRadius: 8,
+    paddingHorizontal: space.s,
+    paddingVertical: 2,
+    transform: [{ rotate: '-3deg' }],
   },
-  timerLandscape: {
-    fontSize: 56,
-    marginBottom: 8,
-  },
-  cycleText: {
+  stampText: {
     fontSize: 14,
-    // color removed - now inline
-    marginBottom: 48,
+    fontWeight: '700',
   },
-  cycleTextTablet: {
-    fontSize: 16,
-  },
-  cycleTextTight: {
-    marginBottom: 16,
-  },
-  primaryButton: {
-    // backgroundColor removed - now inline
-    paddingHorizontal: 64,
-    paddingVertical: 16,
-    borderRadius: 999,
-    marginBottom: 24,
-    minWidth: 200,
+  partner: {
     alignItems: 'center',
+    gap: space.xs,
   },
-  primaryButtonTablet: {
-    paddingHorizontal: 80,
-    paddingVertical: 20,
-    minWidth: 240,
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  primaryButtonTextTablet: {
-    fontSize: 22,
-  },
-  secondaryActions: {
+  pair: {
     flexDirection: 'row',
-    gap: 16,
+    gap: space.xs,
   },
-  secondaryButton: {
-    borderWidth: 2,
-    // borderColor removed - now inline
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 999,
-  },
-  secondaryButtonTablet: {
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-  },
-  secondaryButtonText: {
-    // color removed - now inline
-    fontSize: 16,
+  partnerLine: {
+    fontSize: 15,
     fontWeight: '500',
-  },
-  secondaryButtonTextTablet: {
-    fontSize: 18,
+    textAlign: 'center',
   },
 });

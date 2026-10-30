@@ -13,6 +13,9 @@ export const DEFAULT_SETTINGS = {
     themeMode: 'system' as const,
     animationsEnabled: true,
     flyModeSound: true, // Ambient cabin sound during Fly Mode sessions
+    // Classic's layout (Phase 1 D1): The Ring by default, so existing installs, which have
+    // no stored value, keep the Ring; the merge in settingsStore fills it in.
+    classicLayout: 'ring' as const,
 };
 
 // Default love notes (20 seed notes for Bengisu)

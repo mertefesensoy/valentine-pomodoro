@@ -306,6 +306,21 @@ David Airey's ten rules, applied:
 | App Store art, social card, the weekly recap card | **Phase 7** (launch), from the system above | They need the final name and real screens. |
 | A one-page identity sheet (clear space, minimum sizes, mono and colour versions, misuse) | **A new task, C5**, after C3, in this record | Stops later sessions from redrawing the mark by eye. |
 
+### 3.7 C5: the one-page identity sheet (plan, 2026-10-30)
+
+The owner chose C5 before the merge. It stops later sessions from redrawing the mark by eye (§3.6), and it is the source for `DESIGN.md`'s identity section at E4.
+
+- **The mark's versions,** built by the pipeline (a new job, `art/jobs/identity.json`), each on a tight artboard around the mark:
+  - **colour:** the cocoa sticker with its die-cut edge
+  - **reversed:** strawberry pages on dark, as in the dark icon
+  - **single colour,** cocoa and white: one ink, the faces cut out as real holes (even-odd), so the mark survives one-colour printing, embroidery and a tinted context
+- **Clear space:** one unit X on every side, X = a quarter of the mark's height.
+- **Minimum sizes:** tested at mark widths of 64, 48, 32, 24 and 16 px; the smallest width where both faces still read becomes the rule (screen px and print mm). Below it, the app icon carries the brand.
+- **Misuse:** stretched, rotated, recoloured off-palette, effects added (shadow, glow, gradient), pages pulled apart, a heart, tomato or clock added, text inside the mark, set on a busy photo without its edge. Each is shown on the colour mark.
+- **The system around the mark:** the two free themes' core colours (C1), the type pairing (C2), Pomo & Doro (C3), the voice in one line, and the lettering *style* for the future wordmark ("pomo:doro" in Baloo 2, the colon as the characters), marked as style, not the final name.
+- **Deliverables:** `art/review/c5-identity-sheet.html` (one printable page, and a claude.ai copy for the phone); the rules written into this record (§2.6); the owner's gate.
+- **Not in C5:** the final wordmark (Phase 7, with the name); editing `DESIGN.md` (E4, through `/impeccable`).
+
 ## 4. Mathematical / Statistical Details
 
 ### 4.1 Contrast (C1)

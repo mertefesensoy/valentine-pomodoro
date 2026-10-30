@@ -381,7 +381,7 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 **Pri:** Must · **Target:** v1 · **Status:** implemented
 **Accept:**
 - With zero notes, a fallback note is shown.
-**Verify:** I: `useLoveNotes.ts` `pickRandomNote` · **Source:** v1 plan §4.4
+**Verify:** I: `useLoveNotes.ts` `pickRandomNote`; T: the note after a completed focus, and after a goal celebration, `src/screens/__tests__/timerScreenOverlays.test.tsx` (Phase 1 B5) · **Source:** v1 plan §4.4
 
 #### FR-NTE-002
 **Statement:** Fresh installs shall get name-free default notes. Existing installs keep their notes, including the Bengisu-era defaults when the user never edited them.
@@ -470,7 +470,7 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 
 **Pri:** Must · **Target:** v1 (rules 1–3), Phase 5 (rule 4) · **Status:** implemented / planned
 **Known deviation:** DEF-006; see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
-**Verify:** I: `src/ads/AdPolicy.ts`; T (Phase 5) · **Source:** PLAN-REHAUL §8.7
+**Verify:** I: `src/ads/AdPolicy.ts`; T: rule 3 on Classic, `src/screens/__tests__/timerScreenOverlays.test.tsx` (Phase 1 B5); T (Phase 5) · **Source:** PLAN-REHAUL §8.7
 
 #### FR-ADS-002
 **Statement:** No ad request shall be made before Google UMP consent is resolved in the EEA, the UK and Switzerland. Non-personalised ads shall be served when consent is declined.
@@ -649,7 +649,7 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 
 #### NFR-PERF-003
 **Statement:** While a session runs, a component that doesn't display time shall not re-render. In the Reassure settings-only scenario, renders drop from 14 to ≤ 2, and the timer-text leaf renders once per displayed second.
-**Target:** Phase 1 B4 · **Status:** implemented (B3 brought the settings-only scenario to 1; B4, 2026-10-30, made `<TimerText>` the only per-second commit: the leaf renders 1 + its displayed changes, and the Timer screen re-renders only on session changes. Counts in the [B4 record §4.4](../implementations/2026-10-30-phase1-b4-rerender-refactor.md#44-render-counts-measured).) · **Verify:** T: `src/context/__tests__/rerenders.perf-test.tsx`, `src/screens/__tests__/screens.perf-test.tsx`, `src/screens/__tests__/timerScreenCommits.test.tsx`, `src/components/__tests__/TimerText.test.tsx` · **Source:** PLAN-PHASE1 B4
+**Target:** Phase 1 B4 · **Status:** implemented (B3 brought the settings-only scenario to 1; B4, 2026-10-30, made `<TimerText>` the only per-second commit: the leaf renders 1 + its displayed changes, and the Timer screen re-renders only on session changes. Counts in the [B4 record §4.4](../implementations/2026-10-30-phase1-b4-rerender-refactor.md#44-render-counts-measured). B5, 2026-10-30, turned the React Compiler on with every count unchanged, and made Jest compile app code as the app does: [B5 record §4.3](../implementations/2026-10-30-phase1-b5-react-compiler.md#43-render-counts-measured).) · **Verify:** T: `src/context/__tests__/rerenders.perf-test.tsx`, `src/screens/__tests__/screens.perf-test.tsx`, `src/screens/__tests__/timerScreenCommits.test.tsx`, `src/components/__tests__/TimerText.test.tsx`, `src/components/__tests__/reactCompiler.test.tsx` · **Source:** PLAN-PHASE1 B4, B5
 
 #### NFR-PERF-004
 **Statement:** Animations shall hold ≥ 58 fps median on the slowest supported test device, with no frame over 32 ms during the completion moment.
@@ -797,6 +797,8 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - [Documentation system, release history and branch cleanup](../implementations/2026-10-30-documentation-system.md)
 - ["Phase 1 B3: Zustand stores, hydrated synchronously from MMKV"](../implementations/2026-10-30-phase1-b3-zustand-stores.md)
 - ["Phase 1 B4: the re-render refactor (clock store, UI-thread ring, frozen tabs)"](../implementations/2026-10-30-phase1-b4-rerender-refactor.md)
+- ["Phase 1 B5: the React Compiler on, its lint rules back to error"](../implementations/2026-10-30-phase1-b5-react-compiler.md)
+- [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Documentation conventions](../process/DOCS.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Test strategy](../testing/TEST-STRATEGY.md)

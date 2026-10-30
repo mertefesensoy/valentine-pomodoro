@@ -656,6 +656,7 @@ There is **one gate**: `isFlyModeAvailable()`, true only on iOS (`features.ts:11
 `jest.setup.ts` stubs each native module at its package boundary, and each stub carries a comment explaining why: Gesture Handler's own setup (`:11`), AsyncStorage (`:13–15`), worklets (`:18`), **a narrow stub for a Reanimated 4.7.1 bug** (`setCSSEventHandler`, `:22–25`, to remove when upstream fixes it), Reanimated (`:26`), safe-area (`:28`), `react-native-maps` as plain `View`s with no-op camera methods (`:34–49`), `expo-audio` (`:54–57`) and AdMob (`:61–75`).
 
 - `babel.config.js` adds `@babel/plugin-transform-dynamic-import` for `NODE_ENV=test` only, so `React.lazy(() => import())` runs in Jest. App builds get Expo's default config.
+- `jest.babelTransformer.js` (Phase 1 B5) is jest-expo's transform, plus the React Compiler for app code exactly when `app.json` turns it on, as Metro does; tests, fixtures, mocks and `jest.setup.ts` stay uncompiled ([ADR-0041](adr/0041-react-compiler-on.md)). `src/components/__tests__/reactCompiler.test.tsx` pins it.
 - Fake timers also fake `Date.now()`, so the clock maths and the interval move together.
 - At HEAD: 44 tests in 10 suites, plus 6 Reassure scenarios ([B1 doc](../implementations/2026-10-29-phase1-b1-lazy-fly-mode.md) §6).
 - Strategy and gates: [test strategy](../testing/TEST-STRATEGY.md), in particular [§3](../testing/TEST-STRATEGY.md#3-test-seams-and-mocks) and [§4](../testing/TEST-STRATEGY.md#4-the-guards-that-protect-the-riskiest-code).
@@ -664,7 +665,7 @@ There is **one gate**: `isFlyModeAvailable()`, true only on iOS (`features.ts:11
 
 ## 9. Architecture decisions
 
-The decisions are recorded as ADRs in [`adr/README.md`](adr/README.md), the ADR index, which is being written in parallel. The main ones: the end-timestamp clock; the two-slot clock and its v2 replacement by one server-owned engine; CNG, with one SDK upgrade at a time; AdMob held on 16; the React Compiler lint rules at `warn` until B5; lazy Fly Mode, then the airports asset; MMKV, Zustand and Expo Router; Supabase with server-owned time; and iOS first. The index numbers them; this document doesn't.
+The decisions are recorded as ADRs in [`adr/README.md`](adr/README.md), the ADR index, which is being written in parallel. The main ones: the end-timestamp clock; the two-slot clock and its v2 replacement by one server-owned engine; CNG, with one SDK upgrade at a time; AdMob held on 16; the React Compiler lint rules at `warn` until B5, then the compiler on with them at `error`; lazy Fly Mode, then the airports asset; MMKV, Zustand and Expo Router; Supabase with server-owned time; and iOS first. The index numbers them; this document doesn't.
 
 ---
 
@@ -711,7 +712,7 @@ The measurable quality requirements are the SRS non-functional requirements, [SR
 | R13 | Dead or unused API: the clock's five active-slot SharedValues have no reader, and `extend()` has no caller | `useSessionClock.ts:38–42,264–280` | B4 rewrites the clock surface |
 | R14 | `updateSettings` saves inside the state updater and skips the serialising chain | `useSettings.ts:47–64` | B3 |
 | R15 | **The update prompt on non-iOS reads a stale `update.json`** (live 1.0.2), and its copy always says "App Store". The URL is duplicated in `App.tsx:23` and `SettingsScreen.tsx:24`. | §3; `useUpdateCheck.ts:102–104` | The Pages move is an owner decision ([documentation-system record](../implementations/2026-10-30-documentation-system.md) §5) |
-| R16 | The React Compiler lint rules are at `warn` (105 findings) | `eslint.config.js:11–24` | B5 sets them back to `error` |
+| R16 | ~~The React Compiler lint rules are at `warn` (105 findings)~~ **Closed in B5** (`7a849b3`): the 94 findings left are fixed or, in two Fly cases, suppressed with a reason; the rules are at `error` and the compiler is on ([ADR-0041](adr/0041-react-compiler-on.md)). What it still skips: `node scripts/react-compiler-report.js` | `eslint.config.js` | Done |
 | R17 | The distribution certificate expires on 2027-01-07 | Phase 1 plan A0 | Owner renews it before any later submission |
 
 ---
@@ -763,7 +764,7 @@ The re-render fix is plan §4.5: the clock store, UI-thread rings, store selecto
 | Phase 1 B2 | MMKV, with a one-time migration of every AsyncStorage key; the flag is written last, and AsyncStorage is kept for one release | `storage.ts`, and `AdPolicy`'s direct AsyncStorage use | **Done** (`dd1e894`) |
 | Phase 1 B3 | Zustand stores (settings, notes, stats, session/clock, UI), hydrated synchronously; `AppContext` becomes a shim, then is deleted | `AppProvider` and the five hosted hooks | **Done** (`71d836f`…`e04cc8c`), pushed; device check passed on TestFlight build 44 |
 | Phase 1 B4 (gated) | `clockStore` with `useSyncExternalStore`, and only `<TimerText>` subscribes; rings driven from `endAt` by SharedValues; `setDisplayTick` removed; `freezeOnBlur` | The re-render chain (§8.1); the React-rendered `CircularProgress` | **Done** (`b7461f1`…`b838ebe`), pushed; guards green and mutation-checked; device check open |
-| Phase 1 B5 | The React Compiler on; the lint rules back to `error` | `eslint.config.js:11–24` | Not started |
+| Phase 1 B5 | The React Compiler on; the lint rules back to `error`; Jest compiles app code as Metro does (`jest.babelTransformer.js`) | The rules at `warn` (`eslint.config.js`); uncompiled components | **Done** (`10811ce`…`6395aee`), local; device check open |
 | Phase 1 B6 | Expo Router: `app/(tabs)/index`, `stats`, `settings`, `notes`, `+not-found`; the scheme is kept | `src/navigation/` | Not started |
 | Phase 1 B7 | `AdManager.init`, the update check and the audio preload deferred until after the first frame | `App.tsx:45,48–50` | Not started |
 | Phase 1 C–E | Tokens and the contrast script; the display face; VectorCraft icons and mascots; Classic rebuilt with presets; emoji → icons; EN/TR; SoundCraft sounds; on-device migration check | `tokens.ts`, emoji labels, the default notes, the missing sound | Not started |

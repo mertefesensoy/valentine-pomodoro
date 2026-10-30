@@ -26,7 +26,8 @@ How we know the app works, and which checks must pass before work counts as done
 | Unit | Jest (`jest-expo`) | CI, every push | `src/**/__tests__/*.test.ts` | Pure logic: phase machine, geo math, policies, migrations |
 | Component / integration | React Native Testing Library 14 | CI | `src/**/__tests__/*.test.tsx` | Hooks and screens rendered under fake timers, the timer guards, storage fixtures |
 | Render performance | Reassure | CI on pull requests (compared with base) | `src/**/__tests__/*.perf-test.tsx` | Render counts and times per screen (F1, NFR-PERF-003) |
-| Static | `tsc --noEmit`, ESLint (`eslint-config-expo` 58) | CI | — | Types (including the strict RN API), React rules; 0 errors required |
+| Static | `tsc --noEmit`, ESLint (`eslint-config-expo` 58) | CI | — | Types (including the strict RN API), React rules, the five React Compiler rules at `error` (B5); 0 errors required |
+| Compiler coverage | `node scripts/react-compiler-report.js` | Per change to components (B5) | — | What the React Compiler compiles and skips, and that it keeps every worklet (exit 1 otherwise) |
 | Bundle | `npx expo export --platform ios --platform android --dump-sourcemap` (always with this flag; it changes the `.hbc` size) | Per plan task | — | Bytecode size, startup modules (`scripts/startup-modules.js`) |
 | Docs | `node scripts/docs/check-docs.mjs` | CI | — | Broken links, duplicate IDs, stale backlinks and traceability |
 | Database (Phase 2) | pgTAP against a local Supabase | CI | `supabase/tests/` | RLS policies, RPC idempotency, constraints |
@@ -38,7 +39,8 @@ How we know the app works, and which checks must pass before work counts as done
 
 Native modules have no Node implementation; [`jest.setup.ts`](../../jest.setup.ts) replaces each with the smallest stub the app needs. The rules:
 
-- Mock at the package boundary, never the app's own modules, except the airport asset reader (B1b), which reads the real file from disk.
+- Mock at the package boundary, never the app's own modules. The exceptions, each commented where it is: the airport asset reader (B1b), which reads the real file from disk; `FlyModeScreen` in `flyLazyLoad`, to observe when it loads; `useUpdateCheck` in the perf tests; pass-through counting wrappers (`useTimer` in `timerScreenCommits`); and `AdPolicy`/`AdManager` in `timerScreenOverlays` (B5), which tests when the screen asks for an ad, not the policy's caps.
+- **Jest compiles app code with the React Compiler exactly when `app.json` does** (`jest.babelTransformer.js`, B5; [ADR-0041](../architecture/adr/0041-react-compiler-on.md)). Test files, fixtures, mocks and `jest.setup.ts` are not compiled. Reanimated's mock returns a new `useDerivedValue` object each render, so a compiled screen can re-render a child in Jest that it would skip on a phone: counts under Jest are an upper bound.
 - **Every mock carries a comment saying why.** Workarounds for upstream bugs (the Reanimated 4.7.1 `setCSSEventHandler` stub) say to remove them on the next upgrade.
 - Time is faked with modern fake timers, which also fake `Date.now()`, so clock math and intervals move together. RNTL 14's `render`, `renderHook` and `act` are async and always awaited.
 
@@ -46,13 +48,15 @@ Native modules have no Node implementation; [`jest.setup.ts`](../../jest.setup.t
 
 | Guard | Protects | Must stay green through |
 |-------|----------|-------------------------|
-| `src/context/__tests__/timerTextTicks.test.tsx` | Timer text ticks through the clock store's notification, read with `useSessionClock()` (FR-TMR-006); B3's `tick` before B4, `AppProvider` before B3 | The Phase 1 re-render refactor (B3/B4: passed, mutation-checked again in B4) |
+| `src/context/__tests__/timerTextTicks.test.tsx` | Timer text ticks through the clock store's notification, read with `useSessionClock()` (FR-TMR-006); B3's `tick` before B4, `AppProvider` before B3 | The Phase 1 re-render refactor (B3/B4/B5: passed, mutation-checked again in B4 and, compiled, in B5) |
 | `src/screens/__tests__/timerScreenTicks.test.tsx` | The real `TimerScreen` ticks in Classic and Fly (FR-TMR-006) | B1, B3, B4, B6, D1 |
 | `src/hooks/__tests__/useSessionClock.test.ts` | Countdown, pause/resume, exactly-once completion, cold start, two slots (FR-TMR-003/004/005/008) | Phase 3's engine replacement |
 | `src/utils/__tests__/geoMath.equivalence.test.ts` | Worklet ≡ JS interpolation (FR-FLY-002) | Any Fly change |
 | `src/__fixtures__/storage/__tests__/v131.test.tsx` | v1.3.1 storage shapes (FR-MIG-001) | B2 MMKV, B3 stores |
-| `src/context/__tests__/rerenders.perf-test.tsx`, `src/screens/__tests__/screens.perf-test.tsx` | The render-count baseline (NFR-PERF-003) | B4: 14 → ≤ 2 (met: 1); B5's compiler |
-| `src/screens/__tests__/timerScreenCommits.test.tsx` | The Timer screen re-renders only on session changes, and a start is one commit (NFR-PERF-003), in the ordinary suite | B5, B6, D1 |
+| `src/context/__tests__/rerenders.perf-test.tsx`, `src/screens/__tests__/screens.perf-test.tsx` | The render-count baseline (NFR-PERF-003) | B4: 14 → ≤ 2 (met: 1); B5's compiler (met: counts unchanged) |
+| `src/screens/__tests__/timerScreenCommits.test.tsx` | The Timer screen re-renders only on session changes, and a start is one commit (NFR-PERF-003), in the ordinary suite; since B5 it counts the screen's renders by its `useTimer` calls | B5 (passed), B6, D1 |
+| `src/screens/__tests__/timerScreenOverlays.test.tsx` | After a focus on Classic: the celebration, then the love note, then the interstitial once neither shows (FR-ADS-001 rule 3, FR-NTE-001). Written against the effect-driven queue B5 replaced | D1 |
+| `src/components/__tests__/reactCompiler.test.tsx` | Jest runs app code compiled exactly when `app.json` turns the React Compiler on (NFR-PERF-003) | Every Expo or Jest upgrade |
 | `src/stores/__tests__/clockStore.test.tsx`, `src/utils/__tests__/clockMath.test.ts` | One notification per displayed second, ε after the boundary; none while paused; completion once (FR-TMR-005, FR-TMR-006; plan §4.2 as corrected in B4) | Phase 3's engine replacement |
 | `src/hooks/__tests__/useSlotClock.test.tsx` | Slot SharedValues written in the store's `set()`, not an effect; the ring's UI-thread path ≡ the render-time formula (FR-TMR-003) | Any ring or Fly animation change |
 
@@ -95,6 +99,8 @@ node scripts/docs/check-docs.mjs  # docs links, IDs, backlinks, traceability
 - [Valentine Pomodoro](../../README.md)
 - [Documentation map](../README.md)
 - [Architecture — Valentine Pomodoro (as built, and the v2 target)](../architecture/ARCHITECTURE.md)
+- ["Phase 1 B5: the React Compiler on, its lint rules back to error"](../implementations/2026-10-30-phase1-b5-react-compiler.md)
+- [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Release process](../process/RELEASE.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](TRACEABILITY.md)

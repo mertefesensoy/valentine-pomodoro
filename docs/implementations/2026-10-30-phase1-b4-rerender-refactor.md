@@ -338,6 +338,7 @@ It needs a TestFlight build, with your go-ahead. It could be batched with B5 if 
 - [Progress ring drawn with react-native-svg stroke-dashoffset](../architecture/adr/0009-svg-progress-ring.md)
 - [One unified session clock (useSessionClock) with two slots](../architecture/adr/0016-unified-session-clock.md)
 - [2026-10-29 — Phase 1 (v1.4): design system and local re-architecture, plan](2026-10-29-phase1-plan.md)
+- ["Phase 1 B5: the React Compiler on, its lint rules back to error"](2026-10-30-phase1-b5-react-compiler.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)

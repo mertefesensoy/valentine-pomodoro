@@ -13,7 +13,7 @@ One record per significant decision, in the order the decisions were made. [ADR-
 
 Two rules for reading the statuses:
 - **`accepted`** means the decision is made: the owner decided it or approved the plan containing it, whether or not it is built yet. Each record's status note says whether it is built. **`proposed`** is a recommendation not yet decided.
-- **No record is `superseded` yet.** Every planned replacement for a v1 decision is still proposed or unbuilt, so the old record stays `accepted` and names its successor in a status note.
+- **A record is `superseded` only once its successor is built.** Until then the old record stays `accepted` and names its successor in a status note, as the v1 decisions do. The first superseded record is ADR-0035, by ADR-0041 (Phase 1 B5).
 
 | ID | Title | Status | Date |
 |----|-------|--------|------|
@@ -51,12 +51,13 @@ Two rules for reading the statuses:
 | [ADR-0032](0032-continuous-native-generation.md) | Generate the native projects from `app.json` (CNG) | accepted | 2026-10-29 |
 | [ADR-0033](0033-one-sdk-at-a-time.md) | Upgrade Expo one SDK at a time, before the refactor | accepted | 2026-10-29 |
 | [ADR-0034](0034-admob-held-on-16.md) | Hold `react-native-google-mobile-ads` on v16 until Phase 5 | accepted | 2026-10-29 |
-| [ADR-0035](0035-react-compiler-lint-warnings.md) | React Compiler lint rules as warnings until Phase 1 B5 | accepted | 2026-10-29 |
+| [ADR-0035](0035-react-compiler-lint-warnings.md) | React Compiler lint rules as warnings until Phase 1 B5 | superseded by ADR-0041 | 2026-10-29 |
 | [ADR-0036](0036-airports-json-out-of-bundle.md) | Move `airports.json` out of the JS bundle | accepted | 2026-10-29 |
 | [ADR-0037](0037-ios-first-android-deferred.md) | iOS first; Android deferred until the Play closed test | accepted | 2026-10-29 |
 | [ADR-0038](0038-trunk-based-branching-and-tags.md) | Trunk-based branching with version tags; GitHub Releases from v1.4.0 | accepted | 2026-10-30 |
 | [ADR-0039](0039-testflight-prerelease-tags.md) | TestFlight builds get SemVer pre-release tags (`-tf.N`) | accepted | 2026-10-30 |
 | [ADR-0040](0040-docs-as-code-generated-backlinks.md) | Docs as code, with generated backlinks and traceability | accepted | 2026-10-30 |
+| [ADR-0041](0041-react-compiler-on.md) | The React Compiler is on, and Jest compiles app code the way Metro does | accepted | 2026-10-30 |
 
 **Where the decisions come from:**
 - **v1 (2026-01-07):** [`DECISIONS.md`](../../../DECISIONS.md). Its open questions Q1–Q3 are answered in ADR-0003 and ADR-0027 (Q1), ADR-0008 (Q2) and ADR-0014 (Q3).

@@ -55,4 +55,5 @@ The plan's design for the illustrated map (§4.8; Phase 4b; not built):
 <!-- backlinks:start -->
 - [Move airports.json out of the JS bundle](0036-airports-json-out-of-bundle.md)
 - [Architecture decision records](README.md)
+- ["Phase 1 B5: the React Compiler on, its lint rules back to error"](../../implementations/2026-10-30-phase1-b5-react-compiler.md)
 <!-- backlinks:end -->

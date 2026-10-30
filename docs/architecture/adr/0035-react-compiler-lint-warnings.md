@@ -1,13 +1,16 @@
 ---
 id: ADR-0035
 title: React Compiler lint rules as warnings until Phase 1 B5
-status: accepted
+status: superseded
 date: 2026-10-29
 owner: Mert Efe Şensoy
 related: [ADR-0029, ADR-0033]
+superseded_by: [ADR-0041]
 ---
 
 # ADR-0035: React Compiler lint rules as warnings until Phase 1 B5
+
+> **Status note:** superseded by [ADR-0041](0041-react-compiler-on.md) on 2026-10-30. Phase 1 B5 fixed the findings (94 by then, not 105: B3 and B4 had rewritten the rest), set the five rules back to `error` (`7a849b3`) and turned the compiler on (`6395aee`). See the [B5 record](../../implementations/2026-10-30-phase1-b5-react-compiler.md).
 
 ## Context
 
@@ -50,5 +53,7 @@ As built: lines 18–22 of `eslint.config.js` set the five rules to `'warn'`.
 ## Backlinks
 <!-- backlinks:start -->
 - [Upgrade Expo one SDK at a time, before the refactor](0033-one-sdk-at-a-time.md)
+- [The React Compiler is on, and Jest compiles app code the way Metro does](0041-react-compiler-on.md)
 - [Architecture decision records](README.md)
+- ["Phase 1 B5: the React Compiler on, its lint rules back to error"](../../implementations/2026-10-30-phase1-b5-react-compiler.md)
 <!-- backlinks:end -->

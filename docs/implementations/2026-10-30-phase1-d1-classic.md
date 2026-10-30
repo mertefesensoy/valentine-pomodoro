@@ -40,6 +40,9 @@ See the [Stage D plan §1](2026-10-30-phase1-stage-d.md#1-problem--motivation). 
 |------|--------|
 | `.impeccable/surfaces/app-tabs-index-tsx.md` | The owner's D1 answers folded in: what each preset sets, the built control, copy as EN/TR keys, the love-note sheet that stays until it is dismissed, and the iOS route to the tab colour. Plus the six-block direction contract. |
 | `docs/implementations/2026-10-30-phase1-d1-classic.md` | This record. |
+| `art/type/build-fonts.py` | New. Builds the two embedded Baloo 2 instances from the hash-checked google/fonts file (§3.3); `--check` rebuilds and compares byte for byte. |
+| `assets/fonts/Baloo2-Medium.ttf`, `assets/fonts/Baloo2-SemiBold.ttf`, `assets/fonts/OFL.txt` | New. The script's output and the licence. Nothing references them until the `expo-font` plugin entry lands with the build. |
+| `.gitattributes` | `assets/fonts/** -text`, so `core.autocrlf` can't rewrite the licence and break the byte check. |
 
 ## 3. Implementation Approach
 
@@ -80,6 +83,21 @@ The brief also settles four points:
 - **Four presets** sit within "no more than about five segments on iPhone", as "closely related choices that affect an object, state, or view" (`segmented-controls.md`).
 - **The selected tab carries the brand colour,** as `branding.md` suggests ("an icon for the selected tab in a tab bar").
 - **The welcome screen** is where Apple puts branding instead of the launch screen (`branding.md`: "consider displaying a welcome or onboarding screen").
+
+### 3.3 Baloo 2, built (ADR-0046)
+
+`python -P art/type/build-fonts.py` makes both files. It runs ahead of the direction-contract gate because ADR-0046 settles the face, and no screen uses the fonts until the build step.
+
+| File | wght | Bytes | Glyphs | PostScript name | Digit advance under `tnum` |
+|------|-----:|------:|-------:|-----------------|---------------------------:|
+| `Baloo2-Medium.ttf` | 500 | 58,552 | 422 | `Baloo2-Medium` | 589 units, all ten equal |
+| `Baloo2-SemiBold.ttf` | 600 | 58,568 | 422 | `Baloo2-SemiBold` | 594 units, all ten equal |
+
+- **The source is verified:** `Baloo2[wght].ttf` matches `C:\vp\fonts\SHA256SUMS` (`d47a68525480…`) before anything reads it.
+- **Self-checks:** all twelve Turkish letters are mapped; no ligature substitutes f+i or f+l; the digits are tabular; the PostScript names are distinct.
+  - **The ligature check fails when it should:** a build that keeps `liga` stops at "a GSUB ligature still substitutes f+i or f+l".
+- **Byte for byte:** the first `--check` found the files differed, because fontTools re-stamps `head.modified` on save. The script now copies the source's `head.created` and `head.modified` and turns off `recalcTimestamp`. Two `--check` runs then rebuilt all three files identically.
+- **Size:** together 117,120 B, as ADR-0046 estimated (about 117 KB). They go into the binary, not the bytecode.
 
 ### 3.2 The welcome screen
 

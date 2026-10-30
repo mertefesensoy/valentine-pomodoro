@@ -6,3 +6,7 @@ art/out/** -text
 art/steps/** -text
 art/src/** -text
 art/jobs/** -text
+
+# The embedded fonts and their licence are compared byte for byte too
+# (python -P art/type/build-fonts.py --check; Phase 1 D1).
+assets/fonts/** -text

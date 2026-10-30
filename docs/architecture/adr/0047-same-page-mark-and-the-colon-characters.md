@@ -51,6 +51,7 @@ The owner's words (2026-10-30): "We will use the logo of the Same Page and the m
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Valentine Pomodoro brand guide](../../../brand/README.md)
 - [Architecture decision records](README.md)
 - [2026-10-29 — v2 Couples Rehaul: Plan](../../implementations/2026-10-29-couples-rehaul-plan.md)
 - ["The brand kit: brand/, after the Cassandra Collective and SuperconducTED kits"](../../implementations/2026-10-30-brand-kit.md)

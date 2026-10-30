@@ -46,6 +46,7 @@ The v1 palette ([ADR-0013](0013-valentine-colour-palette.md)) has grey text, pur
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Valentine Pomodoro brand guide](../../../brand/README.md)
 - [Valentine colour palette](0013-valentine-colour-palette.md)
 - [Architecture decision records](README.md)
 - ["The brand kit: brand/, after the Cassandra Collective and SuperconducTED kits"](../../implementations/2026-10-30-brand-kit.md)

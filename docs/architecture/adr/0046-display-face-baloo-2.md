@@ -49,6 +49,7 @@ related: [ADR-0012, IMPL-2026-10-30-phase1-stage-c-design, IMPL-2026-10-29-phase
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Valentine Pomodoro brand guide](../../../brand/README.md)
 - [System fonts only](0012-system-fonts.md)
 - [Architecture decision records](README.md)
 - ["The brand kit: brand/, after the Cassandra Collective and SuperconducTED kits"](../../implementations/2026-10-30-brand-kit.md)

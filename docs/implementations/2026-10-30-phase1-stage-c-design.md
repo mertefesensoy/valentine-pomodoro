@@ -241,7 +241,7 @@ Run before C4, as the owner agreed (§3.1), because the design skills didn't yet
 
 **The sheet** is `art/review/c5-identity-sheet.html`, built by `node scripts/art/review-c5-identity.mjs`. It prints on one A3 landscape page; a claude.ai copy serves the phone. **The owner approved it on 2026-10-30.** Its rules:
 
-- **The mark:** two pages of one diary, leaning in; a cocoa die-cut sticker with milk faces. Never a clock, heart or tomato.
+- **The mark:** two pages of one diary, leaning in; a cocoa die-cut sticker with milk faces. Never a clock, heart or tomato. (Amended 2026-10-30 by the owner: the colour version is now strawberry pages in a cocoa cover, with cocoa faces; the app icon keeps the cocoa sticker. See the [brand-kit record §10](2026-10-30-brand-kit.md#10-amendment-owner-2026-10-30-the-colour-version-gets-a-cocoa-cover).)
 - **Clear space:** X on every side, X = a quarter of the mark's height.
 - **Minimum size:** the mark at least **24 px wide on screen, 10 mm in print**. The test exports (`art/out/logo/mark-colour-{64,48,32,24,16}.png`) show the faces reading down to 24 px and collapsing at 16 px. Below the minimum, the app icon carries the brand.
 - **Versions** (`art/jobs/identity.json`, on a tight 784 × 576 artboard):
@@ -328,7 +328,7 @@ David Airey's ten rules, applied:
 The owner chose C5 before the merge. It stops later sessions from redrawing the mark by eye (§3.6), and it is the source for `DESIGN.md`'s identity section at E4.
 
 - **The mark's versions,** built by the pipeline (a new job, `art/jobs/identity.json`), each on a tight artboard around the mark:
-  - **colour:** the cocoa sticker with its die-cut edge
+  - **colour:** the cocoa sticker with its die-cut edge (Amended 2026-10-30 by the owner: the colour version is now strawberry pages in a cocoa cover, with cocoa faces; the app icon keeps the cocoa sticker. See the [brand-kit record §10](2026-10-30-brand-kit.md#10-amendment-owner-2026-10-30-the-colour-version-gets-a-cocoa-cover).)
   - **reversed:** strawberry pages on dark, as in the dark icon
   - **single colour,** cocoa and white: one ink, the faces cut out as real holes (even-odd), so the mark survives one-colour printing, embroidery and a tinted context
 - **Clear space:** one unit X on every side, X = a quarter of the mark's height.
@@ -512,6 +512,7 @@ node scripts/docs/check-docs.mjs --write && node scripts/docs/check-docs.mjs
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Valentine Pomodoro brand guide](../../brand/README.md)
 - [Documentation map](../README.md)
 - [VectorCraft for all vector art; SoundCraft for all app sounds](../architecture/adr/0027-vectorcraft-art-soundcraft-sounds.md)
 - [Theme tokens in one JSON file, proved by a blocking contrast gate](../architecture/adr/0045-theme-tokens-and-contrast-gate.md)

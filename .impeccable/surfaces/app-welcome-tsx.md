@@ -27,18 +27,19 @@ The dealt lead, chosen by the owner on 2026-10-30. Of the seven structures (1 Th
   - a closed diary centred on the milk page, in the mark's cocoa, with its die-cut white edge, the soft plum-tinted sticker shadow, and a strawberry ribbon bookmark down the cover
   - Pomo & Doro sitting on its top edge
   - the line's slot beneath, then the Start pill
-- **The morph, about 2.4 s:**
-  1. The cover opens to one spread on one gutter (never a third panel).
-  2. Pomo steps onto the left page and Doro onto the right; each hands over to its page at the same position.
-  3. The spread leans in and settles as the Same Page mark, on its identity-sheet clear space, where the diary was.
-  4. Then the line lands.
+- **The morph, about 4.2 s** (amended by the owner after the build 48 device check, 2026-10-30, F5: "longer, and with more life", with squash and stretch, anticipation, staging, slow in and slow out, secondary action and exaggeration; it was 2.4 s; the beats are in `src/screens/welcome/choreography.ts`):
+  1. **Staging and anticipation.** The closed diary holds; Pomo & Doro breathe, then crouch as it squashes under them and the cover leans back.
+  2. **The opening.** The cover swings open on its spine to one spread on one gutter (never a third panel). Its other side is the left page, which overshoots flat and settles. Pomo & Doro leap off it on parabolic arcs.
+  3. **The landing.** Pomo lands on the left page and Doro on the right, each with a squash, the pages giving under them. They hop towards each other, then dive into their faces, each at its face's position.
+  4. **The mark.** The spread takes them in with a bump and one burst of sparkles, and settles as the Same Page mark, on its identity-sheet clear space, where the diary was.
+  5. Then the line lands.
 - **Raises,** each named for its donor. All six catalog challengers were declined on both axes:
   - **One cord** (drawcord cape): every part of the morph runs off one progress value, so it reverses, or reduces to a crossfade for Reduce Motion, without a second choreography.
   - **Unbroken custody** (provenance ribbon): nothing appears from nowhere; every shape in the final mark comes from a shape in the first frame.
   - **Colour as event** (moiré gallery): strawberry and matcha are the only colour on the page, and they resolve into the mark's cocoa at one instant.
   - **Registration** (design annual plates): the mark lands on its clear space (X = a quarter of its height), and the line and Start align to that X.
   - **Same object** (HyperCard stack): Start doesn't push a screen; the page dissolves into the Timer tab.
-  - **Layered handover** (nixie counter): character and page are stacked at one position and hand over in a single crossfade, never a half-melted shape.
+  - **Layered handover** (nixie counter): character and page are stacked at one position and hand over in a single crossfade. Amended 2026-10-30 (F5): the character dives into its face, stretching and then shrinking as it fades, at that same position.
 
 ## 4. Scope and boundaries
 
@@ -48,7 +49,7 @@ The dealt lead, chosen by the owner on 2026-10-30. Of the seven structures (1 Th
 - **Unchanged:** the splash (the static mark), the cold-start path (the screen appears after the first interactive frame), the B2 migration, and every existing storage key.
 - **Anti-goals:**
   - no carousel, second beat, "what's new" list, permission prompt or sign-in
-  - no confetti, sparkle or bounce (the bounce belongs to the sticker placement)
+  - no confetti. Amended 2026-10-30 (F5): this screen had no sparkle or bounce, because the bounce belonged to the sticker placement. The owner asked for squash, stretch and exaggeration here, so the welcome has its own bounce and one burst of at most 12 sparkles as Pomo & Doro become the faces. The sticker placement keeps its own.
   - no tomato, clock or heart
   - no logo repeated after the screen closes
 
@@ -71,7 +72,10 @@ The dealt lead, chosen by the owner on 2026-10-30. Of the seven structures (1 Th
 
 - **Hierarchy:** the art, then the line, then Start.
 - **Start** is the same pill as Classic's primary (strawberry with a cocoa label, at least 54 pt), in thumb reach above the home indicator.
-- **Motion:** the morph is this screen's one delight. It uses ease-out curves with no overshoot. One light haptic may mark the moment the pages meet, following `settings.haptics`; whether it stays is decided on the device.
+- **Motion:** the morph is this screen's one delight, and it is shown once. Amended 2026-10-30 (F5); it was "ease-out curves with no overshoot":
+  - **Character animation:** squash and stretch about the feet, keyframes with slow in and slow out, parabolic arcs under constant gravity, overshoot and follow-through.
+  - **The rest stays UI motion:** the line lands with an ease-out.
+  - **The haptic:** one soft haptic on the frame Pomo lands, following `settings.haptics`; whether it stays is decided on the device.
 - **Exit:** Start fades the screen out over about 250 ms into the Timer tab.
 
 ## 7. Constraints and open decisions
@@ -79,7 +83,7 @@ The dealt lead, chosen by the owner on 2026-10-30. Of the seven structures (1 Th
 - **Platform:** iOS 16.4+. Reanimated on the UI thread. The morph never blocks Start (`motion.md`: "Let people cancel motion").
 - **Art:** the existing poses and mark versions (`art/out/`). Any in-between frame is made in VectorCraft through `scripts/art/build.mjs`, within budget.
 - **Copy:** EN and TR keys from D1.
-- **Open:** the final line copy (owner, `clarify`), and the pages-meet haptic (device check).
+- **Open:** the final line copy (owner, `clarify`), and the landing haptic (device check). The owner previews the choreography in `art/review/d1-welcome-choreography.html` before build 49.
 
 ## Direction contract
 

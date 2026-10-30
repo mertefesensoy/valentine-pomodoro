@@ -138,12 +138,14 @@ Every step of [DESIGN-WORKFLOW §2](../process/DESIGN-WORKFLOW.md#2-the-pipeline
   - `app.json` lists both files in the `expo-font` plugin's `fonts`.
   - `src/theme/type.ts` names the families and the roles. On Classic, the timer is the only Baloo 2 text (brief §7). Elsewhere, screen titles and sticker captions use it as well (ADR-0046).
   - `<TimerText>`'s style carries `fontFamily` and `fontVariant: ['tabular-nums']`. A test asserts both on the rendered element.
+  - **Bold Text (HIG D1-M4):** with iOS Bold Text on (`AccessibilityInfo.isBoldTextEnabled()` and its change event), the Baloo 2 roles step up from 500 to 600. The timer is already 600, the heaviest instance shipped. If the device check shows it reads light under Bold Text, `build-fonts.py` adds a 700 instance (about 58 KB).
 
 #### 3.2.4 The tab bar (HIG H-1, M-4, M-5)
 
 - **Colour:**
   - In the installed `expo-router` 58.0.28 types, `NativeTabs`' `tintColor` is documented `@platform android`.
-  - The iOS path is `iconColor={{ default: inkSoft, selected: primaryInk }}` plus `labelStyle={{ selected: { color: primaryInk } }}`, read from `useTheme()`, so the tab bar follows the theme.
+  - The iOS path is `iconColor={{ selected: primaryInk }}` plus `labelStyle={{ selected: { color: primaryInk } }}`, read from `useTheme()`, so the tab bar follows the theme.
+  - **The unselected colour is left to the system (HIG D1-M1).** On Liquid Glass, tab symbols and labels are monochrome and adapt to what is underneath (`color.md › Liquid Glass color`). A fixed `inkSoft` would break that.
   - `primaryInk` on the page is 5.75:1 (light) and 8.91:1 (dark), already in the gate.
 - **Icons:**
   - `<NativeTabs.Trigger.Icon src={…} renderingMode="template" />` with the filled `timer`, `stats`, `settings` and `notes` icons.
@@ -164,7 +166,11 @@ Every step of [DESIGN-WORKFLOW §2](../process/DESIGN-WORKFLOW.md#2-the-pipeline
   | 90/20 | 90 | 20 | 20 | The same |
 
   `longBreakEvery` stays as set (default 4), and the session engine is unchanged. The selected segment is derived from all three durations, and any other combination selects none ("Custom").
-- **The control is built, not the native module** (§5). It is a row of segments with `accessibilityRole="tab"` inside a `tablist`. Each segment reads in words ("25 minutes focus, 5 minutes break", M-3), is at least 44 pt tall, and wraps to two rows at accessibility sizes. On Start it crossfades into the cycle row in the same reserved height (brief §6).
+- **The control is built, not the native module** (§5).
+  - It is a row of equal-width segments that keeps the native control's sizing, placement and behaviour (`branding.md › Express your brand with familiar components`).
+  - **No tab role (HIG D1-M2):** tabs navigate, and a preset sets a value. Each segment is a button with `accessibilityState.selected`, its label in words ("25 minutes focus, 5 minutes break", M-3) and its position ("1 of 4").
+  - Each segment is at least 44 pt tall and wraps to two rows at accessibility sizes.
+  - On Start it crossfades into the cycle row in the same reserved height (brief §6).
 
 #### 3.2.6 The page: one component set, two layouts
 
@@ -207,7 +213,9 @@ The responsive rules are keyed to size classes (brief §6, HIG M-1). VoiceOver o
 
 #### 3.2.8 Overlays (brief §6)
 
-- **The love note becomes a native sheet:** an Expo Router `formSheet` route (`app/love-note.tsx`, small detent, the system's own sheet). The Timer screen opens it when the note is due and Timer is focused, and closing it calls `dismissLoveNote`. Whether it still closes by itself after 8 s is settled in the direction contract.
+- **The love note becomes a native sheet:** an Expo Router `formSheet` route (`app/love-note.tsx`, the system's own sheet). The Timer screen opens it when the note is due and Timer is focused, and closing it calls `dismissLoveNote`.
+  - **It stays until it is dismissed** (the direction contract; `accessibility.md › Minimize use of time-boxed interface elements`). It closes on a swipe down or its "Close" button.
+  - **It fits at every text size (HIG D1-M3):** a fitted detent plus a large one, with the grabber visible, and the note scrolls inside. A short title names the moment (`modality.md › Make it easy to identify a modal view's task`).
 - **"Goal reached" becomes an inline moment** on the today row. It is not a modal.
 - **The ad policy is unchanged:** the interstitial waits until the sheet has closed (FR-ADS-001). `timerScreenOverlays.test.tsx` keeps its three orderings, asserted on the new surfaces.
 

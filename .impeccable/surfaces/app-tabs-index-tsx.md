@@ -63,13 +63,14 @@ The owner chose two of the three dealt structures on 2026-10-30: "both of them s
   - **Feedback:** every press scales to 0.97 over 100–150 ms with a haptic on the same frame.
 - **Presets** (25/5, 50/10, 52/17, 90/20): a segmented control under the timer, **idle only**. On Start it crossfades into the cycle row (session 1–4) in the same reserved height, so nothing jumps.
   - **Each preset sets all three durations** (the owner, D1, 2026-10-30): 25/5 with a 15-minute long break, 50/10 with 30, and 52/17 and 90/20 with the long break equal to the short one. Durations that match no preset select none ("Custom").
-  - **The control is built, not `UISegmentedControl`** (D1). The native control can't speak each segment in words (M-3), can't wrap four Turkish labels at AX5, and can't crossfade into the cycle row in place. It keeps the native look: one track, a sliding selection, segments of equal width.
+  - **The control is built, not `UISegmentedControl`** (D1). The native control can't speak each segment in words (M-3), can't wrap four Turkish labels at AX5, and can't crossfade into the cycle row in place. It keeps the native look: one track, a sliding selection, segments of equal width. For VoiceOver, each segment is a button with a selected state, its words and its position ("1 of 4"). It is never a "tab": tabs navigate, and a preset sets a value (D1 HIG D1-M2).
 - **The mode button:** top right, 44 × 44 pt, the custom "modes" icon. It opens a native page sheet (medium detent) listing the modes as stickers: Classic, with its layout choice, and Fly; Garden, Room and Pet join in Phase 4.
 - **The timer is not a hidden control:** there is no tap or long-press on it. VoiceOver reads one element ("18 minutes 42 seconds left, focus, session 2 of 4") with the updates-frequently trait, not a spoken tick every second.
 - **VoiceOver order, both layouts:** the phase line, the timer, the partner slot (and in Facing Pages, your page before your partner's), today's row, then the controls. Facing Pages sets this order explicitly, because its spine card is drawn over both pages (HIG review M-2).
 - **Labels for icon-only and numeric controls:** the mode button reads "Modes"; each preset reads in words, "25 minutes focus, 5 minutes break" (HIG review M-3).
 - **Overlays:** the love note becomes a native sheet (small detent); "goal reached" becomes an inline moment; the interstitial keeps its policy and shows only after the completion sheet closes.
-  - **The love-note sheet stays until it is dismissed** (D1): a swipe down, or its close button. The v1 card closed itself after 8 s, but a self-closing sheet fails someone reading at a large text size (WCAG 2.2.1). FR-NTE-001 doesn't fix the timing.
+  - **The love-note sheet stays until it is dismissed** (D1): a swipe down, or its "Close" button. The v1 card closed itself after 8 s, but a self-closing sheet fails someone reading at a large text size (WCAG 2.2.1). FR-NTE-001 doesn't fix the timing.
+  - **The sheet fits at every text size:** a detent fitted to the note plus a large one, the grabber visible, the note scrolling inside, and a short title naming the moment (D1 HIG D1-M3).
 - **Motion:**
   - tab switches: none
   - phase change: the ring colour and Pomo & Doro's pose crossfade over 200–300 ms
@@ -86,7 +87,7 @@ The owner chose two of the three dealt structures on 2026-10-30: "both of them s
 
 - **Platform:** iOS 16.4+, the native tab bar; Liquid Glass only where the system draws it (the tab bar, sheets).
 - **The tab bar, from the HIG review:**
-  - **H-1:** the selected tab is strawberry (`primaryInk`: 5.75:1 light, 8.91:1 dark on the page), not system blue. In `expo-router` 58.0.28, `NativeTabs`' `tintColor` is Android-only, so iOS gets it through `iconColor` (selected) and the selected `labelStyle`.
+  - **H-1:** the selected tab is strawberry (`primaryInk`: 5.75:1 light, 8.91:1 dark on the page), not system blue. In `expo-router` 58.0.28, `NativeTabs`' `tintColor` is Android-only, so iOS gets it through `iconColor` (selected) and the selected `labelStyle`. The unselected colour stays the system's monochrome, which adapts on Liquid Glass (D1 HIG D1-M1).
   - **M-4:** the four tab icons ship as filled variants of the C3 set, as `tab-bars.md` prefers.
   - **M-5:** the controls clear the floating bar, because every tab sets `disableAutomaticContentInsets`. Inside `NativeTabs` the bottom safe-area inset already includes the bar (Phase 1 B6), so the bar's height isn't added a second time. Checked on the device.
   - **Scroll edge effect:** nothing is painted under the bar, so the system's effect stays, including when Facing Pages scrolls at accessibility text sizes. Checked on the device in D1.

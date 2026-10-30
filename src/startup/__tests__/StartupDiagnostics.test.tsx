@@ -1,4 +1,5 @@
 import { Share, Text } from 'react-native';
+import * as Application from 'expo-application';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { appStorage } from '../../utils/appStorage';
 import { MIGRATION_DONE, MIGRATION_FLAG_KEY } from '../../utils/storageMigration';
@@ -48,6 +49,25 @@ describe('the hidden start-up panel', () => {
 
         await fireEvent(screen.getByText(LINE), 'longPress');
         expect(screen.queryByText(/Start-up probe/)).toBeNull();
+    });
+
+    it('compares the arms from the probe start even when no row passed the clock check', async () => {
+        const build = Application.nativeBuildVersion ?? null;
+        const row = (id: number, arm: 'deferred' | 'eager', interactive: number) => ({
+            v: 1, id, arm, trigger: arm === 'eager' ? 'eager' : 'idle', version: '1.4.0', build,
+            migrated: true, appState: 'inactive', clockOk: false,
+            marks: { probeInit: 0, firstLayout: interactive - 20, interactive },
+        });
+        appStorage.set(STARTUP_PROBE_KEY, JSON.stringify([
+            row(1, 'deferred', 300), row(2, 'eager', 340), row(3, 'deferred', 310), row(4, 'eager', 360),
+        ]));
+        await renderLine();
+        await fireEvent(screen.getByText(LINE), 'longPress');
+
+        expect(screen.getByText(/^Deferred: n 2 · median 305/)).toBeOnTheScreen();
+        expect(screen.getByText(/^Eager: n 2 · median 350/)).toBeOnTheScreen();
+        expect(screen.getByText(/^Eager − deferred: Δ median 45 ms/)).toBeOnTheScreen();
+        expect(screen.getByText(/no row passed the clock check/)).toBeOnTheScreen();
     });
 
     it('sets the arm for the next launches, clears the runs and shares them', async () => {

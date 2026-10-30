@@ -364,16 +364,32 @@ describe('clean runs (record §4.3)', () => {
     it('accepts a complete launch of the build under test', () => {
         expect(probe.isCleanRun(clean, '46')).toBe(true);
         expect(probe.isCleanRun({ ...clean, arm: 'eager', trigger: 'eager' }, '46')).toBe(true);
-        expect(probe.ttiOf(clean)).toBe(640);
-        expect(probe.ttiPlusOf(clean)).toBe(642);
-        expect(probe.ttiPlusOf({ ...clean, marks: { interactive: 640 } })).toBe(640);
+        // iOS may still say `inactive` while a cold launch becomes active.
+        expect(probe.isCleanRun({ ...clean, appState: 'inactive' }, '46')).toBe(true);
+    });
+
+    it('measures TTI from the bundle start when the clock check passed, and from the probe start always', () => {
+        expect(probe.ttiOf(clean, 'jsStart')).toBe(640);
+        expect(probe.ttiOf(clean, 'probeInit')).toBe(340);
+        expect(probe.ttiPlusOf(clean, 'jsStart')).toBe(642);
+        expect(probe.ttiPlusOf(clean, 'probeInit')).toBe(342);
+        expect(probe.ttiPlusOf({ ...clean, marks: { probeInit: 300, interactive: 640 } }, 'probeInit')).toBe(340);
+        expect(probe.ttiOf({ ...clean, marks: { probeInit: 300 } }, 'probeInit')).toBeNull();
+    });
+
+    it('a failed clock check keeps the run, with no bundle-relative TTI', () => {
+        // Without the native marker the marks are relative to the probe's start.
+        const noClock = { ...clean, clockOk: false, marks: { probeInit: 0, firstLayout: 320, interactive: 340, drainEnd: 342 } };
+        expect(probe.isCleanRun(noClock, '46')).toBe(true);
+        expect(probe.ttiOf(noClock, 'jsStart')).toBeNull();
+        expect(probe.ttiPlusOf(noClock, 'jsStart')).toBeNull();
+        expect(probe.ttiOf(noClock, 'probeInit')).toBe(probe.ttiOf(clean, 'probeInit'));
     });
 
     it.each([
-        ['the clock check failed', { clockOk: false }],
         ['the one-time migration ran', { migrated: false }],
         ['no interactive mark', { marks: { probeInit: 300, firstLayout: 620 } }],
-        ['not active at the interactive mark', { appState: 'background' }],
+        ['it went to the background before the interactive mark', { appState: 'background' }],
         ['the first-frame signal was missing', { trigger: 'fallback' as const }],
         ['another build', { build: '45' }],
         ['no arm', { arm: null }],

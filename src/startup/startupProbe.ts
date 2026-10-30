@@ -35,7 +35,7 @@ export type ProbeRow = {
     migrated: boolean;
     /** AppState when the interactive mark was taken. */
     appState: string | null;
-    /** The bundle-start marker passed the plausibility check (§4.1); marks are relative to it. */
+    /** The bundle-start marker exists and passed the plausibility check (§4.1); marks are then relative to it. */
     clockOk: boolean;
     /** ms since the bundle started (or since this module evaluated, when !clockOk), 0.1 ms resolution. */
     marks: Record<string, number>;
@@ -177,27 +177,44 @@ function persist(): void {
     saveSync(STARTUP_PROBE_KEY, rows.slice(-MAX_PROBE_ROWS));
 }
 
-/** TTI = I − b₀ (§4.1), or null when the launch has no interactive mark. */
-export function ttiOf(row: ProbeRow): number | null {
-    return row.marks.interactive ?? null;
+/**
+ * Where a TTI is measured from (record §4.1):
+ * - `jsStart`, b₀, the bundle's start: the absolute number for NFR-PERF-001,
+ *   defined only when the row passed the clock check;
+ * - `probeInit`, p₀, this module's first evaluation: always defined, and the
+ *   two arms run identical code up to it, so it is what they are compared on.
+ */
+export type TtiOrigin = 'jsStart' | 'probeInit';
+
+function fromOrigin(row: ProbeRow, at: number | undefined, origin: TtiOrigin): number | null {
+    if (at === undefined) return null;
+    if (origin === 'jsStart') return row.clockOk ? at : null;
+    return at - (row.marks.probeInit ?? 0);
 }
 
-/** TTI⁺ = max(I, D) − b₀: also charges the deferred arm for its own synchronous work. */
-export function ttiPlusOf(row: ProbeRow): number | null {
+/** TTI = I − origin (§4.1), or null when the launch has no interactive mark or no such origin. */
+export function ttiOf(row: ProbeRow, origin: TtiOrigin): number | null {
+    return fromOrigin(row, row.marks.interactive, origin);
+}
+
+/** TTI⁺ = max(I, D) − origin: also charges the deferred arm for its own synchronous work. */
+export function ttiPlusOf(row: ProbeRow, origin: TtiOrigin): number | null {
     const i = row.marks.interactive;
     if (i === undefined) return null;
-    return Math.max(i, row.marks.drainEnd ?? i);
+    return fromOrigin(row, Math.max(i, row.marks.drainEnd ?? i), origin);
 }
 
 /**
  * The exclusion rules of the B7 record §4.3, fixed before measuring. A row is
- * a clean run of `build` when none of them applies.
+ * a clean run of `build` when none of them applies. A failed clock check
+ * doesn't exclude a row: it only has no `jsStart` TTI (ttiOf returns null).
  */
 export function isCleanRun(row: ProbeRow, build: string | null): boolean {
-    if (!row.clockOk) return false;
     if (!row.migrated) return false;
     if (row.marks.interactive === undefined) return false;
-    if (row.appState !== 'active') return false;
+    // Only a launch that went to the background is out: iOS may still report
+    // `inactive` while a cold launch is becoming active.
+    if (row.appState === 'background') return false;
     if (row.arm === 'deferred' && row.trigger === 'fallback') return false;
     if (row.build !== build) return false;
     return row.arm === 'deferred' || row.arm === 'eager';

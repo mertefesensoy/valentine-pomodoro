@@ -26,7 +26,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | Critique 31 → **35/40**; audit **16/20**; HIG Good, no Critical; motion clean after fixes (§3.12) | Critique **30/32**; audit **19/20**; HIG Good, no Critical; motion clean (§3.12) |
 | 5. `break-ui` (TR at AX5) | 2 Broken and 1 Ugly fixed; 2 Fragile noted (§3.13) | 1 Broken fixed (§3.13) |
 | 6. `polish`, `harden`, `clarify` | Done (§3.12–3.13); the Turkish copy waits for the owner's review | Done; the Turkish copy waits for the owner's review |
-| 7. Device check, build 48 | The owner's OK, 2026-10-30: "Build, submit and tag"; build pending | The same |
+| 7. Device check, build 48 | Build 48 on EAS from `61fd06e` (§3.15); waiting for the owner's device check | The same build |
 | FINISH (both contracts): the finish review, its verdict, DESIGN.md | **Pending:** after the device check, with the owner's iPhone screenshots as the evidence | **Pending:** the same |
 
 **FINISH is not yet discharged.** Each direction contract ends with "this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance". That waits for evidence this machine can't make:
@@ -416,6 +416,17 @@ There is no overshoot anywhere. A light haptic fires as p passes 0.6 (`useAnimat
 - **The Turkish copy:** "On the device, build 48". The owner sends corrections from the device check.
 
 **The goal moment's order, as put to the owner.** The confirmed brief lists the sticker placement, then the love-note sheet, then "goal reached" inline. The build keeps the screen's existing order (§3.9): the goal moment with the placement, then the note, then the ad. Placed after the note, "goal reached" would appear only once the note was dismissed, cut off from the completion that caused it.
+
+### 3.15 Build 48 (the owner's OK, 2026-10-30: "Build, submit and tag")
+
+| Item | Value |
+|---|---|
+| Commit | `61fd06e` on `phase1/stage-d` (the branch stays unpushed; EAS uploads the committed tree) |
+| Command | `eas build --platform ios --profile production --non-interactive --no-wait --auto-submit` |
+| Version and build | 1.4.0 (48); EAS incremented the remote build number from 47 to 48 |
+| EAS build | `59a5248c-75d0-4da5-be80-30e38c976e60` |
+| TestFlight submission | `72b11e9c-7286-4d2d-891e-90af2b1679af`, scheduled for when the build finishes |
+| Tag | `v1.4.0-tf.48` on `61fd06e`, pushed by commit ID once the build has succeeded |
 
 ## 4. Mathematical / Statistical Details
 

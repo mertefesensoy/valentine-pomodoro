@@ -51,6 +51,7 @@ As built: `src/theme/tokens.ts` carries cream, cherry red and lavender in `Light
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Theme tokens in one JSON file, proved by a blocking contrast gate](0045-theme-tokens-and-contrast-gate.md)
 - [Architecture decision records](README.md)
 - ["Phase 1 Stage C (C1–C4): the Sticker Diary design system, display face, Classic brief and art"](../../implementations/2026-10-30-phase1-stage-c-design.md)
 <!-- backlinks:end -->

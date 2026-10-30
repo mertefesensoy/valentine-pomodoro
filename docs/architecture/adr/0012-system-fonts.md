@@ -44,6 +44,7 @@ As built: no `fontFamily` appears anywhere in `src/`. The one custom font in the
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Baloo 2 for the timer, headings and sticker captions; the system face for everything else](0046-display-face-baloo-2.md)
 - [Architecture decision records](README.md)
 - ["Phase 1 Stage C (C1–C4): the Sticker Diary design system, display face, Classic brief and art"](../../implementations/2026-10-30-phase1-stage-c-design.md)
 <!-- backlinks:end -->

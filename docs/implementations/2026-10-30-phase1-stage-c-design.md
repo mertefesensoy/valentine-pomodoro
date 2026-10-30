@@ -137,9 +137,16 @@ Plus each folder's `OFL.txt` and `METADATA.pb`. **`ofl/mplusrounded1c/` has no `
 - **The specimen** is `art/review/c2-type-specimen.html` (227 KB, the subsets embedded as WOFF2; the first build embedded TTF data under a WOFF2 label, because fontTools applies the flavour only when it is set on the font, and that was fixed before the owner's phone could choke on it), rebuilt with `python -P art/type/build-specimen.py --fonts C:/vp/fonts --out art/review/c2-type-specimen.html`. Per face: the live timer at its display weight with tabular figures, a four-reading jiggle strip, an upper-case Turkish heading with İ, a sentence with ı ğ ş ö, the casing pairs, the `fi` line, an English heading, two sticker captions, and the audited facts. It follows the C1 tokens: Strawberry Milk, or Midnight Plum in dark mode.
 - **Recommendation: Baloo 2, embedded with D1.** Of the owner's three, it is the one that passes and has a voice of its own: its captions and timer read like stickers. M PLUS Rounded 1c is the calm alternative (no prop needed for steady digits, but plainer Latin and a wide colon, 394–418 units, that opens a gap in the timer). Nunito passes but is one of the most-used rounded faces in app and dashboard templates. Baloo 2's steady digits depend on `fontVariant: ['tabular-nums']` reaching Core Text, which D1's device check confirms on the iPhone.
 
-### 2.3 C3, part 1 (2026-10-30): the logo concepts in black and white, waiting for the owner's pick
+### 2.3 C3, part 1 (2026-10-30): the logo concepts in black and white; the owner chose Same Page, with The Colon's characters
 
-Run before C4, as the owner agreed (§3.1), because the design skills still don't resolve in this session.
+Run before C4, as the owner agreed (§3.1), because the design skills didn't yet resolve in this session.
+
+**Gate (2026-10-30), the owner's words:** "We will use the logo of the Same Page and the mascots of The Colon. We will have many animations with pomo and doro and one of them is that they turn themselves into pages and creates the logo design of the Valentine Pomodoro."
+- **The mark: Same Page.** It goes into colour, then the app icon, the splash and the mark in context.
+- **Pomo & Doro: The Colon's two round characters.** They are designed in C3 with the five sticker poses, and they must differ in silhouette, not by a gendered cue.
+- **One face for both:** the characters and the mark share the same eyes and smile, so the signature animation (the two of them turning into the two pages and forming the mark) reads as one continuous move. Where it plays is a D-stage motion decision, under the rules in [ADR-0047](../architecture/adr/0047-same-page-mark-and-the-colon-characters.md).
+- **ADRs written:** [ADR-0045](../architecture/adr/0045-theme-tokens-and-contrast-gate.md) (tokens and the contrast gate, supersedes ADR-0013), [ADR-0046](../architecture/adr/0046-display-face-baloo-2.md) (Baloo 2, partly supersedes ADR-0012) and ADR-0047 (the mark, the characters, no tomato).
+- **After the move into the worktree, `/impeccable` and `/apple-design` resolve** (the session's directory changed to `C:\vp\stage-c` at the end of the previous turn), so C4 runs next.
 
 **The pipeline is built and reproducible.** `scripts/art/build.mjs` turns each job in `art/jobs/` into one command list per asset, `art/steps/<id>.steps.json`, and runs it headless with `vectorcraft-cli run` in `C:/vp-art`. The steps select all, expand strokes into fills, save the editable `art/vc/<id>.vectorcraft`, export `art/out/<kind>/<id>.svg` (2 decimals, outlined text, minified) and one PNG per size.
 - **The expand step** is included only when `object.expand.info` finds work: VectorCraft refuses an expand that changes nothing.
@@ -335,22 +342,35 @@ Ready-to-paste text, applied by the merging session. Filled in as each task land
 
 **ADR-0027**, a status note: "VectorCraft is 0.18.0 as of 2026-10-30 (the Stage C record §0); the pipeline is unchanged."
 
-**ADR-0013**, a status note, when the ADR for the token set (≥ 0045) is written: "Superseded by ADR-00NN: the Strawberry Milk and Midnight Plum token sets, approved by the owner on 2026-10-30 (option A), checked by `npm run check:contrast` in CI."
+**ADR index (`docs/architecture/adr/README.md`)**, three rows after ADR-0043 (ADR-0044 is left to the session that reserved it):
 
-**The no-tomato decision (§0), 2026-10-30.** Final wording waits for the owner's pick of the characters; these are the lines it changes:
+```markdown
+| [ADR-0045](0045-theme-tokens-and-contrast-gate.md) | Theme tokens in one JSON file, proved by a blocking contrast gate | accepted | 2026-10-30 |
+| [ADR-0046](0046-display-face-baloo-2.md) | Baloo 2 for the timer, headings and sticker captions; the system face for everything else | accepted | 2026-10-30 |
+| [ADR-0047](0047-same-page-mark-and-the-colon-characters.md) | The Same Page mark, Pomo & Doro as The Colon's two round characters, and no tomato anywhere | accepted | 2026-10-30 |
+```
+
+**ADR-0013**, front-matter `status: superseded`, `superseded_by: [ADR-0045]`, and the status note: "Superseded by ADR-0045: the Strawberry Milk and Midnight Plum token sets, approved by the owner on 2026-10-30 (option A), checked by `npm run check:contrast` in CI."
+
+**ADR-0012**, the status note: "Superseded for the timer, headings and sticker captions by ADR-0046 (Baloo 2, embedded with D1). Body text stays the system face."
+
+**The no-tomato decision (§0) and the characters (§2.3, ADR-0047), 2026-10-30.** These are the lines they change:
 
 | Where | Today | Replace with |
 |-------|-------|--------------|
-| `PRODUCT.md`, Brand Commitments (through `/impeccable`) | "A kawaii tomato couple, binding. *Pomodoro* is Italian for tomato, so the mascots are two small original tomatoes, **Pomo & Doro**…" | "**A kawaii couple of two, binding; no tomato anywhere** (owner, 2026-10-30). The mascots are two small original characters, working names **Pomo & Doro**, chosen with the logo in Phase 1 C3. They star in every mode and in the app icon. No tomato, clock or heart in the mark or the art, the category's habits." |
+| `PRODUCT.md`, Brand Commitments (through `/impeccable`) | "A kawaii tomato couple, binding. *Pomodoro* is Italian for tomato, so the mascots are two small original tomatoes, **Pomo & Doro**…" | "**A kawaii couple of two, binding; no tomato anywhere** (owner, 2026-10-30, ADR-0047). The mascots are **Pomo & Doro**, two small round characters who are, together, the colon in the timer. The mark is **Same Page**: two pages of one open diary, each with a face, leaning in. The characters and the mark share one face, and the two of them can turn into the two pages and form the mark. No tomato, clock or heart in the mark or the art: those are the category's habits." |
 | `PRODUCT.md`, Undecided; SRS §6 open-decisions row; ADR-0020 TBD | Candidates "Pomo Pair, Tomatwo, Pomo & Doro, Two Tomatoes" | Add: "Tomatwo and Two Tomatoes conflict with the no-tomato direction (2026-10-30)." |
-| `DESIGN.md` description, line 4 (through `/impeccable`) | "Pomo & Doro, two little tomatoes, keep a sticker diary…" | "Pomo & Doro, two little original characters, keep a sticker diary…" |
+| `DESIGN.md` description, line 4 (through `/impeccable`) | "Pomo & Doro, two little tomatoes, keep a sticker diary…" | "Pomo & Doro, two little round characters, keep a sticker diary…" |
 | `DESIGN.md` pinned-direction note, line 9 | "The kawaii tomato-couple direction" | "The kawaii couple direction (no tomato, owner 2026-10-30)" |
-| `DESIGN.md` North Star, line 15 | "Pomo & Doro, two small original tomatoes, are drawn as stickers… ripe garden tomato…" | "Pomo & Doro, two small original characters, are drawn as stickers… a ripe garden harvest…" |
+| `DESIGN.md` North Star, line 15 | "Pomo & Doro, two small original tomatoes, are drawn as stickers… ripe garden tomato…" | "Pomo & Doro, two small round characters (together they make the timer's colon), are drawn as stickers… a ripe garden harvest…" |
 | `DESIGN.md` Colors, Secondary | "**Tomato Red:** the accent of the brand and the mascots" | "**Accent Red:** the brand's accent" (the hex values are in `src/theme/palette.json`) |
 | Rehaul plan §3.1, §3.3 (Shared Garden "grows plants and tomatoes"), §5.2 ("tomato-red accent") | Tomato wording | Point at this record's §0; the garden grows plants without tomatoes. |
 | Phase 1 plan, C3 row | (no tomato wording; "Pomo & Doro as stickers") | Add: "Characters chosen with the logo; no tomato (owner, 2026-10-30)." |
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Theme tokens in one JSON file, proved by a blocking contrast gate](../architecture/adr/0045-theme-tokens-and-contrast-gate.md)
+- [Baloo 2 for the timer, headings and sticker captions; the system face for everything else](../architecture/adr/0046-display-face-baloo-2.md)
+- [The Same Page mark, Pomo & Doro as The Colon's two round characters, and no tomato anywhere](../architecture/adr/0047-same-page-mark-and-the-colon-characters.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

@@ -383,7 +383,7 @@ Install over build 46. Items are numbered as above; B7's are from its record §6
 
 1. **No flicker on switching tabs.** Switch between all four tabs several times, quickly and slowly, then again during a running session. Each tab appears at once with its content: no blank or background-coloured frame, including the first time a tab is opened right after launch.
 2. **Notes in light mode:** the tab bar stays light when you switch to Notes and while you scroll Notes to its top and bottom. (Dark mode: it stays dark.)
-4. **The Stats banner:** open Stats and wait up to 10 s; the banner shows above the tab bar. **Then, either way,** open Settings → About, long-press "Made with ❤️" for 1.5 s, and report the panel's "Stats banner (this launch)" line exactly: `loaded W×H` with "above the tab bar" is a pass; `failed: googleMobileAds/…` gives the SDK's reason; "reaches under the tab bar" means it loaded but sits behind the bar.
+4. **The Stats banner:** open Stats and wait up to 10 s; the banner shows above the tab bar. **Then, either way,** open Settings → About, long-press "Made with ❤️" for 1.5 s, and report the panel's "Stats banner (this launch)" line exactly: `loaded W×H` with "above the tab bar" is a pass; `failed: googleMobileAds/…` gives the SDK's reason; "reaches under the tab bar" means it loaded but sits behind the bar. If the line has no "bottom … / bar top …" part, Stats was never measured on screen: open Stats again and re-read.
 5. **The timer still ticks** in Classic and Fly after switching to another tab and back; the ring keeps moving.
 8. **B4 §3.5's behaviour, now from focus gates:** set Focus to 1 minute and the daily goal to 1 minute, start, switch to Stats, wait for it to end. Stats shows the credit; **no popup, love note or ad appears over Stats.** Return to Timer: the goal popup, then the love note, then (when the ad policy allows) the interstitial.
 9. **DEF-004 (cold-start completion):** start a 1-minute focus, kill the app, wait 2 minutes, relaunch: credited once. Then the same, relaunching with `valentinepomodoro://stats`: the credit appears on Stats within a few seconds (Timer now renders at start-up idle), with no popup over Stats; opening Timer shows the popup and love note once.
@@ -597,6 +597,10 @@ Build 46 failed two device checks (§6.6), and one more problem surfaced:
 
 As planned, with one change, made while testing. Item 3's hooks don't use `navigation.isFocused()`: under Expo Router 58 it can be stale during render (the router warns as much), and a router test caught `useScreenFocused` missing a blur. Both hooks read the router's `IsFocusedContext` instead: the value its own `useIsFocused()` reads, provided per route by its `NavigationProvider`, correct during render, and updated by the navigator. It isn't re-exported, so it is imported from the package's build path (`expo-router/build/react-navigation/core/useIsFocused`), which the package's `exports` allow; an upgrade that moves it fails at build time. `useHasBeenFocused` latches by adjusting its state during render (React's pattern for remembering a past value), and `LazyTab` is `useHasBeenFocused() || startupIdle`, with no navigation listener of its own.
 
+Two details checked after the build:
+- **A celebration that loses focus while showing** (a notification tap or a deep link; its `Modal` blocks the tab bar) becomes invisible, and `GoalReachedPopup`'s effect cleanup clears its auto-dismiss timer when `visible` changes. So it doesn't close itself unseen: it shows again, timer restarted, when Timer is back.
+- **The banner's position is measured only while Stats is focused:** on focus, on the container's layout, and when the ad loads or fails, since a failed load changes no layout. A zero-height measurement is ignored. Without this, the pre-render's layout, taken while the tab was out of the window, could have shown as a stale "above the tab bar".
+
 1. **`FreezeOnBlur` is replaced by `LazyTab`, a latch that never hides.** A tab renders nothing until its route is first focused, or until start-up has gone idle after B7's interactive mark, whichever comes first. From then on it always renders its screen; nothing hides it again.
    - **Initial state:** `navigation?.isFocused() ?? true`, through the router's `NavigationContext` (the import `useSlotClock` already uses). Outside a navigator it renders at once.
    - **Latching:** a `focus` listener and the start-up callback, both subscribed in an effect, each `setState` only inside its callback (`react-hooks/set-state-in-effect` is at `error`).
@@ -648,7 +652,7 @@ node scripts/startup-modules.js <scratch>/_expo/static/js/ios/index-<hash>.js
 ```
 
 - [x] **Typecheck** clean. **Lint: 0 errors, 38 warnings**, the same count as at `c628453`; no new file has a warning.
-- [x] **Jest: 211 passed, 34 suites** (at `c628453`: 197 in 33). Router tests 13 → 17; 5 scheduler tests; `statsBanner.test.tsx` (5) is new; the panel test gains two assertions.
+- [x] **Jest: 212 passed, 34 suites** (at `c628453`: 197 in 33). Router tests 13 → 17; 5 scheduler tests; `statsBanner.test.tsx` (6) is new; the panel test gains two assertions.
 - [x] **The guards:** `timerTextTicks`, both `timerScreenTicks` tests and `flyModeGuard` pass, and so do the "fires completion exactly once" test and the three DEF-004 tests. No guard assertion changed. `timerScreenOverlays.test.tsx` passes unchanged: it renders Timer without a navigator, where the gate is open.
 - [x] **The guards' mutation check:** without the clock store's notification of a changed second, the three timer guards fail at 24:59 (`timerTextTicks.test.tsx:43`, `timerScreenTicks.test.tsx:85`, `:112`). Restored byte-identical (sha256).
 - [x] **Reassure,** baseline re-taken at `c628453` in this worktree, then the tip; every count identical across its 3 runs:
@@ -767,7 +771,7 @@ Tabs are still loaded only when first opened or once start-up has gone idle, and
 - **Stage B:** TestFlight build 46 flickered on every tab switch, and could turn the tab bar dark on Notes: the native tab bar shows a tab before JavaScript unfreezes it. Tabs are no longer frozen; a hidden Timer holds its celebration, love note and interstitial until it is shown again, as before (1fc37d8). The Stats banner now loads only once Stats has been opened, and B7's hidden panel shows its load result, since build 46 showed no banner (16a6752; DEF-009).
 ```
 
-3. In the Stage B tests bullet under "Added": replace "deep links, frozen tabs, the tab haptic" with "deep links, tabs that never hide and the held overlays (since the fix, 1fc37d8), the tab haptic"; after "(6ab3953, 8c6bf3d, c4c6ab5, e0e8f26)" add "; the tabs' pre-render order and the banner's status (1fc37d8, 16a6752)"; and replace "and 197 in 33 with B6 and B7 merged." with "197 in 33 with B6 and B7 merged, and 211 in 34 with the B6 fix."
+3. In the Stage B tests bullet under "Added": replace "deep links, frozen tabs, the tab haptic" with "deep links, tabs that never hide and the held overlays (since the fix, 1fc37d8), the tab haptic"; after "(6ab3953, 8c6bf3d, c4c6ab5, e0e8f26)" add "; the tabs' pre-render order and the banner's status (1fc37d8, 16a6752)"; and replace "and 197 in 33 with B6 and B7 merged." with "197 in 33 with B6 and B7 merged, and 212 in 34 with the B6 fix."
 
 **ADR index:** no change. ADR-0043 keeps its title and status; its amendment is in the record.
 

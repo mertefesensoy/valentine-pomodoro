@@ -5,7 +5,6 @@ import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useTimer } from "../hooks/useTimer";
 import TimerText from "../components/TimerText";
-import ModeSwitcher from "../components/ModeSwitcher";
 import { Icon } from "../components/icons/Icon";
 import { modes as modesGlyph } from "../components/icons/art/modes";
 import { PressableScale } from "../components/ui/PressableScale";
@@ -18,7 +17,7 @@ import { useUiStore } from "../stores/uiStore";
 import { useLoveNoteSheet } from "../stores/loveNoteSheetStore";
 import { useTheme } from "../theme/useTheme";
 import { type } from "../theme/type";
-import { minTarget, space } from "../theme/layout";
+import { edgeWidth, minTarget, space } from "../theme/layout";
 import { useScreenFocused } from "../hooks/useScreenFocus";
 import { AdManager } from "../ads/AdManager";
 import { AdPolicy } from "../ads/AdPolicy";
@@ -89,7 +88,6 @@ export default function TimerScreen() {
   const goalHitToday = useStatsStore((s) => Boolean(s.days[getTodayKey()]?.goalHit));
   const pickRandomNote = useNotesStore((s) => s.pickRandomNote);
   const activeMode = useUiStore((s) => s.activeMode);
-  const setActiveMode = useUiStore((s) => s.setActiveMode);
   // Session state and actions: re-renders on session changes, not each second.
   // The time is <TimerText>'s and the ring's (Phase 1 B4).
   const session = useSessionState();
@@ -432,15 +430,23 @@ export default function TimerScreen() {
 
       {activeMode === 'fly' ? (
         // ── Fly Mode ─────────────────────────────────────────────────────────
-        // FlyModeScreen fills all space; ModeSwitcher floats over the map. The
-        // switcher sits outside Suspense, so Classic stays reachable while Fly loads.
+        // FlyModeScreen fills all space; the Modes button floats over the map,
+        // the same button and sheet as Classic's, so the way in is the way back
+        // (build 48, F3). It sits outside Suspense, so Classic stays reachable
+        // while Fly loads (ADR-0031), and at the top leading corner, on a paper
+        // chip the size of Fly's compass, which holds the trailing one.
         <View style={styles.flyContainer}>
           <Suspense fallback={<FlyModePlaceholder />}>
             <FlyModeScreen />
           </Suspense>
-          <View style={[styles.flyModeSwitcherBar, { top: insets.top + 8 }]}>
-            <ModeSwitcher activeMode={activeMode} onModeChange={setActiveMode} />
-          </View>
+          <PressableScale
+            onPress={() => router.push('/modes')}
+            haptic={false}
+            accessibilityLabel={t('modes.button')}
+            style={[styles.flyModeButton, { top: insets.top + 12, backgroundColor: tokens.paper, borderColor: tokens.edge }]}
+          >
+            <Icon glyph={modesGlyph} size={24} color={tokens.ink} />
+          </PressableScale>
         </View>
       ) : (
         // ── Classic ──────────────────────────────────────────────────────────
@@ -515,12 +521,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  flyModeSwitcherBar: {
+  flyModeButton: {
     position: 'absolute',
     // top is inset-aware and set inline
-    left: 0,
-    right: 0,
+    left: 12,
+    width: minTarget,
+    height: minTarget,
+    borderRadius: minTarget / 2,
+    borderWidth: edgeWidth,
     alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 100,
   },
   scroll: {

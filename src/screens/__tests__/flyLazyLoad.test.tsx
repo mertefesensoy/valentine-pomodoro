@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { router } from 'expo-router';
 import { StoreGate } from '../../stores/StoreGate';
 import { useUiStore } from '../../stores/uiStore';
 import { save, STORAGE_KEYS } from '../../utils/storage';
@@ -21,6 +22,11 @@ import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 // tests assert doesn't depend on time, so a longer limit doesn't weaken them.
 // Same remedy as timerScreenTicks.test.tsx.
 jest.setTimeout(30_000);
+
+jest.mock('expo-router', () => ({
+    ...jest.requireActual('expo-router'),
+    router: { push: jest.fn(), back: jest.fn(), canGoBack: () => true },
+}));
 
 const mockFlyModuleEvaluated = jest.fn();
 jest.mock('../FlyModeScreen', () => {
@@ -85,7 +91,10 @@ describe('Fly Mode is loaded lazily (B1)', () => {
 
         expect(await screen.findByText('Fly Mode stub')).toBeOnTheScreen();
         expect(mockFlyModuleEvaluated).toHaveBeenCalledTimes(1);
-        // The switcher floats outside the Suspense boundary, so Classic stays reachable.
-        expect(screen.getByLabelText('Switch to default mode')).toBeOnTheScreen();
+        // The way back is the way in (build 48, F3): the Modes button, outside the Suspense
+        // boundary so Classic stays reachable while Fly loads, opens the same /modes sheet.
+        await fireEvent.press(screen.getByLabelText('Modes'));
+        expect(router.push).toHaveBeenCalledWith('/modes');
+        expect(screen.queryByText(/Default/)).toBeNull();
     });
 });

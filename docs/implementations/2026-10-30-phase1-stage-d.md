@@ -441,7 +441,14 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 | [Phase 1 Stage D plan](implementations/2026-10-30-phase1-stage-d.md) | In progress: D1–D4, the screens in the Sticker Diary design |
 ```
 
-**`docs/roadmap/ROADMAP.md`**, the status board: Phase 1 Stage D → in progress (2026-10-30). Per-task rows are added here as each task lands.
+**`docs/README.md`**, the implementation records table, at the top (one row per task record):
+
+```markdown
+| 2026-10-30 | [Phase 1 D1: Classic rebuilt in the Sticker Diary design, with the v1.4 welcome screen](implementations/2026-10-30-phase1-d1-classic.md) |
+```
+
+**`docs/roadmap/ROADMAP.md`**, the status board: Phase 1 Stage D → in progress (2026-10-30). Per-task rows:
+- **D1:** in progress (2026-10-30). The Classic direction contract is written; the welcome screen is being shaped.
 
 **SRS** status changes: each is added here when its task lands.
 
@@ -453,5 +460,6 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 
 ## Backlinks
 <!-- backlinks:start -->
+- ["Phase 1 D1: Classic rebuilt in the Sticker Diary design, with the v1.4 welcome screen"](2026-10-30-phase1-d1-classic.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

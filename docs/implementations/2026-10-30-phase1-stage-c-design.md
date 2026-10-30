@@ -518,6 +518,7 @@ node scripts/docs/check-docs.mjs --write && node scripts/docs/check-docs.mjs
 - [Baloo 2 for the timer, headings and sticker captions; the system face for everything else](../architecture/adr/0046-display-face-baloo-2.md)
 - [The Same Page mark, Pomo & Doro as The Colon's two round characters, and no tomato anywhere](../architecture/adr/0047-same-page-mark-and-the-colon-characters.md)
 - [2026-10-29 — Phase 1 (v1.4): design system and local re-architecture, plan](2026-10-29-phase1-plan.md)
+- ["Phase 1 D1: Classic rebuilt in the Sticker Diary design, with the v1.4 welcome screen"](2026-10-30-phase1-d1-classic.md)
 - ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](2026-10-30-phase1-stage-d.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

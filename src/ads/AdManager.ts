@@ -1,27 +1,46 @@
 import { InterstitialAd, AdEventType, TestIds, MobileAds } from 'react-native-google-mobile-ads';
 import { AdPolicy } from './AdPolicy';
 import { INTERSTITIAL_ID } from './AdConfig';
+import { runAfterFirstFrame } from '../startup/deferredStartup';
+import { markStartup } from '../startup/startupProbe';
 
 let _interstitial: InterstitialAd | null = null;
 let _isLoaded = false;
 let _isLoading = false;
+let _initDone: Promise<void> | null = null;
+
+// Start the SDK, load the policy, preload the first interstitial. Never rejects.
+async function initNow(): Promise<void> {
+    try {
+        await MobileAds().initialize();
+        await AdPolicy.init();
+
+        // Preload the first ad
+        AdManager.preload();
+
+        if (__DEV__) console.log('[AdManager] Initialized');
+    } catch (e) {
+        console.warn('[AdManager] Init failed', e);
+    }
+}
 
 export const AdManager = {
     /**
      * Initialize SDK and Policy. Call once at app launch.
+     *
+     * Phase 1 B7: the work waits for the first frame (src/startup/deferredStartup.ts),
+     * so the call site stays where it is. The returned promise resolves once
+     * it has run. A second call returns the same promise: one start per launch.
+     * The interstitial is still loaded long before the 2nd completed session
+     * (FR-ADS-001): the deferral is at most ~11 s (B7 record §3.2).
      */
-    async init(): Promise<void> {
-        try {
-            await MobileAds().initialize();
-            await AdPolicy.init();
-
-            // Preload the first ad
-            this.preload();
-
-            if (__DEV__) console.log('[AdManager] Initialized');
-        } catch (e) {
-            console.warn('[AdManager] Init failed', e);
+    init(): Promise<void> {
+        if (!_initDone) {
+            _initDone = new Promise<void>((resolve) => {
+                runAfterFirstFrame('ads.init', () => initNow().then(resolve));
+            });
         }
+        return _initDone;
     },
 
     /**
@@ -40,6 +59,7 @@ export const AdManager = {
             _isLoaded = true;
             _isLoading = false;
             unsubscribeLoaded();
+            markStartup('ads.loaded'); // the first one only: the B7 probe's readiness mark
             if (__DEV__) console.log('[AdManager] Interstitial loaded');
         });
 

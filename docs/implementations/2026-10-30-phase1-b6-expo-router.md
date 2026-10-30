@@ -51,7 +51,7 @@ A navigation rewrite touches what B1–B5 built and checked on TestFlight builds
 | `a736b22` | **feat(b6):** the routes, the native tabs, `FreezeOnBlur`, the safe-area changes, the router's `NavigationContext`, the splash and root changes, the dependency swap, and the existing tests adjusted. |
 | `65fa2ea` | **test(b6):** `router.test.tsx` and `splash.test.tsx`, over the real `app/` tree. |
 | `62fef2e` | **chore(b6):** the React Compiler report covers `app/`. |
-| this commit | This record, and the ADR-0028 and ADR-0002 status notes. |
+| `622d524` | This record, and the ADR-0028 and ADR-0002 status notes. |
 
 | File | Change |
 |------|--------|
@@ -348,7 +348,7 @@ After the merge, applying §8 and running `--write` clears all of them.
   - typecheck clean; lint 0 errors, 37 warnings;
   - **Jest 197/197 in 33 suites** (B6's 151 plus B7's 46). A first run beside other work timed out once in `flyLazyLoad.test.tsx` (94.7 s for the suite); it passed alone and in a clean full run;
   - **iOS bytecode 3,912,884 B**: B6's 3,894,148 plus 18,736 B of B7, so **56,676 B (1.47 %) over the ceiling**.
-  - Not checked here: B7's `markFirstFrame` call, which the parent adds at merge on `App`'s `GestureHandlerRootView` (B7 record §3.6). That view is unchanged by B6.
+  - Not checked here: B7's `markFirstFrame` call, which the parent adds at merge on `App`'s `GestureHandlerRootView` in `src/App.tsx` (B7 record §3.6). That view is unchanged by B6, and B7's `@/startup/deferredStartup` import resolves under Jest too (jest-expo maps `@/` to `src/`), so the router and splash tests, which render the real `App`, can load it.
 
 ### 6.6 Device checklist (the combined B6 + B7 TestFlight build)
 

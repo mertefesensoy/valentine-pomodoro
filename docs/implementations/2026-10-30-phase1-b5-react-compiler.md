@@ -281,11 +281,16 @@ npm run test:perf   # in a detached worktree, per commit (§4.3)
 - [x] **Lint: 0 errors** with the five rules at `error`. Warnings 134 → 38: `import/first` 13, `no-unused-vars` 11, `no-require-imports` 6, `array-type` 3, `exhaustive-deps` 2, `import/no-duplicates` 2, `no-empty-object-type` 1. None is a compiler rule.
 - [x] **Jest: 134 passed, 26 suites**, with the compiler on (`6395aee`) and with it off (`7a849b3`, and `6395aee` with the flag flipped). After B4 it was 130 and 24.
 - [x] `reactCompiler.test.tsx` passes with the compiler off and with it on, asserting each.
-- [x] Each code commit passes alone, run in the measurement worktree:
-  - `10811ce`: 131/131 (25 suites; compiler off, so the new test asserts "off");
-  - `630c35a`: 134/134 (26 suites; the overlay tests against the old screen);
-  - `7a849b3`: 134/134 (compiler off);
-  - `6395aee`: 134/134.
+- [x] Each code commit passes alone:
+  - `10811ce`: 131/131 (25 suites; compiler off, so the new test asserts "off"), in the measurement worktree;
+  - `630c35a`: 134/134 (26 suites; the overlay tests against the old screen), in the measurement worktree;
+  - `7a849b3`: 134/134 (compiler off), in the measurement worktree;
+  - `6395aee`: 134/134, in the shared checkout at the same content, before the commit.
+- [x] **The real Metro pipeline compiles too.** `npx expo export --platform ios --dump-sourcemap --output-dir <scratch>` at `b19f248` succeeds. The bundle's source map lists `node_modules/react/compiler-runtime.js`, which only compiled components import. The iOS bytecode is **3,463,508 B**:
+  - +32,876 B (+0.96 %) over B2's 3,430,632 B, which covers B3, B4 and B5 together;
+  - still 10.2 % under the SDK 58 baseline (NFR-PERF-002).
+
+  E3 re-measures with the pinned two-platform command before release.
 
 ### 6.2 The guards and the mutation check, with the compiler on
 

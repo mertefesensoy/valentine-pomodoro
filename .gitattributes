@@ -4,3 +4,5 @@
 art/vc/** -text
 art/out/** -text
 art/steps/** -text
+art/src/** -text
+art/jobs/** -text

@@ -26,7 +26,13 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | Critique 31 → **35/40**; audit **16/20**; HIG Good, no Critical; motion clean after fixes (§3.12) | Critique **30/32**; audit **19/20**; HIG Good, no Critical; motion clean (§3.12) |
 | 5. `break-ui` (TR at AX5) | 2 Broken and 1 Ugly fixed; 2 Fragile noted (§3.13) | 1 Broken fixed (§3.13) |
 | 6. `polish`, `harden`, `clarify` | Done (§3.12–3.13); the Turkish copy waits for the owner's review | Done; the Turkish copy waits for the owner's review |
-| 7. Device check, build 48 | — | — |
+| 7. Device check, build 48 | Waiting for the owner's OK (build, submit, tag) | Waiting for the owner's OK |
+| FINISH (both contracts): the finish review, its verdict, DESIGN.md | **Pending:** after the device check, with the owner's iPhone screenshots as the evidence | **Pending:** the same |
+
+**FINISH is not yet discharged.** Each direction contract ends with "this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance". That waits for evidence this machine can't make:
+- After the device check, a fresh `impeccable-finish-reviewer` gets both contracts and the owner's screenshots, labelled as hardware evidence.
+- Then the documenter runs, as an ordinary extension: it compares against DESIGN.md and preserves it (E4 regenerates DESIGN.md in scan mode).
+- The tab-icon PNGs carry their provenance through VectorCraft's `steps.json`; the build strips the PNG `tEXt` chunks for determinism, so `embed-prompt --scan` is checked then.
 
 **Skill resolution (2026-10-30).** The Skill tool loads Impeccable from `C:\vp\stage-c\.claude\skills\impeccable`, because this session started in stage-c (Stage D plan §0). `diff -rq` finds the stage-c and stage-d copies of `impeccable`, `apple-design`, `animate-expo`, `review-animations` and `break-ui` identical, Impeccable at `ece7280` in both. Every Impeccable command here runs stage-d's own launcher with stage-d as the working directory: `impeccable context` reports `projectRoot: C:\vp\stage-d`.
 
@@ -73,6 +79,8 @@ See the [Stage D plan §1](2026-10-30-phase1-stage-d.md#1-problem--motivation). 
 | `src/components/{GoalReachedPopup,CircularProgress,CalmBackground,PremiumCalmBackground}.tsx`, `package.json` | Removed with their last caller; `expo-linear-gradient` with them. |
 | `src/i18n/en.json`, `tr.json` | `timer.session` added for the phase line. |
 | `src/screens/__tests__/classic.test.tsx` | New. The Baloo timer with tabular figures and one VoiceOver element; a preset writes three durations and moves the selection; segments speak in words with a position, as buttons; End only while paused, with the stamp; Facing Pages; the mode sheet sets the layout and opens Fly. |
+| `src/startup/frameProbe.ts`, `__tests__/frameProbe.test.ts`, `src/screens/classic/TodayStickers.tsx`, `src/startup/StartupDiagnostics.tsx` | New. NFR-PERF-004's readout (§3.14): for one second after a placement, the UI thread records each frame's delta and posts them once, at the end; B7's hidden panel shows the median fps, the worst frame and the frames over 32 ms. |
+| `src/screens/welcome/useWelcomeGate.ts`, `__tests__/welcome.test.tsx` | The push waits for B7's `runAfterInteractive`, so the Timer paints first (§3.14). |
 | `src/screens/SettingsScreen.tsx` | Settings › Appearance gains "Timer layout", the same built control as the mode sheet's (brief §3: the choice lives in both); its Reassure count stays 2. Settings is otherwise D2's. |
 | `art/src/welcome/*.svg`, `art/jobs/welcome.json`, `art/steps/welcome-*.steps.json`, `art/vc/welcome-*.vectorcraft`, `art/out/illustration/welcome-*` | New. The welcome morph's art, built by VectorCraft (§3.11). |
 | `scripts/art/build-icon-components.mjs`, `src/components/stickers/art/welcome*.ts` | The generator includes the welcome layers; the 10 generated modules. |
@@ -387,6 +395,22 @@ There is no overshoot anywhere. A light haptic fires as p passes 0.6 (`useAnimat
 
 **The copy pass (`clarify`).** D1's English strings read in the brand's voice: warm, plain, sentence case. Each Turkish string is a draft, grammatical and in the same warm register. All of them go to the owner's copy review before build 48 ships, listed in §6.
 
+### 3.14 Before build 48: the frame readout, the welcome's timing and what the build exercises
+
+**The frame readout (NFR-PERF-004).** The plan promised it and the checklist relies on it, so it is built:
+- **Capture:** a placement on a focused Timer arms a `useFrameCallback` on the UI thread. For one second it appends each `timeSincePreviousFrame` to a shared array, then posts the array once (`scheduleOnRN`).
+- **Stopping:** the effect that armed the callback stops it at 1.5 s, and in its cleanup. An earlier form stopped it from inside its own report, which made the React Compiler skip the component ("Cannot access variable before it is declared"), so it was rewritten.
+- **The summary:** `frameProbe.ts` computes the median fps, 1000 / median(Δ), the worst Δ and the count over 32 ms, and the panel shows them (Settings → About, B7's long-press).
+- **Renders:** none; the Reassure counts are unchanged.
+
+**The welcome waits for the first frame.** The gate queues its push through `runAfterInteractive`: after the root's first layout and the first idle moment, behind B7's deferred start-up work. The Timer always paints first, so no launch opens on a branding screen (HIG H-2). If the moment stops being calm before the task runs, the effect's cleanup cancels it.
+
+**What build 48 does and doesn't exercise:**
+- **Turkish is partial by design.** The Timer, the welcome, the love-note and mode sheets and the tab labels are in Turkish; Stats, Settings, Notes and the gift screen stay English until D2 and D3. On a Turkish device that mix is expected.
+- **`Baloo2-Medium` and `useBoldText` ship unused in D1.** Every display string on these surfaces is SemiBold, so the Bold Text step-up (HIG D1-M4) is first exercised when D2 adds Medium roles. The fonts check still builds and verifies both instances.
+
+**One decision for the owner: the goal moment's order.** The confirmed brief lists the sticker placement, then the love-note sheet, then "goal reached" inline. The build keeps the screen's existing order (§3.9): the goal moment with the placement, then the note, then the ad. Placed after the note, "goal reached" would appear only once the note was dismissed, cut off from the completion that caused it.
+
 ## 4. Mathematical / Statistical Details
 
 The numeric rules D1 implements are in the [Stage D plan §4](2026-10-30-phase1-stage-d.md#4-mathematical--statistical-details): contrast, tabular digits, the font build, the sticker spring, "Break at" and bytecode.
@@ -444,13 +468,81 @@ Together they would bring D1 to about +1.5 % over the base. **E3 re-measures wit
   7. The love-note sheet stays until it is closed, then the interstitial.
   8. Compact height (landscape); the largest text size in **Turkish** (nothing clips: the presets grid, the goal moment, the welcome line); the VoiceOver order and labels; an iPad if one is available.
   9. The scroll edge effect under the bar when Facing Pages scrolls at accessibility sizes.
-  10. The welcome: it shows once over the update from build 47, once on a fresh install (after the gift screen), never again; never over a running session. The morph's feel, whether its flat opening reads as a squash, the pages-meet haptic, and the Reduce Motion fade.
+  10. The welcome: the Timer paints first, then the welcome fades in (never at launch); it shows once over the update from build 47, once on a fresh install (after the gift screen), never again; never over a running session. The morph's feel, whether its flat opening reads as a squash, the pages-meet haptic, and the Reduce Motion fade.
   11. `toLocaleUpperCase('tr-TR')` on Hermes (§3.5).
 
 ## 7. Related Docs
 
 - [Stage D plan](2026-10-30-phase1-stage-d.md) · [Stage C record](2026-10-30-phase1-stage-c-design.md) §2.4, §10 · [Design workflow](../process/DESIGN-WORKFLOW.md)
 - The Classic brief: `.impeccable/surfaces/app-tabs-index-tsx.md`
+
+
+## 8. Turkish copy for the owner's review
+
+Every string build 48 carries in Turkish, beside its English (generated from `src/i18n/en.json` and `tr.json`). Plural keys (`_one`, `_other`, `_zero`) are i18next's; Turkish uses one form after a number.
+
+| Key | English | Turkish (draft) |
+|---|---|---|
+| `tabs.timer` | Timer | Zamanlayıcı |
+| `tabs.stats` | Stats | İstatistik |
+| `tabs.settings` | Settings | Ayarlar |
+| `tabs.notes` | Notes | Notlar |
+| `timer.phase.focus` | Focus | Odak |
+| `timer.phase.shortBreak` | Short break | Kısa mola |
+| `timer.phase.longBreak` | Long break | Uzun mola |
+| `timer.phaseLine` | {{phase}} · session {{n}} of {{total}} | {{phase}} · {{total}} oturumdan {{n}}. |
+| `timer.session` | session {{n}} of {{total}} | {{total}} oturumdan {{n}}. |
+| `timer.nextChange.break` | Break at {{time}} | Mola: {{time}} |
+| `timer.nextChange.focus` | Focus at {{time}} | Odak: {{time}} |
+| `timer.paused` | Paused | Duraklatıldı |
+| `timer.a11y.remaining` | {{minutes}}, {{seconds}} left, {{phase}}, session {{n}} of {{total}} | {{minutes}} {{seconds}} kaldı, {{phase}}, {{total}} oturumdan {{n}}. |
+| `timer.a11y.minutes_one` | {{count}} minute | {{count}} dakika |
+| `timer.a11y.minutes_other` | {{count}} minutes | {{count}} dakika |
+| `timer.a11y.seconds_one` | {{count}} second | {{count}} saniye |
+| `timer.a11y.seconds_other` | {{count}} seconds | {{count}} saniye |
+| `controls.startFocus` | Start focus | Odağı başlat |
+| `controls.startBreak` | Start break | Molayı başlat |
+| `controls.pause` | Pause | Duraklat |
+| `controls.resume` | Resume | Devam et |
+| `controls.skip` | Skip | Atla |
+| `controls.endSession` | End session | Oturumu bitir |
+| `controls.endConfirm.title` | End this session? | Bu oturum bitsin mi? |
+| `controls.endConfirm.message` | The timer goes back to the start. | Zamanlayıcı başa döner. |
+| `controls.endConfirm.end` | End session | Oturumu bitir |
+| `controls.endConfirm.cancel` | Cancel | Vazgeç |
+| `controls.skipConfirm.title` | Skip the rest of this focus? | Bu odağın kalanı atlansın mı? |
+| `controls.skipConfirm.message` | Your break starts now, and this session won't add a sticker. | Molan şimdi başlar; bu oturum çıkartma eklemez. |
+| `controls.skipConfirm.skip` | Skip | Atla |
+| `controls.skipConfirm.cancel` | Keep focusing | Odaklanmaya devam et |
+| `presets.label` | {{focus}} minutes focus, {{rest}} minutes break | {{focus}} dakika odak, {{rest}} dakika mola |
+| `presets.position` | {{n}} of {{total}} | {{total}} seçenekten {{n}}. |
+| `presets.custom` | Custom | Özel |
+| `presets.key` | focus / break, in minutes | odak / mola, dakika |
+| `modes.button` | Modes | Modlar |
+| `modes.title` | Modes | Modlar |
+| `modes.classic` | Classic | Klasik |
+| `modes.fly` | Fly | Uçuş |
+| `modes.layout` | Timer layout | Zamanlayıcı düzeni |
+| `modes.ring` | Ring | Halka |
+| `modes.spread` | Facing pages | Karşılıklı sayfalar |
+| `partner.ready` | Pomo & Doro are ready when you are | Pomo ve Doro hazır, sen ne zaman istersen |
+| `partner.studying` | Pomo & Doro are studying with you | Pomo ve Doro seninle çalışıyor |
+| `partner.break` | Pomo & Doro are on a break with you | Pomo ve Doro seninle molada |
+| `partner.paused` | Pomo & Doro are waiting for you | Pomo ve Doro seni bekliyor |
+| `today.a11y_one` | {{count}} session today | Bugün {{count}} oturum |
+| `today.a11y_other` | {{count}} sessions today | Bugün {{count}} oturum |
+| `today.a11y_zero` | No sessions yet today | Bugün henüz oturum yok |
+| `today.more` | +{{count}} | +{{count}} |
+| `today.empty` | Finish a focus and your first sticker lands here | Bir odak bitir, ilk çıkartman buraya yapışsın |
+| `goal.reached` | Goal reached | Hedefe ulaştın |
+| `goal.streak_one` | {{count}}-day streak | {{count}} günlük seri |
+| `goal.streak_other` | {{count}}-day streak | {{count}} günlük seri |
+| `loveNote.title` | A note for you | Sana bir not |
+| `loveNote.close` | Close | Kapat |
+| `welcome.updated` | Your diary has a new look. | Günlüğün yeni bir görünüme kavuştu. |
+| `welcome.fresh` | Meet Pomo & Doro. | Pomo ve Doro ile tanış. |
+| `welcome.start` | Start | Başla |
+| `welcome.art` | Pomo and Doro become the pages of one diary | Pomo ve Doro tek bir günlüğün sayfalarına dönüşüyor |
 
 ## Backlinks
 <!-- backlinks:start -->

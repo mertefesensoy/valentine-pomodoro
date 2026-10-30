@@ -28,6 +28,16 @@ jest.mock('expo-router', () => ({
     router: { push: jest.fn(), back: jest.fn(), canGoBack: () => true },
 }));
 
+// The gate waits for B7's interactive mark (runAfterInteractive), which needs a root layout Jest
+// never fires; here a queued task runs at once, so what's tested is the gate's own conditions.
+jest.mock('../../../startup/deferredStartup', () => ({
+    ...jest.requireActual('../../../startup/deferredStartup'),
+    runAfterInteractive: (_name: string, run: () => unknown) => {
+        run();
+        return () => {};
+    },
+}));
+
 const push = jest.mocked(router.push);
 
 async function show(node: React.ReactElement) {

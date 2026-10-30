@@ -1,16 +1,20 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Text, View, useWindowDimensions } from 'react-native';
 import Animated, {
     Easing,
     FadeIn,
     LayoutAnimationConfig,
     css,
+    useFrameCallback,
     useReducedMotion,
+    useSharedValue,
     withSpring,
     withTiming,
     type EntryAnimationsValues,
     type LayoutAnimation,
 } from 'react-native-reanimated';
+
+import { scheduleOnRN } from 'react-native-worklets';
 
 import { Icon } from '../../components/icons/Icon';
 import { goal } from '../../components/icons/art/goal';
@@ -20,6 +24,7 @@ import { pomoCelebrating } from '../../components/stickers/art/pomoCelebrating';
 import { t } from '../../i18n';
 import type { ThemeTokens } from '../../theme/palette';
 import { radius, space } from '../../theme/layout';
+import { noteCompletionFrames } from '../../startup/frameProbe';
 
 const CELL = 34; // a sticker cell, sticker plus its gap
 const STICKER = 28;
@@ -127,6 +132,45 @@ export function TodayStickers({ tokens, count, goalHit, goalStreak, onGoalMoment
     const capacity = perRow * ROWS;
     const overflow = count > capacity ? count - (capacity - 1) : 0;
     const shown = overflow ? capacity - 1 : count;
+
+    // NFR-PERF-004's readout: for one second after a placement, the UI thread records each frame's
+    // delta and hands them over once, at the end, to B7's hidden panel (`startup/frameProbe`). No render.
+    const deltas = useSharedValue<number[]>([]);
+    const startedAt = useSharedValue(0);
+    const finished = useSharedValue(true);
+    const probe = useFrameCallback((info) => {
+        'worklet';
+        if (finished.get()) return;
+        if (startedAt.get() === 0) startedAt.set(info.timestamp);
+        const dt = info.timeSincePreviousFrame;
+        if (dt !== null) {
+            deltas.modify((a) => {
+                'worklet';
+                a.push(dt);
+                return a;
+            });
+        }
+        if (info.timestamp - startedAt.get() >= 1000) {
+            finished.set(true);
+            scheduleOnRN(noteCompletionFrames, deltas.get().slice());
+        }
+    }, false);
+    const prevCount = useRef(count);
+    useEffect(() => {
+        const grew = count > prevCount.current;
+        prevCount.current = count;
+        if (!grew || !animate) return;
+        deltas.set([]);
+        startedAt.set(0);
+        finished.set(false);
+        probe.setActive(true);
+        // The worklet reports at 1 s; the callback itself stops here, with room to spare.
+        const stop = setTimeout(() => probe.setActive(false), 1500);
+        return () => {
+            clearTimeout(stop);
+            probe.setActive(false);
+        };
+    }, [count, animate, probe, deltas, startedAt, finished]);
 
     useEffect(() => {
         if (!goalMoment) return;

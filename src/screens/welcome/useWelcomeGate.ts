@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { router } from 'expo-router';
 
+import { runAfterInteractive } from '../../startup/deferredStartup';
 import { useUiStore } from '../../stores/uiStore';
 
 /**
@@ -15,13 +16,19 @@ import { useUiStore } from '../../stores/uiStore';
  *        this launch (`welcomeDeferred`).
  *   out: pushes `/welcome` once per process when all hold. The route marks it seen when Start is
  *        pressed, so a launch that never gets a calm moment shows it on a later one.
+ *   when: through B7's `runAfterInteractive`, so it waits for the first frame and the first idle
+ *        moment: the Timer always paints before the welcome fades in, and a launch never opens on
+ *        a branding screen (HIG review H-2), nor moves the cold-start probe's TTI.
  */
 export function useWelcomeGate(calm: boolean): void {
     const due = useUiStore((s) => s.isReady && s.hasSeenGiftMode && !s.hasSeenWelcome && !s.welcomeDeferred);
     const shown = useRef(false);
     useEffect(() => {
         if (!calm || !due || shown.current) return;
-        shown.current = true;
-        router.push('/welcome');
+        return runAfterInteractive('welcome', () => {
+            if (shown.current) return;
+            shown.current = true;
+            router.push('/welcome');
+        });
     }, [calm, due]);
 }

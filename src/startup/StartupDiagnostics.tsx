@@ -4,6 +4,7 @@ import * as Application from 'expo-application';
 import { useTheme } from '../theme/useTheme';
 import { bannerStatus, bannerStatusLine } from '../ads/bannerStatus';
 import { hodgesLehmann, summarize, type Summary } from './probeStats';
+import { completionFramesLine } from './frameProbe';
 import {
     clearProbeRows,
     currentProbeRow,
@@ -141,6 +142,8 @@ function StartupDiagnosticsPanel() {
             <Text style={[styles.title, { color: colors.text }]}>Start-up probe (ms)</Text>
             <Text style={textStyle}>{thisLaunch}</Text>
             <Text style={textStyle}>{bannerStatusLine()}</Text>
+            {/* The sticker placement's frame times, this launch (Phase 1 D1, NFR-PERF-004). */}
+            <Text style={textStyle}>{completionFramesLine()}</Text>
 
             <Text style={textStyle}>Next launches:</Text>
             <View style={styles.modes}>

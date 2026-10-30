@@ -101,8 +101,21 @@ const soundCard = (s) => `
       </dl>
     </article>`;
 
-const fly = report.loops.find((l) => l.id === 'fly-ambient');
-const seamless = report.loops.find((l) => l.id === 'fly-ambient-seamless');
+// Fly's rows come from the report, so the page still builds whichever loop the owner chooses:
+// today's file (the source), then each built loop, shipped or candidate, faithful or seamless.
+const fly = report.loops.find((l) => l.file.startsWith('src/'));
+const kb = (bytes) => `${num(bytes / 1024)} KB`;
+const loopRow = (l) => {
+    const shipped = l.file.startsWith('src/');
+    const title = l.seamless ? 'Re-encoded, seamless loop' : 'Re-encoded, same loop';
+    const note = l.seamless
+        ? `${shipped ? 'The file this branch ships.' : 'A suggestion for you to decide.'} The first ${num(l.seamless.trimStartSeconds, 2)} s (the silence and the fade-in) are trimmed, and the last ${num(l.seamless.crossfadeSeconds, 2)} s fade into the start, so it wraps with no gap. It is ${num((l.seam.sourceSamples - l.samples) / l.sampleRate, 1)} s shorter.`
+        : `${shipped ? 'The file this branch ships.' : 'A candidate, not shipped.'} The same sound and the same dropout at the loop point.`;
+    const figs = l.seamless
+        ? `${kb(l.bytes)} · ${num(l.bitrate / 1000)} kbit/s · ${num(l.samples / l.sampleRate, 1)} s · start and end within ${num(Math.abs(l.seam.edgeRmsDbfs[0] - l.seam.edgeRmsDbfs[1]), 2)} dB of each other`
+        : `${kb(l.bytes)} · ${num(l.bitrate / 1000)} kbit/s · ${num(l.samples / l.sampleRate, 1)} s · the same ${num(l.samples)} samples, no time shift`;
+    return flyRow(l.id, title, note, l.file, figs);
+};
 const flyRow = (id, title, note, file, figs) => `
     <article class="loop" aria-labelledby="h-${id}">
       <div class="loophead"><h3 id="h-${id}">${title}</h3><button class="seam" type="button" data-loop="${id}" id="seam-${id}">Hear the loop point</button></div>
@@ -176,7 +189,7 @@ code { font-size: 12px; overflow-wrap: anywhere; }
 
   <div class="bar-top">
     <button class="pill" type="button" id="play-set">Play all three in order</button>
-    <span class="hint">Focus start, break start, then completion, with a pause between each.</span>
+    <span class="hint">Focus start, break start, then completion, with a pause between each. On an iPhone, if you hear nothing, check the ring switch: the app itself will stay quiet when it is on silent.</span>
   </div>
 
   <section class="sounds" aria-label="The three sounds">${report.sounds.map(soundCard).join('')}
@@ -184,11 +197,10 @@ code { font-size: 12px; overflow-wrap: anywhere; }
 
   <section class="loops" aria-labelledby="h-fly">
     <h2 id="h-fly">Fly's ambient loop</h2>
-    <p class="lede">Today's file is ${num(fly.source.bytes / 1024 / 1024, 2)} MB, of which ${num(paddingBytes(fly.source.file) / 1024)} KB is empty padding. Re-encoded as mono AAC at 64 kbit/s it is ${num(fly.bytes / 1024)} KB. One thing turned up: the recording has never looped cleanly. It opens with 112 ms of silence and a fade-in, and it ends on a hard cut, so every 70 seconds Fly's sound drops out for a moment and clicks. "Hear the loop point" plays the last four seconds and runs on into the start.</p>
-    ${flyRow('original', "Today's file", 'What ships in v1.3.1, unchanged.', fly.source.file, `${num(fly.source.bytes / 1024)} KB · 96 kbit/s · ${num(fly.seam.sourceSamples / fly.sampleRate, 1)} s`)}
-    ${flyRow('faithful', 'Re-encoded, same loop', 'The file this branch ships now: the same sound and the same dropout at the loop point.', fly.file, `${num(fly.bytes / 1024)} KB · ${num(fly.bitrate / 1000)} kbit/s · ${num(fly.samples / fly.sampleRate, 1)} s · same ${num(fly.samples)} samples, no time shift`)}
-    ${flyRow('seamless', 'Re-encoded, seamless loop', `A suggestion for you to decide: the first ${num(seamless.seamless.trimStartSeconds, 2)} s (the silence and the fade-in) are trimmed, and the last ${num(seamless.seamless.crossfadeSeconds, 2)} s fade into the start, so it wraps with no gap. It is ${num((fly.samples - seamless.samples) / fly.sampleRate, 1)} s shorter.`, seamless.file, `${num(seamless.bytes / 1024)} KB · ${num(seamless.bitrate / 1000)} kbit/s · ${num(seamless.samples / seamless.sampleRate, 1)} s · start and end within ${num(Math.abs(seamless.seam.edgeRmsDbfs[0] - seamless.seam.edgeRmsDbfs[1]), 2)} dB of each other`)}
-    <p class="small">The app restarts a loop by seeking to the start, which can add a short gap of its own on the phone. These buttons play each file's own join, with nothing added.</p>
+    <p class="lede">Today's file is ${kb(fly.source.bytes)}, of which ${kb(paddingBytes(fly.source.file))} is empty padding. Re-encoded as mono AAC at 64 kbit/s it is ${kb(fly.bytes)}. One thing turned up: the recording has never looped cleanly. It opens with 112 ms of silence and a fade-in, and it ends on a hard cut, so every 70 seconds Fly's sound drops out for a moment and clicks. "Hear the loop point" plays the last four seconds and runs on into the start.</p>
+    ${flyRow('original', "Today's file", 'What ships in v1.3.1, unchanged.', fly.source.file, `${kb(fly.source.bytes)} · 96 kbit/s · ${num(fly.seam.sourceSamples / fly.sampleRate, 1)} s`)}
+    ${report.loops.map(loopRow).join('')}
+    <p class="small">The app restarts a loop by seeking to the start, which can add a short gap of its own on the phone. These buttons play each file's own join, with nothing added. Sizes are in KB of 1,024 bytes, as the 25 KB budget is.</p>
   </section>
 
   <section class="ask" aria-labelledby="h-ask">
@@ -206,72 +218,115 @@ code { font-size: 12px; overflow-wrap: anywhere; }
   </footer>
 </div>
 <script>
+// Every sound plays through one Web Audio context. It is created and resumed inside the first tap
+// (iOS unlocks audio only there), each data URI is decoded straight from its base64 (no fetch, so
+// no content-security rule can block it), and "Play all three" schedules all three on the
+// context's own clock, so nothing after the tap needs a new gesture.
 const SOUNDS = ${JSON.stringify(sounds)};
-let playing = null;
+const ORDER = ['focus-start', 'break-start', 'complete'];
 let ctx = null;
-let source = null;
 const buffers = {};
+let nodes = [];
+let timers = [];
+let seamButton = null;
+
+function unlock() {
+  if (!ctx) {
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
+}
+
+function bytesOf(uri) {
+  const bin = atob(uri.slice(uri.indexOf(',') + 1));
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out.buffer;
+}
+
+function decode(key, uri) {
+  if (!buffers[key]) {
+    buffers[key] = new Promise((resolve, reject) => ctx.decodeAudioData(bytesOf(uri), resolve, reject));
+  }
+  return buffers[key];
+}
 
 function stopAll() {
-  if (playing) { playing.audio.pause(); playing.button.classList.remove('on'); playing = null; }
-  if (source) { try { source.node.stop(); } catch (e) {} source.button.classList.remove('on'); source.button.textContent = 'Hear the loop point'; source = null; }
-  document.querySelectorAll('audio').forEach((a) => a.pause());
+  nodes.forEach((n) => { try { n.stop(); } catch (e) {} });
+  nodes = [];
+  timers.forEach(clearTimeout);
+  timers = [];
+  document.querySelectorAll('.play.on, .seam.on').forEach((b) => b.classList.remove('on'));
+  if (seamButton) { seamButton.textContent = 'Hear the loop point'; seamButton = null; }
 }
 
-function play(id) {
-  return new Promise((resolve) => {
-    const button = document.getElementById('play-' + id);
-    const audio = new Audio(SOUNDS[id]);
-    playing = { audio, button };
-    button.classList.add('on');
-    audio.addEventListener('ended', () => { button.classList.remove('on'); if (playing && playing.audio === audio) playing = null; resolve(true); });
-    audio.play().catch(() => { button.classList.remove('on'); resolve(false); });
-  });
+function startAt(buffer, when, button, offset, loop, length) {
+  const node = ctx.createBufferSource();
+  node.buffer = buffer;
+  node.loop = Boolean(loop);
+  node.connect(ctx.destination);
+  node.start(when, offset || 0);
+  if (length) node.stop(when + length);
+  nodes.push(node);
+  const lead = Math.max(0, (when - ctx.currentTime) * 1000);
+  timers.push(setTimeout(() => button.classList.add('on'), lead));
+  node.onended = () => {
+    button.classList.remove('on');
+    nodes = nodes.filter((n) => n !== node);
+    if (button === seamButton) { button.textContent = 'Hear the loop point'; seamButton = null; }
+  };
 }
 
-document.querySelectorAll('.play').forEach((b) => b.addEventListener('click', () => {
-  const again = playing && playing.button === b;
+document.querySelectorAll('.play').forEach((b) => b.addEventListener('click', async () => {
+  const again = b.classList.contains('on');
+  const ready = unlock();
   stopAll();
-  if (!again) play(b.dataset.src);
+  if (again) return;
+  try {
+    await ready;
+    startAt(await decode(b.dataset.src, SOUNDS[b.dataset.src]), ctx.currentTime + 0.02, b);
+  } catch (e) {
+    b.setAttribute('aria-label', 'This browser could not play it');
+  }
 }));
 
 document.getElementById('play-set').addEventListener('click', async () => {
+  const ready = unlock();
   stopAll();
-  for (const id of ['focus-start', 'break-start', 'complete']) {
-    if (!(await play(id))) return;
-    await new Promise((r) => setTimeout(r, 1200));
+  try {
+    await ready;
+    const all = await Promise.all(ORDER.map((id) => decode(id, SOUNDS[id])));
+    let t = ctx.currentTime + 0.05;
+    all.forEach((buffer, i) => {
+      startAt(buffer, t, document.getElementById('play-' + ORDER[i]));
+      t += buffer.duration + 1.2;
+    });
+  } catch (e) {
+    document.getElementById('play-set').textContent = 'This browser could not play them';
   }
 });
 
-async function loopPoint(button) {
-  const id = button.dataset.loop;
-  if (source && source.button === button) { stopAll(); return; }
+document.querySelectorAll('.seam').forEach((b) => b.addEventListener('click', async () => {
+  const again = b === seamButton;
+  const ready = unlock();
   stopAll();
+  document.querySelectorAll('audio').forEach((a) => a.pause());
+  if (again) return;
   try {
-    ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
-    if (ctx.state === 'suspended') await ctx.resume();
-    button.textContent = 'Loading…';
-    // The loop's data URI lives once, on its <audio> element.
-    if (!buffers[id]) buffers[id] = await ctx.decodeAudioData(await (await fetch(document.getElementById('audio-' + id).src)).arrayBuffer());
-    const buf = buffers[id];
-    const node = ctx.createBufferSource();
-    node.buffer = buf;
-    node.loop = true;
-    node.connect(ctx.destination);
-    node.start(0, Math.max(0, buf.duration - 4));
-    node.stop(ctx.currentTime + 8);
-    source = { node, button };
-    button.classList.add('on');
-    button.textContent = 'Stop';
-    node.onended = () => { if (source && source.node === node) { button.classList.remove('on'); button.textContent = 'Hear the loop point'; source = null; } };
+    await ready;
+    b.textContent = 'Loading…';
+    const buffer = await decode('loop-' + b.dataset.loop, document.getElementById('audio-' + b.dataset.loop).src);
+    seamButton = b;
+    b.textContent = 'Stop';
+    startAt(buffer, ctx.currentTime + 0.02, b, Math.max(0, buffer.duration - 4), true, 8);
   } catch (e) {
-    button.textContent = 'This browser could not play it';
+    b.textContent = 'This browser could not play it';
   }
-}
-document.querySelectorAll('.seam').forEach((b) => b.addEventListener('click', () => loopPoint(b)));
+}));
+
 document.querySelectorAll('audio').forEach((a) => a.addEventListener('play', () => {
-  if (playing) { playing.audio.pause(); playing.button.classList.remove('on'); playing = null; }
-  if (source) { try { source.node.stop(); } catch (e) {} }
+  stopAll();
   document.querySelectorAll('audio').forEach((o) => { if (o !== a) o.pause(); });
 }));
 </script>

@@ -26,7 +26,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | Critique 31 → **35/40**; audit **16/20**; HIG Good, no Critical; motion clean after fixes (§3.12) | Critique **30/32**; audit **19/20**; HIG Good, no Critical; motion clean (§3.12) |
 | 5. `break-ui` (TR at AX5) | 2 Broken and 1 Ugly fixed; 2 Fragile noted (§3.13) | 1 Broken fixed (§3.13) |
 | 6. `polish`, `harden`, `clarify` | Done (§3.12–3.13); the Turkish copy waits for the owner's review | Done; the Turkish copy waits for the owner's review |
-| 7. Device check, build 48 | Build 48 on EAS from `61fd06e` (§3.15); waiting for the owner's device check | The same build |
+| 7. Device check, build 48 | Build 48 on EAS from `61fd06e` (§3.15). The owner's check, 2026-10-30: four findings (F1–F4, §3.16), fixed for build 49 | The same build. The owner asked for a livelier morph (F5, §3.16), rebuilt for build 49 |
 | FINISH (both contracts): the finish review, its verdict, DESIGN.md | **Pending:** after the device check, with the owner's iPhone screenshots as the evidence | **Pending:** the same |
 
 **FINISH is not yet discharged.** Each direction contract ends with "this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance". That waits for evidence this machine can't make:
@@ -438,6 +438,57 @@ There is no overshoot anywhere. A light haptic fires as p passes 0.6 (`useAnimat
 | **48 (D1)** | **21,600,473** (+68,787 B, +0.32 % on 47) |
 
 The two Baloo 2 instances add about 117 KB. Removing `expo-symbols`, `expo-blur` and `expo-linear-gradient` takes some of that back.
+
+### 3.16 The build 48 device check: the owner's findings, and the plan for build 49
+
+The owner checked build 48 on an iPhone on 2026-10-30 (22:42) and sent two screenshots: the Modes sheet over the Ring, and Fly. They asked for five changes before D2 starts. This section was written and committed before any of the code.
+
+**The findings, as the owner put them, and their causes:**
+
+| # | Finding | Cause, read in the code |
+|---|---------|------------------------|
+| F1 | The number pad's Done bar works on Focus only; every number field in Settings needs it | React Native's Fabric `RCTInputAccessoryComponentView` binds an `InputAccessoryView` to **one** text input. In `didMoveToWindow` it walks the window for the first input whose `inputAccessoryViewID` matches, sets that input's accessory, and stops. All five fields share `NUMBER_DONE_ID`, so the first in the tree (Focus) gets the bar and the other four don't. The DEF-008 test asserted that every field carries the shared ID, which is the bug itself, so it passed. |
+| F2 | The Modes sheet leaves a gap at the bottom where the page beneath shows | With `fitToContents`, `react-native-screens` lays the content out with no bottom anchor, and the sheet adds the 34 pt bottom safe area below it. That strip shows the Screen's own background, which only a route's `contentStyle.backgroundColor` sets (`ScreenStackItem` moves it onto the Screen "due to the safe area inset"). Our sheets paint their own View, so the strip shows the system's sheet material and the tab bar through it. The love-note sheet has the same structure and the same gap. |
+| F3 | From Fly there is no way back to Classic the way you came | Classic opens Fly through the Modes button and sheet; Fly still shows v1's "Default / Fly" pill (`ModeSwitcher`, with emoji). |
+| F4 | Presets 25/5, 50/10, 90/20 and Custom; no 52/17, so Settings' Timer Durations aren't useless | A preset overwrites `settings.durations`, so the durations typed in Settings are lost the moment a preset is chosen, and "Custom" was only the absence of a match. |
+| F5 | The welcome's diary animation should be longer and livelier: squash and stretch, anticipation, staging, slow in and slow out, secondary actions, exaggeration | The morph is one 2.4 s cord with no anticipation, straight walks, and "ease-out, no overshoot" (the welcome brief's motion line, now amended by the owner). |
+
+**The plan.**
+
+- **F1, one Done bar per field.** A `NumberField` in Settings renders its `TextInput` with its own `InputAccessoryView` and a unique `nativeID`, placed after the input in the same row. That covers the five fields, including the daily goal's custom field, which mounts only while a goal is on. The test changes to what the bug was: every number field has a distinct `inputAccessoryViewID`, and the tree holds an accessory with that `nativeID`.
+- **F2, the sheets paint their own inset.** The root layout reads the theme and gives each sheet route `contentStyle.backgroundColor`: the page colour for Modes, the paper colour for the love note (each sheet's own background). Root-level options are in place before the sheet presents, so the first frame is already painted. A small module (`src/navigation/sheetOptions.ts`) builds the options, with a test that each colour matches its sheet's.
+- **F3, Modes in Fly.** In the Fly branch, the Modes button (the same glyph, label and sheet as Classic's) replaces `ModeSwitcher`. It stays outside Fly's `Suspense`, so Classic is reachable while Fly loads (ADR-0031). It sits at the top left on a paper chip, because Fly's compass holds the top right. `ModeSwitcher.tsx` is deleted.
+- **F4, Custom keeps its own durations.** `PRESETS` becomes 25/5, 50/10 and 90/20. Two optional settings fields, read defensively the way `classicLayout` is, with no change to the storage migration:
+  - `presetChoice`: `'25-5' | '50-10' | '90-20' | 'custom'`.
+  - `customDurations`: the durations typed in Settings.
+  - **The rules:**
+    - Choosing a preset writes its durations to `settings.durations`, the field the session engine already reads, so the engine is unchanged.
+    - Choosing Custom writes `customDurations` there.
+    - Editing a duration in Settings edits `customDurations` and selects Custom, so a typed duration is always the one in use.
+    - With nothing stored, the choice is the preset matching the current durations, else Custom, and `customDurations` is the current durations. So an existing install keeps exactly its v1.3.1 lengths, and a build 48 tester's 52/17 becomes Custom 52/17.
+  - **The Timer:** the control reads 25/5 · 50/10 · 90/20 · Custom. With Custom selected, its key says "Custom: 40 / 8, set in Settings". Settings' Timer Durations section says that Custom uses them.
+  - The patches are pure functions in `presets.ts`, with tests.
+  - One consequence: an install with 50/10/20 (the v1.3.1 fixture) lands on Custom, because the 50/10 preset sets a 30-minute long break.
+- **F5, the welcome reanimated.** The owner's instruction amends the welcome brief's motion line ("ease-out, no overshoot; the bounce belongs to the sticker placement"), and the amendment is written into the brief.
+  - **The timeline.** It stays one progress value on the UI thread (no React render per frame) and keeps the art. The beats become explicit keyframes in a pure module (`src/screens/welcome/choreography.ts`), with per-segment easing and the timeline in milliseconds, about 4.4 s instead of 2.4 s:
+    1. **Staging:** a held, closed diary, with Pomo & Doro breathing on its top edge.
+    2. **Anticipation:** both crouch and the diary squashes under them.
+    3. **The leap:** they stretch on take-off and fly a parabolic arc, which gives real gravity: slow at the apex, fast at the ends. The diary rebounds and the cover swings open; the pages unfold past flat and settle back.
+    4. **The landing:** an exaggerated squash, the pages dip under the impact, a damped wobble, and a joyful pose. This is the one haptic.
+    5. **A small hop toward each other.**
+    6. **Becoming the faces:** a stretch, then a squash into the page; the pages bump and a burst of at most 12 particles follows.
+    7. **The line lands.**
+  - **Secondary action and character:**
+    - The two are offset in time (overlapping action).
+    - Pomo is lighter, with the higher hop.
+    - Doro is heavier, with the lower hop and the bigger squash.
+  - **Unchanged:**
+    - Start is live from the first frame.
+    - Reduce Motion is still the settled mark's fade.
+    - The haptic follows Settings › Haptics.
+  - **Verification:** the module is tested for its end state (exactly the static mark), its continuity, and that the anticipation and the squash exist. The build goes through `animate-expo` and then `review-animations`.
+  - **An owner preview:** because there's no Simulator, a script samples the same module at 60 fps into an HTML preview in `art/review/`, so the owner can watch the choreography in a browser before build 49.
+- **After the five:** the guards (§3.6 of the plan), the record, the Turkish copy table for the new strings, and the shared-doc text for FR-TMR-010, DEF-008 and ARCHITECTURE's `ModeSwitcher` row. Then the owner's OK for build 49. D2 waits until these are done.
 
 ## 4. Mathematical / Statistical Details
 

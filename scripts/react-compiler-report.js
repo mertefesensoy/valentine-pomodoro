@@ -6,8 +6,9 @@
  *   node scripts/react-compiler-report.js --verbose  also each skipped function's reason
  *
  * Contract
- *   in : every .ts/.tsx/.js file under src/ except __tests__, __fixtures__ and
- *        __mocks__ (what Metro bundles from src/).
+ *   in : every .ts/.tsx/.js file under src/ and app/ (the routes, since Phase 1
+ *        B6) except __tests__, __fixtures__ and __mocks__ (what Metro bundles
+ *        from the project).
  *   how: each file is transformed twice with babel-preset-expo and the Babel
  *        caller Metro uses for an iOS release build (isDev false, Hermes): once
  *        with `supportsReactCompiler` (what app.json's experiments.reactCompiler
@@ -71,7 +72,7 @@ let compiledTotal = 0;
 let skippedTotal = 0;
 let workletMismatch = 0;
 const rows = [];
-for (const file of sourceFiles(path.join(ROOT, 'src'))) {
+for (const file of ['src', 'app'].flatMap((dir) => sourceFiles(path.join(ROOT, dir)))) {
     const on = transform(file, true);
     const off = transform(file, false);
     const compiled = on.events.filter((e) => e.kind === 'CompileSuccess').map((e) => e.fnName || '(anonymous)');

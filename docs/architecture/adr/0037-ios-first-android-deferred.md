@@ -56,5 +56,6 @@ The `9372403` guard stays:
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Design work runs on Impeccable, the Apple HIG skill and Emil Kowalski's skills, in a fixed precedence](0042-design-skill-stack.md)
 - [Architecture decision records](README.md)
 <!-- backlinks:end -->

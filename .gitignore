@@ -47,3 +47,7 @@ coverage/
 # Native projects are generated from app.json by expo prebuild / EAS (CNG)
 /android
 /ios
+
+# dickwu/apple-design-skill bundles Apple HIG text (Apple copyright); installed locally, never committed.
+# Reinstall: see docs/process/DESIGN-WORKFLOW.md
+.claude/skills/apple-design/

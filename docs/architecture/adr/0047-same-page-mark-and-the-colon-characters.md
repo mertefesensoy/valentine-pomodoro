@@ -53,6 +53,7 @@ The owner's words (2026-10-30): "We will use the logo of the Same Page and the m
 <!-- backlinks:start -->
 - [Architecture decision records](README.md)
 - [2026-10-29 — v2 Couples Rehaul: Plan](../../implementations/2026-10-29-couples-rehaul-plan.md)
+- ["The brand kit: brand/, after the Cassandra Collective and SuperconducTED kits"](../../implementations/2026-10-30-brand-kit.md)
 - ["Phase 1 Stage C (C1–C4): the Sticker Diary design system, display face, Classic brief and art"](../../implementations/2026-10-30-phase1-stage-c-design.md)
 - [Requirements traceability (generated)](../../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Text, View, useWindowDimensions } from 'react-native';
 import Animated, {
+    Easing,
     FadeIn,
     LayoutAnimationConfig,
     css,
@@ -27,13 +28,15 @@ const ROWS = 2; // "the sticker row wraps in whole cells, up to two rows, then +
 // The sticker placement, the product's one bounce (DESIGN.md signature move; Stage D plan §4.4):
 // a spring with dampingRatio 0.75, bounce 0.25, about 2.8 % overshoot, over 450 ms.
 const PRESS_SPRING = { duration: 450, dampingRatio: 0.75 } as const;
+// Everything that enters or flies out decelerates on the strong ease-out (review-animations standard 3).
+const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
 
 function stickerPress(): LayoutAnimation {
     'worklet';
     return {
         initialValues: { opacity: 0, transform: [{ translateY: -16 }, { scale: 1.35 }, { rotate: '-10deg' }] },
         animations: {
-            opacity: withTiming(1, { duration: 120 }),
+            opacity: withTiming(1, { duration: 120, easing: EASE_OUT }),
             transform: [
                 { translateY: withSpring(0, PRESS_SPRING) },
                 { scale: withSpring(1, PRESS_SPRING) },
@@ -56,7 +59,7 @@ const PARTICLES = Array.from({ length: 12 }, (_, i) => {
 function particleFlight(dx: number, dy: number, spin: number) {
     return (_: EntryAnimationsValues): LayoutAnimation => {
         'worklet';
-        const fly = { duration: 600 };
+        const fly = { duration: 600, easing: EASE_OUT };
         return {
             initialValues: { opacity: 1, transform: [{ translateX: 0 }, { translateY: 0 }, { rotate: '0deg' }, { scale: 1 }] },
             animations: {
@@ -159,6 +162,15 @@ export function TodayStickers({ tokens, count, goalHit, goalStreak, onGoalMoment
                         </Text>
                     </View>
                 )}
+                {count === 0 && (
+                    // The empty state explains the row before the first sticker lands (critique P2).
+                    <View style={styles.emptyRow}>
+                        <View style={[styles.emptySlot, { borderColor: tokens.edgeStrong }]} />
+                        <Text style={[styles.emptyText, { color: tokens.inkSoft }]} maxFontSizeMultiplier={1.6}>
+                            {t('today.empty')}
+                        </Text>
+                    </View>
+                )}
                 {goalHit && !goalMoment && (
                     <View style={styles.cell} accessible accessibilityLabel={t('goal.reached')}>
                         <Icon glyph={goal} size={24} color={tokens.successInk} />
@@ -187,7 +199,10 @@ const styles = css.create({
         minHeight: CELL,
     },
     cell: { width: CELL, height: CELL, alignItems: 'center', justifyContent: 'center' },
-    more: { borderRadius: radius.s },
+    more: { borderRadius: radius.s, width: undefined, minWidth: CELL, paddingHorizontal: space.xs },
+    emptyRow: { flexDirection: 'row', alignItems: 'center', gap: space.s, minHeight: CELL, flexShrink: 1 },
+    emptySlot: { width: STICKER - 2, height: STICKER - 2, borderRadius: (STICKER - 2) / 2, borderWidth: 1.5, borderStyle: 'dashed' },
+    emptyText: { fontSize: 14, fontWeight: '500', flexShrink: 1 },
     moreText: { fontSize: 13, fontWeight: '700', fontVariant: ['tabular-nums'] },
     burst: { position: 'absolute', left: CELL / 2, top: CELL / 2 },
     particle: { position: 'absolute', width: 6, height: 9, marginLeft: -3, marginTop: -4.5, borderRadius: 2 },

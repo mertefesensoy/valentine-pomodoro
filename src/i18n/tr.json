@@ -38,12 +38,19 @@
       "message": "Zamanlayıcı başa döner.",
       "end": "Oturumu bitir",
       "cancel": "Vazgeç"
+    },
+    "skipConfirm": {
+      "title": "Bu odağın kalanı atlansın mı?",
+      "message": "Molan şimdi başlar; bu oturum çıkartma eklemez.",
+      "skip": "Atla",
+      "cancel": "Odaklanmaya devam et"
     }
   },
   "presets": {
     "label": "{{focus}} dakika odak, {{rest}} dakika mola",
     "position": "{{total}} seçenekten {{n}}.",
-    "custom": "Özel"
+    "custom": "Özel",
+    "key": "odak / mola, dakika"
   },
   "modes": {
     "button": "Modlar",
@@ -55,13 +62,17 @@
     "spread": "Karşılıklı sayfalar"
   },
   "partner": {
-    "studying": "Pomo ve Doro seninle çalışıyor"
+    "ready": "Pomo ve Doro hazır, sen ne zaman istersen",
+    "studying": "Pomo ve Doro seninle çalışıyor",
+    "break": "Pomo ve Doro seninle molada",
+    "paused": "Pomo ve Doro seni bekliyor"
   },
   "today": {
     "a11y_one": "Bugün {{count}} oturum",
     "a11y_other": "Bugün {{count}} oturum",
     "a11y_zero": "Bugün henüz oturum yok",
-    "more": "+{{count}}"
+    "more": "+{{count}}",
+    "empty": "Bir odak bitir, ilk çıkartman buraya yapışsın"
   },
   "goal": {
     "reached": "Hedefe ulaştın",

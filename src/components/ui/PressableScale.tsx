@@ -21,7 +21,7 @@ type Props = {
 
 /**
  * Press feedback for the app's pills and buttons (DESIGN.md motion grammar; animate-expo
- * "Press feedback"): press-in scales to 0.97 over 120 ms on the strong ease-out, with the
+ * "Press feedback"): press-in scales to 0.97 over 100 ms on the strong ease-out (180 ms back), with the
  * selection haptic on the same press-in. A CSS transition, so no worklet and no per-frame work;
  * the state changes twice per press, never per frame.
  *
@@ -72,13 +72,15 @@ export function PressableScale({
 
 // css.create types Reanimated's CSS transition properties, which StyleSheet.create doesn't know.
 const styles = css.create({
+    // Asymmetric (review-animations standard 9): the press snaps in at 100 ms, the release settles
+    // back over 180 ms. A CSS transition takes the duration of the style it moves to.
     base: {
         transform: [{ scale: 1 }],
         opacity: 1,
         transitionProperty: ['transform', 'opacity'],
-        transitionDuration: 120,
+        transitionDuration: 180,
         transitionTimingFunction: cubicBezier(0.23, 1, 0.32, 1),
     },
-    pressed: { transform: [{ scale: 0.97 }] },
-    pressedReduced: { opacity: 0.85 },
+    pressed: { transform: [{ scale: 0.97 }], transitionDuration: 100 },
+    pressedReduced: { opacity: 0.85, transitionDuration: 100 },
 });

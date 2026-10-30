@@ -1,5 +1,5 @@
 import { Pressable, Text, View, useWindowDimensions } from 'react-native';
-import Animated, { css, cubicBezier } from 'react-native-reanimated';
+import Animated, { css, cubicBezier, useReducedMotion } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
 import { t } from '../../i18n';
@@ -41,6 +41,8 @@ const WRAP_FONT_SCALE = 1.6;
 export function SegmentedControl<T extends string>({ segments, value, onChange }: Props<T>) {
     const { tokens } = useTheme();
     const { fontScale } = useWindowDimensions();
+    // Reduce Motion: the selection moves without sliding (review-animations standard 8).
+    const reduced = useReducedMotion();
     const wrap = fontScale >= WRAP_FONT_SCALE;
     const index = segments.findIndex((s) => s.value === value);
 
@@ -63,6 +65,7 @@ export function SegmentedControl<T extends string>({ segments, value, onChange }
                     pointerEvents="none"
                     style={[
                         styles.indicator,
+                        reduced && styles.indicatorReduced,
                         {
                             width: `${100 / segments.length}%`,
                             transform: [{ translateX: `${Math.max(index, 0) * 100}%` }],
@@ -126,6 +129,7 @@ const styles = css.create({
         transitionDuration: 200,
         transitionTimingFunction: cubicBezier(0.77, 0, 0.175, 1),
     },
+    indicatorReduced: { transitionProperty: 'opacity' },
     segment: {
         flex: 1,
         minHeight: minTarget,

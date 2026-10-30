@@ -38,12 +38,19 @@
       "message": "The timer goes back to the start.",
       "end": "End session",
       "cancel": "Cancel"
+    },
+    "skipConfirm": {
+      "title": "Skip the rest of this focus?",
+      "message": "Your break starts now, and this session won't add a sticker.",
+      "skip": "Skip",
+      "cancel": "Keep focusing"
     }
   },
   "presets": {
     "label": "{{focus}} minutes focus, {{rest}} minutes break",
     "position": "{{n}} of {{total}}",
-    "custom": "Custom"
+    "custom": "Custom",
+    "key": "focus / break, in minutes"
   },
   "modes": {
     "button": "Modes",
@@ -55,13 +62,17 @@
     "spread": "Facing pages"
   },
   "partner": {
-    "studying": "Pomo & Doro are studying with you"
+    "ready": "Pomo & Doro are ready when you are",
+    "studying": "Pomo & Doro are studying with you",
+    "break": "Pomo & Doro are on a break with you",
+    "paused": "Pomo & Doro are waiting for you"
   },
   "today": {
     "a11y_one": "{{count}} session today",
     "a11y_other": "{{count}} sessions today",
     "a11y_zero": "No sessions yet today",
-    "more": "+{{count}}"
+    "more": "+{{count}}",
+    "empty": "Finish a focus and your first sticker lands here"
   },
   "goal": {
     "reached": "Goal reached",

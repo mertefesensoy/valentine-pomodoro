@@ -252,6 +252,27 @@ export default function TimerScreen() {
     }
   };
 
+  // Skip: a break skips at once; a focus running past its first minute asks
+  // first, because the rest of it is lost (critique P1, HIG B-M1; PRODUCT
+  // principle 2, never punish). The elapsed time is read from the slot's endAt
+  // at press time, since this screen doesn't re-render each second.
+  const handleSkip = () => {
+    const running = session.state.pomodoro;
+    const elapsedMs = running?.isRunning && running.endAt ? totalMs - (running.endAt - Date.now()) : 0;
+    if (phase !== 'focus' || !isRunning || elapsedMs < 60_000) {
+      skip();
+      return;
+    }
+    if (Platform.OS === 'web') {
+      if (window.confirm(t('controls.skipConfirm.title'))) skip();
+      return;
+    }
+    Alert.alert(t('controls.skipConfirm.title'), t('controls.skipConfirm.message'), [
+      { text: t('controls.skipConfirm.cancel'), style: 'cancel' },
+      { text: t('controls.skipConfirm.skip'), style: 'destructive', onPress: () => skip() },
+    ]);
+  };
+
   // Ending a session early: only while paused, behind a native alert with a
   // destructive button (brief §2).
   const handleEnd = () => {
@@ -302,6 +323,8 @@ export default function TimerScreen() {
   const compactHeight = height < COMPACT_HEIGHT;
   const pageWidth = Math.min(width, READABLE_WIDTH) - space.xl * 2;
   const pose = poseFor(phase, isRunning);
+  // The partner line says what the pair is doing now (critique P3, HIG B-L1).
+  const partnerLine = isRunning ? (isBreak ? 'partner.break' : 'partner.studying') : paused ? 'partner.paused' : 'partner.ready';
 
   const subLine = paused ? (
     <View style={[styles.stamp, { borderColor: tokens.primaryInk }]}>
@@ -328,7 +351,7 @@ export default function TimerScreen() {
 
   const ringSize = compactHeight
     ? Math.min(height - insets.top - insets.bottom - space.xl, width * 0.42)
-    : Math.min(pageWidth * 0.86, height * 0.36, 340);
+    : Math.min(pageWidth * (fontScale >= STACK_FONT_SCALE ? 0.66 : 0.86), height * 0.36, 340);
 
   const face =
     layout === 'spread' ? (
@@ -365,7 +388,7 @@ export default function TimerScreen() {
           <PoseSticker who="doro" pose={pose} width={44} />
         </View>
       )}
-      <Text style={[styles.partnerLine, { color: tokens.inkSoft }]}>{t('partner.studying')}</Text>
+      <Text style={[styles.partnerLine, { color: tokens.inkSoft }]}>{t(partnerLine)}</Text>
     </View>
   );
 
@@ -387,7 +410,7 @@ export default function TimerScreen() {
       paused={paused}
       primaryLabel={primaryLabel}
       onPrimary={handlePrimaryAction}
-      onSkip={skip}
+      onSkip={handleSkip}
       onEnd={handleEnd}
       presets={presetSegments}
       preset={preset}

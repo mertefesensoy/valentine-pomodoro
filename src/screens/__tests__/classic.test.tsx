@@ -124,3 +124,37 @@ describe('Settings › Appearance', () => {
         expect(useSettingsStore.getState().settings.classicLayout).toBe('spread');
     });
 });
+
+// covers: NFR-UX-001
+describe('Classic after its first reviews (critique, HIG, review-animations)', () => {
+    it('asks before skipping a focus that has run past its first minute; a fresh one skips at once', async () => {
+        const { Alert } = jest.requireActual<typeof import('react-native')>('react-native');
+        const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+        await show(<TimerScreen />);
+        await press(screen.getByText('Start focus'));
+        await act(() => jest.advanceTimersByTime(90_000));
+        await press(screen.getByText('Skip'));
+        expect(alert).toHaveBeenCalledTimes(1);
+        expect(alert.mock.calls[0][0]).toBe('Skip the rest of this focus?');
+        // Confirming skips: the break is next.
+        const buttons = alert.mock.calls[0][2] as { text: string; onPress?: () => void }[];
+        await act(async () => buttons.find((b) => b.text === 'Skip')!.onPress!());
+        expect(screen.getByText('Start break')).toBeOnTheScreen();
+        alert.mockRestore();
+    });
+
+    it('says what Pomo & Doro are doing now', async () => {
+        await show(<TimerScreen />);
+        expect(screen.getByText('Pomo & Doro are ready when you are')).toBeOnTheScreen();
+        await press(screen.getByText('Start focus'));
+        expect(screen.getByText('Pomo & Doro are studying with you')).toBeOnTheScreen();
+        await act(() => jest.advanceTimersByTime(3_000));
+        await press(screen.getByText('Pause'));
+        expect(screen.getByText('Pomo & Doro are waiting for you')).toBeOnTheScreen();
+    });
+
+    it('explains the empty sticker row before the first sticker', async () => {
+        await show(<TimerScreen />);
+        expect(screen.getByText('Finish a focus and your first sticker lands here')).toBeOnTheScreen();
+    });
+});

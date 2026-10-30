@@ -23,7 +23,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 | 2. `/apple-design` on the brief | Good; no Critical; 4 Medium and 3 Low, all dispositioned (§3.1.1) | Good; no Critical; 1 High and 2 Low, dispositioned (§3.2.1) |
 | Owner: direction contracts | **Approved**, 2026-10-30 ("Approve, build D1") | **Approved**, 2026-10-30 ("Approve, build D1") |
 | 3. Build (`animate-expo`) | Built, `635eb0a` (§3.9–3.10) | Built (§3.11) |
-| 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | — | — |
+| 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | Critique 31 → **35/40**; audit **16/20**; HIG Good, no Critical; motion clean after fixes (§3.12) | Critique **30/32**; audit **19/20**; HIG Good, no Critical; motion clean (§3.12) |
 | 5. `break-ui` (TR at AX5) | — | — |
 | 6. `polish`, `harden`, `clarify` | — | — |
 | 7. Device check, build 48 | — | — |
@@ -313,6 +313,47 @@ There is no overshoot anywhere. A light haptic fires as p passes 0.6 (`useAnimat
 **Presentation:** `fullScreenModal` with a fade, gestures off. Start fades it back into the Timer tab ("Same object").
 
 **Found for D2.** Fresh installs still get v1's first-launch gift modal before the welcome. D2's Gift brief should decide whether the welcome replaces it for fresh installs.
+
+### 3.12 The three reviews, and the fix batch (DESIGN-WORKFLOW §2 steps 4 and 6)
+
+**How they ran.** This is a native platform, so the critique is Impeccable's design review alone (the detector reads web markup only). It ran in this context, with no degraded banner, as the critique reference allows. There is no Simulator on this machine, so every review reads the source and the built behaviour. The look is judged on the owner's iPhone at the device check, which may move the Accessibility and Adaptivity scores.
+
+**How the gate is read.** The native audit is scored out of 20, which is NFR-UX-003's gate (≥ 16). The critique is scored out of 40 (out of 32 with two heuristics n/a), so "≥ 16/20" is read proportionally there: at least 80 %.
+
+**Classic, first pass.** The snapshot is `.impeccable/critique/2026-10-30T18-52-45Z__app-tabs-index-tsx.md`.
+
+| Review | Result | Findings |
+|---|---|---|
+| Critique | **31/40**, Good | P1: Skip ends a running focus with no guard. P2: the idle sticker row is blank. P2: "25/5" leans on recall. P3: the partner line is the same in every state. P3: the session count shows twice. |
+| Audit (native) | **16/20** | Accessibility 3, Performance 3, Theming 4, Conformance 3, Adaptivity 3. P2: the ring keeps its size at AX5. P3: today's row draws heavy celebrating stickers. P3: the "+n" cell is fixed. |
+| `/apple-design` (code audit) | Good, no Critical | B-M1: Skip is irreversible, with no warning (`alerts.md`, `undo-and-redo.md`). B-L1: the partner line says "studying" while idle. |
+| `review-animations` | Not clean | Standard 8: the preset indicator slides under Reduce Motion. Standard 3: the particles use the default easing. Standard 9: press-in and release are symmetric. |
+
+**The fix batch:**
+- **Skip** asks in a native alert while a focus has run past its first minute; a break, or a focus under a minute old, skips at once.
+- **The empty row** gets a dashed slot and "Finish a focus and your first sticker lands here".
+- **The presets** carry a quiet "focus / break, in minutes" key, hidden from VoiceOver, which hears each segment in words.
+- **The partner line** follows the state: ready, studying, on a break, waiting.
+- **The ring** shrinks to 66 % of the width at AX sizes.
+- **The "+n" cell** grows with its text.
+- **Motion:** under Reduce Motion the indicator changes without sliding; the particles and the sticker's fade-in take the strong ease-out; the press snaps in at 100 ms and settles back over 180 ms.
+- **Tests:** `classic.test.tsx` covers the Skip guard (and that confirming skips), the partner line by state, and the empty-row caption.
+
+**Classic, after the fixes:**
+- **Critique: 35/40** (88 %). The scores: status 4, real world 4, control 4, consistency 3, prevention 4, recognition 4, flexibility 3, minimalism 3, recovery 3, help 3. Still open: the session count shows twice (P3, kept: the dots are the visual, the phase line is spoken).
+- **Audit: 16/20**, unchanged until the device check confirms the AX5 layout.
+- **HIG:** B-M1 and B-L1 are fixed.
+- **`review-animations`: clean.**
+- **Kept on purpose: today's row keeps the celebrating stickers.** The sticker you earn should look earned. The device check's frame readout (NFR-PERF-004) decides whether they cost too much.
+
+**The welcome screen:**
+
+| Review | Result | Notes |
+|---|---|---|
+| Critique | **30/32**, Excellent | 7 and 10 n/a (Experience). Open: whether the flat scale-X "opening" reads as a squash (a feel question for the device), and Start is its only exit, by design, for a one-time screen. |
+| Audit (native) | **19/20** | Adaptivity 3 until the device shows compact height. |
+| `/apple-design` | Good, no Critical | W-H1 is in place (the calm-entry gate). **Medium, for D2:** a fresh install gets v1's gift modal, then the welcome: two first-run screens in a row (`onboarding.md`: "design a brief, enjoyable experience"). D2's Gift brief decides whether the welcome replaces the modal. |
+| `review-animations` | Clean | 2.4 s is justified for a once-only explanation. Custom ease-out and ease-in-out, with no overshoot; Start interrupts it; Reduce Motion fades; transforms and opacity only. |
 
 ## 4. Mathematical / Statistical Details
 

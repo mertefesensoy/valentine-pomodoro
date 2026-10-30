@@ -68,6 +68,15 @@ export function ClassicControls(p: Props) {
                     importantForAccessibility={p.idle ? 'auto' : 'no-hide-descendants'}
                 >
                     <SegmentedControl segments={p.presets} value={p.preset} onChange={p.onPreset} />
+                    {/* The key "25/5" needs to be read without recall (critique P2); VoiceOver hears each segment in words. */}
+                    <Text
+                        style={[styles.key, { color: tokens.inkSoft }]}
+                        maxFontSizeMultiplier={1.6}
+                        accessibilityElementsHidden
+                        importantForAccessibility="no-hide-descendants"
+                    >
+                        {t('presets.key')}
+                    </Text>
                 </Animated.View>
                 <Animated.View style={[styles.layer, styles.fade, styles.centre, { opacity: p.idle ? 0 : 1 }]} pointerEvents="none">
                     <CycleRow tokens={tokens} done={p.cycleDone} length={p.cycleLength} />
@@ -100,7 +109,9 @@ export function ClassicControls(p: Props) {
 
 const styles = css.create({
     wrap: { alignSelf: 'stretch', gap: space.m },
-    reserved: { minHeight: minTarget + 8, justifyContent: 'center' },
+    // The presets and their key, or the cycle row, in one reserved height so nothing jumps on Start.
+    reserved: { minHeight: minTarget + 8 + 22, justifyContent: 'center' },
+    key: { fontSize: 13, fontWeight: '500', textAlign: 'center', marginTop: space.xs },
     layer: { position: 'absolute', left: 0, right: 0 },
     centre: { alignItems: 'center' },
     fade: {

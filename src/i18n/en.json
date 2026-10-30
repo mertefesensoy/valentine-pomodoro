@@ -1,0 +1,80 @@
+{
+  "tabs": {
+    "timer": "Timer",
+    "stats": "Stats",
+    "settings": "Settings",
+    "notes": "Notes"
+  },
+  "timer": {
+    "phase": {
+      "focus": "Focus",
+      "shortBreak": "Short break",
+      "longBreak": "Long break"
+    },
+    "phaseLine": "{{phase}} · session {{n}} of {{total}}",
+    "nextChange": {
+      "break": "Break at {{time}}",
+      "focus": "Focus at {{time}}"
+    },
+    "paused": "Paused",
+    "a11y": {
+      "remaining": "{{minutes}}, {{seconds}} left, {{phase}}, session {{n}} of {{total}}",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes",
+      "seconds_one": "{{count}} second",
+      "seconds_other": "{{count}} seconds"
+    }
+  },
+  "controls": {
+    "startFocus": "Start focus",
+    "startBreak": "Start break",
+    "pause": "Pause",
+    "resume": "Resume",
+    "skip": "Skip",
+    "endSession": "End session",
+    "endConfirm": {
+      "title": "End this session?",
+      "message": "The timer goes back to the start.",
+      "end": "End session",
+      "cancel": "Cancel"
+    }
+  },
+  "presets": {
+    "label": "{{focus}} minutes focus, {{rest}} minutes break",
+    "position": "{{n}} of {{total}}",
+    "custom": "Custom"
+  },
+  "modes": {
+    "button": "Modes",
+    "title": "Modes",
+    "classic": "Classic",
+    "fly": "Fly",
+    "layout": "Timer layout",
+    "ring": "Ring",
+    "spread": "Facing pages"
+  },
+  "partner": {
+    "studying": "Pomo & Doro are studying with you"
+  },
+  "today": {
+    "a11y_one": "{{count}} session today",
+    "a11y_other": "{{count}} sessions today",
+    "a11y_zero": "No sessions yet today",
+    "more": "+{{count}}"
+  },
+  "goal": {
+    "reached": "Goal reached",
+    "streak_one": "{{count}}-day streak",
+    "streak_other": "{{count}}-day streak"
+  },
+  "loveNote": {
+    "title": "A note for you",
+    "close": "Close"
+  },
+  "welcome": {
+    "updated": "Your diary has a new look.",
+    "fresh": "Meet Pomo & Doro.",
+    "start": "Start",
+    "art": "Pomo and Doro become the pages of one diary"
+  }
+}

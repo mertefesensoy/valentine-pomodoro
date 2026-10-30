@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, type StyleProp, type TextStyle } from 'react-native';
+import { StyleSheet, Text, type StyleProp, type TextStyle } from 'react-native';
 import { useDisplayedSeconds } from '../stores/clockStore';
 import type { SessionKind } from '../types';
 import { formatTime } from '../utils/time';
@@ -23,8 +23,15 @@ interface TimerTextProps {
  * only thing that re-renders each second (FR-TMR-006, NFR-PERF-003). Its
  * parent re-renders only when the session itself changes (start, pause,
  * resume, stop).
+ *
+ * Its digits are always tabular ("The Steady Digits Rule", DESIGN.md; ADR-0046): the variant
+ * is applied after the caller's style, so no caller can drop it and no digit jiggles as it counts.
  */
 export default function TimerText({ kind, idleMs, style }: TimerTextProps) {
     const seconds = useDisplayedSeconds(kind, idleMs);
-    return <Text style={style}>{seconds === null ? '--:--' : formatTime(seconds * 1000)}</Text>;
+    return <Text style={[style, styles.steady]}>{seconds === null ? '--:--' : formatTime(seconds * 1000)}</Text>;
 }
+
+const styles = StyleSheet.create({
+    steady: { fontVariant: ['tabular-nums'] },
+});

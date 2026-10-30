@@ -1,0 +1,80 @@
+{
+  "tabs": {
+    "timer": "Zamanlayıcı",
+    "stats": "İstatistik",
+    "settings": "Ayarlar",
+    "notes": "Notlar"
+  },
+  "timer": {
+    "phase": {
+      "focus": "Odak",
+      "shortBreak": "Kısa mola",
+      "longBreak": "Uzun mola"
+    },
+    "phaseLine": "{{phase}} · {{total}} oturumdan {{n}}.",
+    "nextChange": {
+      "break": "Mola: {{time}}",
+      "focus": "Odak: {{time}}"
+    },
+    "paused": "Duraklatıldı",
+    "a11y": {
+      "remaining": "{{minutes}} {{seconds}} kaldı, {{phase}}, {{total}} oturumdan {{n}}.",
+      "minutes_one": "{{count}} dakika",
+      "minutes_other": "{{count}} dakika",
+      "seconds_one": "{{count}} saniye",
+      "seconds_other": "{{count}} saniye"
+    }
+  },
+  "controls": {
+    "startFocus": "Odağı başlat",
+    "startBreak": "Molayı başlat",
+    "pause": "Duraklat",
+    "resume": "Devam et",
+    "skip": "Atla",
+    "endSession": "Oturumu bitir",
+    "endConfirm": {
+      "title": "Bu oturum bitsin mi?",
+      "message": "Zamanlayıcı başa döner.",
+      "end": "Oturumu bitir",
+      "cancel": "Vazgeç"
+    }
+  },
+  "presets": {
+    "label": "{{focus}} dakika odak, {{rest}} dakika mola",
+    "position": "{{total}} seçenekten {{n}}.",
+    "custom": "Özel"
+  },
+  "modes": {
+    "button": "Modlar",
+    "title": "Modlar",
+    "classic": "Klasik",
+    "fly": "Uçuş",
+    "layout": "Zamanlayıcı düzeni",
+    "ring": "Halka",
+    "spread": "Karşılıklı sayfalar"
+  },
+  "partner": {
+    "studying": "Pomo ve Doro seninle çalışıyor"
+  },
+  "today": {
+    "a11y_one": "Bugün {{count}} oturum",
+    "a11y_other": "Bugün {{count}} oturum",
+    "a11y_zero": "Bugün henüz oturum yok",
+    "more": "+{{count}}"
+  },
+  "goal": {
+    "reached": "Hedefe ulaştın",
+    "streak_one": "{{count}} günlük seri",
+    "streak_other": "{{count}} günlük seri"
+  },
+  "loveNote": {
+    "title": "Sana bir not",
+    "close": "Kapat"
+  },
+  "welcome": {
+    "updated": "Günlüğün yeni bir görünüme kavuştu.",
+    "fresh": "Pomo ve Doro ile tanış.",
+    "start": "Başla",
+    "art": "Pomo ve Doro tek bir günlüğün sayfalarına dönüşüyor"
+  }
+}

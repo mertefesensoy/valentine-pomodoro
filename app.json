@@ -18,7 +18,11 @@
       "bundleIdentifier": "com.bengisu.valentinepomodoro",
       "buildNumber": "6",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleLocalizations": [
+          "en",
+          "tr"
+        ]
       },
       "icon": {
         "light": "./assets/images/ios-icon-light.png",
@@ -94,7 +98,15 @@
           ]
         }
       ],
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Baloo2-Medium.ttf",
+            "./assets/fonts/Baloo2-SemiBold.ttf"
+          ]
+        }
+      ],
       "expo-audio",
       "expo-splash-screen",
       [
@@ -110,6 +122,7 @@
           }
         }
       ],
+      "expo-localization",
       "expo-router"
     ],
     "extra": {

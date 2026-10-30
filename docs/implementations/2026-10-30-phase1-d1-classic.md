@@ -50,6 +50,15 @@ See the [Stage D plan §1](2026-10-30-phase1-stage-d.md#1-problem--motivation). 
 | `src/theme/navigationTheme.ts`, `src/App.tsx` | The navigator's backgrounds come from the tokens instead of React Navigation's default light and dark themes. |
 | `src/screens/{Stats,Settings,LoveNotes}Screen.tsx`, `src/startup/StartupDiagnostics.tsx` | Hard-coded white labels on `accent` and `accentPurple` fills now use `colors.onAccent`, which passes in both themes. |
 | `src/theme/__tests__/legacyColors.test.ts` | New. Every legacy pair those screens draw, in both themes, at its floor; the gradients drawn flat. |
+| `src/i18n/index.ts`, `casing.ts`, `en.json`, `tr.json`, `__tests__/i18n.test.ts` | New. The EN/TR plumbing the owner moved into D1: the language from the device, `t()` initialised synchronously, `upper()` with `tr-TR` casing, D1's strings with Turkish drafts, and tests of key and placeholder parity, plurals and casing (§3.5). |
+| `package.json`, `package-lock.json` | Adds `expo-localization` 58.0.4 and `i18next` 26.4.6, pinned exactly to releases at least two weeks old. Removes `expo-blur`, `expo-symbols` and `@expo/vector-icons`, which nothing imports any more (§3.7). |
+| `app.json` | The `expo-font` plugin lists the two Baloo 2 files (they reach `UIAppFonts`, checked with `expo config --type introspect`); `expo-localization`; `CFBundleLocalizations: ["en", "tr"]` for iOS's per-app language setting. |
+| `src/theme/type.ts` | New. The Baloo 2 family names and the timer role; `displayFamily()` and `useBoldText()`, so the display roles step up a weight under Bold Text (HIG D1-M4). |
+| `src/components/TimerText.tsx`, `__tests__/TimerText.test.tsx` | The leaf applies `fontVariant: ['tabular-nums']` after its caller's style, so every timer's digits stay steady; the test pins it (NFR-I18N-001, ADR-0046). |
+| `app/(tabs)/_layout.tsx` | The four filled tab icons as template images; only the selected tab in `primaryInk`; the labels through `t()` (§3.6). |
+| `art/jobs/icons.json`, `art/steps/icon-*-fill.steps.json`, `art/out/icon/icon-*-fill-25.png`, `assets/images/tabs/*` | The filled tab icons gain a 25 px export, and the `ship` field copies the 25, 50 and 75 px PNGs to `assets/images/tabs/tab-<name>{,@2x,@3x}.png`, so `build.mjs --check` covers them. |
+| `src/components/ui/IconSymbol{,.ios}.tsx` | Removed: the tab bar was their only user. |
+| `src/__tests__/router.test.tsx` | The tab-bar test now pins the template icons, the selected colour and the system's unselected appearance. |
 
 ## 3. Implementation Approach
 
@@ -165,6 +174,37 @@ The brief also settles four points:
 - Compiler report: unchanged, 47 compiled, 7 skipped, no worklet change.
 - Contrast: 52/52 pairs.
 - Reassure: unchanged. Settings-only 1, Timer 13, Stats 1, Settings 2, Notes 1, leaf 12.
+
+### 3.5 EN/TR plumbing (FR-SET-005, NFR-I18N-001)
+
+The owner moved D3's plumbing into D1 (Stage D plan §3.1).
+- **The language:** `src/i18n/index.ts` picks the app's language from the device's preferred locales: the first Turkish or English one, otherwise English. iOS relaunches an app when its language changes, so the language is fixed for the process.
+- **No `react-i18next`:** `t()` is i18next's own, bound once and initialised synchronously with both resources bundled. Calling it in render is pure, so it adds nothing to the Reassure counts and no bytecode for a binding library.
+- **Turkish casing** goes through `upper()`, with `toLocaleUpperCase('tr-TR')`.
+- **Versions:** `i18next` 26.4.6 (15 October) and `expo-localization` 58.0.4 (9 October) are pinned exactly. Newer releases exist, the newest published today, but each pin is at least two weeks old.
+- **The strings:** only D1's new strings are keys so far. The test checks key and placeholder parity between the languages, plurals (English one/other and a zero form; Turkish uses one form after a number), and casing (`istatistik` → `İSTATİSTİK` in Turkish, `ISTATISTIK` in English).
+- **Device check:** Hermes's `toLocaleUpperCase('tr-TR')` on the iPhone.
+
+### 3.6 The tab bar (HIG H-1, M-4, D1-M1)
+
+- **Icons:** the four filled C3 icons ship as 25 pt template images. React Native picks `@2x` or `@3x` by filename, and Jest needs the base name to exist, so the icon job now also exports 25 px.
+- **The selected colour:** `NativeTabs` gets `iconColor={{ selected: primaryInk }}` and the selected label colour.
+- **The unselected items** stay the system's monochrome. The native props show it: `selectedIconColor` and `selectedLabelStyle` are `#B03158`, and the normal appearance is empty.
+- **The labels** come from `t()`.
+
+### 3.7 Clean-up (HIG L-4)
+
+- `expo-blur` had no importer.
+- `IconSymbol` (with `expo-symbols` and `@expo/vector-icons`) lost its only user, the tab bar.
+- All three packages are removed. `expo-symbols` was native code, so this also trims the binary.
+- `expo-linear-gradient` stays until `PremiumCalmBackground` loses its last caller (D2).
+
+**Guards after these steps:**
+- `tsc`: clean.
+- Jest: 38 suites, 265 tests, all passing once the tab-bar test was updated.
+- Lint: 0 errors.
+- Compiler report: 46 compiled (one fewer, with `IconSymbol` gone), 7 skipped, no worklet change.
+- Art: `build.mjs --check` byte-identical; 79 assets within budget.
 
 ## 4. Mathematical / Statistical Details
 

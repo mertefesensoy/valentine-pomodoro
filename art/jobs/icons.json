@@ -1,5 +1,5 @@
 {
- "about": "C3: the custom icon set (24 pt grid, 2 pt rounded strokes outlined at build time) and the filled tab icons, exported as template PNGs at 50 and 75 px (25 pt @2x, @3x) for the native tab bar.",
+ "about": "C3: the custom icon set (24 pt grid, 2 pt rounded strokes outlined at build time) and the filled tab icons, exported as template PNGs at 25, 50 and 75 px (25 pt @1x, @2x, @3x) and shipped to assets/images/tabs/ for the native tab bar (D1).",
  "assets": [
   {
    "id": "icon-bell",
@@ -198,9 +198,15 @@
    "src": "art/src/icons/notes-fill.svg",
    "kind": "icon",
    "png": [
+    25,
     50,
     75
-   ]
+   ],
+   "ship": {
+    "25": "assets/images/tabs/tab-notes.png",
+    "50": "assets/images/tabs/tab-notes@2x.png",
+    "75": "assets/images/tabs/tab-notes@3x.png"
+   }
   },
   {
    "id": "icon-partner",
@@ -287,9 +293,15 @@
    "src": "art/src/icons/settings-fill.svg",
    "kind": "icon",
    "png": [
+    25,
     50,
     75
-   ]
+   ],
+   "ship": {
+    "25": "assets/images/tabs/tab-settings.png",
+    "50": "assets/images/tabs/tab-settings@2x.png",
+    "75": "assets/images/tabs/tab-settings@3x.png"
+   }
   },
   {
    "id": "icon-share",
@@ -336,9 +348,15 @@
    "src": "art/src/icons/stats-fill.svg",
    "kind": "icon",
    "png": [
+    25,
     50,
     75
-   ]
+   ],
+   "ship": {
+    "25": "assets/images/tabs/tab-stats.png",
+    "50": "assets/images/tabs/tab-stats@2x.png",
+    "75": "assets/images/tabs/tab-stats@3x.png"
+   }
   },
   {
    "id": "icon-sticker",
@@ -385,9 +403,15 @@
    "src": "art/src/icons/timer-fill.svg",
    "kind": "icon",
    "png": [
+    25,
     50,
     75
-   ]
+   ],
+   "ship": {
+    "25": "assets/images/tabs/tab-timer.png",
+    "50": "assets/images/tabs/tab-timer@2x.png",
+    "75": "assets/images/tabs/tab-timer@3x.png"
+   }
   },
   {
    "id": "icon-trash",

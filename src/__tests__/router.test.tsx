@@ -11,6 +11,7 @@ import { useHasBeenFocused, useScreenFocused } from '../hooks/useScreenFocus';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useStatsStore } from '../stores/statsStore';
 import { useUiStore } from '../stores/uiStore';
+import { StrawberryMilk } from '../theme/palette';
 import { resetStorage } from '../__fixtures__/storage/resetStorage';
 
 // The real app/ routes (Phase 1 B6): the root layout with src/App.tsx, the
@@ -212,14 +213,32 @@ describe('deep links', () => {
 });
 
 describe('the tab bar', () => {
-    it('is Timer, Stats, Settings and Notes, with their SF Symbols', async () => {
+    // covers: FR-SET-002
+    // Phase 1 D1: the four filled icons of the C3 set as template images (HIG M-4), and only
+    // the selected tab in primaryInk (H-1); the unselected items keep the system's monochrome,
+    // which adapts on Liquid Glass (D1 HIG D1-M1).
+    it('is Timer, Stats, Settings and Notes, with their template icons and the strawberry selection', async () => {
         await launch(null);
-        expect(tabScreens().map((s) => [s.props.screenKey, s.props.title, s.props.iconResourceName])).toEqual([
-            ['index', 'Timer', 'heart.fill'],
-            ['stats', 'Stats', 'chart.bar.fill'],
-            ['settings', 'Settings', 'gearshape.fill'],
-            ['notes', 'Notes', 'heart.text.square.fill'],
+        expect(
+            tabScreens().map((s) => [
+                s.props.screenKey,
+                s.props.title,
+                s.props.iconType,
+                s.props.iconImageRenderingMode,
+                String(s.props.iconImageSource?.testUri).split('/').pop(),
+            ]),
+        ).toEqual([
+            ['index', 'Timer', 'image', 'template', 'tab-timer.png'],
+            ['stats', 'Stats', 'image', 'template', 'tab-stats.png'],
+            ['settings', 'Settings', 'image', 'template', 'tab-settings.png'],
+            ['notes', 'Notes', 'image', 'template', 'tab-notes.png'],
         ]);
+        const primaryInk = StrawberryMilk.tokens.primaryInk;
+        for (const s of tabScreens()) {
+            expect(s.props.selectedIconColor).toBe(primaryInk);
+            expect(s.props.selectedLabelStyle).toEqual({ color: primaryInk });
+            expect(s.props.standardAppearance.stacked.normal).toEqual({});
+        }
     });
 
     // covers: FR-SET-001

@@ -73,22 +73,23 @@ Stage C produced an approved design system that no screen uses yet: the tokens, 
 | `src/screens/{Stats,Settings,LoveNotes}Screen.tsx`, `src/components/GiftModeModal.tsx` | D2 | Restyled, each to its own brief. |
 | `.impeccable/surfaces/*.md` | D2 | One brief per D2 screen. |
 | `scripts/design/check-emoji.mjs`, `src/__tests__/noEmojiIcons.test.ts` | D2 | The NFR-UX-002 grep check. |
-| `src/i18n/*` | D3 | i18next setup, the `en` and `tr` resources, and the `tr-TR` casing helper. |
+| `src/i18n/*` | D1 (plumbing), D3 | i18next setup, the `en` and `tr` resources, and the `tr-TR` casing helper. The owner moved the plumbing into D1 (Q1). |
+| `app/welcome.tsx`, `src/screens/welcome/*`, `.impeccable/surfaces/app-welcome-tsx.md` | D1 | The one-time v1.4 welcome screen with the pages-to-logo morph (Q3, §3.2.11). |
 | `art/sound/*`, `scripts/sound/build.mjs`, `src/assets/sounds/*`, `src/audio/uiSounds.ts` | D4 | The SoundCraft sources, the build and check, the shipped `.m4a` files and the player. |
 
 ## 3. Implementation Approach
 
-### 3.1 Order, gates and one proposed change
+### 3.1 Order, gates and one change
 
-**The order is D1 → D2 → D3, as given.** D4's assets can be made in a parallel session in its own worktree, then wired in after D1 lands (Q2, §7).
+**The order is D1 → D2 → D3, as given.** **D4's assets are made in a parallel session in its own worktree** (the owner, Q2), then wired in by this session after D1 lands.
 
-**Proposed change, which the owner decides (Q1): move D3's plumbing to the start of D1.** That plumbing is `expo-localization`, `i18next`, the `tr-TR` casing helper and the `en`/`tr` resource files. D1 and D2 would then write each new string once, as a key with its English and draft Turkish text.
+**Changed by the owner (Q1): D3's plumbing moves to the start of D1.** That plumbing is `expo-localization`, `i18next`, the `tr-TR` casing helper and the `en`/`tr` resource files. D1 and D2 write each new string once, as a key with its English and draft Turkish text.
 - **Why.** Otherwise D3 re-edits every screen D1 and D2 have just rebuilt, to swap English literals for keys. And D1's `break-ui` step needs real Turkish at the largest Dynamic Type size, which the app can only show once that plumbing exists.
 - **What D3 keeps:** the strings outside the rebuilt screens (Fly, notifications, alerts, the update prompt), the owner's Turkish copy review, the raw-text check, and the full TR × largest-size sweep on the device.
 - **The cost:** the i18next bytecode lands in D1 instead of D3. `expo-localization` adds native code, but D1 needs a native build for the fonts anyway.
 
 **Gates.** Each task closes on the owner's gates, recorded verbatim in its record:
-- D1: the direction contract (seen before code), then the review scores, then the device check on build 48
+- D1: the direction contracts for Classic and the welcome screen (seen before code), then the review scores, then the device check on build 48
 - D2: the four briefs, the notes copy (EN and TR), then the device check
 - D3: the Turkish copy, then the device check
 - D4: the sounds (a listening page), then the device check
@@ -153,7 +154,16 @@ Every step of [DESIGN-WORKFLOW §2](../process/DESIGN-WORKFLOW.md#2-the-pipeline
 #### 3.2.5 `classicLayout` and the presets
 
 - **`classicLayout: 'ring' | 'spread'`,** default `'ring'`, is an additive field in `DEFAULT_SETTINGS`. The settings store's merge fills it for existing installs (FR-SET-001: new fields merge without loss), and the `v131` fixture tests stay green. It is chosen in the mode sheet under Classic, and in Settings → Appearance ("Timer layout").
-- **Presets** 25/5, 50/10, 52/17 and 90/20. A preset writes the existing duration fields; there is no new storage key. The selected segment is derived from the current durations, and custom durations select none. What a preset sets is Q4 (§7).
+- **Presets** 25/5, 50/10, 52/17 and 90/20. **A preset sets all three durations** (the owner, Q4). It writes the existing duration fields, and adds no new storage key:
+
+  | Preset | Focus | Short break | Long break | Why the long break |
+  |--------|------:|------------:|-----------:|--------------------|
+  | 25/5 | 25 | 5 | 15 | Today's default |
+  | 50/10 | 50 | 10 | 30 | A long break three times the short one |
+  | 52/17 | 52 | 17 | 17 | The method has no separate long break, so it equals the short one |
+  | 90/20 | 90 | 20 | 20 | The same |
+
+  `longBreakEvery` stays as set (default 4), and the session engine is unchanged. The selected segment is derived from all three durations, and any other combination selects none ("Custom").
 - **The control is built, not the native module** (§5). It is a row of segments with `accessibilityRole="tab"` inside a `tablist`. Each segment reads in words ("25 minutes focus, 5 minutes break", M-3), is at least 44 pt tall, and wraps to two rows at accessibility sizes. On Start it crossfades into the cycle row in the same reserved height (brief §6).
 
 #### 3.2.6 The page: one component set, two layouts
@@ -215,7 +225,7 @@ The responsive rules are keyed to size classes (brief §6, HIG M-1). VoiceOver o
   - `/impeccable critique` and `/impeccable audit`, each **≥ 16/20** (NFR-UX-003)
   - `/apple-design` on the built code, with **no Critical findings**
   - Emil's `review-animations`, clean
-- **Break:** `break-ui` with worst-case data, including Turkish at AX5. With Q1 accepted, that is the real Turkish strings; otherwise, injected Turkish strings.
+- **Break:** `break-ui` with worst-case data, including the real Turkish strings at AX5 (the plumbing is in D1, Q1).
 - **Polish:** `polish`, `harden`, `clarify`.
 - **Device check, build 48** (`v1.4.0-tf.48`), on a physical iPhone through TestFlight, after the owner's OK for the EAS build and the submission:
   1. The new app icon in **default, dark and tinted**, and the splash in **light and dark**. They ship for the first time in this build.
@@ -227,6 +237,24 @@ The responsive rules are keyed to size classes (brief §6, HIG M-1). VoiceOver o
   7. The love-note sheet, then the interstitial, in that order.
   8. Compact height (landscape), the largest Dynamic Type size, the VoiceOver order and labels, and an iPad if one is available.
   9. The scroll edge effect under the bar when Facing Pages scrolls at accessibility sizes (brief §7).
+  10. The welcome screen (§3.2.11): it shows once over an update from build 47, once on a fresh install, and never again. The morph's feel, and its Reduce Motion crossfade.
+  11. Turkish (the plumbing is in D1): the rebuilt Classic and the welcome screen in TR at the largest size.
+
+#### 3.2.11 The v1.4 welcome screen and the pages-to-logo morph (the owner, Q3)
+
+The owner chose **both** placements: "First pairing and 1.4 welcome screen". The first pairing is Phase 2's (§9 records it for Phase 2). The welcome screen is D1's.
+
+- **What it is:** a one-time screen. Pomo & Doro turn themselves into the two pages and form the Same Page mark (ADR-0047). One line of copy follows, then a single "Start" button.
+- **Who sees it:** every install once, after the update to v1.4 from 1.3.1 or build 47, or on a fresh install. It never shows again.
+- **It is not a launch screen** (HIG H-2). The splash stays the static mark. The welcome screen is a route shown after the first frame is interactive. It is Apple's "welcome or onboarding screen" in place of a launch-time branding moment, and it never delays a cold start's TTI (NFR-PERF-001). The B7 probe's clean cold starts all come after it.
+- **Skippable at once:** the button reads "Start" from the first frame, and the morph never blocks it.
+- **Reduce Motion:** the morph becomes a crossfade from the characters to the mark (NFR-A11Y-004).
+- **Storage:** one new additive key, a "welcome seen" flag written when the screen closes. No existing key changes, and the B2 migration is untouched.
+- **The morph** is a choreographed transform and crossfade between two different designs (ADR-0047 §4), not a path interpolation:
+  - The characters move to the page positions, lean and flatten, and hand over to the mark's pages at the crossover.
+  - If the art needs in-between poses, they are made in VectorCraft through `scripts/art/build.mjs` and stay within budget.
+- **It runs the same pipeline as Classic:** `/impeccable shape` (its own brief, `.impeccable/surfaces/app-welcome-tsx.md`), `/apple-design` (onboarding), `animate-expo`, the three reviews, `break-ui` in TR at AX5, polish, and the device check (item 10 above).
+- **Its delight is the morph,** the one delight on its screen, which keeps "one delight per screen" whole.
 
 ### 3.3 D2, Stats, Settings, Notes and Gift
 
@@ -248,7 +276,7 @@ The responsive rules are keyed to size classes (brief §6, HIG M-1). VoiceOver o
 
 ### 3.4 D3, EN/TR (FR-SET-005, NFR-I18N-001, NFR-A11Y-003)
 
-- **Plumbing:** `expo-localization` with `i18next` and `react-i18next`.
+- **Plumbing, moved into D1 by the owner (Q1):** `expo-localization` with `i18next` and `react-i18next`. D3 finishes what D1 started.
   - The language follows the device.
   - `ios.infoPlist.CFBundleLocalizations: ["en", "tr"]`, so iOS offers the per-app language setting.
   - Turkish casing goes through one helper using `toLocaleUpperCase('tr-TR')` (İ/ı), never a bare `toUpperCase()`.
@@ -260,6 +288,7 @@ The responsive rules are keyed to size classes (brief §6, HIG M-1). VoiceOver o
 
 ### 3.5 D4, sounds (FR-SET-004, NFR-PERF-005; closes `DECISIONS.md` Q1)
 
+- **Made in a parallel session in its own worktree** (the owner, Q2). That session owns `art/sound/`, `scripts/sound/`, `src/assets/sounds/`, `art/review/d4-*` and its own record (`…-phase1-d4-sounds.md`), and touches nothing else. This session wires the sounds in after D1 lands (`src/audio/uiSounds.ts` and the settings toggle), then merges that session's branch with the owner's OK.
 - **SoundCraft:** the version is read from `soundcraft-cli --version` first. The plan names 0.14, and VectorCraft had drifted to 0.18.
 - **Three sounds,** made with SoundCraft's built-in synths only (`subtractive_synth`, `drum_synth`): focus start, break start and completion (the sticker placement).
 - **Sources:** each sound has a committed `.scraft` session and a `soundcraft-cli script` under `art/sound/`.
@@ -385,12 +414,12 @@ From D1: `python -P art/type/build-fonts.py --check`. From D4: `node scripts/sou
 - [ ] D3: every string extracted, and the raw-text check green. The device check in TR at the largest size on build 50 (needs a physical device).
 - [ ] D4: three sounds, each ≤ 1.5 s and ≤ 25 KB, rebuilt byte for byte. The silent switch and the toggle respected on the device (needs a physical device).
 
-## 7. Questions for the owner
+## 7. Questions for the owner, answered 2026-10-30
 
-1. **Q1, order:** pull D3's i18n plumbing to the start of D1 (§3.1)?
-2. **Q2, D4:** make the sounds now in a parallel session, in its own worktree, and wire them in after D1 lands?
-3. **Q3, the pages-to-logo animation:** where does it play? It never plays at launch (HIG H-2). The candidates are onboarding, the first pairing (Phase 2) and the weekly recap.
-4. **Q4, presets:** does a preset set the long break too? Today's long break is 15 minutes after every 4 focus sessions, and it would be shorter than 90/20's short break.
+1. **Q1, order:** pull D3's i18n plumbing to the start of D1? **"Plumbing in D1"** (§3.1).
+2. **Q2, D4:** make the sounds now in a parallel session, in its own worktree, and wire them in after D1 lands? **"Parallel session now"** (§3.5).
+3. **Q3, the pages-to-logo animation:** where does it play, given it never plays at launch (HIG H-2)? **"First pairing and 1.4 welcome screen"**: the welcome screen is D1's (§3.2.11), and the first pairing is Phase 2's (§9).
+4. **Q4, presets:** does a preset set the long break too? **"All three durations"**: 25/5/15, 50/10/30, 52/17/17, 90/20/20 (§3.2.5).
 
 **Decided here, which the owner may overrule:** the built segmented control (§5).
 
@@ -415,6 +444,12 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 **`docs/roadmap/ROADMAP.md`**, the status board: Phase 1 Stage D → in progress (2026-10-30). Per-task rows are added here as each task lands.
 
 **SRS** status changes: each is added here when its task lands.
+
+**Phase 2 inherits (the owner, Q3, 2026-10-30):** the pages-to-logo morph also plays at the first pairing. It reuses D1's welcome-screen choreography (§3.2.11). For the rehaul plan's Phase 2 section and the ROADMAP's Phase 2 row:
+
+```markdown
+- The pages-to-logo morph (Pomo & Doro become the Same Page mark) plays at the first pairing, reusing the v1.4 welcome screen's choreography (Phase 1 Stage D plan §3.2.11; owner, 2026-10-30).
+```
 
 ## Backlinks
 <!-- backlinks:start -->

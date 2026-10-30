@@ -3,10 +3,10 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useTimer } from "../hooks/useTimer";
-import { formatTime } from "../utils/time";
 import LoveNoteCard from "../components/LoveNoteCard";
 import GoalReachedPopup from "../components/GoalReachedPopup";
 import { CircularProgress } from "../components/CircularProgress";
+import TimerText from "../components/TimerText";
 import CalmBackground from "../components/CalmBackground";
 import ModeSwitcher from "../components/ModeSwitcher";
 import { isFlyModeAvailable } from "../constants/features";
@@ -280,12 +280,17 @@ export default function TimerScreen() {
           progressColor={colors.accent}
         />
         <View style={styles.timerOverlay}>
-          <Text style={[
-            styles.timer,
-            isTablet && styles.timerTablet,
-            isLandscape && styles.timerLandscape,
-            { color: colors.text }
-          ]}>{formatTime(remainingMs)}</Text>
+          {/* The only part of this screen that re-renders each second (Phase 1 B4) */}
+          <TimerText
+            kind="pomodoro"
+            idleMs={totalMs}
+            style={[
+              styles.timer,
+              isTablet && styles.timerTablet,
+              isLandscape && styles.timerLandscape,
+              { color: colors.text }
+            ]}
+          />
         </View>
       </View>
 

@@ -8,11 +8,12 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ValentineSpec } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
-import { formatTime } from '../utils/time';
+import TimerText from './TimerText';
 
 interface FlyTimerPillProps {
     sheetProgress: SharedValue<number>; // 0 = peek, 1 = full
-    displayMs: number | null;
+    /** What the timer shows with no flight running or paused (ms), or null for --:--. */
+    idleMs: number | null;
     onTap: () => void;
     topInset: number;
     isLandscape: boolean;
@@ -21,7 +22,7 @@ interface FlyTimerPillProps {
 
 export default function FlyTimerPill({
     sheetProgress,
-    displayMs,
+    idleMs,
     onTap,
     topInset,
     isLandscape,
@@ -67,9 +68,11 @@ export default function FlyTimerPill({
         >
             <Pressable style={styles.pressable} onPress={onTap}>
                 <Text style={styles.icon}>✈️</Text>
-                <Text style={[styles.digits, { color: isDark ? colors.text : ValentineSpec.textPrimary }]}>
-                    {displayMs !== null ? formatTime(displayMs) : '--:--'}
-                </Text>
+                <TimerText
+                    kind="fly"
+                    idleMs={idleMs}
+                    style={[styles.digits, { color: isDark ? colors.text : ValentineSpec.textPrimary }]}
+                />
             </Pressable>
         </Animated.View>
     );

@@ -1,13 +1,11 @@
 import type { ReactNode } from 'react';
-import { Text } from 'react-native';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { act } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { measureRenders } from 'reassure';
 import { StoreGate } from '../../stores/StoreGate';
 import { useSessionStore } from '../../stores/sessionStore';
-import { useSessionClock } from '../../hooks/useSessionClock';
-import { formatTime } from '../../utils/time';
+import TimerText from '../../components/TimerText';
 import TimerScreen from '../TimerScreen';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import StatsScreen from '../StatsScreen';
@@ -44,12 +42,12 @@ function Providers({ children }: { children: ReactNode }) {
     );
 }
 
-// Stand-in for the <TimerText> leaf B4 introduces: the smallest component that
-// shows the remaining time. B4 swaps in the real leaf; its target is 1 + n
-// renders for n displayed seconds.
+// The real <TimerText> leaf (Phase 1 B4; until then a stand-in that read
+// useSessionClock() and showed 00:00 while idle). Its target is 1 + n renders
+// for n changes of the displayed value (plan §4.3). Idle it shows the 25:00
+// focus length, so starting changes nothing: n = 10 ticks + the stop = 11.
 function TimerTextLeaf() {
-    const clock = useSessionClock();
-    return <Text>{formatTime(clock.displayMs)}</Text>;
+    return <TimerText kind="pomodoro" idleMs={25 * 60_000} />;
 }
 
 const tenSecondSession = {

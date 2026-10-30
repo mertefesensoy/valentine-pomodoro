@@ -1,5 +1,3 @@
-import { useEffect } from 'react';
-import { AppState, type AppStateStatus } from 'react-native';
 import { create } from 'zustand';
 import type { PomodoroState, SessionClockState, SessionKind, SessionSlot } from '../types';
 import { loadSync, saveSync, STORAGE_KEYS } from '../utils/storage';
@@ -13,10 +11,11 @@ import { isRecord } from './isRecord';
 // schedules against, so the plane, the timer text and the alert agree. The
 // remaining time is always endAt − now (FR-TMR-003), never a counter.
 //
-// The clock's side effects (the 1 Hz ticker, the AppState listener and the
-// cold-start completion check) are in useSessionClockEngine(), below, which
-// StoreGate mounts exactly once. Components read the clock through the
-// useSessionClock() facade (src/hooks/useSessionClock.ts).
+// The clock's side effects (the scheduler, the AppState listener and the
+// cold-start completion check) are in useSessionClockEngine()
+// (src/stores/clockStore.ts), which StoreGate mounts exactly once. They all
+// complete sessions through completeEndedSession(), below. Components read the
+// clock through the useSessionClock() facade (src/hooks/useSessionClock.ts).
 
 export const IDLE_CLOCK: SessionClockState = { activeKind: null, pomodoro: null, fly: null };
 
@@ -261,62 +260,14 @@ function endedActiveSlot(): { slot: SessionSlot; kind: SessionKind } | null {
     return { slot, kind };
 }
 
-let engineInstances = 0;
-
 /**
- * The session clock's side effects. Mounted exactly once, by StoreGate, after
- * the stores have hydrated (`active`).
- *
- * - On mount: a session that ended while the app was closed is completed
- *   (cold start), if a handler for its kind is registered; otherwise it waits
- *   for one (DEF-004, see fireCompletion).
- * - Every second: completes the active slot if its end has passed, otherwise
- *   increments `tick`. An ended session still waiting for a handler is left
- *   alone, so nothing ticks.
- * - On returning to the foreground: completes the active slot if its end has
- *   passed while the app was in the background.
- *
- * Subscribes to nothing, so StoreGate never re-renders because of the clock.
+ * Completes the active session if its end has passed, through fireCompletion's
+ * guards: exactly once (FR-TMR-005), and only once a handler for its kind is
+ * registered (DEF-004). Every completion path calls this: the clock store's
+ * scheduler, the foreground event and the cold-start check. Safe to call at
+ * any time; it does nothing unless a session has ended.
  */
-export function useSessionClockEngine(active: boolean): void {
-    useEffect(() => {
-        if (!active) return;
-
-        if (__DEV__) {
-            engineInstances++;
-            if (engineInstances > 1) {
-                console.error('[sessionStore] Multiple clock engines mounted. Only StoreGate may mount one.');
-            }
-        }
-
-        // Cold start: the session completed while the app was closed.
-        const ended = endedActiveSlot();
-        if (ended) fireCompletion(ended.slot, ended.kind);
-
-        const interval = setInterval(() => {
-            const { clock } = useSessionStore.getState();
-            const { activeKind } = clock;
-            if (!activeKind) return;
-            const slot = clock[activeKind];
-            if (!slot?.isRunning || !slot.endAt) return;
-            if (slot.endAt <= Date.now()) {
-                fireCompletion(slot, activeKind);
-            } else {
-                // Re-render the time displays so endAt − Date.now() stays fresh.
-                useSessionStore.setState((s) => ({ tick: s.tick + 1 }));
-            }
-        }, 1000);
-
-        const sub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
-            if (nextState !== 'active') return;
-            const endedInBackground = endedActiveSlot();
-            if (endedInBackground) fireCompletion(endedInBackground.slot, endedInBackground.kind);
-        });
-
-        return () => {
-            clearInterval(interval);
-            sub.remove();
-            if (__DEV__) engineInstances--;
-        };
-    }, [active]);
+export function completeEndedSession(): void {
+    const ended = endedActiveSlot();
+    if (ended) fireCompletion(ended.slot, ended.kind);
 }

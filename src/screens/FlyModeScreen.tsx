@@ -32,6 +32,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import FlySheet, { FlySheetRef } from '../components/FlySheet';
 import FlyTimerPill from '../components/FlyTimerPill';
+import TimerText from '../components/TimerText';
 import { useResponsive } from '../hooks/useResponsive';
 import { ValentineSpec } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
@@ -44,7 +45,7 @@ import {
 import { interpolateAlongPathWorklet } from '../utils/geoMathWorklet';
 import { save, load, STORAGE_KEYS } from '../utils/storage';
 import { useAirports } from '../hooks/useAirports';
-import { formatTime, getDayKeyFromDate, getTodayKey } from '../utils/time';
+import { getDayKeyFromDate, getTodayKey } from '../utils/time';
 import { useFlyModeAudio } from '../hooks/useFlyModeAudio';
 import { useSessionClock } from '../hooks/useSessionClock';
 import { useNotesStore } from '../stores/notesStore';
@@ -178,12 +179,10 @@ export default function FlyModeScreen() {
     const paused = flySlot !== null && flySlot !== undefined && !flySlot.isRunning;
     const isSessionActive = timerRunning || paused;
 
-    // Display ms — live remaining for the fly slot
-    const displayMs: number | null = flySlot
-        ? (flySlot.isRunning && flySlot.endAt
-            ? Math.max(0, flySlot.endAt - Date.now())
-            : flySlot.pausedRemainingMs ?? (flightData ? flightData.totalSeconds * 1000 : null))
-        : (flightData ? flightData.totalSeconds * 1000 : null);
+    // What the timer shows with no flight running or paused: the selected
+    // flight's duration, or --:-- with none. The time itself is <TimerText>'s
+    // (Phase 1 B4), so this screen doesn't re-render each second.
+    const idleMs: number | null = flightData ? flightData.totalSeconds * 1000 : null;
 
     // Ad state
     const [isAdPending, setIsAdPending] = useState(false);
@@ -885,7 +884,7 @@ export default function FlyModeScreen() {
             {/* ── Floating timer pill — fades in at peek snap ──────────────── */}
             <FlyTimerPill
                 sheetProgress={sheetProgress}
-                displayMs={displayMs}
+                idleMs={idleMs}
                 onTap={() => flySheetRef.current?.expandTo('full')}
                 topInset={insets.top}
                 isLandscape={isLandscape}
@@ -922,9 +921,7 @@ export default function FlyModeScreen() {
                     {flightComplete && !timerRunning ? (
                         <Text style={styles.landedText}>✈️  Landed!</Text>
                     ) : (
-                        <Text style={styles.timerDigits}>
-                            {displayMs !== null ? formatTime(displayMs) : '--:--'}
-                        </Text>
+                        <TimerText kind="fly" idleMs={idleMs} style={styles.timerDigits} />
                     )}
                 </View>
 

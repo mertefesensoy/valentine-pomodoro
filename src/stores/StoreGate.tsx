@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { ensureMigrated, isStorageMigrated } from '../utils/storageMigration';
 import { hydrateStores } from './hydrateStores';
 import { useReminderScheduler } from './reminderScheduler';
-import { useSessionClockEngine } from './sessionStore';
+import { useSessionClockEngine } from './clockStore';
 
 /**
  * The root of the app's state (Phase 1 B3). Renders its children only once the

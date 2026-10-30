@@ -1,5 +1,4 @@
 import { Profiler } from 'react';
-import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { act, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StoreGate } from '../../stores/StoreGate';
@@ -55,11 +54,9 @@ describe('the Timer screen during a session', () => {
         await render(
             <GestureHandlerRootView style={{ flex: 1 }}>
                 <StoreGate>
-                    <BottomTabBarHeightContext.Provider value={0}>
-                        <Profiler id="timer" onRender={() => commits++}>
-                            <TimerScreen />
-                        </Profiler>
-                    </BottomTabBarHeightContext.Provider>
+                    <Profiler id="timer" onRender={() => commits++}>
+                        <TimerScreen />
+                    </Profiler>
                 </StoreGate>
             </GestureHandlerRootView>,
         );

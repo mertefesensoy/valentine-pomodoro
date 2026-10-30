@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
-import { NavigationContext } from '@react-navigation/native';
+import { NavigationContext } from 'expo-router/react-navigation';
 import { act, render } from '@testing-library/react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { StoreGate } from '../../stores/StoreGate';

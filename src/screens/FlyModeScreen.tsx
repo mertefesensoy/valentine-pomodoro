@@ -34,6 +34,7 @@ import FlySheet, { FlySheetRef } from '../components/FlySheet';
 import FlyTimerPill from '../components/FlyTimerPill';
 import TimerText from '../components/TimerText';
 import { useResponsive } from '../hooks/useResponsive';
+import { useWindowInsets } from '../hooks/useWindowInsets';
 import { ValentineSpec } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 import AirportPicker, { Airport } from '../components/AirportPicker';
@@ -124,6 +125,9 @@ const MARKER_HZ = 15;
 export default function FlyModeScreen() {
     const { width, height, isLandscape } = useResponsive();
     const insets = useSafeAreaInsets();
+    // The sheet sits above the tab bar already (TimerScreen pads for it), so its
+    // own bottom padding is the window's inset, not the tab's (Phase 1 B6).
+    const windowInsets = useWindowInsets();
     const { colors, isDark } = useTheme();
 
     // Sheet animation state — sheetProgress 0=peek, 1=full
@@ -906,7 +910,7 @@ export default function FlyModeScreen() {
                 isLandscape={isLandscape}
                 viewportWidth={width}
                 viewportHeight={height}
-                bottomInset={insets.bottom}
+                bottomInset={windowInsets.bottom}
                 cardBgColor={colors.card}
                 hapticsEnabled={settings.haptics}
                 headerControl={

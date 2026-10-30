@@ -14,7 +14,6 @@ import {
     StyleSheet,
     StatusBar,
 } from 'react-native';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useNotesStore } from '../stores/notesStore';
 import { useTheme } from '../theme/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
@@ -24,7 +23,6 @@ type Mode = { type: 'add' } | { type: 'edit'; index: number; initial: string } |
 export default function LoveNotesScreen() {
     const { colors, isDark } = useTheme();
     const { isTablet } = useResponsive();
-    const tabBarHeight = useBottomTabBarHeight();
     const notes = useNotesStore((s) => s.notes);
     const isReady = useNotesStore((s) => s.isReady);
     const addNote = useNotesStore((s) => s.addNote);
@@ -106,9 +104,10 @@ export default function LoveNotesScreen() {
                         </View>
                     ) : null}
 
+                    {/* The SafeAreaView's bottom inset includes the native tab bar (Phase 1 B6). */}
                     <FlatList
                         style={styles.list}
-                        contentContainerStyle={{ paddingBottom: tabBarHeight + 8 }}
+                        contentContainerStyle={{ paddingBottom: 8 }}
                         data={notes}
                         keyExtractor={(_, i) => String(i)}
                         ItemSeparatorComponent={() => <View style={styles.separator} />}

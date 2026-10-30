@@ -1,0 +1,26 @@
+import { Link } from 'expo-router';
+import { StyleSheet, Text, View } from 'react-native';
+
+import { useTheme } from '../src/theme/useTheme';
+
+// Any path that matches no route (Phase 1 B6; was src/navigation/screens/NotFound.tsx).
+export default function NotFound() {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
+      <Text style={{ color: colors.text }}>404</Text>
+      <Link href="/" style={{ color: colors.accent }}>
+        Go to Home
+      </Link>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+  },
+});

@@ -19,7 +19,6 @@ import { useStatsStore, useStreak } from '../stores/statsStore';
 import { useUpdateCheck } from '../hooks/useUpdateCheck';
 import { useTheme } from '../theme/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import type { ThemeMode } from '../types';
 
 const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
@@ -44,7 +43,6 @@ export default function SettingsScreen() {
     const { checkForUpdates } = useUpdateCheck(UPDATE_JSON_URL);
     const { colors } = useTheme();
     const { isTablet } = useResponsive();
-    const tabBarHeight = useBottomTabBarHeight();
 
     // Local draft state for number inputs
     const [focusDraft, setFocusDraft] = useState(settings.durations.focus.toString());
@@ -128,11 +126,11 @@ export default function SettingsScreen() {
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
             <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            {/* The SafeAreaView's bottom inset includes the native tab bar (Phase 1 B6). */}
             <ScrollView
                 contentContainerStyle={[
                     styles.scrollContent,
                     isTablet && styles.scrollContentTablet,
-                    { paddingBottom: tabBarHeight },
                 ]}
                 keyboardShouldPersistTaps="handled"
             >

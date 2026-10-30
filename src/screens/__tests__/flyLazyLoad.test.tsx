@@ -1,5 +1,4 @@
 import { Platform } from 'react-native';
-import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StoreGate } from '../../stores/StoreGate';
@@ -35,9 +34,7 @@ async function renderTimerScreen() {
     await render(
         <GestureHandlerRootView style={{ flex: 1 }}>
             <StoreGate>
-                <BottomTabBarHeightContext.Provider value={0}>
-                    <TimerScreen />
-                </BottomTabBarHeightContext.Provider>
+                <TimerScreen />
             </StoreGate>
         </GestureHandlerRootView>,
     );

@@ -7,10 +7,15 @@ import { save, STORAGE_KEYS } from '../../utils/storage';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import type { SessionKind, SessionSlot } from '../../types';
 
-// DEF-004. On a phone, NavigationContainer renders nothing until
-// Linking.getInitialURL() resolves (React Navigation 7, at most 150 ms), so the
-// screens that subscribe to completions mount after that. A session that ended
-// while the app was killed must still be completed once, for its subscriber.
+// DEF-004. A session that ended while the app was killed must still be
+// completed once, for a subscriber of its kind, however late that subscriber
+// mounts. It was found with React Navigation's NavigationContainer, which
+// rendered nothing until Linking.getInitialURL() resolved (at most 150 ms).
+// Since Phase 1 B6, Expo Router reads the launch URL synchronously on iOS, so
+// the first tab mounts at once. Subscribers still mount late after Fly's lazy
+// load, on a cold start through a deep link into another tab (the Timer tab is
+// frozen until first shown), and on Android, where the router still waits up
+// to 150 ms for the URL.
 jest.useFakeTimers();
 
 type Handler = (slot: SessionSlot, kind: SessionKind) => void;
@@ -20,7 +25,7 @@ function Subscriber({ handler, kind }: { handler: Handler; kind?: SessionKind })
     return null;
 }
 
-/** Renders its children only after `ms`, the way the navigator's fallback does. */
+/** Renders its children only after `ms`: a subscriber that mounts late. */
 function MountAfter({ ms, children }: { ms: number; children: ReactNode }) {
     const [show, setShow] = useState(false);
     useEffect(() => {

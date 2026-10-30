@@ -10,6 +10,14 @@ related: [ADR-0028, ADR-0002, ADR-0031, IMPL-2026-10-30-phase1-b6-expo-router, I
 # ADR-0043: Native tabs, frozen by a route wrapper, laid out by safe-area insets
 
 > **Status note:** accepted as part of the approved Phase 1 task B6, which [ADR-0028](0028-expo-router.md) decided. It records how B6 builds that decision, not a new direction. Built on branch `phase1/b6-expo-router` ([B6 record](../../implementations/2026-10-30-phase1-b6-expo-router.md)); it needs the device check on the combined TestFlight build (B6 record §6.6).
+>
+> **Amended 2026-10-30, after TestFlight build 46: the fallback was taken, in a modified form. Tabs are no longer frozen.** Build 46 showed the risk named under Consequences on every tab switch: UIKit shows a native tab before JavaScript unfreezes it, so a frame of background flashes. Nothing that hides a tab's committed content avoids that on native tabs. Decision 2 is replaced, approved by you as "stop freezing tabs" (branch `phase1/b6-tabs-fix`, [B6 record §9](../../implementations/2026-10-30-phase1-b6-expo-router.md#9-the-fix-for-build-46-tabs-that-never-freeze)). `FreezeOnBlur` is gone. Each tab renders inside `LazyTab`: nothing until its first focus or until start-up idle, then always, never hidden. What now provides each benefit the freeze gave:
+> - **Lazy tabs** (no banner or update check at cold start from unopened tabs): `LazyTab`. A tab renders on its first focus, or at start-up idle through `runAfterInteractive`, which runs after B7's interactive mark and its deferred drain, one tab per idle callback. The Stats banner itself waits for Stats' first focus.
+> - **B4 §3.5, overlays shown on return:** explicit focus gates (`useScreenFocused`). Timer's celebration (an RN `Modal`), love note and interstitial, and Fly's landing note and interstitial, wait until the Timer tab is focused.
+> - **No per-second work in a hidden tab:** only partly. The ring's frame callback already stopped on blur (B4), and Fly's frame callback now does too, so a hidden flight no longer re-renders 15 times a second. A hidden Timer's `<TimerText>` does commit once a second; that is one text node, accepted.
+> - **Store updates don't re-render a hidden tab:** not kept. A hidden Stats re-renders when a session is credited; that is the point of it being current when shown.
+>
+> The context reads changed too: the focus hooks read the router's `IsFocusedContext` (render-correct), not `navigation.isFocused()`.
 
 ## Context
 

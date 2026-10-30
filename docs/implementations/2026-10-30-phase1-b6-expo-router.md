@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-b4-rerender-refact
 
 # 2026-10-30 — Phase 1 B6: Expo Router with native tabs
 
-**Status:** Code done and verified locally, in three code commits after the plan commit (§2). **Merged into `rehaul/v2` on 2026-10-30 as `1b7a8d7`, before B7 (`3d3fbaf`); pushed 2026-10-30 (through `3369418`).** The device check (§6.6) on TestFlight build 46 (`v1.4.0-tf.46`), 2026-10-30, **failed items 1 and 2**: every tab switch flickers, and on Notes in light mode the tab bar turns to dark colours. The fix is open (§6.6).
+**Status:** Code done and verified locally, in three code commits after the plan commit (§2). **Merged into `rehaul/v2` on 2026-10-30 as `1b7a8d7`, before B7 (`3d3fbaf`); pushed 2026-10-30 (through `3369418`).** The device check (§6.6) on TestFlight build 46 (`v1.4.0-tf.46`), 2026-10-30, **failed items 1 and 2**: every tab switch flickers, and on Notes in light mode the tab bar turns to dark colours. **The fix is §9, on branch `phase1/b6-tabs-fix` (from `c628453`): tabs never freeze. Not merged, not pushed; its device check is the build-47 list in §6.6.**
 **Branch:** `phase1/b6-expo-router`, a worktree at `C:\vp\b6`, cut from `rehaul/v2` at `7034bba`. It merges with `phase1/b7-deferred-startup` without conflicts (§6.5).
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md), task B6. Decision: [ADR-0028](../architecture/adr/0028-expo-router.md) (Expo Router, native tabs); how it is built: [ADR-0043](../architecture/adr/0043-native-tabs-frozen-by-a-wrapper.md). Follows [B5](2026-10-30-phase1-b5-react-compiler.md).
 
@@ -17,6 +17,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-b4-rerender-refact
 
 ## 0. Read this first
 
+- **Build 46 failed device checks 1 and 2 (every tab switch flickered), and showed no Stats banner. The fix is §9, on branch `phase1/b6-tabs-fix`: tabs are never frozen or hidden.** A tab renders on its first focus or at start-up idle, then stays rendered; Timer and Fly hold their overlays and interstitial until focused; the banner waits for Stats' first focus and reports its result in B7's panel. The bullets below describe B6 as built for build 46; where they mention freezing, §9 supersedes them.
 - **The gate is green.**
   - Typecheck clean; lint 0 errors.
   - Jest **151/151 in 28 suites** (B5: 134 in 26). No guard assertion changed.
@@ -369,7 +370,27 @@ Jest's mocks can't show the native tab bar, real safe areas, the scheme registra
 - **Item 1:** "for every page switch the screen kind of flicks and causes an unsettling feeling for the eyes". This is the blank frame ADR-0043 named as B6's one new risk: UIKit shows the tab while React still hides the frozen screen's content, and the content appears only when JavaScript unfreezes it.
 - **Item 2:** "when i switch to notes in light mode the toggle bar kind of bugs out and turns itself to dark mode colors". The Notes screen paints only `colors.bg` and sets the status bar as Timer does, so nothing in its code is dark. The likely cause is the same blank frame: the Liquid Glass bar adapts to the empty view behind it. That is unconfirmed until a fixed build is on the phone.
 
-The other nine items passed. The fix is open: ADR-0043's fallback (remove `FreezeOnBlur`) brings back what B4 §3.5 fixed (the interstitial over Stats, the goal popup dismissed unseen), so it needs Timer to hold its overlays until it is focused.
+The other nine items passed. A third problem surfaced: **no banner in Stats** ("i did not see any ads banner in stats yet"); it showed on build 45 and earlier, and the interstitial works.
+
+**Cause and fix (branch `phase1/b6-tabs-fix`, §9):**
+- **Item 1, cause confirmed by construction:** on native tabs UIKit shows a tab before JavaScript can react, so the freeze's hidden content showed as a blank frame. Nothing that hides committed content avoids it (react-freeze, `display: none`, `<Activity>`), and neither the router nor react-native-screens has a freeze the native side waits for. **Fix:** tabs are never hidden. `LazyTab` renders a tab on its first focus or at start-up idle, then always. B4 §3.5's behaviour is kept by focus gates in Timer and Fly instead of the freeze.
+- **Item 2, likely the same blank frame** (the Liquid Glass bar adapting to the empty view behind it). Unconfirmed until build 47. If it persists, the next candidate is the documented `FlatList` scroll-edge limitation (Notes is the only `FlatList` screen), fixed by `disableTransparentOnScrollEdge`.
+- **The banner, cause unknown.** Nothing in the banner's code or B7's proved a cause (§9.1). The fix makes it wait for Stats' first focus (no request for an unopened screen) and records its load result and position in B7's hidden panel, so build 47 shows why if it still fails (§9.2, item 6).
+
+#### Build 47 checklist (the fix)
+
+Install over build 46. Items are numbered as above; B7's are from its record §6.5–6.6.
+
+1. **No flicker on switching tabs.** Switch between all four tabs several times, quickly and slowly, then again during a running session. Each tab appears at once with its content: no blank or background-coloured frame, including the first time a tab is opened right after launch.
+2. **Notes in light mode:** the tab bar stays light when you switch to Notes and while you scroll Notes to its top and bottom. (Dark mode: it stays dark.)
+4. **The Stats banner:** open Stats and wait up to 10 s; the banner shows above the tab bar. **Then, either way,** open Settings → About, long-press "Made with ❤️" for 1.5 s, and report the panel's "Stats banner (this launch)" line exactly: `loaded W×H` with "above the tab bar" is a pass; `failed: googleMobileAds/…` gives the SDK's reason; "reaches under the tab bar" means it loaded but sits behind the bar.
+5. **The timer still ticks** in Classic and Fly after switching to another tab and back; the ring keeps moving.
+8. **B4 §3.5's behaviour, now from focus gates:** set Focus to 1 minute and the daily goal to 1 minute, start, switch to Stats, wait for it to end. Stats shows the credit; **no popup, love note or ad appears over Stats.** Return to Timer: the goal popup, then the love note, then (when the ad policy allows) the interstitial.
+9. **DEF-004 (cold-start completion):** start a 1-minute focus, kill the app, wait 2 minutes, relaunch: credited once. Then the same, relaunching with `valentinepomodoro://stats`: the credit appears on Stats within a few seconds (Timer now renders at start-up idle), with no popup over Stats; opening Timer shows the popup and love note once.
+10. **Launch:** the splash goes straight to the Timer, with no white frame and no "Loading…".
+11. **Fly:** start a flight, switch to Stats for 30 s, come back: the plane is where the clock says, and moving; it lands with the landing note, then the interstitial. A flight that lands while you are on Stats shows its landing note only when you return.
+- **B7 item 5:** the panel's "This launch" line reads `deferred (idle) · active · clock ok`. `fallback` instead of `idle` means the first-frame wiring broke: stop and report.
+- **B7's TTI protocol** (its record §6.6, about 15 minutes, 24 alternated cold starts), then share the panel's data. The tabs' pre-render runs after the interactive mark and the deferred work, so the numbers stay comparable with build 46's.
 
 1. **No flash on switching tabs.** Switch between all four tabs several times, quickly and slowly, then again during a running session. A tab you have opened before must appear with its content, with no blank or background-coloured frame. *If it flashes:* that is the freeze (ADR-0043). The fallback is to remove `FreezeOnBlur` from the routes, then re-check item 8 and the cold-start cost; report it rather than accept it.
 2. **The tab bar:** the system tab bar (on iOS 26, Liquid Glass), with the heart, chart, gear and note icons labelled Timer, Stats, Settings, Notes, in that order. Switching tabs has no animation. Dark mode: the bar follows the phone's appearance, as before.
@@ -399,9 +420,9 @@ The other nine items passed. The fix is open: ADR-0043's fallback (remove `Freez
    - **(b) Add a task to turn on Metro's tree shaking.** Measured at 3,554,012 B (−340 KB, 302 KB under the ceiling). It changes how every module is bundled, under flags named `EXPO_UNSTABLE_*`, so it needs the full test run, the bundle checked for dropped side-effect imports, and its own device check.
    - **(c) Re-baseline NFR-PERF-002** to include the router, as the approved Expo Router decision's cost.
    - **Decided 2026-10-30: (a).** You accepted the overage for now; it is revisited at E3 with B7's TTI numbers. On the merged tree (B6, B7 and the `markFirstFrame` wiring) the iOS bytecode is 3,912,916 B, 56,708 B (1.47 %) over.
-2. **Native tabs mount every tab at launch and don't freeze** (§1, §3.3). Fixed by `FreezeOnBlur`. The one residual risk is device check 1.
+2. **Native tabs mount every tab at launch and don't freeze** (§1, §3.3). `FreezeOnBlur` made them lazy and frozen, and build 46 showed the residual risk on every switch. Replaced by `LazyTab` and focus gates (§9).
 3. **Expo Router 58 vendors React Navigation** (§3.5). Anyone adding a navigation import should take it from `expo-router` or `expo-router/react-navigation`; the `@react-navigation/*` packages are gone, so the wrong one fails to resolve.
-4. **`NavigationContext` from `expo-router/react-navigation` is deprecated upstream.** When an SDK removes it, move `useSlotProgress`'s focus signal to `FreezeOnBlur`.
+4. **`NavigationContext` from `expo-router/react-navigation` is deprecated upstream.** When an SDK removes it, move `useSlotProgress`'s focus signal to the router's `IsFocusedContext`, which the B6 fix's focus hooks already read (§9).
 5. **The test harness needed three workarounds,** each commented in the test files: `initialUrl: null` and a `window` global for the router's launch-URL path, the `expo-linking` functions installed once on the testing library's mock (the router reads it through a copy made on first use), and `setNotificationHandler` stubbed because the real one fails on jest-expo's event-emitter mock.
 6. **Pre-existing, not B6's:** `expo-doctor`'s `@expo/config-plugins` warning.
 7. **Not changed:** the Android `md` icons and Android's automatic bottom inset in native tabs (AN4); Settings' and Notes' content no longer scrolling under the bar (D2).
@@ -552,7 +573,14 @@ and in the intro, "The first superseded record is ADR-0035, by ADR-0041 (Phase 1
 
 ## 9. The fix for build 46: tabs that never freeze
 
-**Status:** Plan (this section is written before any code). Branch `phase1/b6-tabs-fix`, cut from `c628453` (B6 and B7 merged, the `markFirstFrame` wiring, build 46's result). Approved by you through the session that started this one: "Stop freezing tabs."
+**Status:** Code done and verified locally (§9.4). **Not merged, not pushed, no build.** Branch `phase1/b6-tabs-fix`, cut from `c628453` (B6 and B7 merged, the `markFirstFrame` wiring, build 46's result). Approved by you through the session that started this one: "Stop freezing tabs." §9.1–9.3 are the plan, written before any code (`de45489`); where the build differs from it, §9.2 says so.
+
+| Commit | Content |
+|--------|---------|
+| `de45489` | This section's plan, before any code. |
+| `1fc37d8` | **fix(b6):** `LazyTab` replaces `FreezeOnBlur`; `runAfterInteractive`; the focus hooks; Timer's and Fly's focus gates; Fly's frame callback off while hidden; the banner waits for Stats' first focus and records its result (`bannerStatus.ts`); `react-freeze` dropped as a direct dependency; the router and scheduler tests. |
+| `16a6752` | **feat(b6):** B7's hidden panel shows the banner's line, and its shared data carries it. |
+| this commit | This record's §9 and §6.6, and ADR-0043's amendment. |
 
 ### 9.1 Problem
 
@@ -565,7 +593,9 @@ Build 46 failed two device checks (§6.6), and one more problem surfaced:
    - the first request racing B7's deferred `MobileAds().initialize()`;
    - the freeze under Fabric (a frozen subtree is `display: none`, and Fabric unmounts those views; the banner view is then recycled and requests again).
 
-### 9.2 Approach (planned)
+### 9.2 Approach
+
+As planned, with one change, made while testing. Item 3's hooks don't use `navigation.isFocused()`: under Expo Router 58 it can be stale during render (the router warns as much), and a router test caught `useScreenFocused` missing a blur. Both hooks read the router's `IsFocusedContext` instead: the value its own `useIsFocused()` reads, provided per route by its `NavigationProvider`, correct during render, and updated by the navigator. It isn't re-exported, so it is imported from the package's build path (`expo-router/build/react-navigation/core/useIsFocused`), which the package's `exports` allow; an upgrade that moves it fails at build time. `useHasBeenFocused` latches by adjusting its state during render (React's pattern for remembering a past value), and `LazyTab` is `useHasBeenFocused() || startupIdle`, with no navigation listener of its own.
 
 1. **`FreezeOnBlur` is replaced by `LazyTab`, a latch that never hides.** A tab renders nothing until its route is first focused, or until start-up has gone idle after B7's interactive mark, whichever comes first. From then on it always renders its screen; nothing hides it again.
    - **Initial state:** `navigation?.isFocused() ?? true`, through the router's `NavigationContext` (the import `useSlotClock` already uses). Outside a navigator it renders at once.
@@ -594,7 +624,7 @@ Build 46 failed two device checks (§6.6), and one more problem surfaced:
    - Stats' safe-area handling is **not** rewritten on a guess. It would also diverge from Settings, which the parent session is editing.
 7. **Notes' bar (item 2):** nothing changes for it beyond the flicker fix. If build 47 still shows a dark bar on Notes, the fallback is `disableTransparentOnScrollEdge` on `NativeTabs`, a navigator-wide appearance change that needs its own check.
 
-### 9.3 Tests and checks (planned)
+### 9.3 Tests and checks (the plan)
 
 - `router.test.tsx`, with `runAfterInteractive` mocked so a test fires the pre-render itself (its module state can't be reset between launches in one file):
   - a cold start renders only the focused tab until the pre-render fires; after it, all four render, and Stats has no banner host (`RNGoogleMobileAdsBannerView`) until Stats is focused;
@@ -604,6 +634,142 @@ Build 46 failed two device checks (§6.6), and one more problem surfaced:
 - `deferredStartup.test.ts`: `runAfterInteractive`'s order in the deferred arm (after the interactive mark and the drain, one task per idle callback), that it waits for the mark in the eager arm, registration after the mark, and cancel.
 - The banner: its status line from simulated load and failure events, and no banner host before Stats is focused.
 - The gates: typecheck, lint 0 errors, full Jest, the A1 guards, the "exactly once" test, the three DEF-004 tests, the guards' mutation check, Reassure against a baseline re-taken at `c628453` (expected unchanged; a hidden Timer's leaf can now commit while hidden, which the scenarios don't cover), the compiler report, the iOS bytecode, and the cold-start module count (B7's record has 1,801).
+
+### 9.4 Results (local, all done)
+
+```bash
+npm run typecheck && npm run lint && npx jest --ci
+npx reassure --baseline   # at c628453, before any change
+npx reassure              # at the tip
+node scripts/react-compiler-report.js
+npx expo export --platform ios --dump-sourcemap --output-dir <scratch>
+npx expo export --platform ios --no-bytecode --no-minify --source-maps --output-dir <scratch>
+node scripts/startup-modules.js <scratch>/_expo/static/js/ios/index-<hash>.js
+```
+
+- [x] **Typecheck** clean. **Lint: 0 errors, 38 warnings**, the same count as at `c628453`; no new file has a warning.
+- [x] **Jest: 211 passed, 34 suites** (at `c628453`: 197 in 33). Router tests 13 → 17; 5 scheduler tests; `statsBanner.test.tsx` (5) is new; the panel test gains two assertions.
+- [x] **The guards:** `timerTextTicks`, both `timerScreenTicks` tests and `flyModeGuard` pass, and so do the "fires completion exactly once" test and the three DEF-004 tests. No guard assertion changed. `timerScreenOverlays.test.tsx` passes unchanged: it renders Timer without a navigator, where the gate is open.
+- [x] **The guards' mutation check:** without the clock store's notification of a changed second, the three timer guards fail at 24:59 (`timerTextTicks.test.tsx:43`, `timerScreenTicks.test.tsx:85`, `:112`). Restored byte-identical (sha256).
+- [x] **Reassure,** baseline re-taken at `c628453` in this worktree, then the tip; every count identical across its 3 runs:
+
+  | Scenario | `c628453` | Tip |
+  |----------|---:|---:|
+  | settings-only | 1 | 1 |
+  | Timer | 13 | 13 |
+  | Stats | 1 | 1 |
+  | Settings | 2 | 2 |
+  | Notes | 1 | 1 |
+  | leaf | 12 | 12 |
+
+  The scenarios render screens without a navigator, where the focus hooks are constant. On the phone, a hidden Timer's `<TimerText>` now commits once a second, which these scenarios don't cover.
+- [x] **The new tests, each seen to fail** (files restored byte-identical after each):
+
+  | Mutation | Tests that failed |
+  |----------|-------------------|
+  | Timer's focus gate always open | "a focus that ends while Stats shows holds its celebration…" (the celebration over Stats) |
+  | A react-freeze wrapper back inside `LazyTab` | "a hidden tab stays visible to queries", and the start-up-idle test |
+  | `LazyTab` renders at once | the four "only that tab renders" cold starts, and the start-up-idle test |
+  | The banner gate always open | the start-up-idle test (a banner before Stats was opened) |
+  | `runAfterInteractive` runs before the interactive mark | three scheduler tests (order, eager arm, no first frame) |
+
+- [x] **React Compiler report:** 47 functions compiled (46 at `c628453`: `FreezeOnBlur` out, `LazyTab` and `useHasBeenFocused` in), the same 7 skipped, no worklet count changed (Fly 5).
+- [x] **iOS bytecode** **3,917,728 B**, +4,812 B over `c628453`'s 3,912,916 B (re-measured here, matching the recorded value). 61,520 B (1.60 %) over NFR-PERF-002's ceiling: the overage you accepted until E3 (§7.1).
+- [x] **Cold-start modules** (`scripts/startup-modules.js`): **2,086**, against 2,084 at `c628453`. By name: `bannerStatus.ts`, `LazyTab.tsx` and `useScreenFocus.ts` in, `FreezeOnBlur.tsx` out. `react-freeze` stays in the bundle as react-native-screens' own dependency.
+- [x] **Merge preview:** `git merge-tree` against `rehaul/v2` at `b3c16b7` (the Settings number-pad fix): no conflicts. This branch doesn't touch `SettingsScreen.tsx`.
+
+### 9.5 Findings and open items
+
+1. **The banner's cause is still unknown.** Build 47's panel line tells which candidate it is:
+   - `failed: googleMobileAds/…`: the SDK's reason (no fill, network, a request issue). Then it is AdMob's side or the request, not the layout.
+   - `loaded W×H … (reaches under the tab bar)`: it loaded but sits behind the bar. Then Stats' bottom edge should use the tab's safe-area inset, as Timer does, and Settings' too, since both use React Native's own `SafeAreaView`.
+   - `loaded W×H … (above the tab bar)` with nothing visible: neither theory. Report it.
+   - `requested, no result yet` after 10 s: the request never completed.
+2. **Item 2's fallback** is `disableTransparentOnScrollEdge` on `NativeTabs`, if the Notes bar still turns dark (§6.6).
+3. **The focus hooks import the router's `IsFocusedContext` from its build path.** An Expo Router upgrade that moves it fails the build, not silently; the upgrade then needs a look.
+4. **Hidden tabs now do some work:** a hidden Timer's `<TimerText>` commits once a second, and a hidden Stats re-renders when a session is credited. Fly's frame callback and the ring's stop while hidden.
+5. **Nothing for you to decide** beyond what is pending:
+   - the bytecode overage is the one you accepted until E3;
+   - the banner line lives in B7's hidden panel, so it follows that decision: keep the panel in v1.4.0, or remove it at E4.
+
+### 9.6 Shared-doc updates to apply at merge
+
+This branch doesn't edit shared docs. Apply each of these when merging, then run `node scripts/docs/check-docs.mjs --write`. Commit hashes are this branch's; use the merged ones if the merge rewrites them.
+
+**Phase 1 plan, the B6 row.** In the status text, replace "and the fix is open ([B6 doc](2026-10-30-phase1-b6-expo-router.md) §6.6)." with:
+
+```markdown
+and the fix is on `phase1/b6-tabs-fix` (`1fc37d8`, `16a6752`; [B6 doc](2026-10-30-phase1-b6-expo-router.md) §9): tabs are never frozen or hidden; its device check is build 47.
+```
+
+and replace "so each tab route renders its screen inside `FreezeOnBlur` (react-freeze, as `freezeOnBlur` was), and B4 §3.5 holds." with:
+
+```markdown
+so each tab route renders its screen inside `LazyTab` (on first focus or at start-up idle, then never hidden), and Timer and Fly hold their overlays and interstitial until focused, which keeps B4 §3.5.
+```
+
+**ROADMAP, the B6 row.** The task cell becomes:
+
+```markdown
+B6 Expo Router with native tabs; tabs rendered late, then never hidden; deep links open each tab
+```
+
+and in the status cell, replace "fix open" with:
+
+```markdown
+fixed on `phase1/b6-tabs-fix` (`1fc37d8`, `16a6752`): tabs never freeze; device check on build 47
+```
+
+**SRS.**
+1. NFR-PERF-003's status: replace "B6, 2026-10-30, kept hidden tabs frozen under native tabs with a route wrapper (`FreezeOnBlur`), checked in Jest through the real tab navigator; every Reassure count unchanged." with:
+
+```markdown
+B6, 2026-10-30, kept hidden tabs frozen with a route wrapper (`FreezeOnBlur`), but build 46 flickered on every tab switch; the B6 fix replaced it: tabs render late (`LazyTab`) and are never hidden, Timer and Fly hold their overlays until focused, and Fly's frame callback stops while hidden. Every Reassure count unchanged; a hidden Timer's `<TimerText>` now commits once a second.
+```
+
+2. A new row in §3.4, after the last DEF row (DEF-009 if that number is still free):
+
+```markdown
+| DEF-009 | FR-ADS-001 | The Stats banner didn't show on TestFlight build 46 (it did on build 45). The interstitial works. Nothing in the banner's code or B7's proved a cause. | Device report, build 46; [B6 §9.1](../implementations/2026-10-30-phase1-b6-expo-router.md) | Medium | **Open.** The B6 fix (`1fc37d8`, `16a6752`) makes the banner wait for Stats' first focus and reports its load result and position in B7's hidden panel; build 47's panel line names the cause ([B6 §9.5](../implementations/2026-10-30-phase1-b6-expo-router.md)) |
+```
+
+**ARCHITECTURE.**
+1. §1.3, the B6 and B7 update note: replace "Each tab route renders its screen inside `FreezeOnBlur`, which keeps hidden tabs frozen and lazy." with:
+
+```markdown
+Each tab route renders its screen inside `LazyTab`: nothing until its first focus or start-up idle, then always (build 46's frozen tabs flickered; [B6 record §9](../implementations/2026-10-30-phase1-b6-expo-router.md)).
+```
+
+2. §5.3, the "Frozen, lazy tabs" bullet becomes:
+
+```markdown
+- **Lazy tabs that never hide:** native tabs mount every tab at launch and can't freeze one without a blank frame on every switch (UIKit shows a tab before JavaScript reacts; build 46). So each tab route renders its screen inside `LazyTab`: nothing until its first focus, or until start-up has gone idle after B7's interactive mark (`runAfterInteractive`, one tab per idle callback, after the deferred work); then always. A hidden screen holds back what must happen in front of the user with `useScreenFocused` (the router's `IsFocusedContext`): Timer's and Fly's celebration, love notes and interstitial wait for focus, and Fly's frame callback stops. The Stats banner waits for Stats' first focus (`useHasBeenFocused`).
+```
+
+3. §12, the B6 row: replace "hidden tabs frozen by `FreezeOnBlur`" with "tabs rendered late by `LazyTab`, never hidden", and "fix open" with "fixed on `phase1/b6-tabs-fix`; device check on build 47".
+
+**TEST-STRATEGY §4, the `router.test.tsx` row:**
+
+```markdown
+| `src/__tests__/router.test.tsx` | Deep links open each tab (FR-NAV-001); tabs render on first focus or at start-up idle and are never hidden, and a hidden Timer holds its celebration, love note and interstitial until focused (NFR-PERF-003, FR-ADS-001, FR-NTE-001; B4 §3.5); the focus hooks follow the router's focus; the Stats banner waits for Stats' first focus; the tab haptic follows the setting (FR-SET-001); a notification tap opens Timer (FR-NTF-003). Mutation-checked in B6 and its fix | Any change to `app/`, the tab navigator, `LazyTab` or the focus hooks; every Expo Router upgrade |
+```
+
+**CHANGELOG, Unreleased.**
+1. In the B6 bullet under "Changed", replace "Hidden tabs stay frozen and are still loaded only when first opened." with:
+
+```markdown
+Tabs are still loaded only when first opened or once start-up has gone idle, and since the fix for build 46 they are never frozen (1fc37d8).
+```
+
+2. Under "Fixed":
+
+```markdown
+- **Stage B:** TestFlight build 46 flickered on every tab switch, and could turn the tab bar dark on Notes: the native tab bar shows a tab before JavaScript unfreezes it. Tabs are no longer frozen; a hidden Timer holds its celebration, love note and interstitial until it is shown again, as before (1fc37d8). The Stats banner now loads only once Stats has been opened, and B7's hidden panel shows its load result, since build 46 showed no banner (16a6752; DEF-009).
+```
+
+3. In the Stage B tests bullet under "Added": replace "deep links, frozen tabs, the tab haptic" with "deep links, tabs that never hide and the held overlays (since the fix, 1fc37d8), the tab haptic"; after "(6ab3953, 8c6bf3d, c4c6ab5, e0e8f26)" add "; the tabs' pre-render order and the banner's status (1fc37d8, 16a6752)"; and replace "and 197 in 33 with B6 and B7 merged." with "197 in 33 with B6 and B7 merged, and 211 in 34 with the B6 fix."
+
+**ADR index:** no change. ADR-0043 keeps its title and status; its amendment is in the record.
 
 ## 10. Related Docs
 

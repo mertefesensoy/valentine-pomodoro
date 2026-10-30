@@ -174,6 +174,40 @@ Run before C4, as the owner agreed (§3.1), because the design skills didn't yet
 - **The gate page** is `art/review/c3-logo-concepts.html` (208 KB, `node scripts/art/review-logo.mjs`). For each concept it shows the mark large, the case for it (why it fits, wit and warmth, what Pomo & Doro become, risks), every iOS size at its real pixels (1024, 180, 120, 87, 80, 60, 40, 29, 20), and a reversed row.
 - **Recommendation: Same Page**, the only concept that carries all three of the owner's words at once (romantic, couples, studying) and the strongest at 20 px. Red Thread is the more romantic and unusual alternative.
 
+### 2.4 C4 (2026-10-30): the Classic surface brief and its HIG review, waiting for the owner's confirmation
+
+**`/impeccable shape classic`.** Context loaded with `impeccable context --target "app/(tabs)/index.tsx"` (platform `ios`, mode Operate).
+- **Discovery round:** three questions (what stays on the page during focus; where the presets live; how modes are switched). The owner answered with other priorities, the mascot method above, so the brief takes the recommended option for each and **marks them as assumptions to confirm**.
+- **Structures:** seven grounded structures, ranked by resonance: The Colon, Facing Pages, Today's page, a character scene over a controls card, a sticker sheet, The Ring, margin notes. `concept-seed --scope surface --mode operate` dealt 6, 1 and 2, with **The Ring leading**, plus six catalog challengers. All six were declined on both axes (audience identification, product clarity); each still donated one discipline to the lead, written as raise lines (hierarchy by scale alone, one moving part, whole-cell stickers, nothing disappears, no chrome around the timer, context kept while focused).
+- **The decision page:** served with a 390 × 844 HTML sketch per card. It closed without an answer (exit 4), so the round moved to the structured question, as the skill directs. Seed reference `seed:d8d47ae43e992025`; the choice ping was sent (`--kind assigned`).
+- **The owner's choice (2026-10-30):** "I love the first and the third one. So both of them should be a classic page mode that should be available and the ring, done properly as default". **Classic has two layouts on one component set: The Ring (default) and Facing Pages.** The partner slot is the strip under the ring in one and the right-hand page in the other, so Phase 3 swaps content in both without a re-layout. The choice is an additive setting, `classicLayout`, defaulting to `'ring'`.
+- **The brief:** `.impeccable/surfaces/app-tabs-index-tsx.md`, where D1 reloads it. The sketches are kept in `art/review/c4-classic-ring.html`, `c4-classic-facing-pages.html` and, not chosen, `c4-classic-colon-not-chosen.html`.
+
+**`/apple-design` on the brief** (pages opened: `accessibility.md`, `layout.md`, `typography.md`, `color.md`, `designing-for-ios.md`, `cross-platform.md`, `tab-bars.md`, `liquid-glass.md`, `sheets.md`, `segmented-controls.md`, `progress-indicators.md`, `motion.md`, `branding.md`, `code-audit.md`). **Rating: Good.** No Critical findings.
+
+| # | Sev. | Finding | Guideline | Disposition |
+|---|------|---------|-----------|-------------|
+| H-1 | High | `app/(tabs)/_layout.tsx` sets no tint, so the selected tab is system blue beside a strawberry page: two colours meaning "selected". | `branding.md › Best practices`: use brand colour "for primary actions or status indicators, like … an icon for the selected tab in a tab bar". | Brief: D1 sets `NativeTabs`' tint to `primaryInk` (5.75:1 light, 8.91:1 dark, already in the contrast gate). |
+| H-2 | High | The owner's pages-to-logo animation must not become a launch-screen branding moment. | `branding.md › Best practices`: "Avoid using a launch screen as a branding opportunity … consider displaying a welcome or onboarding screen". | Recorded for C3 and D: the splash stays a static mark; the morph plays in onboarding, the first pairing or the recap, never on every cold start (NFR-PERF-001). |
+| M-1 | Medium | The brief's responsive rules were keyed to "landscape" and "iPad". | `layout.md › Size classes`: "Determine layout based on size classes, not device type or orientation." | Brief rewritten by size class (compact width, compact height, regular width). |
+| M-2 | Medium | In Facing Pages the spine card is drawn over both pages, so VoiceOver could read left page, right page, then the timer. | `accessibility.md › Vision`: "Describe your app's interface and content for VoiceOver." | Brief: an explicit order (phase, timer, partner slot, today, controls). |
+| M-3 | Medium | The icon-only mode button and the numeric presets ("25 / 5") need spoken labels. | `accessibility.md › Mobility` (Voice Control: "label interface elements appropriately"); `segmented-controls.md › Content` ("Use nouns or noun phrases for segment labels"). | Brief: "Modes"; "25 minutes focus, 5 minutes break" for each preset. |
+| M-4 | Medium | The tab icons move from SF Symbols to the custom set, which is drawn as outlines. | `tab-bars.md › Best practices`: "Prefer filled symbols or icons for consistency with the platform." | C3: the four tab icons ship with filled versions; the pinned brief's custom set stands (DESIGN-WORKFLOW §3). |
+| M-5 | Medium | Every tab sets `disableAutomaticContentInsets`, so the controls must clear the floating bar on their own. | `layout.md › Guides and safe areas`: "Respecting the safe area is essential." | Brief: controls sit above the bar's measured height plus the bottom inset. |
+| L-1 | Low | Two lines said the same thing ("until a 5-minute break" and the phase line). | Craft lens, "remove one accessory" (judgment). | Brief: one line, the absolute time ("Break at 10:25"). |
+| L-2 | Low | Press feedback (scale 0.97, 100–150 ms) runs on the most frequent control. | `motion.md › Providing feedback`: "generally avoid adding motion to UI interactions that occur frequently." | Kept: motion precedence goes to Emil's rules (ADR-0042), and the effect is under 150 ms and cancellable; the HIG point is noted for the D1 `review-animations` pass. |
+| L-3 | Low | Button capitalisation: Apple uses title style ("Start Focus"); the brand copy is sentence case. | Skill Lens 5 (Apple's title-style convention). | **The owner decides** at the C4 gate. Turkish keeps sentence case either way. |
+| L-4 | Low | `expo-blur` is a dependency, but nothing imports it. | `liquid-glass.md › Where the material belongs` (no hand-made glass). | Noted for D1 or the next `knip` pass; `package.json` is outside Stage C's scope. |
+
+**The Liquid Glass checklist, against the tab bar as fixed for build 47 (`63f1db2`; build 47's device check passed, `4b50570`):**
+1. **Layer discipline: pass.** Glass appears only on the system tab bar (`NativeTabs`) and system sheets; no `BlurView` is imported anywhere in `app/` or `src/`.
+2. **Restraint: pass.** There are no custom glass surfaces.
+3. **Variant: pass.** The system's regular variant.
+4. **Colour budget: pass after H-1.** One prominent filled action per view (the primary pill); the selected tab takes `primaryInk`.
+5. **Accessibility states: pass.** The system bar handles Reduce Transparency and Increase Contrast. The tokens meet their floors by default, so no separate high-contrast set is required.
+6. **Scroll edge effect: pass, with a device check.** Nothing is painted under the bar (each screen's page colour runs full-bleed). The edge effect over Facing Pages, scrolling at accessibility sizes, is checked on the iPhone in D1.
+7. **Targets: pass.** System tab items; every custom control is at least 44 × 44 pt.
+
 ## 3. Implementation Approach
 
 ### 3.1 Order, and one proposed change

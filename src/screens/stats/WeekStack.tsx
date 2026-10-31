@@ -5,7 +5,7 @@ import { goal as goalGlyph } from '../../components/icons/art/goal';
 import { Sticker } from '../../components/stickers/Sticker';
 import { doroCelebrating } from '../../components/stickers/art/doroCelebrating';
 import { pomoCelebrating } from '../../components/stickers/art/pomoCelebrating';
-import { language, t } from '../../i18n';
+import { formatNumber, language, t } from '../../i18n';
 import type { ThemeTokens } from '../../theme/palette';
 import { edgeWidth, radius, space } from '../../theme/layout';
 import type { DayStats } from '../../types';
@@ -24,7 +24,6 @@ export function dateOfKey(key: string): Date {
     return new Date(y, (m ?? 1) - 1, d ?? 1);
 }
 
-export const formatNumber = (n: number) => Math.round(n).toLocaleString(LOCALE);
 
 /** What VoiceOver reads for a day: its name and date, sessions, minutes, and the goal if reached. */
 export function dayLabel(key: string, stats: DayStats, today: boolean): string {
@@ -144,9 +143,10 @@ export function TodayCard({ day, metric, goal, cellsLeft, sticker, compact, toke
 }) {
     const { focusSessions, focusMinutes, goalHit } = day.stats;
     const date = dateOfKey(day.key).toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' });
-    const minutesText = t('stats.minutesShort', { count: Math.round(focusMinutes) });
+    const minutesText = t('stats.minutesShort', { count: Math.round(focusMinutes), n: formatNumber(focusMinutes) });
     const left = Math.max(goal - focusMinutes, 0);
-    const tail = goal <= 0 ? null : goalHit ? t('stats.goalReached') : t('stats.toGoal', { count: Math.ceil(left) });
+    const tail =
+        goal <= 0 ? null : goalHit ? t('stats.goalReached') : t('stats.toGoal', { count: Math.ceil(left), n: formatNumber(Math.ceil(left)) });
     return (
         <View
             style={[styles.today, compact && styles.todayCompact, { backgroundColor: tokens.paper, borderColor: tokens.edge }]}

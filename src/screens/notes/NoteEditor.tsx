@@ -12,6 +12,23 @@ import { useTheme } from '../../theme/useTheme';
 // never on every keystroke (HIG review).
 const COUNTDOWN_FROM = 30;
 const ANNOUNCE_AT = [30, 10, 0];
+// The header's Cancel, title and Save stop growing here, as the screen titles do and as iOS's own
+// bar buttons do at the accessibility sizes: uncapped, "Vazgeç" and "Kaydet" outgrew a 375 pt
+// iPhone at AX5 and pushed Save off the edge (D2 record §3.13, break-ui #2).
+const HEADER_TEXT_CAP = 1.4;
+
+/**
+ * `text` cut to `max` UTF-16 code units without splitting a character: a cut through an emoji's
+ * surrogate pair left a lone half that iOS draws as "�" (break-ui #1), and a cut after a
+ * zero-width joiner leaves a dangling join. Either is dropped.
+ */
+export function capText(text: string, max: number): string {
+    if (text.length <= max) return text;
+    let cut = text.slice(0, max);
+    const last = cut.charCodeAt(cut.length - 1);
+    if (last >= 0xd800 && last <= 0xdbff) cut = cut.slice(0, -1);
+    return cut.replace(/\u200d$/, '');
+}
 
 /**
  * The note editor (D2 Notes contract), the `/note-editor` form sheet at the large detent: a header
@@ -116,9 +133,16 @@ export function NoteEditor() {
         >
             <View style={styles.header}>
                 <Pressable onPress={cancel} style={styles.headerButton} accessibilityRole="button" hitSlop={8}>
-                    <Text style={[styles.headerText, { color: tokens.primaryInk }]}>{t('notesScreen.editor.cancel')}</Text>
+                    <Text style={[styles.headerText, { color: tokens.primaryInk }]} maxFontSizeMultiplier={HEADER_TEXT_CAP}>
+                        {t('notesScreen.editor.cancel')}
+                    </Text>
                 </Pressable>
-                <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header" numberOfLines={1}>
+                <Text
+                    style={[styles.title, { color: tokens.ink }]}
+                    accessibilityRole="header"
+                    numberOfLines={1}
+                    maxFontSizeMultiplier={HEADER_TEXT_CAP}
+                >
                     {t(editing ? 'notesScreen.editor.edit' : 'notesScreen.editor.new')}
                 </Text>
                 <Pressable
@@ -130,7 +154,10 @@ export function NoteEditor() {
                     hitSlop={8}
                 >
                     {/* Disabled is the same ink, dimmed, as a system bar button: not a second hue (HIG N-1). */}
-                    <Text style={[styles.headerText, styles.save, { color: tokens.primaryInk }, !canSave && styles.saveDisabled]}>
+                    <Text
+                        style={[styles.headerText, styles.save, { color: tokens.primaryInk }, !canSave && styles.saveDisabled]}
+                        maxFontSizeMultiplier={HEADER_TEXT_CAP}
+                    >
                         {t('notesScreen.editor.save')}
                     </Text>
                 </Pressable>
@@ -140,7 +167,7 @@ export function NoteEditor() {
             <View style={[styles.field, { backgroundColor: tokens.paper, borderColor: tokens.edgeStrong }]}>
                 <TextInput
                     value={text}
-                    onChangeText={(v) => setText(v.length > max ? v.slice(0, max) : v)}
+                    onChangeText={(v) => setText(capText(v, max))}
                     placeholder={t('notesScreen.editor.placeholder')}
                     placeholderTextColor={tokens.inkSoft}
                     multiline

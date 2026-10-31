@@ -12,14 +12,14 @@ import { streak as streakGlyph } from '../components/icons/art/streak';
 import { ButtonRow, ListGroup } from '../components/settings/SettingsList';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { useHasBeenFocused, useScreenFocused } from '../hooks/useScreenFocus';
-import { t } from '../i18n';
+import { formatNumber, t } from '../i18n';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useStatsStore, useStatsViews } from '../stores/statsStore';
 import { fonts } from '../theme/type';
 import { edgeWidth, radius, space } from '../theme/layout';
 import { useTheme } from '../theme/useTheme';
 import { goalCellsLeft } from './classic/TodayStickers';
-import { DayEdge, TodayCard, formatNumber, type Metric } from './stats/WeekStack';
+import { DayEdge, TodayCard, type Metric } from './stats/WeekStack';
 
 // AX1 and up (iOS reports a font scale of about 1.65 there): the stack becomes a list, today first.
 const LIST_FONT_SCALE = 1.6;
@@ -119,14 +119,27 @@ export default function StatsScreen() {
         ),
     );
 
+    // Counts of 1,000 or more are grouped as the language writes them, in every line, so one
+    // number never shows two ways on one screen (D2 record §3.13, break-ui #6).
     const summary = [
         metric === 'sessions'
-            ? t('stats.weekSessions', { count: week.sessions })
-            : t('stats.weekMinutes', { count: Math.round(week.minutes) }),
-        goalOn ? t('stats.goalDays', { count: week.goalDays }) : null,
+            ? t('stats.weekSessions', { count: week.sessions, n: formatNumber(week.sessions) })
+            : t('stats.weekMinutes', { count: Math.round(week.minutes), n: formatNumber(week.minutes) }),
+        // No goal day this week says nothing rather than "goal reached on 0 days", which reads
+        // as a miss (the contract; PRODUCT principle 2; break-ui #4).
+        goalOn && week.goalDays > 0 ? t('stats.goalDays', { count: week.goalDays }) : null,
     ]
         .filter(Boolean)
         .join(' · ');
+
+    const minutesLeftToday = Math.ceil(Math.max(goalMinutes - today.focusMinutes, 0));
+    // A streak of 0 says how it starts, not "0 days" beside the best (the owner, D2; break-ui).
+    const streakLine =
+        streak.current > 0
+            ? t('stats.streakValue', { count: streak.current, n: formatNumber(streak.current), best: formatNumber(streak.best) })
+            : streak.best > 0
+              ? t('stats.streakStartBest', { best: formatNumber(streak.best) })
+              : t('stats.streakStart');
 
     const todayCard = (
         <TodayCard
@@ -201,26 +214,36 @@ export default function StatsScreen() {
                         </ListGroup>
                     )}
 
+                    {/* At AX sizes the strip's halves stack: side by side, each text column was
+                        about 110 pt, and "Hedef" and "serisi" broke mid-word (break-ui #5). */}
                     {goalOn ? (
-                        <View style={[styles.strip, { backgroundColor: tokens.paper, borderColor: tokens.edge }]}>
-                            <View style={styles.half} accessible>
+                        <View
+                            style={[
+                                styles.strip,
+                                list && styles.stripStacked,
+                                { backgroundColor: tokens.paper, borderColor: tokens.edge },
+                            ]}
+                        >
+                            <View style={[styles.half, !list && styles.halfSide]} accessible>
                                 <Icon glyph={goalGlyph} size={22 * grow} color={tokens.successInk} />
                                 <View style={styles.halfText}>
-                                    <Text style={[styles.stripTitle, { color: tokens.ink }]}>{t('stats.goalTitle', { count: goalMinutes })}</Text>
+                                    <Text style={[styles.stripTitle, { color: tokens.ink }]}>
+                                        {t('stats.goalTitle', { count: goalMinutes, n: formatNumber(goalMinutes) })}
+                                    </Text>
                                     <Text style={[styles.stripValue, { color: tokens.inkSoft }]}>
                                         {today.goalHit
                                             ? t('stats.goalReachedToday')
-                                            : t('stats.leftToday', { count: Math.ceil(Math.max(goalMinutes - today.focusMinutes, 0)) })}
+                                            : t('stats.leftToday', { count: minutesLeftToday, n: formatNumber(minutesLeftToday) })}
                                     </Text>
                                 </View>
                             </View>
-                            <View style={[styles.divider, { backgroundColor: tokens.edge }]} />
-                            <View style={styles.half} accessible>
+                            <View style={[list ? styles.dividerStacked : styles.divider, { backgroundColor: tokens.edge }]} />
+                            <View style={[styles.half, !list && styles.halfSide]} accessible>
                                 <Icon glyph={streakGlyph} size={22 * grow} color={tokens.primaryInk} />
                                 <View style={styles.halfText}>
                                     <Text style={[styles.stripTitle, { color: tokens.ink }]}>{t('stats.streakTitle')}</Text>
                                     <Text style={[styles.stripValue, { color: tokens.inkSoft }]}>
-                                        {t('stats.streakValue', { count: streak.current, best: streak.best })}
+                                        {streakLine}
                                     </Text>
                                 </View>
                             </View>
@@ -279,9 +302,12 @@ const styles = StyleSheet.create({
     compactRow: { flexDirection: 'row', gap: space.l, alignItems: 'flex-start' },
     compactStack: { flex: 1 },
     strip: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: edgeWidth, borderRadius: radius.m, paddingVertical: space.m },
-    half: { flex: 1, minWidth: 150, flexDirection: 'row', alignItems: 'center', gap: space.s, paddingHorizontal: space.m },
+    stripStacked: { flexDirection: 'column', flexWrap: 'nowrap' },
+    half: { flexDirection: 'row', alignItems: 'center', gap: space.s, paddingHorizontal: space.m },
+    halfSide: { flex: 1, minWidth: 150 },
     halfText: { flexShrink: 1 },
     divider: { width: edgeWidth, alignSelf: 'stretch' },
+    dividerStacked: { height: StyleSheet.hairlineWidth, marginVertical: space.s, marginLeft: space.m },
     stripTitle: { fontSize: 15, fontWeight: '600' },
     stripValue: { fontSize: 13, fontVariant: ['tabular-nums'] },
     allTime: { fontSize: 14, fontVariant: ['tabular-nums'] },

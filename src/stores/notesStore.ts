@@ -10,9 +10,19 @@ export const NOTE_MAX_LENGTH = 280;
 // The love notes store (Phase 1 B3), key `love_notes`, a bare JSON array of
 // strings. Replaces the useLoveNotes hook that AppProvider hosted.
 
-function normalizeNote(input: string) {
-    // Keep user's casing, just trim and collapse whitespace
-    return input.replace(/\s+/g, ' ').trim();
+/**
+ * A note as it's kept: the writer's casing and line breaks, with runs of spaces and tabs folded
+ * into one, no spaces around a line break, at most one blank line, and nothing around the whole.
+ * It used to fold line breaks into spaces too, so a note written on three lines in the editor
+ * saved as one (D2 record §3.13, break-ui #3; the owner kept line breaks).
+ */
+export function normalizeNote(input: string) {
+    return input
+        .replace(/\r\n?/g, '\n')
+        .replace(/[^\S\n]+/g, ' ')
+        .replace(/ ?\n ?/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
 }
 
 /** A stored value is used only if it is a non-empty array of strings. */

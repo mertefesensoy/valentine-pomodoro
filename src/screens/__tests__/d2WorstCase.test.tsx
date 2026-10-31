@@ -112,6 +112,19 @@ describe('D2 worst case, in Turkish at AX5 on an iPhone SE', () => {
         }
         // All time, grouped in Turkish.
         expect(screen.getByText('Tüm zamanlar: 103 oturum · 2.975 dakika')).toBeOnTheScreen();
+
+        // The fixes (record §3.13). No goal day: the summary says nothing of it (#4).
+        expect(screen.getByText('Son 7 gün: 103 oturum')).toBeOnTheScreen();
+        // The largest goal, grouped as Turkish writes it, as every count of 1,000 or more is (#6).
+        expect(screen.getByText('Hedef 1.440 dk')).toBeOnTheScreen();
+        expect(screen.getByText('Bugün 640 dk kaldı')).toBeOnTheScreen();
+        // A streak of 0 says how it starts (the owner's decision).
+        expect(screen.getByText('Hedefine ulaştığın gün başlar · en iyi 12')).toBeOnTheScreen();
+        // The strip's halves stack at AX5, so no word breaks in a narrow column (#5).
+        expect(screen.getByText('Aşk serisi').parent!.parent!.parent!).toHaveStyle({ flexDirection: 'column' });
+        // The week in minutes: the same number as the all-time line, written the same way.
+        await act(async () => fireEvent.press(screen.getByLabelText('Dakikalar')));
+        expect(screen.getByText('Son 7 gün: 2.975 dakika')).toBeOnTheScreen();
     });
 
     it('Settings: the longest durations and the largest goal', async () => {
@@ -128,6 +141,7 @@ describe('D2 worst case, in Turkish at AX5 on an iPhone SE', () => {
         expect(screen.getByRole('button', { name: 'Odak' })).toHaveAccessibilityValue({ text: '180 dk' });
         expect(screen.getByRole('button', { name: 'Uzun mola sıklığı' })).toHaveAccessibilityValue({ text: '10 oturumda bir' });
         expect(screen.getByLabelText('Özel')).toBeSelected();
+        expect(screen.getByRole('button', { name: 'Özel hedef' })).toHaveAccessibilityValue({ text: '1.440 dk' });
         // The goal's wheel lists every minute up to 1,440 (FR-STA-004).
         await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Özel hedef' })));
         const wheel = screen.getAllByLabelText('Özel hedef')[1];

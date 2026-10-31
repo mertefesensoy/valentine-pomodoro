@@ -50,6 +50,12 @@ function deviceLanguage(): Language {
 
 export const language: Language = deviceLanguage();
 
+/**
+ * A whole number grouped the way the app's language writes it: "2,975" in English, "2.975" in
+ * Turkish. Pass it as `n` alongside `count`, which still picks the plural (D2 record §3.13).
+ */
+export const formatNumber = (n: number) => Math.round(n).toLocaleString(LOCALE[language]);
+
 function lookup(tree: Tree, key: string): string | undefined {
     let node: string | Tree | undefined = tree;
     for (const part of key.split('.')) {

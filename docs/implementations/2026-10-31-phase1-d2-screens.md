@@ -28,7 +28,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | Owner: direction contracts | **Approved**, 2026-10-31 ("Approve, build D2"; §3.4) | **Approved**, with `@react-native-picker/picker` | **Approved** | None: a retirement, carried by Settings' About footer |
 | 3. Build (`animate-expo`) | **Built**, `b2db8c1` (§3.8) | **Built**, `23e595c` (§3.6) | **Built**, `de3867c` (§3.7) | **Retired**, `23e595c` (§3.6) |
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | First pass: critique 27/32, audit **15/20**, HIG **1 Critical** (day names), motion clean. After the fixes: critique 27/32 (84 %), audit 16/20, no Critical, motion clean (§3.12) | First pass: critique 34/40, audit 17/20, no Critical, motion not clean. After: critique 36/40, audit 18/20, no Critical, motion clean (§3.12) | First pass: **a P0** (rows unstyled in a release build), motion not clean. After: critique 37/40, audit 17/20, no Critical, motion clean (§3.12) | Retired: none |
-| 5. `break-ui` (TR at AX5) | First pass: 2 Ugly (the zero-goal summary, the strip at AX5), 1 shared Ugly (number formats) (§3.13) | Shared: number formats; Turkish words wider than a row (a decision) | 2 Broken (an emoji cut at the cap; the editor header at AX5), 1 Ugly (line breaks lost) | Retired: none |
+| 5. `break-ui` (TR at AX5) | 2 Ugly (the zero-goal summary, the strip at AX5) and the shared number formats: **fixed**; a streak of 0 softened (§3.13) | The number formats: **fixed**; Turkish words wider than a row: accepted (the owner) | 2 Broken (an emoji cut at the cap, the editor header at AX5) and 1 Ugly (line breaks lost): **fixed** | Retired: none |
 | 6. `polish`, `harden`, `clarify` | — | — | — | — |
 | 7. Device check (the next build, with D1's finish-review fixes) | — | — | — | — |
 | FINISH: the finish review, its verdict, DESIGN.md | — | — | — | — |
@@ -76,6 +76,7 @@ Fresh installs see v1's gift screen, then the welcome: two first-run screens in 
 | `src/screens/StatsScreen.tsx`, `src/screens/stats/WeekStack.tsx`, `src/screens/__tests__/stats.test.tsx` | The review round: the day names never truncate, the flag grows with the text, the Minutes track has an outline. |
 | `src/screens/SettingsScreen.tsx`, `src/components/settings/SettingsList.tsx`, `src/screens/__tests__/settings.test.tsx` | The review round: the denied footer announced and plain, one VoiceOver stop per switch row, the wheel's motion and its Reduce Motion fade, the wheel list rebuilt only when its range changes. |
 | `.impeccable/surfaces/app-tabs-stats-tsx.md`, `.impeccable/critique/2026-10-31T*` | The Stats contract's switch is instant (the owner); the six critique snapshots, before and after the fixes. |
+| `src/screens/__tests__/d2WorstCase.test.tsx` (new), `src/screens/notes/NoteEditor.tsx`, `src/stores/notesStore.ts`, `src/screens/StatsScreen.tsx`, `src/screens/stats/WeekStack.tsx`, `src/screens/SettingsScreen.tsx`, `src/i18n/index.ts`, `en.json`, `tr.json`, `notes.test.tsx`, `stats.test.tsx` | `break-ui` (§3.13): the Turkish AX5 worst-case fixture; the cap keeps characters whole; the editor header caps at 1.4×; notes keep line breaks; the zero-goal summary, the stacked strip at AX sizes and the softer streak line; counts of 1,000 or more grouped everywhere through one `formatNumber`. |
 
 ## 3. Implementation Approach
 
@@ -566,7 +567,7 @@ The scores after the fixes are this context's re-reading against each finding, e
 - **Settings:** 180 / 60 / 120 minutes, every 10 sessions, a custom goal of 1,440.
 - **Notes:** 200 notes, a note typed on three lines, a duplicate, an emoji typed at the cap.
 
-**What broke** (first pass; the fixes wait for the owner):
+**What broke** (first pass, `72315eb`):
 
 | # | Severity | Worst case | What happens | Verified or inferred | Fix |
 |---|---|---|---|---|---|
@@ -605,6 +606,55 @@ The scores after the fixes are this context's re-reading against each finding, e
 - **The editor:** whitespace alone can't be saved; a legacy long note keeps its length, with the neutral line.
 - **A duplicate note** is dropped on Save (`notesStore.ts:80`). That's harmless: the same text is already in the list.
 
+**The owner, 2026-10-31:** "Fix all", with the recommended answer on each decision.
+- Notes keep their line breaks.
+- Long notes keep their full text (the contract), judged at the device check.
+- A streak of 0 gets the softer line.
+- Turkish words wider than a row are accepted.
+
+**The fixes as built:**
+
+| # | Fix |
+|---|---|
+| 1 | `capText(text, max)` (`NoteEditor.tsx`) cuts at the cap, then drops a trailing high surrogate and a trailing zero-width joiner. A cut can no longer leave half a character, and a join can't dangle. The cap still counts UTF-16 code units, so an emoji costs 2 of the 280, as it always did. |
+| 2 | The header's Cancel, title and Save have `maxFontSizeMultiplier` 1.4 (`HEADER_TEXT_CAP`), the cap the screen titles use. At AX5 that is 23.8 pt: about 77 + 75 pt for "Vazgeç" and "Kaydet", which leaves the title about 175 pt on a 375 pt iPhone. |
+| 3 | `normalizeNote` (`notesStore.ts`, now exported) keeps line breaks. It turns `\r\n` into `\n`, folds runs of spaces and tabs into one space, drops spaces around a line break, allows at most one blank line, and trims the whole. Every place that shows a note (the list, the love-note sheet, Fly's card) has no line limit, so the breaks show as written. Notes already stored are unchanged: normalizing runs on add and edit only. |
+| 4 | The summary leaves out the goal clause when no day reached the goal; with the goal off it was already left out. |
+| 5 | In the AX list (font scale ≥ 1.6) the strip is a column: the goal half, a hairline divider inset from the leading edge, the streak half. Side by side the halves keep `flex: 1` and `minWidth: 150`, now on `halfSide` only, because `flex: 1` (basis 0) in a column of no set height would collapse. |
+| 6 | `formatNumber` moves to `src/i18n` (from `WeekStack.tsx`) and uses the app's locale map. `stats.weekSessions`, `weekMinutes`, `goalTitle`, `leftToday`, `toGoal`, `minutesShort`, `streakValue` and `settings.minutes` take a formatted `{{n}}` in both languages, with `count` still choosing the plural. "2.975 dakika", "Hedef 1.440 dk" and Settings' "1.440 dk" now match the all-time line. |
+| Streak | At 0 the strip says "Starts the day you reach your goal · best 12" ("Hedefine ulaştığın gün başlar · en iyi 12"), or the first part alone when there's no best yet (`stats.streakStart`, `stats.streakStartBest`). The wording is softer than the decision's example; it goes to the owner's copy review with D2's other Turkish strings. |
+
+**Tests:**
+- **`notes.test.tsx`:**
+  - an emoji typed across the cap is dropped whole, and one that fits is kept;
+  - a cut after a zero-width joiner drops the join;
+  - the header's three texts cap at 1.4×;
+  - a note keeps its line breaks, with spaces folded and at most one blank line, on add and on edit.
+- **`stats.test.tsx`:**
+  - with no goal day the summary is "Last 7 days: 11 sessions";
+  - "Goal 1,440 min";
+  - both streak-of-0 lines;
+  - "Last 7 days: 1,775 minutes", the edge's "1,500" and the all-time line agree;
+  - the strip is a column at an AX size and a row at the default size.
+- **`d2WorstCase.test.tsx`,** in Turkish at AX5:
+  - "Son 7 gün: 103 oturum";
+  - "Hedef 1.440 dk";
+  - the softer streak line;
+  - the strip as a column;
+  - "Son 7 gün: 2.975 dakika";
+  - Settings' custom goal "1.440 dk".
+
+**Guards** after the fixes:
+
+| Guard | Result |
+|---|---|
+| Jest | 53 suites, 382 tests, all passing |
+| Lint | 0 errors, 29 warnings |
+| tsc | Clean |
+| React Compiler | 80 compiled, 5 skipped |
+| The emoji check | Clean |
+| Reassure | Passing: Timer 13, Stats 1, Settings 1, Notes 1, leaf 12, settings-only 1 (unchanged) |
+
 ## 4. Mathematical / Statistical Details
 
 None yet. The week's sticker capacity and the goal counts will reuse D1's rules (D1 record §4.3) when Stats is built.
@@ -638,7 +688,7 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
 - [x] `/apple-design` on each brief (§3.2): one Critical (Notes: Delete reachable only by gesture), accepted with its fix; the rest dispositioned.
 - [x] The owner approves the direction contracts, after Stats' composition round (2026-10-31, "Approve, build D2", with the picker dependency).
 - [x] Each screen: critique and audit at 16/20 or better, no Critical HIG finding, `review-animations` clean (§3.12, after the fix batch; Accessibility and Adaptivity provisional until the device check).
-- [ ] Each screen: `break-ui` in Turkish at AX5.
+- [x] Each screen: `break-ui` in Turkish at AX5 (§3.13: 2 Broken and 4 Ugly fixed; the layout findings confirmed at the device check).
 - [ ] **The device check, the next build (52).** It carries §3.11's fixes and §3.12's, so it repeats the build 51 list below and adds:
   1. **Notes' rows** are paper blocks with padding, corners and hairlines (the P0), and tint while pressed.
   2. **The swipe** tracks the finger, stretches over red past Delete, and the first and last rows' Delete has no black line.
@@ -646,6 +696,12 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
   4. **Stats** at xxLarge and at the largest text size: every day's name reads in full, in English and Turkish; the flags grow with the text.
   5. **Settings:** a wheel fades in while the rows below slide; with Reduce Motion, it only fades. With VoiceOver, a switch row is one stop, and a refused reminder is spoken.
   6. The motion review's feel checks (§3.12).
+  7. **break-ui (§3.13):**
+     - In Turkish at the largest text size on the smallest iPhone you have, the note editor's Cancel, title and Save all fit.
+     - Stats' goal and streak strip stacks, with no word broken mid-way.
+     - A note written on several lines keeps its lines, in the list and the love-note sheet.
+     - An emoji typed at the end of a full note never leaves a "�".
+     - Judge how long notes read at the largest size (the owner kept the full text).
 - [ ] B2's notes tests stay green: Bengisu's install keeps its notes.
 - [ ] The emoji check (`src/__tests__/noEmojiIcons.test.ts`) passes.
 - [ ] **The device check, build 51** (needs a physical device). It goes with the D1 record's §6 "build 51" list, for D1's finish fixes and the six recaptures.

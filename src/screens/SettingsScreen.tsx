@@ -20,7 +20,7 @@ import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { APP_NAME } from '../constants/app';
 import { DURATION_LIMITS, classicLayoutOf, customDurationsOf, editCustomPatch, type ClassicLayout } from '../constants/presets';
 import { useUpdateCheck } from '../hooks/useUpdateCheck';
-import { t } from '../i18n';
+import { formatNumber, t } from '../i18n';
 import { HiddenStartupDiagnostics } from '../startup/StartupDiagnostics';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useStatsStore } from '../stores/statsStore';
@@ -99,7 +99,8 @@ export default function SettingsScreen() {
         setOpen(null);
     };
 
-    const minutes = (n: number) => t('settings.minutes', { count: n });
+    // "1.440 dk" in Turkish, as Stats writes it (break-ui #6).
+    const minutes = (n: number) => t('settings.minutes', { count: n, n: formatNumber(n) });
     const custom = customDurationsOf(settings);
     // A new duration becomes Custom's and selects it (presets.ts); the store is read at the
     // moment of the change, so a wheel never writes over a newer value.

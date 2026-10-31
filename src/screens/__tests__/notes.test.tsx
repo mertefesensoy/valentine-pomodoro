@@ -11,7 +11,7 @@ import { NOTE_MAX_LENGTH, useNotesStore } from '../../stores/notesStore';
 import { radius } from '../../theme/layout';
 import { StrawberryMilk } from '../../theme/palette';
 import LoveNotesScreen from '../LoveNotesScreen';
-import { NoteEditor } from '../notes/NoteEditor';
+import { NoteEditor, capText } from '../notes/NoteEditor';
 
 // The native context menu (`Link.Menu`) renders only on iOS inside a navigator; here a link is its
 // trigger, and the menu's actions are covered by the VoiceOver custom actions they mirror.
@@ -252,6 +252,18 @@ describe('Love notes (D2 Notes contract)', () => {
     });
 });
 
+// covers: FR-NTE-001
+// break-ui #3 (the owner kept line breaks): the store folded every line break into a space, so a
+// note written on three lines saved as one.
+describe('a note as it is kept', () => {
+    it('keeps its line breaks, with spaces folded and at most one blank line', () => {
+        useNotesStore.getState().addNote('  First line  \n   Second\t\tline\r\n\n\n\nThird  ');
+        expect(useNotesStore.getState().notes[0]).toBe('First line\nSecond line\n\nThird');
+        useNotesStore.getState().editNote(0, 'One\n\n\nTwo');
+        expect(useNotesStore.getState().notes[0]).toBe('One\n\nTwo');
+    });
+});
+
 // covers: FR-NTE-001, NFR-A11Y-004
 describe('the note editor', () => {
     it('adds a new note on Save and closes', async () => {
@@ -278,6 +290,26 @@ describe('the note editor', () => {
         await act(async () => fireEvent.changeText(screen.getByLabelText('New note'), 'a'.repeat(300)));
         expect(screen.getByLabelText('New note').props.value).toHaveLength(NOTE_MAX_LENGTH);
         expect(screen.getByText('0 characters left')).toBeOnTheScreen();
+    });
+
+    // break-ui (D2 record §3.13, #1): a cut through an emoji's surrogate pair saved a lone half,
+    // which iOS draws as "�".
+    it('never cuts an emoji in half at the cap', async () => {
+        await show(<NoteEditor />);
+        await act(async () => fireEvent.changeText(screen.getByLabelText('New note'), 'a'.repeat(279) + '🍓'));
+        expect(screen.getByLabelText('New note').props.value).toBe('a'.repeat(279));
+        await act(async () => fireEvent.changeText(screen.getByLabelText('New note'), 'a'.repeat(278) + '🍓'));
+        expect(screen.getByLabelText('New note').props.value).toBe('a'.repeat(278) + '🍓');
+        // A cut right after a zero-width joiner drops the dangling join, keeping the emoji before it.
+        expect(capText('a'.repeat(276) + '👩\u200d👩', 279)).toBe('a'.repeat(276) + '👩');
+    });
+
+    // break-ui #2: uncapped, Cancel and Save outgrew a 375 pt iPhone at AX5 in Turkish.
+    it("caps the header's text at 1.4×, as iOS's bar buttons stop growing", async () => {
+        await show(<NoteEditor />);
+        for (const text of ['Cancel', 'New note', 'Save']) {
+            expect(screen.getByText(text).props.maxFontSizeMultiplier).toBe(1.4);
+        }
     });
 
     it('keeps a longer legacy note as it is, but never lets it grow', async () => {

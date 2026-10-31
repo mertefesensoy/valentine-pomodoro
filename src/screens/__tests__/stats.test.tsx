@@ -78,6 +78,39 @@ describe('Stats: the postcard stack (D2 Stats contract)', () => {
         expect(screen.getByText('1 day · best 3')).toBeOnTheScreen();
     });
 
+    // break-ui (D2 record §3.13): "goal reached on 0 days" read as a miss (#4); a streak of 0 read
+    // as a loss beside the best (the owner's decision); a count of 1,000 or more showed two ways (#6).
+    it('says nothing of goal days when none was reached, and how a streak of 0 starts', async () => {
+        await showWeek();
+        // The largest goal, reached on no day this week (each day keeps whether it reached its goal).
+        await act(async () =>
+            useStatsStore.setState({
+                days: Object.fromEntries(WEEK.map(([ago, { goalHit: _hit, ...day }]) => [keyOf(ago), day])),
+                goalMinutes: 1440,
+                streak: { current: 0, best: 3, lastHitDayKey: keyOf(9) },
+            }),
+        );
+        expect(screen.getByText('Last 7 days: 11 sessions')).toBeOnTheScreen();
+        expect(screen.queryByText(/goal reached on 0 days/)).toBeNull();
+        expect(screen.getByText('Goal 1,440 min')).toBeOnTheScreen();
+        expect(screen.getByText('Starts the day you reach your goal · best 3')).toBeOnTheScreen();
+        await act(async () => useStatsStore.setState({ streak: { current: 0, best: 0, lastHitDayKey: undefined } }));
+        expect(screen.getByText('Starts the day you reach your goal')).toBeOnTheScreen();
+    });
+
+    it('groups a count of 1,000 or more the same way in every line', async () => {
+        await showWeek();
+        await act(async () => {
+            useStatsStore.setState((st) => ({ days: { ...st.days, [keyOf(2)]: { focusSessions: 30, focusMinutes: 1500, goalHit: true } } }));
+        });
+        await act(async () => {
+            await fireEvent.press(screen.getByLabelText('Minutes'));
+        });
+        expect(screen.getByText('Last 7 days: 1,775 minutes · goal reached on 4 days')).toBeOnTheScreen();
+        expect(screen.getByText('1,500')).toBeOnTheScreen();
+        expect(screen.getByText('All time: 41 sessions · 1,775 minutes')).toBeOnTheScreen();
+    });
+
     it('switches the week to minutes, and the summary names the metric in view', async () => {
         await showWeek();
         await act(async () => {
@@ -152,6 +185,24 @@ describe('Stats at larger text sizes', () => {
             };
             walk(edge);
             expect(svgs.at(-1)!.props.width).toBeCloseTo(14 * 1.235);
+        });
+    });
+
+    // break-ui #5: side by side at AX sizes, each half's text column was about 110 pt, and
+    // "Hedef" and "serisi" broke mid-word. In the list the halves stack.
+    const stripOf = () => screen.getByText('Love streak').parent!.parent!.parent!;
+
+    it('stacks the goal and streak strip in the list (an AX size)', async () => {
+        await atTextSize(3.1, async () => {
+            await showWeek();
+            expect(stripOf()).toHaveStyle({ flexDirection: 'column' });
+        });
+    });
+
+    it('keeps the strip side by side at the default size', async () => {
+        await atTextSize(1, async () => {
+            await showWeek();
+            expect(stripOf()).toHaveStyle({ flexDirection: 'row' });
         });
     });
 

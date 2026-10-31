@@ -281,6 +281,7 @@ The owner chose **both** placements: "First pairing and 1.4 welcome screen". The
   - The gift screen drops "for Bengisu". About gets a one-line origin.
 - **The transitional `colors` adapter is deleted** once the last screen is rebuilt.
 - **The same reviews, break, polish and device check as D1,** on D2's own build, the first after D1's (D1 took builds 48 to 50).
+- **D2's first build also carries D1's finish-review fixes** (the owner, 2026-10-31). Its device check includes the D1 record's §6 "build 51" list and the six recaptures for D1's verdict pass. D1's DESIGN.md waits for that verdict.
 
 ### 3.4 D3, EN/TR (FR-SET-005, NFR-I18N-001, NFR-A11Y-003)
 
@@ -460,7 +461,7 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 ```
 
 **`docs/roadmap/ROADMAP.md`**, the status board: Phase 1 Stage D → in progress (2026-10-30). Per-task rows:
-- **D1:** in progress (2026-10-30). Built, reviewed and hardened: the theme switch, EN/TR plumbing, Baloo 2, the tab bar, the icon and sticker components, Classic (The Ring and Facing Pages, presets, the sticker placement, the love-note and mode sheets) and the v1.4 welcome screen. Critique 35/40, audit 16/20, HIG no Critical, motion clean. Build 48 (`v1.4.0-tf.48`) was device-checked by the owner, with five findings; the fixes and the reanimated welcome shipped in build 49 (`v1.4.0-tf.49`, D1 record §3.16–3.17). Build 49's device check, 2026-10-31: all well but one finding, Fly's Modes button at the top right where the compass was, shipped in build 50 (`v1.4.0-tf.50`, D1 record §3.18–3.19). Build 50's device check, 2026-10-31: every check passed. Waiting: the finish review.
+- **D1:** in progress (2026-10-30). Built, reviewed and hardened: the theme switch, EN/TR plumbing, Baloo 2, the tab bar, the icon and sticker components, Classic (The Ring and Facing Pages, presets, the sticker placement, the love-note and mode sheets) and the v1.4 welcome screen. Critique 35/40, audit 16/20, HIG no Critical, motion clean. Build 48 (`v1.4.0-tf.48`) was device-checked by the owner, with five findings; the fixes and the reanimated welcome shipped in build 49 (`v1.4.0-tf.49`, D1 record §3.16–3.17). Build 49's device check, 2026-10-31: all well but one finding, Fly's Modes button at the top right where the compass was, shipped in build 50 (`v1.4.0-tf.50`, D1 record §3.18–3.19). Build 50's device check, 2026-10-31: every check passed. The finish review returned eight fixes, built for the next build, which carries D2's first additions (D1 record §3.20). Waiting: that build's device check of the fixes, the reviewer's verdict, and DESIGN.md.
 
 **SRS** status changes, added as each task lands:
 - **FR-SET-002** → `implemented` (Verify: T, `src/theme/__tests__/legacyColors.test.ts` and `src/__tests__/router.test.tsx`; D, the D1 device check). `useTheme` returns Strawberry Milk or Midnight Plum from `palette.ts` (D1, `46a5b00`).

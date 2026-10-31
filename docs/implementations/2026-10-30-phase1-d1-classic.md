@@ -29,7 +29,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 | 7. Device check, build 48 | Build 48 on EAS from `61fd06e` (§3.15). The owner's check, 2026-10-30: four findings (F1–F4, §3.16), fixed for build 49 | The same build. The owner asked for a livelier morph (F5, §3.16), rebuilt for build 49 |
 | 7. Device check, build 49 | Build 49 on EAS from `9f0de71`, submitted to TestFlight, tag `v1.4.0-tf.49` pushed (§3.17). The owner's check, 2026-10-31: "All well" except one finding (F6, §3.18): Fly's Modes button belongs at the top right, where the compass was. Fixed in build 50 | The same build: "All well" |
 | 7. Device check, build 50 | Build 50 on EAS from `98f6a1f`, submitted to TestFlight, tag `v1.4.0-tf.50` pushed (§3.19). The owner's check, 2026-10-31: every check passed, "all well" (§6) | The same build; no welcome change since build 49 |
-| FINISH (both contracts): the finish review, its verdict, DESIGN.md | **In progress** (§3.20). Round 1: recapture. The six iPhone captures are valid, but iPad, a shipped device class, has none | **Captures waived by the owner** (§3.20). The verdict is the owner's device checks. DESIGN.md's welcome exception is still to be written |
+| FINISH (both contracts): the finish review, its verdict, DESIGN.md | **In progress** (§3.20). Round 1: recapture (no iPad capture; the owner has no iPad and accepted the gap). Round 2: fix; the eight fixes are built (`3fd834a`). Their device check and the reviewer's verdict wait for the next build, which carries D2's first additions (the owner). DESIGN.md follows the verdict | **Captures waived by the owner** (§3.20). The verdict is the owner's device checks. DESIGN.md's welcome exception is still to be written |
 
 **FINISH is not yet discharged.** Each direction contract ends with "this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance". That waits for evidence this machine can't make:
 - After the device check, a fresh `impeccable-finish-reviewer` gets both contracts and the owner's screenshots, labelled as hardware evidence.
@@ -714,6 +714,8 @@ The eight material fixes are checked below against the two C4 sketches the owner
 
 The build 51 checklist is §6. **Jest's window** is the preset's 750 × 1334 at font scale 2 (an AX size), so most Classic tests render the stacked spread and the Ring's fixed rule. The new tests set a 393 × 852 window at font scale 1 for the facing spread and the slot.
 
+**No build for the fixes alone.** The owner, 2026-10-31, asked whether to build 51: "Not yet we will test the results on the next step with the next steps additions". The fixes ship in the next build, alongside D2's first additions. That build's device check covers §6 "build 51" as well, and the owner retakes the six captures there. The reviewer's verdict pass then scores the eight fixes on them. The documenter runs after that verdict, so DESIGN.md is written from the reviewed build. D1's FINISH stays open until then.
+
 **The welcome: captures waived by the owner,** 2026-10-31: "i confirm it no ned for an extra screen rocording all works well". The welcome gets no finish-review captures, so its verdict is the owner's, from the device checks of builds 49 and 50 (§6). The documenter still carries its exception into DESIGN.md (§1).
 
 ## 4. Mathematical / Statistical Details
@@ -893,7 +895,7 @@ Examples, with C = 16:
   3. The button opens the Modes sheet, Classic returns from it, and VoiceOver reads "Modes" (Turkish: "Modlar").
   4. Light and dark: the paper chip above the compass reads as intended (the compass keeps v1's look until D2).
   5. During a flight at the largest text size: the timer pill never covers the Modes button.
-- [ ] **The device check, build 51** (after the owner's OK for the build), for the finish review's fixes (§3.20). The owner retakes the six captures, which go to the reviewer for its verdict:
+- [ ] **The device check, "build 51": the next build, with D2's first additions** (the owner, 2026-10-31), for the finish review's fixes (§3.20). The owner retakes the six captures, which go to the reviewer for its verdict:
   1. **The Ring, paused, dark** (`phone-ring-dark-paused`): Skip clears the tab bar by about 16 pt, and the page doesn't scroll. The ring is a little smaller than build 50's. Pomo & Doro and their line sit on one paper strip.
   2. **Facing Pages, paused, dark and light** (`phone-spread-dark-paused`, `phone-spread-light-paused`): "You" over Pomo and "Doro" over Doro at the top of the pages. The timer's frame sits below them and covers neither. The pair's line is on the right page's foot. The pages lean in from the spine, with round outer corners and tight spine corners, and the frame is seated in a band of the page colour. Nothing scrolls, and Skip clears the bar.
   3. **The shadow,** both themes: every Pomo, Doro and today's sticker casts a soft shadow, down and to the right. It must be blurred, not a hard copy of the shape (the blur filter's first time on the device). In light, the white edge reads off the paper.

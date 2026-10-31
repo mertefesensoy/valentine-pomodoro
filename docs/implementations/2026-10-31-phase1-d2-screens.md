@@ -401,7 +401,7 @@ The first build with D2's screens. It also carries D1's finish-review fixes, as 
 | EAS build | `1c2a4c52-0375-4f59-a7cf-b2b668afbd0e`, queued 2026-10-31 15:08 UTC (18:08 UTC+3) |
 | Build result | **Finished** 15:14 UTC (18:14 UTC+3); EAS reports the source as `d96eb7cc` |
 | TestFlight submission | `f432937f-3e98-4d10-b06d-a5a106ba8107`, **finished**: EAS's `submit-ios` workflow succeeded at 15:14:23 UTC |
-| Tag | `v1.4.0-tf.51`, annotated, on `d96eb7c`, **local only**; its push waits for the owner's word |
+| Tag | `v1.4.0-tf.51`, annotated, on `d96eb7c`, **pushed** after the owner's "Push the tag". The remote tag object is `0a5b3c1` and peels to `d96eb7c`; the branch stays unpushed |
 | IPA | **21,698,007 B**, +88,425 B (+0.41 %) on build 50 (21,609,582 B): the picker's native module and D2's code |
 
 The device check is §6 "build 51", together with the D1 record's list of the same name.

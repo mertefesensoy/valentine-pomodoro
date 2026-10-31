@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Alert, Linking } from 'react-native';
+import { AccessibilityInfo, Alert, LayoutAnimation, Linking } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
@@ -11,6 +11,12 @@ import SettingsScreen from '../SettingsScreen';
 
 jest.mock('../../hooks/useUpdateCheck', () => ({
     useUpdateCheck: () => ({ checkForUpdates: jest.fn() }),
+}));
+// Reduce Motion, per test (Reanimated runs on its Jest mock).
+let mockReduceMotion = false;
+jest.mock('react-native-reanimated', () => ({
+    ...jest.requireActual<object>('react-native-reanimated/mock'),
+    useReducedMotion: () => mockReduceMotion,
 }));
 jest.mock('expo-router', () => ({
     ...jest.requireActual('expo-router'),
@@ -44,7 +50,10 @@ async function spin(label: string, value: number) {
     });
 }
 
-beforeEach(() => resetStorage());
+beforeEach(() => {
+    mockReduceMotion = false;
+    return resetStorage();
+});
 
 // covers: FR-SET-001, NFR-A11Y-003
 // D2 Settings contract: an inset grouped list of native controls, no bounded number typed.
@@ -83,11 +92,56 @@ describe('Settings as a native grouped list', () => {
         expect(useSettingsStore.getState().settings.longBreakEvery).toBe(6);
     });
 
+    // Review round (D2 record §3.12, HIG T-1): the switch carries the label, so the label's text
+    // isn't a second VoiceOver stop.
+    it('makes a switch row one VoiceOver stop', async () => {
+        await renderSettings();
+        expect(screen.getByText('Sound').props.accessible).toBe(false);
+        expect(screen.getByLabelText('Sound')).toHaveProp('value', true);
+    });
+
     it('has no appearance switch: light or dark follows the iPhone (the owner, D2)', async () => {
         await renderSettings();
         for (const mode of ['System', 'Light', 'Dark']) expect(screen.queryByText(mode)).toBeNull();
         expect(screen.getByText('Light or dark follows your iPhone.')).toBeOnTheScreen();
         expect(screen.getByLabelText('Facing pages')).toBeOnTheScreen();
+    });
+});
+
+// covers: NFR-A11Y-004
+// Review round (D2 record §3.12, motion review): a wheel fades in and out with ease-out while the
+// rows below move with ease-in-out; Reduce Motion keeps the fade and drops the movement; every
+// way a wheel closes animates alike.
+describe("Settings' wheel motion", () => {
+    const fade = { type: 'easeOut', property: 'opacity' };
+
+    it('fades a wheel in and moves the rows below', async () => {
+        const next = jest.spyOn(LayoutAnimation, 'configureNext').mockImplementation(() => {});
+        await renderSettings();
+        await press(screen.getByRole('button', { name: 'Focus' }));
+        expect(next).toHaveBeenLastCalledWith({ duration: 200, create: fade, update: { type: 'easeInEaseOut' }, delete: fade });
+        next.mockRestore();
+    });
+
+    it('only fades it with Reduce Motion: the rows below settle at once', async () => {
+        mockReduceMotion = true;
+        const next = jest.spyOn(LayoutAnimation, 'configureNext').mockImplementation(() => {});
+        await renderSettings();
+        await press(screen.getByRole('button', { name: 'Focus' }));
+        expect(next).toHaveBeenLastCalledWith({ duration: 200, create: fade, delete: fade });
+        next.mockRestore();
+    });
+
+    it('closes the Custom goal wheel with the same motion when a preset is chosen', async () => {
+        const next = jest.spyOn(LayoutAnimation, 'configureNext').mockImplementation(() => {});
+        await renderSettings();
+        await press(screen.getByLabelText('Custom'));
+        expect(screen.getByRole('button', { name: 'Custom goal' })).toBeExpanded();
+        const opened = next.mock.calls.length;
+        await press(screen.getByLabelText('75 minutes a day'));
+        expect(next.mock.calls.length).toBe(opened + 1);
+        expect(screen.queryByRole('button', { name: 'Custom goal' })).toBeNull();
+        next.mockRestore();
     });
 });
 
@@ -128,10 +182,15 @@ describe("Settings' daily goal", () => {
 describe("Settings' notifications, About and reset", () => {
     it('says why the reminder is off when iOS denies notifications, with a way to iOS Settings', async () => {
         const openSettings = jest.spyOn(Linking, 'openSettings').mockResolvedValue(undefined);
+        const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility').mockImplementation(() => {});
         await renderSettings();
         await act(async () => useSettingsStore.setState({ enableDailyReminder: async () => false } as never));
         await act(async () => fireEvent(screen.getByLabelText('Daily reminder'), 'valueChange', true));
-        expect(screen.getByText("Notifications are off for this app in iOS Settings, so the reminder can't be set.")).toBeOnTheScreen();
+        const denied = "Notifications are off for this app in iOS Settings, so the reminder can't be set.";
+        expect(screen.getByText(denied)).toBeOnTheScreen();
+        // iOS has no live regions: VoiceOver hears it from an announcement (review round, X-1).
+        expect(announce).toHaveBeenCalledWith(denied);
+        announce.mockRestore();
         await press(screen.getByRole('button', { name: 'Open iOS Settings' }));
         expect(openSettings).toHaveBeenCalled();
         openSettings.mockRestore();

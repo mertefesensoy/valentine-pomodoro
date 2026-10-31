@@ -27,7 +27,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | Composition round | **The postcard stack**, the owner's pick, 2026-10-31 (§3.3) | Not needed: native grouped list | Not needed: native list | Not needed |
 | Owner: direction contracts | **Approved**, 2026-10-31 ("Approve, build D2"; §3.4) | **Approved**, with `@react-native-picker/picker` | **Approved** | None: a retirement, carried by Settings' About footer |
 | 3. Build (`animate-expo`) | **Built**, `b2db8c1` (§3.8) | **Built**, `23e595c` (§3.6) | **Built**, `de3867c` (§3.7) | **Retired**, `23e595c` (§3.6) |
-| 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | — | — | — | — |
+| 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | First pass: critique 27/32, audit **15/20**, HIG **1 Critical** (day names), motion clean. After the fixes: critique 27/32 (84 %), audit 16/20, no Critical, motion clean (§3.12) | First pass: critique 34/40, audit 17/20, no Critical, motion not clean. After: critique 36/40, audit 18/20, no Critical, motion clean (§3.12) | First pass: **a P0** (rows unstyled in a release build), motion not clean. After: critique 37/40, audit 17/20, no Critical, motion clean (§3.12) | Retired: none |
 | 5. `break-ui` (TR at AX5) | — | — | — | — |
 | 6. `polish`, `harden`, `clarify` | — | — | — | — |
 | 7. Device check (the next build, with D1's finish-review fixes) | — | — | — | — |
@@ -72,6 +72,10 @@ Fresh installs see v1's gift screen, then the welcome: two first-run screens in 
 | `src/App.tsx`, `src/components/GiftModeModal.tsx` (removed), `src/screens/welcome/useWelcomeGate.ts` | v1's gift screen is retired, and the welcome no longer waits for it (§3.6). |
 | `src/screens/__tests__/settings.test.tsx` (new), `settingsKeyboard.test.tsx` (rewritten), `src/screens/welcome/__tests__/welcome.test.tsx`, `src/__tests__/router.test.tsx`, `src/i18n/en.json`, `tr.json` | The new Settings tested; `settingsKeyboard.test.tsx`, which the SRS cites for DEF-008, now proves no number opens a keyboard; the welcome's two audiences; the router tests mark the welcome seen; Settings' strings in English and Turkish (§3.6). |
 | `docs/process/DESIGN-WORKFLOW.md` | Two §3 rows: sentence case against Apple's title-style capitalisation; the appearance switch, settled by retiring it. |
+| `src/screens/LoveNotesScreen.tsx`, `src/screens/notes/NoteEditor.tsx`, `src/screens/__tests__/notes.test.tsx` | The review round (§3.12): the row's style flattened (the P0), the pressed tint, the swipe's tracking, stretch and corners, the restore announcement; the editor asks in an action sheet from Cancel and from a swipe (`usePreventRemove`), dims a disabled Save, edges its field in `edgeStrong`. The test's link renders through Expo Router's real Slot. |
+| `src/screens/StatsScreen.tsx`, `src/screens/stats/WeekStack.tsx`, `src/screens/__tests__/stats.test.tsx` | The review round: the day names never truncate, the flag grows with the text, the Minutes track has an outline. |
+| `src/screens/SettingsScreen.tsx`, `src/components/settings/SettingsList.tsx`, `src/screens/__tests__/settings.test.tsx` | The review round: the denied footer announced and plain, one VoiceOver stop per switch row, the wheel's motion and its Reduce Motion fade, the wheel list rebuilt only when its range changes. |
+| `.impeccable/surfaces/app-tabs-stats-tsx.md`, `.impeccable/critique/2026-10-31T*` | The Stats contract's switch is instant (the owner); the six critique snapshots, before and after the fixes. |
 
 ## 3. Implementation Approach
 
@@ -440,6 +444,102 @@ The device check is §6 "build 51", together with the D1 record's list of the sa
 | The emoji check | Clean |
 | Reassure | Passing |
 
+### 3.12 The four reviews, and the fix batch (DESIGN-WORKFLOW §2 steps 4 and 6)
+
+**The owner, 2026-10-31:** "Start the reviews".
+
+**How they ran.**
+- **The critique and the native audit** ran in this context, as D1's did (D1 record §3.12): on a native platform the critique is Impeccable's design review alone, with no degraded banner. Both are read from source against each screen's direction contract, because there's no Simulator on this machine.
+- **`/apple-design` (a code audit) and `review-animations`** each ran in a sub-agent briefed with the code paths, the contracts and the owner's settled decisions, so their reads weren't anchored on the critique's.
+- The gate is read as D1 read it: the audit out of 20 (NFR-UX-003, ≥ 16), the critique proportionally (≥ 80 %).
+- The skills load from stage-c's copies; `diff -rq` (excluding `apple-design`'s `.git`) finds them identical to this worktree's.
+
+**First pass.** Snapshots: `.impeccable/critique/2026-10-31T17-42-32Z__app-tabs-{stats,settings,notes}-tsx.md`.
+
+| Screen | Critique | Audit (A, P, T, C, Ad) | `/apple-design` | `review-animations` |
+|---|---|---|---|---|
+| Stats | 27/32 (5, 9 n/a) | **15/20** (2, 3, 4, 3, 3) | **Critical S-1**: the day names truncate. Medium S-2 (the Minutes track at 1.13:1 on paper), S-3 (the flag doesn't grow) | Clean |
+| Settings | 34/40 | 17/20 (3, 3, 4, 3, 4) | No Critical. Medium T-1 (two VoiceOver stops per switch row), T-2 (the switch track's contrast), T-3 (values look static), X-1 (the denied footer is silent on iOS); Low T-4 (the footer in `dangerInk`) | Not clean: the wheel's curve, nothing under Reduce Motion, a preset closes the wheel unanimated |
+| Notes | **A P0**; 35/40 with it fixed | 16/20 with it fixed (3, 3, 4, 3, 3) | No Critical. High N-1 (Save's state by hue alone); Medium N-2 (an edited sheet bounces silently), N-3 (the field's edge at 1.26:1), X-1 (Restore is silent on iOS); Low N-4 (no pressed state), N-5 (the swipe's Delete at AX sizes) | Not clean: the swipe moves at half the finger's speed and stops dead; no feedback on a tap; Add's haptic |
+| All | | | X-2 (titles in the content, not a collapsing large title), X-3 (no Increase Contrast variants) | Outside motion: the swipe's Delete draws a black line on the first and last rows |
+
+**The P0: build 51's fix would have broken the note rows again in build 52.**
+- **What happens.** `Link asChild` hands the trigger through Expo Router's `Slot` (`BaseExpoRouterLink.js:120`), and `Link.Trigger` renders the row through the `Slot` again (`elements.js:173`). The Slot is Radix's, and it merges styles as `{ ...slotStyle, ...childStyle }` (`@radix-ui/react-slot/dist/index.js:133`).
+- **What it does to the row.** The row's style was an array, so it spread into `{"0": …, "1": …}`. React Native ignores those keys: in a release build the row would have had no paper, padding, border or corners, which is build 51's broken page from a second cause. A development build throws instead: "You are passing an array of styles to a child of <Slot>" (`expo-router/build/ui/Slot.js:99`).
+- **Reproduced** before it was reported, with a throwaway test through the real `LinkTrigger`. Outside production it threw that error. With `NODE_ENV=production` the row's style came back as `{"0":{"paddingHorizontal":20,"minHeight":44},"1":{"backgroundColor":"#FFF8F0"},…}`. A flattened style came through intact.
+- **Why §3.11's test missed it:** its stand-in rendered the trigger's child directly, skipping the Slot.
+
+**The owner's dispositions, 2026-10-31:**
+- "All 17": every fix below.
+- The discard question: "Action sheet".
+- Stats' switch: "Keep instant". The contract's 150 ms crossfade is amended to an instant swap; the motion review found the instant swap clean, and the device check confirms it doesn't read as a flash.
+- The delete reflow (rows below jump up after a delete): "Leave it for polish". It needs keys that don't include the list index; with no storage change, they would come from the note's text and its occurrence.
+
+**The fix batch:**
+
+| Screen | Finding | Fix |
+|---|---|---|
+| Notes | P0: the rows lose their style | The row's style is one `StyleSheet.flatten`ed object. A function style is dropped by the Slot too, so the pressed tint (`field`, N-4) comes from `onPressIn` and `onPressOut` state. |
+| Notes | The swipe lags and stops dead | `friction` back to 1, so the row tracks the finger; `overshootFriction` 8 instead of `overshootRight={false}`. A `danger` underlay beside the action, not under it, keeps the stretch red and lets the pressed action (opacity 0.85) dim against the page. |
+| Notes | A black line on the first and last Delete | The action takes the row's corners only, never its border widths, whose uncoloured edge iOS draws black. |
+| Notes | N-5: Delete at AX sizes | `maxFontSizeMultiplier` 1.3, one line. |
+| Notes | Add's haptic | `haptic={false}`: PressableScale's own rule, off where a press only navigates. |
+| Notes | X-1: Restore is silent | `AccessibilityInfo.announceForAccessibility` with the result; `accessibilityLiveRegion` is Android-only. |
+| Notes | N-2: an edited sheet bounces silently | `usePreventRemove(dirty, …)` replaces `gestureEnabled: !dirty`. It sets the native prevent-dismiss, so a swipe is held and returns as a blocked removal (`RNSScreen.mm:676-692`). Cancel and the swipe ask the same question in an action sheet ("Discard changes", destructive; "Keep editing"). Save and Delete set a `leaving` ref, so the removal they cause goes straight through (`repeat()`), and the hook's own `repeat` turns prevention off before re-dispatching. |
+| Notes | N-1: Save's state by hue alone | Disabled is the same `primaryInk` at 40 %, as a system bar button dims. |
+| Notes | N-3: the field's edge | `edgeStrong` (palette.json: boundaries that identify a control, 3:1). |
+| Stats | S-1 (Critical): the day names truncate | In the stack the day column is 56 pt × the font scale (from 1, uncapped below the list's threshold), with no line limit. In the AX list the name takes a line of its own. |
+| Stats | S-3: the flag | 14 pt × `grow` (the stickers' cap, 1.3), its cell too. |
+| Stats | S-2: the track | An 8 pt track with a 1 pt `edgeStrong` outline, so the goal's length reads on paper. |
+| Settings | X-1, T-4: the denied footer | Announced when `enableDailyReminder` returns false, and a plain footer in `inkSoft`; the "Open iOS Settings" row carries the action. |
+| Settings | T-1: two VoiceOver stops | A switch row's label `Text` is `accessible={false}`; the Switch carries the label. The time rows keep their label readable, because the compact picker's own button may not take the wrapper's label (`datetimepicker.ios.js` passes it to the wrapper view). |
+| Settings | Wheel motion | `create` and `delete` fade with ease-out, `update` (the rows below) eases in and out, over 200 ms. Under Reduce Motion the same config without `update`: the fade stays, the movement goes (NFR-A11Y-004). One `closeWheels()` animates a wheel closed from a preset, the goal switch and Reset alike. |
+| Settings | The wheel list | Rebuilt only when the range changes or a stored value falls outside it, not on every turn (the goal's has 1,440 items). |
+
+**Kept, with reasons:**
+- **T-2, X-3:** the switch track's contrast and Increase Contrast variants belong to one palette pass, not a screen fix. The knob's position also shows the switch's state.
+- **T-3:** the value colours are the Settings contract's (`inkSoft`, `primaryInk` while open).
+- **X-2:** the titles stay in the content on every tab, as D1 kept them.
+- **The tab-press haptic:** a recorded decision (DEF-007).
+- **The Timer group shows Custom's durations while a preset runs:** decided in build 48 (F4).
+- **Stats' full Minutes fill in `ringBreak`:** kept, because the flag also marks the goal.
+
+**Tests.** Notes' were run against the old row. The others assert values the old code didn't have (a fixed 56 pt column, a 14 pt flag, a different animation config) and weren't run against it.
+- **`notes.test.tsx`:** the link stand-in renders through Expo Router's real `Slot`, as the device does. Against the old row, six tests fail with the Slot's error.
+  - New: the pressed tint; the Delete action's corners, colour and no border; the restore announcement.
+  - The editor: the action sheet from Cancel; the same question from a blocked swipe, and only while dirty; Save leaving without asking; Save's dimming and the field's edge.
+- **`stats.test.tsx`:** at xxLarge (font scale 1.235), the day column is 56 × 1.235 with no line limit, and the flag is 14 × 1.235. At an AX size, the name takes a line of its own.
+- **`settings.test.tsx`:** one VoiceOver stop per switch row; the denied announcement; the wheel's motion, the same without `update` under Reduce Motion; the Custom goal wheel closing animated when a preset is chosen.
+
+**After the fixes.** Snapshots: `.impeccable/critique/2026-10-31T18-04-31Z__app-tabs-{stats,settings,notes}-tsx.md`.
+
+| Screen | Critique | Audit (A, P, T, C, Ad) | `/apple-design` | `review-animations` |
+|---|---|---|---|---|
+| Stats | **27/32** (84 %) | **16/20** (3, 3, 4, 3, 3) | No Critical: S-1, S-2, S-3 fixed | Clean (the instant switch is the contract now) |
+| Settings | **36/40** (90 %) | **18/20** (3, 4, 4, 3, 4) | No Critical: T-1, T-4, X-1 fixed; T-2, T-3 kept | Clean |
+| Notes | **37/40** (93 %) | **17/20** (4, 3, 4, 3, 3) | No Critical: N-1 to N-5, X-1 fixed | Clean, with the delete reflow left for polish (the owner) |
+
+The scores after the fixes are this context's re-reading against each finding, each now with a test. The sub-agents weren't re-run. The Accessibility and Adaptivity scores stay provisional until the device check, as D1's did.
+
+**Feel checks for the device** (from the motion review):
+- Swipe a note slowly, then flick it; interrupt the close and reverse it; drag past Delete, and it should stretch over red.
+- Long-press the first, middle and last rows: the menu's preview has the row's shape. A long press dragged sideways goes cleanly to the menu or the swipe.
+- Settings' wheels: on close, does the fading wheel show through the rows sliding up over it? If so, the rows get a `paper` background.
+- Daily goal › Custom: does the segmented indicator slide twice, since Fabric's layout animation also animates transforms? If so, the wheel opens a frame later.
+- Stats' switch: the stickers and fills swap at once while the pill slides; check that it doesn't read as a flash.
+- The editor: type, then pull the sheet down. It should hold and ask. Delete back to the original text, and the swipe should dismiss without asking.
+
+**Guards** after the fix batch:
+
+| Guard | Result |
+|---|---|
+| Jest | 52 suites, 369 tests, all passing |
+| Lint | 0 errors, 29 warnings |
+| tsc | Clean |
+| React Compiler | 80 compiled, 5 skipped |
+| The emoji check | Clean |
+| Reassure | Passing: Timer 13, Stats 1, Settings 1, Notes 1, leaf 12, settings-only 1 (unchanged) |
+
 ## 4. Mathematical / Statistical Details
 
 None yet. The week's sticker capacity and the goal counts will reuse D1's rules (D1 record §4.3) when Stats is built.
@@ -472,7 +572,15 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
 - [x] The owner confirms the four briefs (2026-10-31, "Confirm all four").
 - [x] `/apple-design` on each brief (§3.2): one Critical (Notes: Delete reachable only by gesture), accepted with its fix; the rest dispositioned.
 - [x] The owner approves the direction contracts, after Stats' composition round (2026-10-31, "Approve, build D2", with the picker dependency).
-- [ ] Each screen: critique and audit at 16/20 or better, no Critical HIG finding, `review-animations` clean, `break-ui` in Turkish at AX5.
+- [x] Each screen: critique and audit at 16/20 or better, no Critical HIG finding, `review-animations` clean (§3.12, after the fix batch; Accessibility and Adaptivity provisional until the device check).
+- [ ] Each screen: `break-ui` in Turkish at AX5.
+- [ ] **The device check, the next build (52).** It carries §3.11's fixes and §3.12's, so it repeats the build 51 list below and adds:
+  1. **Notes' rows** are paper blocks with padding, corners and hairlines (the P0), and tint while pressed.
+  2. **The swipe** tracks the finger, stretches over red past Delete, and the first and last rows' Delete has no black line.
+  3. **The editor:** with unsaved text, Cancel and a swipe down both ask in an action sheet; Save never asks; Save dims while there's nothing to save; the field has a visible edge.
+  4. **Stats** at xxLarge and at the largest text size: every day's name reads in full, in English and Turkish; the flags grow with the text.
+  5. **Settings:** a wheel fades in while the rows below slide; with Reduce Motion, it only fades. With VoiceOver, a switch row is one stop, and a refused reminder is spoken.
+  6. The motion review's feel checks (§3.12).
 - [ ] B2's notes tests stay green: Bengisu's install keeps its notes.
 - [ ] The emoji check (`src/__tests__/noEmojiIcons.test.ts`) passes.
 - [ ] **The device check, build 51** (needs a physical device). It goes with the D1 record's §6 "build 51" list, for D1's finish fixes and the six recaptures.

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { AccessibilityInfo, ActionSheetIOS, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { router, useLocalSearchParams, usePreventRemove } from 'expo-router';
 
 import { ButtonRow, ListGroup } from '../../components/settings/SettingsList';
 import { t } from '../../i18n';
@@ -21,11 +21,13 @@ const ANNOUNCE_AT = [30, 10, 0];
  *
  * Contract
  *   in : the `index` route param, a note's place in the list; absent for a new note.
- *   out: Save adds or edits the note and closes; Delete confirms, deletes and closes; Cancel closes,
- *        asking first when there are unsaved changes ("Discard changes" or "Keep editing").
- *   also: while there are unsaved changes the sheet can't be swiped away (`gestureEnabled`), so a
- *        half-written note is never lost to a stray swipe. The cap is max(280, the note's own
- *        length): a longer note already kept can be saved as it is, but never grows.
+ *   out: Save adds or edits the note and closes; Delete confirms, deletes and closes; Cancel closes.
+ *   also: with unsaved changes, every way out but Save and Delete asks first, in an action sheet
+ *        ("Discard changes" or "Keep editing", `sheets.md`): Cancel, and a swipe on the sheet.
+ *        `usePreventRemove` sets the native sheet's prevent-dismiss, so the swipe is held and
+ *        comes back as a blocked removal; `gestureEnabled` alone only held it, saying nothing
+ *        (D2 record §3.12). The cap is max(280, the note's own length): a longer note already
+ *        kept can be saved as it is, but never grows.
  */
 export function NoteEditor() {
     const { index } = useLocalSearchParams<{ index?: string }>();
@@ -53,14 +55,26 @@ export function NoteEditor() {
         AccessibilityInfo.announceForAccessibility(t('notesScreen.editor.left', { count: Math.max(left, 0) }));
     }, [left, original.length]);
 
-    const close = () => router.back();
-    const cancel = () => {
-        if (!dirty) return close();
-        Alert.alert(t('notesScreen.editor.discardTitle'), undefined, [
-            { text: t('notesScreen.editor.keep'), style: 'cancel' },
-            { text: t('notesScreen.editor.discard'), style: 'destructive', onPress: close },
-        ]);
+    // Save and Delete leave on purpose: the blocked removal they cause goes straight through.
+    const leaving = useRef(false);
+    const close = () => {
+        leaving.current = true;
+        router.back();
     };
+    const askDiscard = (discard: () => void) => {
+        const options = [t('notesScreen.editor.discard'), t('notesScreen.editor.keep')];
+        ActionSheetIOS.showActionSheetWithOptions(
+            { title: t('notesScreen.editor.discardTitle'), options, destructiveButtonIndex: 0, cancelButtonIndex: 1 },
+            (choice) => {
+                if (choice === 0) discard();
+            },
+        );
+    };
+    usePreventRemove(dirty, ({ repeat }) => {
+        if (leaving.current) repeat();
+        else askDiscard(repeat);
+    });
+    const cancel = () => (dirty ? askDiscard(close) : close());
     const save = () => {
         if (!canSave) return;
         if (editing) editNote(at, text);
@@ -89,7 +103,6 @@ export function NoteEditor() {
             keyboardShouldPersistTaps="handled"
             automaticallyAdjustKeyboardInsets
         >
-            <Stack.Screen options={{ gestureEnabled: !dirty }} />
             <View style={styles.header}>
                 <Pressable onPress={cancel} style={styles.headerButton} accessibilityRole="button" hitSlop={8}>
                     <Text style={[styles.headerText, { color: tokens.primaryInk }]}>{t('notesScreen.editor.cancel')}</Text>
@@ -105,13 +118,15 @@ export function NoteEditor() {
                     accessibilityState={{ disabled: !canSave }}
                     hitSlop={8}
                 >
-                    <Text style={[styles.headerText, styles.save, { color: canSave ? tokens.primaryInk : tokens.inkSoft }]}>
+                    {/* Disabled is the same ink, dimmed, as a system bar button: not a second hue (HIG N-1). */}
+                    <Text style={[styles.headerText, styles.save, { color: tokens.primaryInk }, !canSave && styles.saveDisabled]}>
                         {t('notesScreen.editor.save')}
                     </Text>
                 </Pressable>
             </View>
 
-            <View style={[styles.field, { backgroundColor: tokens.paper, borderColor: tokens.edge }]}>
+            {/* A text input's boundary identifies a control: `edgeStrong`, 3:1 (palette.json). */}
+            <View style={[styles.field, { backgroundColor: tokens.paper, borderColor: tokens.edgeStrong }]}>
                 <TextInput
                     value={text}
                     onChangeText={(v) => setText(v.length > max ? v.slice(0, max) : v)}
@@ -148,6 +163,7 @@ const styles = StyleSheet.create({
     headerTrailing: { alignItems: 'flex-end' },
     headerText: { fontSize: 17 },
     save: { fontWeight: '600' },
+    saveDisabled: { opacity: 0.4 },
     title: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '600' },
     field: { borderRadius: radius.m, borderWidth: edgeWidth, padding: space.m },
     input: { fontSize: 17, lineHeight: 24, minHeight: 160, textAlignVertical: 'top' },

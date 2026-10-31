@@ -67,8 +67,10 @@ export function DashedCell({ size, tokens }: { size: number; tokens: ThemeTokens
 function MinutesFill({ minutes, goal, tokens }: { minutes: number; goal: number; tokens: ThemeTokens }) {
     if (goal <= 0) return null;
     const share = Math.min(minutes / goal, 1);
+    // The track is the goal's length, so it is drawn with an `edgeStrong` outline: `ringTrack` alone
+    // is 1.13:1 on paper (HIG S-2).
     return (
-        <View style={[styles.track, { backgroundColor: tokens.ringTrack }]}>
+        <View style={[styles.track, { backgroundColor: tokens.ringTrack, borderColor: tokens.edgeStrong }]}>
             <View style={[styles.fill, { width: `${share * 100}%`, backgroundColor: share >= 1 ? tokens.ringBreak : tokens.ringFocus }]} />
         </View>
     );
@@ -78,13 +80,19 @@ function MinutesFill({ minutes, goal, tokens }: { minutes: number; goal: number;
  * One of the six earlier days, as a postcard's edge in the stack (D2 Stats contract): its day,
  * its stickers or its minutes, its count, and the goal flag. An empty day is one dashed cell,
  * never "missed" (PRODUCT principle 2). One element for VoiceOver.
+ *
+ * The day's name never truncates (HIG S-1, `typography.md`): in the stack its column is
+ * `dayWidth`, which the caller grows with the text size; in the list (AX sizes) it takes a line of
+ * its own. The goal flag is `flag` points, grown like the stickers.
  */
-export function DayEdge({ day, metric, goal, height, sticker, tilt, stacked, tokens }: {
+export function DayEdge({ day, metric, goal, height, sticker, flag, dayWidth, tilt, stacked, tokens }: {
     day: Day;
     metric: Metric;
     goal: number;
     height: number;
     sticker: number;
+    flag: number;
+    dayWidth: number;
     tilt: number;
     stacked: boolean;
     tokens: ThemeTokens;
@@ -102,7 +110,7 @@ export function DayEdge({ day, metric, goal, height, sticker, tilt, stacked, tok
             accessible
             accessibilityLabel={dayLabel(day.key, day.stats, false)}
         >
-            <Text style={[styles.edgeDay, { color: tokens.inkSoft }]} numberOfLines={1}>
+            <Text style={[styles.edgeDay, stacked ? { width: dayWidth } : styles.edgeDayLine, { color: tokens.inkSoft }]}>
                 {name}
             </Text>
             <View style={styles.edgeBody}>
@@ -119,7 +127,7 @@ export function DayEdge({ day, metric, goal, height, sticker, tilt, stacked, tok
                     {metric === 'sessions' ? focusSessions : formatNumber(focusMinutes)}
                 </Text>
             )}
-            <View style={styles.flagCell}>{goalHit ? <Icon glyph={goalGlyph} size={14} color={tokens.successInk} /> : null}</View>
+            <View style={[styles.flagCell, { width: flag }]}>{goalHit ? <Icon glyph={goalGlyph} size={flag} color={tokens.successInk} /> : null}</View>
         </View>
     );
 }
@@ -183,13 +191,14 @@ const styles = StyleSheet.create({
     // is a whole slip.
     edgeStacked: { borderTopLeftRadius: radius.m, borderTopRightRadius: radius.m, borderBottomWidth: 0, marginBottom: -space.s },
     edgeList: { borderRadius: radius.m, paddingBottom: space.s, flexWrap: 'wrap' },
-    edgeDay: { width: 56, fontSize: 13, fontWeight: '600' },
+    edgeDay: { fontSize: 13, fontWeight: '600' },
+    edgeDayLine: { flexBasis: '100%' },
     edgeBody: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 3, minHeight: 18 },
     edgeCount: { fontSize: 13, fontWeight: '600', fontVariant: ['tabular-nums'], textAlign: 'right' },
-    flagCell: { width: 14, alignItems: 'center' },
+    flagCell: { alignItems: 'center' },
     more: { borderRadius: radius.s, paddingHorizontal: space.xs, paddingVertical: 1 },
     moreText: { fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'] },
-    track: { flex: 1, height: 6, borderRadius: 3, overflow: 'hidden', marginTop: 6 },
+    track: { flex: 1, height: 8, borderRadius: 4, borderWidth: 1, overflow: 'hidden', marginTop: 5 },
     fill: { position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 3 },
     today: { borderWidth: edgeWidth, borderRadius: radius.l, paddingHorizontal: space.l, paddingVertical: space.m, gap: space.xs },
     todayCompact: { flex: 1 },

@@ -38,7 +38,10 @@ export function ListGroup({ header, footer, children }: { header?: string; foote
     );
 }
 
-/** A label and the system switch. */
+/**
+ * A label and the system switch, one VoiceOver stop: the switch carries the label, so the label's
+ * text is hidden from VoiceOver rather than read twice (HIG T-1).
+ */
 export function SwitchRow({ label, value, onValueChange, disabled }: {
     label: string;
     value: boolean;
@@ -48,7 +51,9 @@ export function SwitchRow({ label, value, onValueChange, disabled }: {
     const { tokens } = useTheme();
     return (
         <View style={styles.row}>
-            <Text style={[styles.label, { color: tokens.ink }]}>{label}</Text>
+            <Text style={[styles.label, { color: tokens.ink }]} accessible={false} importantForAccessibility="no">
+                {label}
+            </Text>
             <Switch
                 value={value}
                 onValueChange={onValueChange}
@@ -151,15 +156,18 @@ export function NumberWheel({ value, min, max, format, onChange, label }: {
     label: string;
 }) {
     const { tokens } = useTheme();
+    // Rebuilt only when the range changes or a value outside it must be listed, not on every
+    // turn of the wheel (the goal's runs to 1,440 items).
+    const outside = value < min || value > max ? value : null;
     const values = useMemo(() => {
         const out: number[] = [];
         for (let n = min; n <= max; n++) out.push(n);
-        if (value < min || value > max) {
-            out.push(value);
+        if (outside !== null) {
+            out.push(outside);
             out.sort((a, b) => a - b);
         }
         return out;
-    }, [min, max, value]);
+    }, [min, max, outside]);
     return (
         <Picker
             selectedValue={value}

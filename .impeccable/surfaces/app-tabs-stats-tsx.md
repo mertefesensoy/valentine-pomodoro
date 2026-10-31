@@ -126,7 +126,7 @@ FIRST VIEWPORT: iPhone portrait. It fits an iPhone SE at the default text size, 
 - **Compact height:** today's card leads, with the stack trailing.
 - **Regular width:** centred at 560 pt.
 - **Phase 3:** each postcard holds both partners' stickers side by side, in the same frame.
-- **Signature interaction:** the stack itself. There's no motion on entry. The Sessions / Minutes switch crossfades the stack's contents in 150 ms, or switches instantly with Reduce Motion. Each day is one VoiceOver element: "Tuesday, 3 sessions, 75 minutes, goal reached".
+- **Signature interaction:** the stack itself. There's no motion on entry. The Sessions / Minutes switch swaps the stack's contents at once; only its pill slides (amended by the owner, 2026-10-31, after the motion review found the instant swap clean: D2 record §3.12). Each day is one VoiceOver element: "Tuesday, 3 sessions, 75 minutes, goal reached".
 
 FORM: The postcard stack, structure 7 of 7 and the dealt lead, chosen by the owner on 2026-10-31. Sketch: `art/review/d2-stats-postcard-stack.html`. seed:fc916bfd00f1c093
 

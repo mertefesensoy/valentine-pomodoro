@@ -1,5 +1,16 @@
 import { useState } from 'react';
-import { Alert, LayoutAnimation, Linking, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import {
+    AccessibilityInfo,
+    Alert,
+    LayoutAnimation,
+    Linking,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
+    useWindowDimensions,
+    type LayoutAnimationConfig,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useReducedMotion } from 'react-native-reanimated';
 import { router } from 'expo-router';
@@ -29,6 +40,18 @@ const READABLE_WIDTH = 560;
 
 type Wheel = 'focus' | 'shortBreak' | 'longBreak' | 'longBreakEvery' | 'goal';
 
+// A wheel opening or closing (D2 record §3.12, motion review): it enters and leaves, so it fades
+// with ease-out; the rows below move, so they ease in and out. Under Reduce Motion the fade stays
+// and the movement goes: no `update`, so the rows below settle at once (PRODUCT.md, DESIGN.md).
+const WHEEL_FADE = { type: LayoutAnimation.Types.easeOut, property: LayoutAnimation.Properties.opacity };
+const WHEEL_MOTION: LayoutAnimationConfig = {
+    duration: 200,
+    create: WHEEL_FADE,
+    update: { type: LayoutAnimation.Types.easeInEaseOut },
+    delete: WHEEL_FADE,
+};
+const WHEEL_MOTION_REDUCED: LayoutAnimationConfig = { duration: 200, create: WHEEL_FADE, delete: WHEEL_FADE };
+
 /**
  * Settings (D2 Settings contract): iOS Settings drawn in the diary's stationery. One scroll of
  * inset groups, every row a native control, and no bounded number typed: a value row opens the
@@ -54,7 +77,7 @@ export default function SettingsScreen() {
     const { tokens } = useTheme();
     const insets = useSafeAreaInsets();
     const { width } = useWindowDimensions();
-    // Rows open with the platform's layout animation; with Reduce Motion, in place.
+    // Rows open with the platform's layout animation; with Reduce Motion, a fade in place.
     const reduced = useReducedMotion();
 
     const [open, setOpen] = useState<Wheel | null>(null);
@@ -63,9 +86,17 @@ export default function SettingsScreen() {
     const [reminderBusy, setReminderBusy] = useState(false);
     const [denied, setDenied] = useState(false);
 
+    const animateWheels = () => LayoutAnimation.configureNext(reduced ? WHEEL_MOTION_REDUCED : WHEEL_MOTION);
     const toggle = (wheel: Wheel) => {
-        if (!reduced) LayoutAnimation.configureNext(LayoutAnimation.create(200, 'easeInEaseOut', 'opacity'));
+        animateWheels();
         setOpen((current) => (current === wheel ? null : wheel));
+    };
+    // Every other way a wheel closes (a goal preset, the goal switch, Reset) animates the same way
+    // as closing it from its own row.
+    const closeWheels = () => {
+        if (open === null) return;
+        animateWheels();
+        setOpen(null);
     };
 
     const minutes = (n: number) => t('settings.minutes', { count: n });
@@ -101,7 +132,7 @@ export default function SettingsScreen() {
             return;
         }
         setCustomGoal(false);
-        setOpen(null);
+        closeWheels();
         setGoalMinutes(Number(segment));
         setLastGoal(Number(segment));
     };
@@ -115,7 +146,11 @@ export default function SettingsScreen() {
     const toggleReminder = (on: boolean) => {
         setReminderBusy(true);
         const change = on
-            ? enableDailyReminder().then((ok) => setDenied(!ok))
+            ? enableDailyReminder().then((ok) => {
+                  setDenied(!ok);
+                  // accessibilityLiveRegion is Android-only; iOS hears why from an announcement.
+                  if (!ok) AccessibilityInfo.announceForAccessibility(t('settings.notifications.denied'));
+              })
             : disableDailyReminder().then(() => setDenied(false));
         return change.finally(() => setReminderBusy(false));
     };
@@ -127,7 +162,7 @@ export default function SettingsScreen() {
                 text: t('settings.reset.confirm'),
                 style: 'destructive',
                 onPress: () => {
-                    setOpen(null);
+                    closeWheels();
                     updateSettings({
                         durations: { focus: 25, shortBreak: 5, longBreak: 15 },
                         presetChoice: '25-5',
@@ -183,7 +218,7 @@ export default function SettingsScreen() {
                         label={t('settings.goal.toggle')}
                         value={goalMinutes > 0}
                         onValueChange={(on) => {
-                            setOpen(null);
+                            closeWheels();
                             setGoalMinutes(on ? lastGoal : 0);
                         }}
                     />
@@ -225,17 +260,11 @@ export default function SettingsScreen() {
                     )}
                 </ListGroup>
 
+                {/* The denied footer is a plain footer, in `inkSoft`: `dangerInk` means a destructive
+                    action (HIG T-4), and the "Open iOS Settings" row carries what to do. */}
                 <ListGroup
                     header={t('settings.notifications.header')}
-                    footer={
-                        denied ? (
-                            <Text style={[styles.footer, { color: tokens.dangerInk }]} accessibilityLiveRegion="polite">
-                                {t('settings.notifications.denied')}
-                            </Text>
-                        ) : (
-                            t('settings.notifications.footer')
-                        )
-                    }
+                    footer={denied ? t('settings.notifications.denied') : t('settings.notifications.footer')}
                 >
                     <SwitchRow
                         label={t('settings.notifications.sessionAlerts')}

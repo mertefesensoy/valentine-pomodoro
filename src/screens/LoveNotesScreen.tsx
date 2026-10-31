@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Alert, FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { AccessibilityInfo, Alert, FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
@@ -20,6 +20,9 @@ import { PoseSticker } from './classic/PoseSticker';
 // Regular width (iPad, wide windows): the list centres at a readable width, as Classic does.
 const READABLE_WIDTH = 560;
 const DELETE_WIDTH = 88;
+// Past the Delete action the row rubber-bands (one point for every eight dragged), over red.
+const OVERSHOOT_FRICTION = 8;
+const UNDERLAY_REACH = 40;
 
 const editorHref = (index: number) => ({ pathname: '/note-editor' as const, params: { index: String(index) } });
 
@@ -28,6 +31,11 @@ const editorHref = (index: number) => ({ pathname: '/note-editor' as const, para
  * trailing swipe gives Delete; a long press gives the native menu, Edit then Delete (`Link.Menu`,
  * no icons rather than SF Symbols); VoiceOver gets both as custom actions. The editor has its own
  * Delete button, so no action needs a gesture (NFR-A11Y-004).
+ *
+ * The row's style is one flat object: `Link.Trigger` hands the row through a Radix `Slot`, which
+ * merges styles as `{ ...slot, ...child }`, so an array spreads into numeric keys and a release
+ * build drops it (D2 record §3.12, P0); a dev build throws. The same goes for a function style, so
+ * the pressed tint comes from press-in and press-out.
  */
 function NoteRow({ note, index, first, last, tokens, onDelete }: {
     note: string;
@@ -38,29 +46,41 @@ function NoteRow({ note, index, first, last, tokens, onDelete }: {
     onDelete: (index: number) => void;
 }) {
     const swipe = useRef<SwipeableMethods>(null);
-    const shape = [
+    const [pressed, setPressed] = useState(false);
+    const shape = StyleSheet.flatten([
         styles.row,
-        { backgroundColor: tokens.paper, borderColor: tokens.edge },
+        { backgroundColor: pressed ? tokens.field : tokens.paper, borderColor: tokens.edge },
         first && styles.rowFirst,
         last && styles.rowLast,
-    ];
+    ]);
+    // The action takes the row's corners, not its borders: a border width with no colour draws black.
+    const corners = [first && styles.cornersFirst, last && styles.cornersLast];
     return (
         <ReanimatedSwipeable
             ref={swipe}
-            friction={2}
             rightThreshold={DELETE_WIDTH / 2}
-            overshootRight={false}
+            overshootFriction={OVERSHOOT_FRICTION}
             renderRightActions={() => (
-                <Pressable
-                    onPress={() => {
-                        swipe.current?.close();
-                        onDelete(index);
-                    }}
-                    style={[styles.deleteAction, { backgroundColor: tokens.danger }, first && styles.rowFirst, last && styles.rowLast]}
-                    accessibilityRole="button"
-                >
-                    <Text style={[styles.deleteText, { color: tokens.onDanger }]}>{t('notesScreen.delete')}</Text>
-                </Pressable>
+                <View style={styles.deleteSlot}>
+                    <View style={[styles.underlay, { backgroundColor: tokens.danger }]} />
+                    <Pressable
+                        onPress={() => {
+                            swipe.current?.close();
+                            onDelete(index);
+                        }}
+                        style={({ pressed: down }) => [
+                            styles.deleteAction,
+                            { backgroundColor: tokens.danger },
+                            corners,
+                            down && styles.deletePressed,
+                        ]}
+                        accessibilityRole="button"
+                    >
+                        <Text style={[styles.deleteText, { color: tokens.onDanger }]} maxFontSizeMultiplier={1.3} numberOfLines={1}>
+                            {t('notesScreen.delete')}
+                        </Text>
+                    </Pressable>
+                </View>
             )}
         >
             {/* `asChild`: without it the link renders its child inside a Text, which lays the row out
@@ -70,6 +90,8 @@ function NoteRow({ note, index, first, last, tokens, onDelete }: {
                 <Link.Trigger>
                     <Pressable
                         style={shape}
+                        onPressIn={() => setPressed(true)}
+                        onPressOut={() => setPressed(false)}
                         accessible
                         accessibilityRole="button"
                         accessibilityLabel={note}
@@ -126,13 +148,24 @@ export default function LoveNotesScreen() {
     const confirmRestore = () => {
         Alert.alert(t('notesScreen.restoreTitle'), t('notesScreen.restoreMessage'), [
             { text: t('notesScreen.cancel'), style: 'cancel' },
-            { text: t('notesScreen.restoreConfirm'), onPress: () => setRestored(restoreDefaults()) },
+            {
+                text: t('notesScreen.restoreConfirm'),
+                onPress: () => {
+                    const count = restoreDefaults();
+                    setRestored(count);
+                    // accessibilityLiveRegion is Android-only; iOS hears it from an announcement.
+                    AccessibilityInfo.announceForAccessibility(
+                        count === 0 ? t('notesScreen.restoredNone') : t('notesScreen.restored', { count }),
+                    );
+                },
+            },
         ]);
     };
 
     const addButton = (
         <PressableScale
             onPress={add}
+            haptic={false}
             accessibilityLabel={t('notesScreen.addA11y')}
             style={[styles.add, { backgroundColor: tokens.primary }]}
         >
@@ -166,7 +199,7 @@ export default function LoveNotesScreen() {
                 <ButtonRow label={t('notesScreen.restore')} onPress={confirmRestore} />
             </ListGroup>
             {restored !== null && (
-                <Text style={[styles.restored, { color: tokens.inkSoft }]} accessibilityLiveRegion="polite">
+                <Text style={[styles.restored, { color: tokens.inkSoft }]}>
                     {restored === 0 ? t('notesScreen.restoredNone') : t('notesScreen.restored', { count: restored })}
                 </Text>
             )}
@@ -237,9 +270,16 @@ const styles = StyleSheet.create({
     row: { borderLeftWidth: edgeWidth, borderRightWidth: edgeWidth, paddingHorizontal: space.l, paddingVertical: space.m, minHeight: minTarget },
     rowFirst: { borderTopWidth: edgeWidth, borderTopLeftRadius: radius.m, borderTopRightRadius: radius.m },
     rowLast: { borderBottomWidth: edgeWidth, borderBottomLeftRadius: radius.m, borderBottomRightRadius: radius.m },
+    cornersFirst: { borderTopLeftRadius: radius.m, borderTopRightRadius: radius.m },
+    cornersLast: { borderBottomLeftRadius: radius.m, borderBottomRightRadius: radius.m },
     separator: { position: 'absolute', top: 0, left: space.l, right: 0, height: StyleSheet.hairlineWidth },
     note: { fontSize: 17, lineHeight: 23 },
-    deleteAction: { width: DELETE_WIDTH, alignItems: 'center', justifyContent: 'center' },
+    deleteSlot: { width: DELETE_WIDTH },
+    // Beside the action, on its leading side, so the rubber-band stretch stays red; not under it,
+    // so the pressed action still dims against the page.
+    underlay: { position: 'absolute', top: 0, bottom: 0, right: DELETE_WIDTH, width: UNDERLAY_REACH },
+    deleteAction: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.xs },
+    deletePressed: { opacity: 0.85 },
     deleteText: { fontSize: 15, fontWeight: '600' },
     footerBlock: { gap: space.s },
     restored: { fontSize: 13, paddingHorizontal: space.l },

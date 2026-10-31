@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Dimensions } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
@@ -7,6 +8,7 @@ import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import { useStatsStore } from '../../stores/statsStore';
 import type { DayStats } from '../../types';
 import StatsScreen from '../StatsScreen';
+import { dateOfKey } from '../stats/WeekStack';
 
 jest.mock('expo-router', () => ({
     ...jest.requireActual('expo-router'),
@@ -108,5 +110,58 @@ describe('Stats: the postcard stack (D2 Stats contract)', () => {
     it('totals all time below the week', async () => {
         await showWeek();
         expect(screen.getByText('All time: 11 sessions · 275 minutes')).toBeOnTheScreen();
+    });
+});
+
+/** The window at a given text size, restored after. */
+async function atTextSize(fontScale: number, run: () => Promise<void>) {
+    const jestWindow = Dimensions.get('window');
+    const phone = { width: 393, height: 852, scale: 3, fontScale };
+    try {
+        await act(async () => Dimensions.set({ window: phone, screen: phone }));
+        await run();
+    } finally {
+        await act(async () => Dimensions.set({ window: jestWindow, screen: jestWindow }));
+    }
+}
+
+/** An edge's visible day name, as DayEdge writes it. */
+function edgeName(daysAgo: number): string {
+    const date = dateOfKey(keyOf(daysAgo));
+    return `${date.toLocaleDateString('en-US', { weekday: 'short' })} ${date.getDate()}`;
+}
+
+// covers: NFR-A11Y-003
+// Review round (D2 record §3.12, HIG S-1): a fixed 56 pt column cut "Wed 29" to "Wed…" from xxLarge,
+// and to one letter in the list built for the accessibility sizes.
+describe('Stats at larger text sizes', () => {
+    it('grows the day column and the goal flag with the text size in the stack (xxLarge)', async () => {
+        await atTextSize(1.235, async () => {
+            await showWeek();
+            const name = screen.getByText(edgeName(1));
+            expect(name).toHaveStyle({ width: 56 * 1.235 });
+            expect(name.props.numberOfLines).toBeUndefined();
+            // The flag on a day that reached the goal: the edge's only icon.
+            const edge = screen.getByLabelText(/, 4 sessions, 100 minutes, goal reached$/);
+            const svgs: { props: { width?: number } }[] = [];
+            const walk = (node: unknown) => {
+                if (!node || typeof node !== 'object') return;
+                const n = node as { type?: string; props: { width?: number }; children?: unknown[] };
+                if (n.type === 'RNSVGSvgView') svgs.push(n);
+                n.children?.forEach(walk);
+            };
+            walk(edge);
+            expect(svgs.at(-1)!.props.width).toBeCloseTo(14 * 1.235);
+        });
+    });
+
+    it('gives each day a line of its own in the list (an AX size)', async () => {
+        await atTextSize(3.1, async () => {
+            await showWeek();
+            const name = screen.getByText(edgeName(1));
+            expect(name).toHaveStyle({ flexBasis: '100%' });
+            expect(name).not.toHaveStyle({ width: 56 });
+            expect(name.props.numberOfLines).toBeUndefined();
+        });
     });
 });

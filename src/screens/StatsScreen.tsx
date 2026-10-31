@@ -32,6 +32,8 @@ const READABLE_WIDTH = 560;
 const SHORT_HEIGHT = 700;
 // The most today's card shows before "+n": two rows of cells on a phone.
 const TODAY_CELLS = 8;
+// An edge's day column at the default text size: "Wed 29" in 13 pt semibold, with room to spare.
+const DAY_COLUMN = 56;
 
 /**
  * Stats (D2 Stats contract): the week as a stack of day postcards, today in front.
@@ -105,6 +107,9 @@ export default function StatsScreen() {
     // Stickers and icons grow with Dynamic Type up to 1.3×, as Classic's timer does; cells stay whole.
     const grow = Math.min(fontScale, 1.3);
     const edgeHeight = (short ? 30 : 34) * grow + space.s;
+    // The day's name grows with the text size, uncapped, up to where the list takes over; the
+    // fixed 56 pt cut "Wed 29" to "Wed…" from xxLarge (HIG S-1).
+    const dayWidth = DAY_COLUMN * Math.max(fontScale, 1);
     const todayGoal = today.goalMinutes ?? goalMinutes;
     const cellsLeft = Math.max(
         0,
@@ -142,6 +147,8 @@ export default function StatsScreen() {
             goal={day.stats.goalMinutes ?? goalMinutes}
             height={edgeHeight}
             sticker={(short ? 16 : 18) * grow}
+            flag={14 * grow}
+            dayWidth={dayWidth}
             tilt={list ? 0 : i % 2 ? 0.6 : -0.6}
             stacked={!list}
             tokens={tokens}

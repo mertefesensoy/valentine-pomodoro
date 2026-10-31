@@ -895,7 +895,7 @@ Examples, with C = 16:
   3. The button opens the Modes sheet, Classic returns from it, and VoiceOver reads "Modes" (Turkish: "Modlar").
   4. Light and dark: the paper chip above the compass reads as intended (the compass keeps v1's look until D2).
   5. During a flight at the largest text size: the timer pill never covers the Modes button.
-- [ ] **The device check, "build 51": the next build, with D2's first additions** (the owner, 2026-10-31), for the finish review's fixes (§3.20). The owner retakes the six captures, which go to the reviewer for its verdict:
+- [ ] **The device check, build 51** (`v1.4.0-tf.51`, built from `d96eb7c` and submitted to TestFlight on 2026-10-31, with D2's build; D2 record §3.10), for the finish review's fixes (§3.20). The owner retakes the six captures, which go to the reviewer for its verdict:
   1. **The Ring, paused, dark** (`phone-ring-dark-paused`): Skip clears the tab bar by about 16 pt, and the page doesn't scroll. The ring is a little smaller than build 50's. Pomo & Doro and their line sit on one paper strip.
   2. **Facing Pages, paused, dark and light** (`phone-spread-dark-paused`, `phone-spread-light-paused`): "You" over Pomo and "Doro" over Doro at the top of the pages. The timer's frame sits below them and covers neither. The pair's line is on the right page's foot. The pages lean in from the spine, with round outer corners and tight spine corners, and the frame is seated in a band of the page colour. Nothing scrolls, and Skip clears the bar.
   3. **The shadow,** both themes: every Pomo, Doro and today's sticker casts a soft shadow, down and to the right. It must be blurred, not a hard copy of the shape (the blur filter's first time on the device). In light, the white edge reads off the paper.

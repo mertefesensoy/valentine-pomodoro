@@ -388,6 +388,24 @@ As its contract describes (`StatsScreen.tsx`, `stats/WeekStack.tsx`):
 | Reassure (`npx reassure --branch`) | Timer 13, Stats 1, Settings **1** (2 before D2), Notes 1, leaf 12, settings-only 1. The Notes case first failed: Expo Router's `Link` needs the provider its root navigator supplies, and the perf test renders the screen alone. `screens.perf-test.tsx` stands the link in, as `notes.test.tsx` does; the router tests render the real one |
 | iOS bytecode (`npx expo export --platform ios --dump-sourcemap`) | **4,112,584 B**: +62,176 B (+1.5 %) on D1 after its finish fixes (4,050,408 B). Now **6.65 % over** NFR-PERF-002's limit of 3,856,208 B (5.04 % before D2). The new code is the picker's JS, the grouped list, the note editor and its swipe, the postcard stack, and the strings. E3 revisits |
 
+### 3.10 Build 51 (the owner, 2026-10-31: "send to build and auto submit for me to test")
+
+The first build with D2's screens. It also carries D1's finish-review fixes, as the owner asked (D1 record §3.20). The owner's message named the build and the submission, not the tag push, so the tag is local.
+
+| Item | Value |
+|---|---|
+| Commit | `d96eb7c` on `phase1/stage-d` (the branch stays unpushed) |
+| Command | `eas build --platform ios --profile production --non-interactive --no-wait --auto-submit --json` |
+| Pre-flight | The tree clean; Reassure and the guards green (§3.9). `expo-doctor`: 18 of 20 checks pass. One failure is the long-standing `@expo/config-plugins`. The other is new since build 50's check this morning: Expo has published `expo` 58.0.22 and `@expo/metro-runtime` 58.0.16, and the project has 58.0.21 and 58.0.15. Those are patch releases published today, so the two-week rule keeps them out; E3 or a later build picks them up |
+| Version and build | 1.4.0 (51); EAS incremented the remote build number from 50 |
+| EAS build | `1c2a4c52-0375-4f59-a7cf-b2b668afbd0e`, queued 2026-10-31 15:08 UTC (18:08 UTC+3) |
+| Build result | **Finished** 15:14 UTC (18:14 UTC+3); EAS reports the source as `d96eb7cc` |
+| TestFlight submission | `f432937f-3e98-4d10-b06d-a5a106ba8107`, **finished**: EAS's `submit-ios` workflow succeeded at 15:14:23 UTC |
+| Tag | `v1.4.0-tf.51`, annotated, on `d96eb7c`, **local only**; its push waits for the owner's word |
+| IPA | **21,698,007 B**, +88,425 B (+0.41 %) on build 50 (21,609,582 B): the picker's native module and D2's code |
+
+The device check is §6 "build 51", together with the D1 record's list of the same name.
+
 ## 4. Mathematical / Statistical Details
 
 None yet. The week's sticker capacity and the goal counts will reuse D1's rules (D1 record §4.3) when Stats is built.
@@ -423,7 +441,31 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
 - [ ] Each screen: critique and audit at 16/20 or better, no Critical HIG finding, `review-animations` clean, `break-ui` in Turkish at AX5.
 - [ ] B2's notes tests stay green: Bengisu's install keeps its notes.
 - [ ] The emoji check (`src/__tests__/noEmojiIcons.test.ts`) passes.
-- [ ] The device check on the next build (needs a physical device), with the D1 record's §6 "build 51" list.
+- [ ] **The device check, build 51** (needs a physical device). It goes with the D1 record's §6 "build 51" list, for D1's finish fixes and the six recaptures.
+  1. **The theme:** the app now follows the phone. Your phone had Dark set inside the app, so switch the phone's own appearance and check that both themes follow it.
+  2. **Settings:**
+     - Each duration, the long-break interval and a custom goal open a wheel under their row, one at a time, and nothing opens a keyboard.
+     - The reminder and quiet hours use the iPhone's time chips.
+     - About's footer carries the origin line.
+     - Reset's alert says what it keeps.
+     - In Turkish at the largest text size, rows wrap rather than clip.
+  3. **Notes:**
+     - A tap opens the note in a full-height sheet.
+     - A swipe gives Delete, and a long press gives the native menu (Edit, then Delete).
+     - "Delete note" sits at the editor's foot.
+     - The countdown appears near 280.
+     - With unsaved text, the sheet won't swipe away, and Cancel asks first.
+     - "Preview a note" opens the love-note sheet.
+     - "Restore default notes" adds back only what's missing.
+  4. **Stats:**
+     - The summary line, then the stack of six day edges, then today's postcard in front.
+     - The Minutes switch.
+     - The goal and streak strip.
+     - Empty days as dashed cells, never "missed".
+     - The ad slot about 12 pt above the tab bar.
+     - At the largest text size, a list with today first.
+  5. **Fly:** icons instead of emoji on the camera control, the globe toggle, Start flight, Landed! and the timer pill.
+  6. **The gift screen:** gone. Only a fresh install would have shown it, so this is optional, and needs a reinstall.
 
 ## 7. Related Docs
 

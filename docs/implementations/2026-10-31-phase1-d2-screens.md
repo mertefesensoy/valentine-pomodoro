@@ -29,7 +29,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | 3. Build (`animate-expo`) | **Built**, `b2db8c1` (§3.8) | **Built**, `23e595c` (§3.6) | **Built**, `de3867c` (§3.7) | **Retired**, `23e595c` (§3.6) |
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | First pass: critique 27/32, audit **15/20**, HIG **1 Critical** (day names), motion clean. After the fixes: critique 27/32 (84 %), audit 16/20, no Critical, motion clean (§3.12) | First pass: critique 34/40, audit 17/20, no Critical, motion not clean. After: critique 36/40, audit 18/20, no Critical, motion clean (§3.12) | First pass: **a P0** (rows unstyled in a release build), motion not clean. After: critique 37/40, audit 17/20, no Critical, motion clean (§3.12) | Retired: none |
 | 5. `break-ui` (TR at AX5) | 2 Ugly (the zero-goal summary, the strip at AX5) and the shared number formats: **fixed**; a streak of 0 softened (§3.13) | The number formats: **fixed**; Turkish words wider than a row: accepted (the owner) | 2 Broken (an emoji cut at the cap, the editor header at AX5) and 1 Ugly (line breaks lost): **fixed** | Retired: none |
-| 6. `polish`, `harden`, `clarify` | Done: "Turn on a daily goal" opens Settings at the goal row; Turkish "kaldı" (§3.14). The Turkish copy and the default notes wait for the owner's review on the copy proof page | Done: a failed reminder told from a refusal; "Check for updates" offline; link rejections; "Sound and haptics" (§3.14) | Done (§3.13–3.14) | Retired: none |
+| 6. `polish`, `harden`, `clarify` | Done: "Turn on a daily goal" opens Settings at the goal row; Turkish "kaldı" (§3.14). The Turkish copy and the default notes: **reviewed** by the owner, six note changes applied (§3.15) | Done: a failed reminder told from a refusal; "Check for updates" offline; link rejections; "Sound and haptics" (§3.14) | Done (§3.13–3.14) | Retired: none |
 | 7. Device check (the next build, with D1's finish-review fixes) | — | — | — | — |
 | FINISH: the finish review, its verdict, DESIGN.md | — | — | — | — |
 
@@ -694,6 +694,32 @@ The scores after the fixes are this context's re-reading against each finding, e
 - **Built from the string files themselves,** so it shows exactly what ships. Rebuild it after any string change and republish with the artifact's `url`, which keeps the marks.
 - **Checked once:** a probe verdict was written, read back through the same collection and deleted.
 
+### 3.15 The owner's copy review
+
+**The owner, 2026-10-31:** "Review done". The marks were read back from the copy proof page's `verdicts` collection (`ArtifactData` `list`, 231 documents).
+
+**The result:** every item reviewed, 224 marked "Looks right" and 7 with a change.
+- **Six change a default note**, and are applied in `src/constants/defaults.ts` (table below).
+- **The seventh,** `timer.phaseLine`, was saved identical to the current text, code point for code point, so nothing changes.
+- **The two tab-title questions** have no answer stored, so the tabs and titles stay as they are ("İstatistik" / "İstatistikler", "Notlar" / "Aşk notları").
+
+| Note | Before | After (the owner's) |
+|---|---|---|
+| 3, English | One session closer to your dreams. | One step closer to your dreams. |
+| 3, Turkish | Hayallerine bir oturum daha yaklaştın. | Hayallerine bir adım daha yaklaştın. |
+| 8, Turkish | Küçük adımlar da sayılır. Bu da saydı. | Küçük adımlar da sayılır. Bu da sayıldı. |
+| 14, Turkish | Oturum oturum parlıyorsun. | Her oturumda parlıyorsun. ("more correct grammatically"; written "her", capitalised to match every other note) |
+| 15, Turkish | İyi dinlen, bunu hak ettin 💗 | Güzelce dinlen, bunu hak ettin 💗 ("more correct") |
+| 20, Turkish | Mola, kendine iyi bakma zamanı. Tadını çıkar. | Mola, kendine iyi bakma zamanıdır. Tadını çıkar. |
+
+**What it means for installs.**
+- The defaults seed fresh installs only (§3.7). Bengisu's install keeps her own notes (B2).
+- A TestFlight install that began on build 51 keeps the earlier wording. There, "Restore default notes" adds the new wording beside the old, since it adds only what's missing.
+
+**The page** is rebuilt from the changed notes and republished to the same link (version 2), keeping the marks. A note changed this way shows "Change suggested" with the owner's version, which is now the shipped text.
+
+**Guards:** Jest 53 suites, 385 tests, all passing; lint 0 errors; tsc clean; the emoji check clean (it allows `defaults.ts`, whose notes keep their emoji).
+
 **Tests:**
 - **`settings.test.tsx`:** a failed schedule says so, is announced, and offers no iOS Settings row; a denial keeps its footer and row (permissions mocked per test). The goal group scrolls into view once laid out, then the request clears.
 - **`stats.test.tsx`:** "Turn on a daily goal" requests the goal group.
@@ -757,7 +783,7 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
      - A note written on several lines keeps its lines, in the list and the love-note sheet.
      - An emoji typed at the end of a full note never leaves a "�".
      - Judge how long notes read at the largest size (the owner kept the full text).
-- [ ] **The owner's copy review** on the copy proof page (§3.14): every Turkish string (D1's and D2's) and the 21 default notes in both languages, and the two tab-title questions. The marks are read back and applied before build 52.
+- [x] **The owner's copy review** on the copy proof page (§3.14, done: §3.15): every Turkish string (D1's and D2's) and the 21 default notes in both languages, and the two tab-title questions. The marks are read back and applied before build 52.
 - [ ] B2's notes tests stay green: Bengisu's install keeps its notes.
 - [ ] The emoji check (`src/__tests__/noEmojiIcons.test.ts`) passes.
 - [ ] **The device check, build 51** (needs a physical device). It goes with the D1 record's §6 "build 51" list, for D1's finish fixes and the six recaptures.

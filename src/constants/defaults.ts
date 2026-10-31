@@ -26,7 +26,7 @@ export const DEFAULT_SETTINGS = {
 export const DEFAULT_LOVE_NOTES: string[] = [
     "Tiny focus, big love 💗",
     "I'm proud of you, truly.",
-    "One session closer to your dreams.",
+    "One step closer to your dreams.",
     "Breathe in, breathe out. You've got this.",
     "Focus now, hugs later 🫶",
     "Your effort is the cutest thing.",
@@ -49,24 +49,24 @@ export const DEFAULT_LOVE_NOTES: string[] = [
 export const DEFAULT_LOVE_NOTES_TR: string[] = [
     "Minik odak, kocaman sevgi 💗",
     "Seninle gerçekten gurur duyuyorum.",
-    "Hayallerine bir oturum daha yaklaştın.",
+    "Hayallerine bir adım daha yaklaştın.",
     "Derin bir nefes al, ver. Bunu başarabilirsin.",
     "Şimdi odak, sarılmalar sonra 🫶",
     "Emeğin dünyanın en tatlı şeyi.",
     "Sakin odak, güçlü kalp.",
-    "Küçük adımlar da sayılır. Bu da saydı.",
+    "Küçük adımlar da sayılır. Bu da sayıldı.",
     "Odağın sıcacık, molaların tatlı olsun.",
     "Devam et, harika gidiyorsun.",
     "Sana her zaman inanıyorum.",
     "Her oturum seni biraz daha yaklaştırıyor.",
     "Şuna bak, işini bitiriyorsun.",
-    "Oturum oturum parlıyorsun.",
-    "İyi dinlen, bunu hak ettin 💗",
+    "Her oturumda parlıyorsun.",
+    "Güzelce dinlen, bunu hak ettin 💗",
     "Kararlılığın çok güzel.",
     "Az önce yaptığın işle gurur duy.",
     "Sen bunu yaparsın 🌸",
     "Küçük zaferler, sonsuz sevgi.",
-    "Mola, kendine iyi bakma zamanı. Tadını çıkar.",
+    "Mola, kendine iyi bakma zamanıdır. Tadını çıkar.",
 ];
 
 /** The default notes in the app's language. */

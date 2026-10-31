@@ -280,7 +280,7 @@ The owner chose **both** placements: "First pairing and 1.4 welcome screen". The
   - Her install keeps its notes. B2's tests pin the v1.3.1 set through `src/constants/legacyLoveNotes.ts` and the `v131` fixtures, not through `defaults.ts`, so new defaults cannot change what an existing install receives. Those tests must stay green.
   - The gift screen drops "for Bengisu". About gets a one-line origin.
 - **The transitional `colors` adapter is deleted** once the last screen is rebuilt.
-- **The same reviews, break, polish and device check as D1,** on build 49.
+- **The same reviews, break, polish and device check as D1,** on D2's own build, the first after D1's (D1 took builds 48 to 50).
 
 ### 3.4 D3, EN/TR (FR-SET-005, NFR-I18N-001, NFR-A11Y-003)
 
@@ -292,7 +292,7 @@ The owner chose **both** placements: "First pairing and 1.4 welcome screen". The
 - **Every user-visible string is extracted:** screens, alerts, accessibility labels, notification copy (written in the device language when it is scheduled) and the update prompt.
 - **A check fails on raw JSX text** outside the resources (an AST scan in a Jest test).
 - **The owner reviews the Turkish copy.**
-- **The device check, build 50:** every screen in TR at the largest Dynamic Type size; nothing may clip.
+- **The device check, on D3's own build:** every screen in TR at the largest Dynamic Type size; nothing may clip.
 
 ### 3.5 D4, sounds (FR-SET-004, NFR-PERF-005; closes `DECISIONS.md` Q1)
 
@@ -417,9 +417,9 @@ node scripts/docs/check-docs.mjs
 From D1: `python -P art/type/build-fonts.py --check`. From D4: `node scripts/sound/build.mjs --check`.
 
 - [x] This plan is committed before any other file on the branch.
-- [ ] D1: every step of DESIGN-WORKFLOW §2. Critique and audit ≥ 16/20, no Critical HIG finding, `review-animations` clean. Guards green. The device check on build 48 (needs a physical device).
-- [ ] D2: the four briefs confirmed. The emoji check green. B2's notes tests green. The device check on build 49 (needs a physical device).
-- [ ] D3: every string extracted, and the raw-text check green. The device check in TR at the largest size on build 50 (needs a physical device).
+- [ ] D1: every step of DESIGN-WORKFLOW §2. Critique and audit ≥ 16/20, no Critical HIG finding, `review-animations` clean. Guards green. The device checks on builds 48, 49 and 50 (need a physical device).
+- [ ] D2: the four briefs confirmed. The emoji check green. B2's notes tests green. The device check on D2's own build (needs a physical device).
+- [ ] D3: every string extracted, and the raw-text check green. The device check in TR at the largest size on D3's own build (needs a physical device).
 - [ ] D4: three sounds, each ≤ 1.5 s and ≤ 25 KB, rebuilt byte for byte. The silent switch and the toggle respected on the device (needs a physical device).
 
 ## 7. Questions for the owner, answered 2026-10-30
@@ -456,7 +456,7 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 ```
 
 **`docs/roadmap/ROADMAP.md`**, the status board: Phase 1 Stage D → in progress (2026-10-30). Per-task rows:
-- **D1:** in progress (2026-10-30). Built, reviewed and hardened: the theme switch, EN/TR plumbing, Baloo 2, the tab bar, the icon and sticker components, Classic (The Ring and Facing Pages, presets, the sticker placement, the love-note and mode sheets) and the v1.4 welcome screen. Critique 35/40, audit 16/20, HIG no Critical, motion clean. Build 48 (`v1.4.0-tf.48`) was device-checked by the owner, with five findings; the fixes and the reanimated welcome shipped in build 49 (`v1.4.0-tf.49`, D1 record §3.16–3.17). Build 49's device check, 2026-10-31: all well but one finding, Fly's Modes button at the top right where the compass was, built for the next build (D1 record §3.18). Waiting: the owner's OK for that build, its device check, and the finish review.
+- **D1:** in progress (2026-10-30). Built, reviewed and hardened: the theme switch, EN/TR plumbing, Baloo 2, the tab bar, the icon and sticker components, Classic (The Ring and Facing Pages, presets, the sticker placement, the love-note and mode sheets) and the v1.4 welcome screen. Critique 35/40, audit 16/20, HIG no Critical, motion clean. Build 48 (`v1.4.0-tf.48`) was device-checked by the owner, with five findings; the fixes and the reanimated welcome shipped in build 49 (`v1.4.0-tf.49`, D1 record §3.16–3.17). Build 49's device check, 2026-10-31: all well but one finding, Fly's Modes button at the top right where the compass was, shipped in build 50 (D1 record §3.18–3.19). Waiting: build 50's device check and the finish review.
 
 **SRS** status changes, added as each task lands:
 - **FR-SET-002** → `implemented` (Verify: T, `src/theme/__tests__/legacyColors.test.ts` and `src/__tests__/router.test.tsx`; D, the D1 device check). `useTheme` returns Strawberry Milk or Midnight Plum from `palette.ts` (D1, `46a5b00`).
@@ -506,7 +506,7 @@ Kept current in the same commit as each piece of work, and applied at the merge 
   - The shared-components list: drop `ModeSwitcher`.
   - The sequence diagram's `ModeSwitcher` participant: rename it to the Modes sheet.
 - **The CHANGELOG line above:** "presets (25/5, 50/10, 52/17, 90/20)" becomes "presets (25/5, 50/10, 90/20 and Custom)".
-- **NFR-PERF-002's status note:** "Build 49 candidate: 4,043,564 B, 4.86 % over (D1 record §3.16.3)."
+- **NFR-PERF-002's status note:** "Build 50: 4,044,240 B, 4.88 % over (D1 record §3.18)."
 
 **Phase 2 inherits (the owner, Q3, 2026-10-30):** the pages-to-logo morph also plays at the first pairing. It reuses D1's welcome-screen choreography (§3.2.11). For the rehaul plan's Phase 2 section and the ROADMAP's Phase 2 row:
 

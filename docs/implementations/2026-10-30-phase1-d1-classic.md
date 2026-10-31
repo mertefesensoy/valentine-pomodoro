@@ -596,7 +596,7 @@ F1, F2, F4 and F5 passed. F2 had been the one fix this machine couldn't prove (Â
 
 | Change | Commit |
 |---|---|
-| `FlyModeScreen.tsx`: the Modes chip heads `mapControls` (`testID="fly-map-controls"`), and the compass takes `mapControlBtnGap`. `TimerScreen.tsx`: the floating Fly button and its style are gone, and the comment says where the button lives now. Tests: `flyModesButton.test.tsx` (new) renders the real Fly screen and checks that there is one Modes button, that it comes first in the column with the compass second, and that it pushes `/modes`. `flyLazyLoad.test.tsx` loses its press: its Fly stub has no button now, and its job is the lazy evaluation | *(this commit)* |
+| `FlyModeScreen.tsx`: the Modes chip heads `mapControls` (`testID="fly-map-controls"`), and the compass takes `mapControlBtnGap`. `TimerScreen.tsx`: the floating Fly button and its style are gone, and the comment says where the button lives now. Tests: `flyModesButton.test.tsx` (new) renders the real Fly screen and checks that there is one Modes button, that it comes first in the column with the compass second, and that it pushes `/modes`. `flyLazyLoad.test.tsx` loses its press: its Fly stub has no button now, and its job is the lazy evaluation | `c935f3b` |
 
 **Guards** (after the move):
 

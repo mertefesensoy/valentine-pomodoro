@@ -30,7 +30,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | First pass: critique 27/32, audit **15/20**, HIG **1 Critical** (day names), motion clean. After the fixes: critique 27/32 (84 %), audit 16/20, no Critical, motion clean (§3.12) | First pass: critique 34/40, audit 17/20, no Critical, motion not clean. After: critique 36/40, audit 18/20, no Critical, motion clean (§3.12) | First pass: **a P0** (rows unstyled in a release build), motion not clean. After: critique 37/40, audit 17/20, no Critical, motion clean (§3.12) | Retired: none |
 | 5. `break-ui` (TR at AX5) | 2 Ugly (the zero-goal summary, the strip at AX5) and the shared number formats: **fixed**; a streak of 0 softened (§3.13) | The number formats: **fixed**; Turkish words wider than a row: accepted (the owner) | 2 Broken (an emoji cut at the cap, the editor header at AX5) and 1 Ugly (line breaks lost): **fixed** | Retired: none |
 | 6. `polish`, `harden`, `clarify` | Done: "Turn on a daily goal" opens Settings at the goal row; Turkish "kaldı" (§3.14). The Turkish copy and the default notes: **reviewed** by the owner, six note changes applied (§3.15) | Done: a failed reminder told from a refusal; "Check for updates" offline; link rejections; "Sound and haptics" (§3.14) | Done (§3.13–3.14) | Retired: none |
-| 7. Device check (the next build, with D1's finish-review fixes) | Build 51 checked (§3.11); **build 52** submitted (§3.16), its check pending | Build 51 checked; build 52 pending | Build 51 checked (N1 fixed); build 52 pending | Retired: none |
+| 7. Device check (the next build, with D1's finish-review fixes) | Build 51 checked (§3.11). **Build 52: passed** (the owner, "pass the first test"); nits 6 and 7 fixed (§3.17) | Build 52: passed; nit 2 fixed | Build 52: passed, the P0 gone; nit 8 fixed | Retired: none |
 | FINISH: the finish review, its verdict, DESIGN.md | — | — | — | — |
 
 **Alongside the screens** (Stage D plan §3.3), D2 also does:
@@ -738,6 +738,55 @@ The build that carries everything since build 51: §3.11's device-check fixes, D
 
 The device check is §6 "the next build (52)", which repeats the build 51 list, together with the D1 record's §6 list and its six recaptures for D1's verdict pass.
 
+### 3.17 The build 52 device check: passed, with eight nits fixed
+
+**The owner, 2026-11-01,** sent 20 screenshots and wrote: "All looks well. Some nits but i say they pass the first test with polishing, fixing the nits you will see."
+
+**What the screenshots confirm:**
+- **Notes:** every row is a paper block with padding, corners and hairlines; the P0 of §3.12 is gone on the device. The editor shows Save dimmed and the field's `edgeStrong` edge. Restore reports "Added 17 notes." An emoji-only note shows as written.
+- **Fly:** the camera button cycles free (hand), following (plane) and overview (route) and keeps the mode; build 51's F1 is fixed on the device. Flat and globe both work.
+- **Stats:** the summary, the stack, today's card, the Minutes fills with their outline, the flag, the strip and the totals.
+- **Settings:** the grouped list, the goal's Custom wheel, the time chip, "Sound and haptics", About and Reset.
+- **Classic:** Facing Pages shows "You" and "Doro" over the pair, the frame below, the partner line on the right page's foot, "Today" with its dashed cell, and Skip clear of the bar. The Modes sheet's title is in the system face, and Fly keeps its paper tile.
+
+**The nits, found in the screenshots and fixed:**
+
+| # | Nit | Cause | Fix |
+|---|---|---|---|
+| 1 | A faint dark square behind every lifted sticker (Facing Pages' pair, the Ring's partner strip), with no soft shadow visible | The shadow's `FeGaussianBlur` filter: on iOS, react-native-svg renders the filter through Core Image, and its output painted the whole filter region (140 % of the art) at the token's alpha, 40 % in Midnight Plum | No filter. The silhouette is drawn three times, each a point wider by a stroke, each at a third of the token's alpha, compounded so the core is the token's alpha. The alpha falls off over 2 pt in steps of a point. Each layer is a group with its own opacity, which react-native-svg composites as one transparency layer, so overlapping paths don't darken. The room around the art is at least the offset plus the edge (5 pt), so a 16 pt sticker's shadow isn't clipped (`Sticker.tsx`) |
+| 2 | Settings' goal presets: "Custom" rides up out of its pill when selected | Five segments leave each label about 56 pt; "Custom" at 15 pt semibold needs about 55 pt, so it wrapped and the two-line box centred its first line high | In one row, a segment's label keeps one line and shrinks to 80 % if it must (`numberOfLines` 1, `adjustsFontSizeToFit`). Wrapped into rows at AX sizes, labels still wrap (`SegmentedControl.tsx`) |
+| 3 | Fly, sheet peeked: the camera-mode line ("Following · Globe") shows blurred through the tab bar | The peek strip was max(10 % of the height, 80 pt), 85 pt on an 852 pt iPhone, while the handle, timer and mode line need 119 pt. The rest of the sheet sits past the screen's edge, under the bar's glass | `PEEK_VISIBLE` = 120 pt (`FlySheet.tsx`) |
+| 4 | Fly's timer digits are purple | v1's "Rich Purple" (`ValentineSpec.textPrimary`, `#7A3DAF`), which isn't in the palette, survived D2's re-tokening | The theme's `ink` (`FlyModeScreen.tsx`). Fly's other v1 colours wait for its redesign (Phase 4b) |
+| 5 | Fly: "From" sits lower than "To" when the destination's name wraps to four lines | The airport row aligned to the bottom (`flex-end`) | Top-aligned, with the arrow centred between the cards |
+| 6 | Stats: an empty band with a stray line above the tab bar | The ad slot drew its paper and top edge whether or not an ad filled it; TestFlight showed none | The slot is transparent until `onAdLoaded`, and again after `onAdFailedToLoad`. Its padding stays, so the layout doesn't move (`StatsScreen.tsx`) |
+| 7 | Stats' strip: "Starts the day you reach your goal · best 2" wraps into a dangling "·" and a lone "best 2" | One joined string in a narrow half | The best takes its own line: "Best 2" / "En iyi 2" (`stats.best`, replacing `stats.streakStartBest`; same words, own line) |
+| 8 | Notes, after Restore on an install that began on v1: near-duplicates ("Your effort is the cutest thing" and "…thing.", "I'm proud of you — truly." and "…, truly.") | Restore compared exact text, and the new defaults differ from v1's notes in punctuation | Restore compares letters and digits alone (lower-cased, `\p{L}\p{N}`), so punctuation, case and emoji don't make a second note. Different words still do ("One step…" beside "One pomodoro…"). Notes already added stay; nothing is removed. Hermes accepts the Unicode property escape: the project's `hermesc` compiles it |
+
+**Tests:**
+- `Icon.test.tsx`: three layers at the compounded alpha, the 1 pt and 2 pt strokes, no filter; a 16 pt sticker keeps 5 pt of room.
+- `settings.test.tsx`: the presets on one line at the default size; wrapping at AX sizes.
+- `FlySheet.test.ts` (new): the peek strip is 120 pt on a phone and a tenth of a tall window.
+- `stats.test.tsx`: the slot is drawn only while an ad fills it; the best on its own line.
+- `d2WorstCase.test.tsx`: "En iyi 12".
+- `notes.test.tsx`: Restore skips defaults that a note matches in letters and digits, and adds ones in different words.
+
+**Not tested in Jest:** Fly's timer colour and its airport row's alignment are styles; the next device check confirms them.
+
+**The copy proof page** is rebuilt and republished (version 3): `stats.best` replaces `stats.streakStartBest`, in the same words.
+
+**D1's verdict pass** needs its six captures on the build that carries fix 1, since the shadow changes how every lifted sticker looks. They move to the next build.
+
+**Guards:**
+
+| Guard | Result |
+|---|---|
+| Jest | 54 suites, 392 tests, all passing |
+| Lint | 0 errors, 29 warnings |
+| tsc | Clean |
+| React Compiler | 80 compiled, 5 skipped |
+| The emoji check | Clean |
+| Reassure | Unchanged: Timer 13, Stats 1, Settings 1, Notes 1, leaf 12, settings-only 1 |
+
 **Tests:**
 - **`settings.test.tsx`:** a failed schedule says so, is announced, and offers no iOS Settings row; a denial keeps its footer and row (permissions mocked per test). The goal group scrolls into view once laid out, then the request clears.
 - **`stats.test.tsx`:** "Turn on a daily goal" requests the goal group.
@@ -788,7 +837,7 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
 - [x] The owner approves the direction contracts, after Stats' composition round (2026-10-31, "Approve, build D2", with the picker dependency).
 - [x] Each screen: critique and audit at 16/20 or better, no Critical HIG finding, `review-animations` clean (§3.12, after the fix batch; Accessibility and Adaptivity provisional until the device check).
 - [x] Each screen: `break-ui` in Turkish at AX5 (§3.13: 2 Broken and 4 Ugly fixed; the layout findings confirmed at the device check).
-- [ ] **The device check, build 52** (submitted, §3.16; needs a physical device). It carries §3.11's fixes and §3.12's, so it repeats the build 51 list below and adds:
+- [x] **The device check, build 52** (the owner, 2026-11-01: passed, with eight nits fixed in §3.17; the next build confirms them). It carries §3.11's fixes and §3.12's, so it repeats the build 51 list below and adds:
   1. **Notes' rows** are paper blocks with padding, corners and hairlines (the P0), and tint while pressed.
   2. **The swipe** tracks the finger, stretches over red past Delete, and the first and last rows' Delete has no black line.
   3. **The editor:** with unsaved text, Cancel and a swipe down both ask in an action sheet. Save never asks, and after Save the sheet actually closes, for a new note and an edited one. Delete note closes it too. Save dims while there's nothing to save; the field has a visible edge.
@@ -802,6 +851,7 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
      - An emoji typed at the end of a full note never leaves a "�".
      - Judge how long notes read at the largest size (the owner kept the full text).
 - [x] **The owner's copy review** on the copy proof page (§3.14, done: §3.15): every Turkish string (D1's and D2's) and the 21 default notes in both languages, and the two tab-title questions. The marks are read back and applied before build 52.
+- [ ] **The next build's device check:** the eight nits of §3.17. The stickers lift with a soft shadow and no square, in both themes. "Custom" sits level in its pill. Fly's peeked sheet shows its mode line above the bar; its timer is in ink; "From" and "To" align. No empty band on Stats. "Best n" on its own line. Restore adds no near-duplicates. Then D1's six captures for its verdict pass.
 - [ ] B2's notes tests stay green: Bengisu's install keeps its notes.
 - [ ] The emoji check (`src/__tests__/noEmojiIcons.test.ts`) passes.
 - [ ] **The device check, build 51** (needs a physical device). It goes with the D1 record's §6 "build 51" list, for D1's finish fixes and the six recaptures.

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { AccessibilityInfo, Alert, LayoutAnimation, Linking, ScrollView } from 'react-native';
+import { AccessibilityInfo, Alert, Dimensions, LayoutAnimation, Linking, ScrollView } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -196,6 +196,28 @@ describe("Settings' daily goal", () => {
         expect(screen.queryByLabelText('50 minutes a day')).toBeNull();
         await act(async () => fireEvent(screen.getByLabelText('Set a daily goal'), 'valueChange', true));
         expect(useStatsStore.getState().goalMinutes).toBe(33);
+    });
+
+    // Build 52 device check (D2 record §3.17): five segments left "Custom" about a point too
+    // narrow, so it wrapped and rode up out of its pill. In one row a label keeps one line.
+    it('keeps each goal preset to one line in a row, shrinking "Custom" if it must', async () => {
+        const jestWindow = Dimensions.get('window');
+        const phone = { width: 393, height: 852, scale: 3, fontScale: 1 };
+        try {
+            await act(async () => Dimensions.set({ window: phone, screen: phone }));
+            await renderSettings();
+            const custom = screen.getByText('Custom');
+            expect(custom.props.numberOfLines).toBe(1);
+            expect(custom.props.adjustsFontSizeToFit).toBe(true);
+        } finally {
+            await act(async () => Dimensions.set({ window: jestWindow, screen: jestWindow }));
+        }
+    });
+
+    it('lets the presets wrap at AX sizes, where the control wraps into rows', async () => {
+        // Jest's window is at font scale 2, an accessibility size.
+        await renderSettings();
+        expect(screen.getByText('Custom').props.numberOfLines).toBeUndefined();
     });
 
     it('opens a stored off-preset goal on Custom, with its value', async () => {

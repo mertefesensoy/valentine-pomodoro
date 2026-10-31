@@ -79,6 +79,9 @@ export default function StatsScreen() {
     }, [bannerAllowed, measureBannerBox]);
 
     const [metric, setMetric] = useState<Metric>('sessions');
+    // The slot shows its paper and edge only once an ad fills it: empty (no fill, or before the
+    // first answer), it drew a stray line and a band above the tab bar (build 52 device check).
+    const [bannerFilled, setBannerFilled] = useState(false);
 
     const week = useMemo(() => {
         const days = last7Days.map(([key, stats]) => ({ key, stats }));
@@ -134,13 +137,13 @@ export default function StatsScreen() {
         .join(' · ');
 
     const minutesLeftToday = Math.ceil(Math.max(goalMinutes - today.focusMinutes, 0));
-    // A streak of 0 says how it starts, not "0 days" beside the best (the owner, D2; break-ui).
-    const streakLine =
+    // A streak of 0 says how it starts, not "0 days" beside the best (the owner, D2; break-ui), and
+    // the best takes a line of its own: joined by " · " it wrapped into a dangling "·" and a lone
+    // "best 2" (build 52 device check).
+    const streakLines =
         streak.current > 0
-            ? t('stats.streakValue', { count: streak.current, n: formatNumber(streak.current), best: formatNumber(streak.best) })
-            : streak.best > 0
-              ? t('stats.streakStartBest', { best: formatNumber(streak.best) })
-              : t('stats.streakStart');
+            ? [t('stats.streakValue', { count: streak.current, n: formatNumber(streak.current), best: formatNumber(streak.best) })]
+            : [t('stats.streakStart'), ...(streak.best > 0 ? [t('stats.best', { best: formatNumber(streak.best) })] : [])];
 
     const todayCard = (
         <TodayCard
@@ -243,9 +246,11 @@ export default function StatsScreen() {
                                 <Icon glyph={streakGlyph} size={22 * grow} color={tokens.primaryInk} />
                                 <View style={styles.halfText}>
                                     <Text style={[styles.stripTitle, { color: tokens.ink }]}>{t('stats.streakTitle')}</Text>
-                                    <Text style={[styles.stripValue, { color: tokens.inkSoft }]}>
-                                        {streakLine}
-                                    </Text>
+                                    {streakLines.map((line) => (
+                                        <Text key={line} style={[styles.stripValue, { color: tokens.inkSoft }]}>
+                                            {line}
+                                        </Text>
+                                    ))}
                                 </View>
                             </View>
                         </View>
@@ -275,7 +280,14 @@ export default function StatsScreen() {
             <View
                 ref={bannerBoxRef}
                 onLayout={measureBannerBox}
-                style={[styles.banner, { backgroundColor: tokens.paper, borderTopColor: tokens.edge, marginBottom: insets.bottom + space.xs }]}
+                style={[
+                    styles.banner,
+                    {
+                        backgroundColor: bannerFilled ? tokens.paper : 'transparent',
+                        borderTopColor: bannerFilled ? tokens.edge : 'transparent',
+                        marginBottom: insets.bottom + space.xs,
+                    },
+                ]}
             >
                 {bannerAllowed && (
                     <BannerAd
@@ -283,10 +295,12 @@ export default function StatsScreen() {
                         size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
                         requestOptions={{ requestNonPersonalizedAdsOnly: true }}
                         onAdLoaded={(size) => {
+                            setBannerFilled(true);
                             noteBannerLoaded(size);
                             measureBannerBox();
                         }}
                         onAdFailedToLoad={(error) => {
+                            setBannerFilled(false);
                             noteBannerFailed(error);
                             measureBannerBox();
                         }}

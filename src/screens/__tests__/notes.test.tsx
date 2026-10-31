@@ -242,6 +242,25 @@ describe('Love notes (D2 Notes contract)', () => {
         announce.mockRestore();
     });
 
+    // Build 52 device check (D2 record §3.17): on an install that began on v1, Restore added
+    // defaults that differ from v1's notes only in punctuation ("…thing" beside "…thing.").
+    it('restores no default that a note already matches in letters and digits', async () => {
+        await show(<LoveNotesScreen />);
+        await act(async () =>
+            useNotesStore.setState({
+                notes: ["I'm proud of you — truly.", 'Your effort is the cutest thing', 'One pomodoro closer to your dreams'],
+            }),
+        );
+        await press(screen.getByRole('button', { name: 'Restore default notes' }));
+        await answer(alert, 'Restore');
+        const { notes } = useNotesStore.getState();
+        expect(notes).not.toContain("I'm proud of you, truly.");
+        expect(notes).not.toContain('Your effort is the cutest thing.');
+        // Different words are a different note.
+        expect(notes).toContain('One step closer to your dreams.');
+        expect(notes).toHaveLength(3 + DEFAULT_LOVE_NOTES.length - 2);
+    });
+
     it('invites a first note when the list is empty', async () => {
         // An empty stored list hydrates as the defaults (B3), so the list empties in the session.
         await show(<LoveNotesScreen />);

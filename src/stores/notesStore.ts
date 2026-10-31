@@ -25,6 +25,11 @@ export function normalizeNote(input: string) {
         .trim();
 }
 
+/** A note's letters and digits, lower-cased: what Restore compares, so punctuation and emoji don't count. */
+function noteKey(note: string) {
+    return note.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+}
+
 /** A stored value is used only if it is a non-empty array of strings. */
 function isUsableNotes(value: unknown): value is LoveNotes {
     return Array.isArray(value) && value.length > 0 && value.every((n) => typeof n === 'string');
@@ -109,7 +114,11 @@ export const useNotesStore = create<NotesStore>()((set, get) => {
 
         restoreDefaults() {
             const prev = get().notes;
-            const missing = defaults.filter((note) => !prev.includes(note));
+            // A default counts as present when a note matches it in letters and digits alone, so
+            // a v1 note that differs only in punctuation, case or emoji ("Your effort is the cutest
+            // thing" beside "…thing.") isn't added again (build 52 device check, D2 record §3.17).
+            const present = new Set(prev.map(noteKey));
+            const missing = defaults.filter((note) => !present.has(noteKey(note)));
             if (missing.length > 0) commit([...prev, ...missing]);
             return missing.length;
         },

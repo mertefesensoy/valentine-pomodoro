@@ -999,7 +999,7 @@ export default function FlyModeScreen() {
                             <Text style={styles.landedText}>Landed!</Text>
                         </View>
                     ) : (
-                        <TimerText kind="fly" idleMs={idleMs} style={styles.timerDigits} />
+                        <TimerText kind="fly" idleMs={idleMs} style={[styles.timerDigits, { color: tokens.ink }]} />
                     )}
                 </View>
 
@@ -1124,14 +1124,16 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '600',
     },
+    // Top-aligned, so "From" and "To" share a line when one airport's name wraps (build 52 device
+    // check); the arrow sits midway between the cards.
     pickerRow: {
         flexDirection: 'row',
-        alignItems: 'flex-end',
+        alignItems: 'flex-start',
         marginBottom: 12,
     },
     arrowSpacer: {
         paddingHorizontal: 6,
-        paddingBottom: 10,
+        alignSelf: 'center',
     },
     arrow: {
         fontSize: 18,
@@ -1151,10 +1153,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 16,
     },
+    // The digits take the theme's ink (inline): v1's purple isn't in the palette (build 52 device check).
     timerDigits: {
         fontSize: 52,
         fontWeight: '800',
-        color: ValentineSpec.textPrimary,
         letterSpacing: 2,
         fontVariant: ['tabular-nums'],
     },

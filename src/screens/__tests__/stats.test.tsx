@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { Dimensions } from 'react-native';
+import React, { type ReactNode } from 'react';
+import { Dimensions, View } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
@@ -7,6 +7,7 @@ import { StoreGate } from '../../stores/StoreGate';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import { useSettingsFocus } from '../../stores/settingsFocusStore';
 import { useStatsStore } from '../../stores/statsStore';
+import { StrawberryMilk } from '../../theme/palette';
 import type { DayStats } from '../../types';
 import StatsScreen from '../StatsScreen';
 import { dateOfKey } from '../stats/WeekStack';
@@ -94,7 +95,9 @@ describe('Stats: the postcard stack (D2 Stats contract)', () => {
         expect(screen.getByText('Last 7 days: 11 sessions')).toBeOnTheScreen();
         expect(screen.queryByText(/goal reached on 0 days/)).toBeNull();
         expect(screen.getByText('Goal 1,440 min')).toBeOnTheScreen();
-        expect(screen.getByText('Starts the day you reach your goal · best 3')).toBeOnTheScreen();
+        // The best on a line of its own (build 52 device check: " · best 3" wrapped and dangled).
+        expect(screen.getByText('Starts the day you reach your goal')).toBeOnTheScreen();
+        expect(screen.getByText('Best 3')).toBeOnTheScreen();
         await act(async () => useStatsStore.setState({ streak: { current: 0, best: 0, lastHitDayKey: undefined } }));
         expect(screen.getByText('Starts the day you reach your goal')).toBeOnTheScreen();
     });
@@ -146,6 +149,25 @@ describe('Stats: the postcard stack (D2 Stats contract)', () => {
     it('totals all time below the week', async () => {
         await showWeek();
         expect(screen.getByText('All time: 11 sessions · 275 minutes')).toBeOnTheScreen();
+    });
+
+    // Build 52 device check (D2 record §3.17): with no ad to show, the slot's paper and top edge
+    // drew a stray line and a band above the tab bar. They appear only once an ad fills it.
+    it('draws the ad slot only while an ad fills it', async () => {
+        const ads = jest.requireMock<{ BannerAd: (props: object) => unknown }>('react-native-google-mobile-ads');
+        let banner: { onAdLoaded: (size: object) => void; onAdFailedToLoad: (error: object) => void } | undefined;
+        const spy = jest.spyOn(ads, 'BannerAd').mockImplementation((props) => {
+            banner = props as typeof banner;
+            return React.createElement(View, { testID: 'banner' });
+        });
+        await showWeek();
+        const slot = () => screen.getByTestId('banner').parent!;
+        expect(slot()).toHaveStyle({ backgroundColor: 'transparent', borderTopColor: 'transparent' });
+        await act(async () => banner!.onAdLoaded({ width: 320, height: 50 }));
+        expect(slot()).toHaveStyle({ backgroundColor: StrawberryMilk.tokens.paper, borderTopColor: StrawberryMilk.tokens.edge });
+        await act(async () => banner!.onAdFailedToLoad({ code: 'googleMobileAds/no-fill', message: 'No fill' }));
+        expect(slot()).toHaveStyle({ backgroundColor: 'transparent', borderTopColor: 'transparent' });
+        spy.mockRestore();
     });
 });
 

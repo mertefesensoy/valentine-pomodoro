@@ -34,7 +34,9 @@ describe('Sticker', () => {
 
     it("lifts on the theme's shadow, drawn inside the Svg, and keeps its layout box", async () => {
         // DESIGN.md "Only Stickers Lift" (finish review fix 3): the silhouette in the token's colour,
-        // its alpha on the group, offset and blurred, under the art.
+        // offset, with a soft edge, under the art. The edge is three layers, each a point wider and
+        // together the token's alpha, not a blur filter: on iOS the filter painted its whole region,
+        // a dark square behind each sticker (build 52 device check).
         await render(<Sticker art={pomoIdle} width={50} shadow="#4A2C2929" accessibilityLabel="Pomo" />);
         const svg = screen.getByLabelText('Pomo');
         const room = 50 * 0.12;
@@ -43,10 +45,21 @@ describe('Sticker', () => {
         const tree = JSON.stringify(screen.toJSON());
         // react-native-svg hands colours to native as ARGB integers: #4A2C29, opaque.
         expect(tree).toContain(`"payload":${0xff4a2c29}`);
-        expect(tree).toContain(`"opacity":${0x29 / 255}`);
-        expect(tree).toContain('"filter":"lift"');
-        expect(tree).toContain('stdDeviation');
-        expect(tree.match(/"d":/g)).toHaveLength(pomoIdle.paths.length * 2);
+        const layer = 1 - Math.pow(1 - 0x29 / 255, 1 / 3);
+        expect(tree.match(new RegExp(`"opacity":${layer}`, 'g'))).toHaveLength(3);
+        expect(tree).not.toContain('"filter"');
+        expect(tree).not.toContain('stdDeviation');
+        // One point and two points beyond the silhouette, in viewBox units (512 for 50 pt).
+        const unit = 512 / 50;
+        expect(tree).toContain(`"strokeWidth":${2 * unit}`);
+        expect(tree).toContain(`"strokeWidth":${4 * unit}`);
+        expect(tree.match(/"d":/g)).toHaveLength(pomoIdle.paths.length * 4);
+    });
+
+    it('leaves room for the shadow even on a small sticker', async () => {
+        // 12 % of 16 pt is under 2 pt, less than the 2 pt offset and 2 pt soft edge need.
+        await render(<Sticker art={pomoIdle} width={16} shadow="#4A2C2929" accessibilityLabel="Pomo" />);
+        expect(screen.getByLabelText('Pomo').props.width).toBe(16 + 5 * 2);
     });
 
     it('lies flat without one', async () => {

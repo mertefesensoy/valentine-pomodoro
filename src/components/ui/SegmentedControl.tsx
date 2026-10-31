@@ -92,9 +92,15 @@ export function SegmentedControl<T extends string>({ segments, value, onChange }
                             wrap && selected && { backgroundColor: tokens.paper, borderColor: tokens.edgeStrong },
                         ]}
                     >
+                        {/* In one row a label keeps one line and shrinks a little if it must: five
+                            segments left "Custom" about a point too narrow, so it wrapped and rode up
+                            out of its pill (build 52 device check). Wrapped at AX sizes, it wraps. */}
                         <Text
                             style={[styles.label, { color: selected ? tokens.ink : tokens.inkSoft }]}
                             maxFontSizeMultiplier={2}
+                            numberOfLines={wrap ? undefined : 1}
+                            adjustsFontSizeToFit={!wrap}
+                            minimumFontScale={0.8}
                         >
                             {s.label}
                         </Text>

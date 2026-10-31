@@ -121,7 +121,8 @@ describe('D2 worst case, in Turkish at AX5 on an iPhone SE', () => {
         // Today's line says what's left with a verb, as Turkish needs (step 6, §3.14).
         expect(screen.getByText(/hedefe 640 dk kaldı/)).toBeOnTheScreen();
         // A streak of 0 says how it starts (the owner's decision).
-        expect(screen.getByText('Hedefine ulaştığın gün başlar · en iyi 12')).toBeOnTheScreen();
+        expect(screen.getByText('Hedefine ulaştığın gün başlar')).toBeOnTheScreen();
+        expect(screen.getByText('En iyi 12')).toBeOnTheScreen();
         // The strip's halves stack at AX5, so no word breaks in a narrow column (#5).
         expect(screen.getByText('Aşk serisi').parent!.parent!.parent!).toHaveStyle({ flexDirection: 'column' });
         // The week in minutes: the same number as the all-time line, written the same way.

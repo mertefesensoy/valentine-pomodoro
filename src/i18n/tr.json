@@ -238,7 +238,7 @@
     "streakValue_one": "{{n}} gün · en iyi {{best}}",
     "streakValue_other": "{{n}} gün · en iyi {{best}}",
     "streakStart": "Hedefine ulaştığın gün başlar",
-    "streakStartBest": "Hedefine ulaştığın gün başlar · en iyi {{best}}",
+    "best": "En iyi {{best}}",
     "turnOnGoal": "Günlük hedefi aç",
     "goalOffFooter": "Günlük hedef, ulaştığın günleri işaretler ve aşk serini sayar.",
     "startSession": "Bir oturum başlat",

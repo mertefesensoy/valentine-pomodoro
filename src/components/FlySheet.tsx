@@ -72,11 +72,16 @@ interface FlySheetProps {
 const SPRING = { damping: 18, stiffness: 220, mass: 0.6 };
 const VELOCITY_THRESHOLD = 600; // pt/s for velocity-based fling snap
 const PEEK_STRIP = 32; // landscape: visible width when peeked
+// Portrait: what stays visible when peeked, the handle row (18 pt), the timer row (78 pt) and the
+// camera-mode line (23 pt). It was max(10 % of the height, 80 pt), 85 pt on an 852 pt iPhone, which
+// pushed the mode line past the screen's edge, where the tab bar's glass showed it blurred (build
+// 52 device check, D2 record §3.17).
+export const PEEK_VISIBLE = 120;
 
-function portraitSnaps(h: number) {
+export function portraitSnaps(h: number) {
     return {
         full: 0,
-        peek: h * 0.45 - Math.max(h * 0.10, 80), // (fullH − peekVisibleH); shows handle + timer + mode strip
+        peek: h * 0.45 - Math.max(h * 0.10, PEEK_VISIBLE), // (fullH − peekVisibleH)
         fullH: h * 0.45,
     };
 }

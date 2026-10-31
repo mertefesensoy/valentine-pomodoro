@@ -238,7 +238,7 @@
     "streakValue_one": "{{n}} day · best {{best}}",
     "streakValue_other": "{{n}} days · best {{best}}",
     "streakStart": "Starts the day you reach your goal",
-    "streakStartBest": "Starts the day you reach your goal · best {{best}}",
+    "best": "Best {{best}}",
     "turnOnGoal": "Turn on a daily goal",
     "goalOffFooter": "A daily goal marks the days you reach it and counts your love streak.",
     "startSession": "Start a session",

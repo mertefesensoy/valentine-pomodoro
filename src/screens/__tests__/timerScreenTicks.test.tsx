@@ -107,7 +107,7 @@ describe('timer text on the real TimerScreen', () => {
         await pickAirport('From', 'istanbul', 'IST');
         await pickAirport('To', 'lublin', 'LUZ');
 
-        await press(screen.getByText('✈️  Start Flight'));
+        await press(screen.getByText('Start flight'));
         // The pill and the sheet both show the remaining time.
         expect(screen.getAllByText('25:00').length).toBeGreaterThan(0);
 

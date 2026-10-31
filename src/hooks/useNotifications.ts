@@ -56,6 +56,16 @@ export function useNotifications() {
 }
 
 /**
+ * Fly's landing notification (moved here from FlyModeScreen in D2). Push-notification copy is
+ * the one place emoji belong besides people's own notes (DESIGN.md), and this file holds it, so
+ * the emoji check (`scripts/design/check-emoji.mjs`) allows this file.
+ */
+export const flightLandedContent = {
+    title: '✈️ Landed!',
+    body: 'Your flight focus session is complete 💗',
+} as const;
+
+/**
  * Get notification content for phase
  */
 export function getNotificationContent(phase: 'focus' | 'shortBreak' | 'longBreak'): { title: string; body: string } {

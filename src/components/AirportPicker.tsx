@@ -28,7 +28,7 @@ interface AirportPickerProps {
 }
 
 export default function AirportPicker({ label, airports, selected, onSelect }: AirportPickerProps) {
-    const { colors, isDark } = useTheme();
+    const { tokens, isDark } = useTheme();
     const [modalVisible, setModalVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -58,10 +58,10 @@ export default function AirportPicker({ label, airports, selected, onSelect }: A
     return (
         <>
             <View style={styles.wrapper}>
-                <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+                <Text style={[styles.label, { color: tokens.ink }]}>{label}</Text>
                 <Pressable
                     style={[styles.button, {
-                        backgroundColor: colors.card,
+                        backgroundColor: tokens.paper,
                         borderColor: `${ValentineSpec.accentPrimary}50`,
                     }]}
                     onPress={() => setModalVisible(true)}
@@ -71,10 +71,10 @@ export default function AirportPicker({ label, airports, selected, onSelect }: A
                     {selected ? (
                         <>
                             <Text style={styles.iata}>{selected.iata}</Text>
-                            <Text style={[styles.city, { color: colors.text }]}>{selected.city}</Text>
+                            <Text style={[styles.city, { color: tokens.ink }]}>{selected.city}</Text>
                         </>
                     ) : (
-                        <Text style={[styles.placeholder, { color: `${colors.text}70` }]}>Select airport</Text>
+                        <Text style={[styles.placeholder, { color: `${tokens.ink}70` }]}>Select airport</Text>
                     )}
                     <Text style={styles.chevron}>›</Text>
                 </Pressable>
@@ -86,30 +86,30 @@ export default function AirportPicker({ label, airports, selected, onSelect }: A
                 presentationStyle="pageSheet"
                 onRequestClose={() => setModalVisible(false)}
             >
-                <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.card }]}>
+                <SafeAreaView style={[styles.modalContainer, { backgroundColor: tokens.paper }]}>
                     <View style={[styles.modalHeader, {
-                        backgroundColor: isDark ? colors.card : ValentineSpec.backgroundSecondary,
+                        backgroundColor: isDark ? tokens.paper : ValentineSpec.backgroundSecondary,
                         borderBottomColor: `${ValentineSpec.accentPrimary}30`,
                     }]}>
-                        <Text style={[styles.modalTitle, { color: colors.text }]}>Select {label}</Text>
+                        <Text style={[styles.modalTitle, { color: tokens.ink }]}>Select {label}</Text>
                         <Pressable onPress={() => { setSearchQuery(''); setModalVisible(false); }} style={styles.closeButton}>
                             <Text style={styles.closeText}>Done</Text>
                         </Pressable>
                     </View>
 
-                    <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
+                    <View style={[styles.searchContainer, { backgroundColor: tokens.paper }]}>
                         <TextInput
                             style={[styles.searchInput, {
                                 backgroundColor: isDark
-                                    ? colors.inputBg
+                                    ? tokens.field
                                     : `${ValentineSpec.backgroundSecondary}50`,
-                                color: colors.text,
+                                color: tokens.ink,
                                 borderColor: `${ValentineSpec.accentPrimary}30`,
                             }]}
                             value={searchQuery}
                             onChangeText={setSearchQuery}
                             placeholder="Search airports…"
-                            placeholderTextColor={`${colors.text}60`}
+                            placeholderTextColor={`${tokens.ink}60`}
                             autoCorrect={false}
                             clearButtonMode="while-editing"
                         />
@@ -146,8 +146,8 @@ export default function AirportPicker({ label, airports, selected, onSelect }: A
                                         <Text style={styles.iataTagText}>{item.iata}</Text>
                                     </View>
                                     <View style={styles.airportInfo}>
-                                        <Text style={[styles.airportCity, { color: colors.text }]}>{item.city}, {item.country}</Text>
-                                        <Text style={[styles.airportName, { color: `${colors.text}80` }]} numberOfLines={1}>{item.name}</Text>
+                                        <Text style={[styles.airportCity, { color: tokens.ink }]}>{item.city}, {item.country}</Text>
+                                        <Text style={[styles.airportName, { color: `${tokens.ink}80` }]} numberOfLines={1}>{item.name}</Text>
                                     </View>
                                     {isSelected && <Text style={styles.checkmark}>✓</Text>}
                                 </Pressable>

@@ -62,7 +62,7 @@ describe('a Fly session that lands after midnight (DEF-001)', () => {
         await act(async () => useUiStore.getState().setActiveMode('fly'));
         await pickAirport('From', 'istanbul', 'IST');
         await pickAirport('To', 'lublin', 'LUZ');
-        await press(screen.getByText('✈️  Start Flight'));
+        await press(screen.getByText('Start flight'));
 
         await act(() => jest.advanceTimersByTime(25 * 60_000 + 1_000));
         await act(async () => {});

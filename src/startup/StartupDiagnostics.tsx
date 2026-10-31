@@ -92,7 +92,7 @@ function jsStartLine(deferredRows: ProbeRow[], eagerRows: ProbeRow[]): string {
 }
 
 function StartupDiagnosticsPanel() {
-    const { colors } = useTheme();
+    const { tokens } = useTheme();
     const [snap, setSnap] = useState(snapshot);
 
     const build = Application.nativeBuildVersion ?? null;
@@ -136,10 +136,10 @@ function StartupDiagnosticsPanel() {
         void Share.share({ message: JSON.stringify(data) });
     };
 
-    const textStyle = [styles.line, { color: colors.textMuted }];
+    const textStyle = [styles.line, { color: tokens.inkSoft }];
     return (
-        <View style={[styles.panel, { borderColor: colors.border }]}>
-            <Text style={[styles.title, { color: colors.text }]}>Start-up probe (ms)</Text>
+        <View style={[styles.panel, { borderColor: tokens.edge }]}>
+            <Text style={[styles.title, { color: tokens.ink }]}>Start-up probe (ms)</Text>
             <Text style={textStyle}>{thisLaunch}</Text>
             <Text style={textStyle}>{bannerStatusLine()}</Text>
             {/* The sticker placement's frame times, this launch (Phase 1 D1, NFR-PERF-004). */}
@@ -155,11 +155,11 @@ function StartupDiagnosticsPanel() {
                             onPress={() => chooseMode(mode)}
                             style={[
                                 styles.chip,
-                                { borderColor: colors.accentPurple },
-                                active && { backgroundColor: colors.accentPurple },
+                                { borderColor: tokens.primaryInk },
+                                active && { backgroundColor: tokens.primaryInk },
                             ]}
                         >
-                            <Text style={[styles.chipText, { color: active ? colors.onAccent : colors.text }]}>
+                            <Text style={[styles.chipText, { color: active ? tokens.onAccent : tokens.ink }]}>
                                 {MODE_LABEL[mode]}
                             </Text>
                         </Pressable>
@@ -181,11 +181,11 @@ function StartupDiagnosticsPanel() {
             </Text>
 
             <View style={styles.modes}>
-                <Pressable onPress={share} style={[styles.chip, { borderColor: colors.accentPurple }]}>
-                    <Text style={[styles.chipText, { color: colors.text }]}>Share data</Text>
+                <Pressable onPress={share} style={[styles.chip, { borderColor: tokens.primaryInk }]}>
+                    <Text style={[styles.chipText, { color: tokens.ink }]}>Share data</Text>
                 </Pressable>
-                <Pressable onPress={clear} style={[styles.chip, { borderColor: colors.accentPurple }]}>
-                    <Text style={[styles.chipText, { color: colors.text }]}>Clear runs</Text>
+                <Pressable onPress={clear} style={[styles.chip, { borderColor: tokens.primaryInk }]}>
+                    <Text style={[styles.chipText, { color: tokens.ink }]}>Clear runs</Text>
                 </Pressable>
             </View>
         </View>

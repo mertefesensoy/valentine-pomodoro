@@ -101,7 +101,7 @@ export function useUpdateCheck(updateJsonUrl: string) {
             }
 
             Alert.alert(
-                '✨ Update available',
+                'Update available',
                 `Version ${latest.version} is available on the App Store with the latest improvements and fixes.`,
                 [
                     { text: 'Not now', style: 'cancel' },

@@ -41,13 +41,13 @@ const FlyModeScreen = lazy(() => import("./FlyModeScreen"));
 // Shown while FlyModeScreen loads on the first switch: a plain page in the
 // theme's background colour, so the switch doesn't flash an empty grey map.
 function FlyModePlaceholder() {
-  const { colors } = useTheme();
+  const { tokens } = useTheme();
   return (
     <View
-      style={[styles.flyPlaceholder, { backgroundColor: colors.bg }]}
+      style={[styles.flyPlaceholder, { backgroundColor: tokens.page }]}
       accessibilityLabel="Loading Fly Mode"
     >
-      <ActivityIndicator color={colors.accent} />
+      <ActivityIndicator color={tokens.primaryInk} />
     </View>
   );
 }

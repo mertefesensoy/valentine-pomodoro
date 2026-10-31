@@ -56,10 +56,16 @@ import { useSettingsStore } from '../stores/settingsStore';
 import { useStatsStore } from '../stores/statsStore';
 import { AdManager } from '../ads/AdManager';
 import { AdPolicy } from '../ads/AdPolicy';
-import { useNotifications } from '../hooks/useNotifications';
+import { flightLandedContent, useNotifications } from '../hooks/useNotifications';
 import LoveNoteCard from '../components/LoveNoteCard';
-import { Icon } from '../components/icons/Icon';
+import { Icon, type Glyph } from '../components/icons/Icon';
+import { fly as flyGlyph } from '../components/icons/art/fly';
+import { globe as globeGlyph } from '../components/icons/art/globe';
+import { hand as handGlyph } from '../components/icons/art/hand';
+import { landed as landedGlyph } from '../components/icons/art/landed';
+import { map as mapGlyph } from '../components/icons/art/map';
 import { modes as modesGlyph } from '../components/icons/art/modes';
+import { route as routeGlyph } from '../components/icons/art/route';
 import { PressableScale } from '../components/ui/PressableScale';
 import { edgeWidth, minTarget } from '../theme/layout';
 import { t } from '../i18n';
@@ -108,10 +114,11 @@ const CYCLE_MODE: Record<CameraMode, CameraMode> = {
     route: 'followPlane',
     free: 'followPlane',
 };
-const CAMERA_ICON: Record<CameraMode, string> = {
-    followPlane: '✈️',
-    route: '🗺',
-    free: '🖐',
+// The camera control's custom icons (NFR-UX-002; D2 swaps Fly's emoji for the icon set).
+const CAMERA_ICON: Record<CameraMode, Glyph> = {
+    followPlane: flyGlyph,
+    route: routeGlyph,
+    free: handGlyph,
 };
 const MODE_LABEL: Record<CameraMode, string> = {
     followPlane: 'Following',
@@ -139,7 +146,7 @@ export default function FlyModeScreen() {
     // the landing note and the interstitial wait, and the frame callback below
     // stops. Always true outside a navigator.
     const focused = useScreenFocused();
-    const { colors, isDark, tokens } = useTheme();
+    const { isDark, tokens } = useTheme();
 
     // Sheet animation state — sheetProgress 0=peek, 1=full
     const sheetProgress = useSharedValue(1);
@@ -439,7 +446,7 @@ export default function FlyModeScreen() {
         if (settings.notifications) {
             try {
                 notifId = await Promise.race([
-                    scheduleSessionEnd(endAt, '✈️ Landed!', 'Your flight focus session is complete 💗'),
+                    scheduleSessionEnd(endAt, flightLandedContent.title, flightLandedContent.body),
                     new Promise<null>(resolve => setTimeout(() => resolve(null), 1000)),
                 ]);
             } catch (e) {
@@ -491,7 +498,7 @@ export default function FlyModeScreen() {
             const endAt = Date.now() + slot.pausedRemainingMs;
             try {
                 const notifId = await Promise.race([
-                    scheduleSessionEnd(endAt, '✈️ Landed!', 'Your flight focus session is complete 💗'),
+                    scheduleSessionEnd(endAt, flightLandedContent.title, flightLandedContent.body),
                     new Promise<null>(resolve => setTimeout(() => resolve(null), 1000)),
                 ]);
                 session.setSlotExtras('fly', { scheduledNotificationId: notifId });
@@ -897,7 +904,7 @@ export default function FlyModeScreen() {
                         accessibilityLabel={`Camera mode: ${cameraMode}. Tap to cycle.`}
                         accessibilityRole="button"
                     >
-                        <Text style={styles.mapControlIcon}>{CAMERA_ICON[cameraMode]}</Text>
+                        <Icon glyph={CAMERA_ICON[cameraMode]} size={22} color={tokens.ink} />
                     </Pressable>
                 )}
             </Animated.View>
@@ -915,13 +922,13 @@ export default function FlyModeScreen() {
                         pointerEvents="none"
                     >
                         <Text style={styles.mapHintText}>
-                            {!origin ? '✈️  Tap an airport dot to pick origin' : '📍 Tap an airport dot to pick destination'}
+                            {!origin ? 'Tap an airport dot to pick the origin' : 'Tap an airport dot to pick the destination'}
                         </Text>
                     </View>
                 ) : (
                     <Animated.View style={[styles.mapHint, mapHintAnimatedStyle]} pointerEvents="none">
                         <Text style={styles.mapHintText}>
-                            {!origin ? '✈️  Tap an airport dot to pick origin' : '📍 Tap an airport dot to pick destination'}
+                            {!origin ? 'Tap an airport dot to pick the origin' : 'Tap an airport dot to pick the destination'}
                         </Text>
                     </Animated.View>
                 )
@@ -945,7 +952,7 @@ export default function FlyModeScreen() {
                 viewportWidth={width}
                 viewportHeight={height}
                 bottomInset={windowInsets.bottom}
-                cardBgColor={colors.card}
+                cardBgColor={tokens.paper}
                 hapticsEnabled={settings.haptics}
                 headerControl={
                     <Pressable
@@ -956,8 +963,9 @@ export default function FlyModeScreen() {
                         }]}
                         accessibilityLabel={isGlobe ? 'Switch to flat map' : 'Switch to globe map'}
                     >
+                        <Icon glyph={isGlobe ? mapGlyph : globeGlyph} size={14} color={isDark ? '#EEE' : '#222'} />
                         <Text style={[styles.globeToggleText, { color: isDark ? '#EEE' : '#222' }]}>
-                            {isGlobe ? '🗺 Flat' : '🌍 Globe'}
+                            {isGlobe ? 'Flat' : 'Globe'}
                         </Text>
                     </Pressable>
                 }
@@ -965,7 +973,10 @@ export default function FlyModeScreen() {
                 {/* Timer display — visible at peek and full */}
                 <View style={styles.timerRow}>
                     {flightComplete && !timerRunning ? (
-                        <Text style={styles.landedText}>✈️  Landed!</Text>
+                        <View style={styles.iconRow}>
+                            <Icon glyph={landedGlyph} size={32} color={ValentineSpec.accentPrimary} />
+                            <Text style={styles.landedText}>Landed!</Text>
+                        </View>
                     ) : (
                         <TimerText kind="fly" idleMs={idleMs} style={styles.timerDigits} />
                     )}
@@ -973,8 +984,8 @@ export default function FlyModeScreen() {
 
                 {/* Camera mode label — visible at peek snap */}
                 <View style={styles.modeIndicatorStrip}>
-                    <Text style={[styles.modeIndicatorText, { color: colors.textMuted }]}>
-                        {MODE_LABEL[cameraMode]}{isGlobe ? ' · 🌍' : ''}
+                    <Text style={[styles.modeIndicatorText, { color: tokens.inkSoft }]}>
+                        {MODE_LABEL[cameraMode]}{isGlobe ? ' · Globe' : ''}
                     </Text>
                 </View>
 
@@ -1000,7 +1011,7 @@ export default function FlyModeScreen() {
 
                     {flightData && (
                         <View style={styles.flightInfo}>
-                            <Text style={[styles.flightInfoText, { color: colors.textMuted }]}>
+                            <Text style={[styles.flightInfoText, { color: tokens.inkSoft }]}>
                                 {Math.round(flightData.distanceKm).toLocaleString()} km
                                 {'  ·  '}
                                 {formatFlightDuration(flightData.totalSeconds)} focus
@@ -1017,7 +1028,10 @@ export default function FlyModeScreen() {
                             onPress={handleStart}
                             disabled={!flightData}
                         >
-                            <Text style={styles.primaryButtonText}>✈️  Start Flight</Text>
+                            <View style={styles.iconRow}>
+                                <Icon glyph={flyGlyph} size={18} color="#FFFFFF" />
+                                <Text style={styles.primaryButtonText}>Start flight</Text>
+                            </View>
                         </Pressable>
                     )}
                     {timerRunning && !paused && (
@@ -1026,7 +1040,7 @@ export default function FlyModeScreen() {
                                 <Text style={styles.secondaryButtonText}>Pause</Text>
                             </Pressable>
                             <Pressable style={styles.ghostButton} onPress={handleReset}>
-                                <Text style={[styles.ghostButtonText, { color: colors.text }]}>Reset</Text>
+                                <Text style={[styles.ghostButtonText, { color: tokens.ink }]}>Reset</Text>
                             </Pressable>
                         </View>
                     )}
@@ -1036,7 +1050,7 @@ export default function FlyModeScreen() {
                                 <Text style={styles.primaryButtonText}>Resume</Text>
                             </Pressable>
                             <Pressable style={styles.ghostButton} onPress={handleReset}>
-                                <Text style={[styles.ghostButtonText, { color: colors.text }]}>Reset</Text>
+                                <Text style={[styles.ghostButtonText, { color: tokens.ink }]}>Reset</Text>
                             </Pressable>
                         </View>
                     )}
@@ -1107,7 +1121,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 8,
     },
-    // color supplied inline (dark mode adaptive via colors.textMuted)
+    // color supplied inline (dark mode adaptive via tokens.inkSoft)
     flightInfoText: {
         fontSize: 13,
         fontWeight: '500',
@@ -1179,7 +1193,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
         paddingVertical: 12,
     },
-    // color supplied inline (dark mode adaptive via colors.text)
+    // color supplied inline (dark mode adaptive via tokens.ink)
     ghostButtonText: {
         fontSize: 15,
         fontWeight: '600',
@@ -1221,10 +1235,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    mapControlIcon: {
-        fontSize: 20,
+    // A row of an icon and its word: Landed!, Start flight (D2's icons for Fly's emoji).
+    iconRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
     },
     globeToggle: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
         paddingHorizontal: 10,
         paddingVertical: 6,
         borderRadius: 14,

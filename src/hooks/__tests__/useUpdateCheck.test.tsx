@@ -94,7 +94,7 @@ describe('the update check after B7', () => {
 
         expect(fetchMock).toHaveBeenCalledTimes(1);
         expect(alert).toHaveBeenCalledTimes(1);
-        expect(alert.mock.calls[0][0]).toBe('✨ Update available');
+        expect(alert.mock.calls[0][0]).toBe('Update available');
     });
 
     it('"Check for updates" works at once, before the deferred check, which then does nothing', async () => {
@@ -108,7 +108,7 @@ describe('the update check after B7', () => {
         await settle();
         expect(fetchMock).toHaveBeenCalledTimes(1);
         expect(alert).toHaveBeenCalledTimes(1);
-        expect(alert.mock.calls[0][0]).toBe('✨ Update available');
+        expect(alert.mock.calls[0][0]).toBe('Update available');
 
         await act(async () => {
             scheduler.markFirstFrame();

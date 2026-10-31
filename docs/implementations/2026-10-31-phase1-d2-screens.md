@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-d1-classic, DES
 
 # 2026-10-31 — Phase 1 D2: Stats, Settings, Notes and the gift screen
 
-**Status:** In progress. The owner confirmed the four briefs on 2026-10-31 ("Confirm all four") and chose Stats' layout, the postcard stack. The three direction contracts are written and wait for the owner's approval.
+**Status:** In progress. The owner confirmed the four briefs on 2026-10-31 ("Confirm all four") and chose Stats' layout, the postcard stack. The owner approved the three direction contracts and the picker dependency on 2026-10-31 ("Approve, build D2"); the build is under way.
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.3. This record holds what happened: each step's output, the owner's gates, the scores and the measurements.
 
@@ -25,7 +25,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | Owner: the four briefs | **Confirmed**, 2026-10-31 ("Confirm all four") | **Confirmed** | **Confirmed** | **Confirmed** |
 | 2. `/apple-design` on the brief | Good; no Critical; 1 High, 5 Medium, 3 Low (§3.2) | Good; no Critical; 1 High (an owner question), 1 Medium, 2 Low (§3.2) | 1 Critical, 2 High, 2 Medium, 1 Low (§3.2) | Excellent; 1 Medium, 1 Low (§3.2) |
 | Composition round | **The postcard stack**, the owner's pick, 2026-10-31 (§3.3) | Not needed: native grouped list | Not needed: native list | Not needed |
-| Owner: direction contracts | **Waiting** (written, §3.4) | **Waiting** (written, §3.4) | **Waiting** (written, §3.4) | None: a retirement, carried by Settings' About footer |
+| Owner: direction contracts | **Approved**, 2026-10-31 ("Approve, build D2"; §3.4) | **Approved**, with `@react-native-picker/picker` | **Approved** | None: a retirement, carried by Settings' About footer |
 | 3. Build (`animate-expo`) | — | — | — | — |
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | — | — | — | — |
 | 5. `break-ui` (TR at AX5) | — | — | — | — |
@@ -237,7 +237,7 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
 
 - [x] The owner confirms the four briefs (2026-10-31, "Confirm all four").
 - [x] `/apple-design` on each brief (§3.2): one Critical (Notes: Delete reachable only by gesture), accepted with its fix; the rest dispositioned.
-- [ ] The owner approves the direction contracts, after Stats' composition round.
+- [x] The owner approves the direction contracts, after Stats' composition round (2026-10-31, "Approve, build D2", with the picker dependency).
 - [ ] Each screen: critique and audit at 16/20 or better, no Critical HIG finding, `review-animations` clean, `break-ui` in Turkish at AX5.
 - [ ] B2's notes tests stay green: Bengisu's install keeps its notes.
 - [ ] The emoji check (`src/__tests__/noEmojiIcons.test.ts`) passes.

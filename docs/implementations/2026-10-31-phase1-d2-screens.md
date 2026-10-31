@@ -63,7 +63,7 @@ Fresh installs see v1's gift screen, then the welcome: two first-run screens in 
 | `src/screens/SettingsScreen.tsx`, `src/components/settings/SettingsList.tsx` (new), `src/constants/app.ts` (new), `package.json`, `package-lock.json` | Settings rebuilt as a native inset grouped list, with `@react-native-picker/picker` 2.11.4 for its wheels (§3.6). |
 | `src/theme/useTheme.ts` | The theme follows the phone; `themeMode` is no longer read (§3.6). |
 | `src/App.tsx`, `src/components/GiftModeModal.tsx` (removed), `src/screens/welcome/useWelcomeGate.ts` | v1's gift screen is retired, and the welcome no longer waits for it (§3.6). |
-| `src/screens/__tests__/settings.test.tsx` (new; replaces `settingsKeyboard.test.tsx`), `src/screens/welcome/__tests__/welcome.test.tsx`, `src/__tests__/router.test.tsx`, `src/i18n/en.json`, `tr.json` | The new Settings tested; the welcome's two audiences; the router tests mark the welcome seen; Settings' strings in English and Turkish (§3.6). |
+| `src/screens/__tests__/settings.test.tsx` (new), `settingsKeyboard.test.tsx` (rewritten), `src/screens/welcome/__tests__/welcome.test.tsx`, `src/__tests__/router.test.tsx`, `src/i18n/en.json`, `tr.json` | The new Settings tested; `settingsKeyboard.test.tsx`, which the SRS cites for DEF-008, now proves no number opens a keyboard; the welcome's two audiences; the router tests mark the welcome seen; Settings' strings in English and Turkish (§3.6). |
 | `docs/process/DESIGN-WORKFLOW.md` | Two §3 rows: sentence case against Apple's title-style capitalisation; the appearance switch, settled by retiring it. |
 
 ## 3. Implementation Approach
@@ -240,11 +240,13 @@ Each brief now ends with its six-block contract (THESIS, OWN-WORLD, STORY, FIRST
 - `welcome.test.tsx` now checks that a fresh install gets the welcome with the fresh line.
 - The router tests, which are about tabs and links, mark the welcome seen in their setup.
 
+**DEF-008's test:** the SRS's FR-SET-001 cites `settingsKeyboard.test.tsx` for DEF-008, the number pad that couldn't be left. Deleting the file broke `check-docs`. The file stays and now proves the cause is gone: no number row opens a keyboard, and none has an accessory. The SRS's wording for that evidence is in the Stage D plan's §9. This was fixed in the commit after `23e595c`; the record commit before it had gone in over the failing check.
+
 **Guards** at this commit:
 
 | Guard | Result |
 |---|---|
-| Jest | 48 suites, 364 tests, all passing |
+| Jest | 49 suites, 365 tests, all passing (after the DEF-008 test's rewrite) |
 | Lint | 0 errors, 30 warnings (31 before) |
 | tsc | Clean |
 | React Compiler | 72 compiled, 5 skipped |

@@ -513,6 +513,11 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 - **The CHANGELOG line above:** "presets (25/5, 50/10, 52/17, 90/20)" becomes "presets (25/5, 50/10, 90/20 and Custom)".
 - **NFR-PERF-002's status note:** "D1 after the finish review's fixes: 4,050,408 B, 5.04 % over (D1 record §3.20)."
 
+**From D2's Settings rebuild (D2 record §3.6):**
+
+- **SRS FR-SET-001's Verify,** the second test's note: "(the number fields can be left, DEF-008)" becomes "(no number opens a keyboard: Settings sets them on the system wheel, DEF-008)".
+- **SRS §3.4, DEF-008:** add "Closed in D2: Settings sets every bounded number on the system wheel (`@react-native-picker/picker`), so no number field opens the number pad, and the deprecated `InputAccessoryView` is gone."
+
 **From D2's contracts (D2 record §3.4), to apply when Stats ships:**
 
 - **SRS FR-STA-003**, the statement, replacing the current text. The owner chose the postcard stack, which shows the seven days as stacked day postcards, not as a chart:

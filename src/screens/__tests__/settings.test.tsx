@@ -49,12 +49,6 @@ beforeEach(() => resetStorage());
 // covers: FR-SET-001, NFR-A11Y-003
 // D2 Settings contract: an inset grouped list of native controls, no bounded number typed.
 describe('Settings as a native grouped list', () => {
-    it('sets no number by typing: no text field, no Done bar', async () => {
-        await renderSettings();
-        expect(JSON.stringify(screen.toJSON())).not.toMatch(/"type":"(TextInput|RCTInputAccessoryView)"/);
-        expect(screen.queryByRole('button', { name: 'Done' })).toBeNull();
-    });
-
     it("shows each duration as a value, Custom's, and opens its wheel under the row", async () => {
         await renderSettings();
         const focus = screen.getByRole('button', { name: 'Focus' });

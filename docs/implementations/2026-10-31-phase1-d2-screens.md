@@ -26,7 +26,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | 2. `/apple-design` on the brief | Good; no Critical; 1 High, 5 Medium, 3 Low (§3.2) | Good; no Critical; 1 High (an owner question), 1 Medium, 2 Low (§3.2) | 1 Critical, 2 High, 2 Medium, 1 Low (§3.2) | Excellent; 1 Medium, 1 Low (§3.2) |
 | Composition round | **The postcard stack**, the owner's pick, 2026-10-31 (§3.3) | Not needed: native grouped list | Not needed: native list | Not needed |
 | Owner: direction contracts | **Approved**, 2026-10-31 ("Approve, build D2"; §3.4) | **Approved**, with `@react-native-picker/picker` | **Approved** | None: a retirement, carried by Settings' About footer |
-| 3. Build (`animate-expo`) | — | — | — | — |
+| 3. Build (`animate-expo`) | **Built**, `b2db8c1` (§3.8) | **Built**, `23e595c` (§3.6) | **Built**, `de3867c` (§3.7) | **Retired**, `23e595c` (§3.6) |
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | — | — | — | — |
 | 5. `break-ui` (TR at AX5) | — | — | — | — |
 | 6. `polish`, `harden`, `clarify` | — | — | — | — |
@@ -64,6 +64,9 @@ Fresh installs see v1's gift screen, then the welcome: two first-run screens in 
 | `src/theme/useTheme.ts` | The theme follows the phone; `themeMode` is no longer read (§3.6). |
 | `src/screens/LoveNotesScreen.tsx`, `src/screens/notes/NoteEditor.tsx` (new), `app/note-editor.tsx` (new), `app/_layout.tsx`, `src/navigation/sheetOptions.ts` | Notes rebuilt as native list rows, with a full-height sheet editor (§3.7). |
 | `src/screens/StatsScreen.tsx`, `src/screens/stats/WeekStack.tsx` (new), `src/screens/__tests__/stats.test.tsx` (new) | Stats rebuilt as the postcard stack, and tested (§3.8). |
+| `scripts/design/check-emoji.mjs` (new), `src/__tests__/noEmojiIcons.test.ts` (new) | The emoji check (§3.9). |
+| `src/screens/FlyModeScreen.tsx`, `src/components/{FlyTimerPill,LoveNoteCard,AirportPicker}.tsx`, `src/hooks/useNotifications.ts`, `src/hooks/useUpdateCheck.ts`, `src/stores/statsStore.ts`, `src/startup/StartupDiagnostics.tsx`, `src/screens/TimerScreen.tsx`, `app/+not-found.tsx` | Fly's emoji become icons; the last legacy colour names become tokens (§3.9). |
+| `src/theme/legacyColors.ts`, `src/theme/__tests__/legacyColors.test.ts` (both removed), `src/theme/useTheme.ts` | The transitional adapter is deleted (§3.9). |
 | `src/stores/notesStore.ts`, `src/constants/defaults.ts` | The additive restore, the 280 cap, and 20 name-free defaults per language for fresh installs (§3.7). |
 | `src/screens/__tests__/notes.test.tsx` (new), `src/navigation/__tests__/sheetOptions.test.ts`, `src/__tests__/router.test.tsx`, `jest.setup.ts` | Notes and the editor tested; the editor's sheet options; the router tests' Notes marker; the swipeable's Jest stand-in (§3.7). |
 | `src/App.tsx`, `src/components/GiftModeModal.tsx` (removed), `src/screens/welcome/useWelcomeGate.ts` | v1's gift screen is retired, and the welcome no longer waits for it (§3.6). |
@@ -345,6 +348,45 @@ As its contract describes (`StatsScreen.tsx`, `stats/WeekStack.tsx`):
 | Lint | 0 errors, 30 warnings |
 | tsc | Clean |
 | React Compiler | 80 compiled, 5 skipped |
+
+### 3.9 Built: no emoji as icons, Fly's icons, and `legacyColors` deleted (`5849286`)
+
+**The emoji check** (`scripts/design/check-emoji.mjs`, run by `src/__tests__/noEmojiIcons.test.ts`, `// covers: NFR-UX-002`):
+- **What it flags:** every Extended_Pictographic code point, or the emoji variation selector, in `src/` and `app/`, skipping tests and fixtures.
+- **What it allows:** the default notes (`defaults.ts`), v1.3.1's frozen notes (`legacyLoveNotes.ts`), and push copy (`useNotifications.ts`, `notifications.ts`).
+- **The first run found 17 hits;** all are resolved.
+
+**Fly's emoji,** swapped for the custom icons. Fly is otherwise not redesigned; that's Phase 4b.
+- **Icons:**
+  - the camera control is `fly`, `route` or `hand`;
+  - the globe toggle is `map` or `globe` beside its word;
+  - "Landed!" gets `landed`;
+  - "Start flight" gets `fly`;
+  - the timer pill gets `fly`;
+  - the landing love note's heart is `heart`.
+- **Text:** the map hints lose their emoji, and the mode strip's "· 🌍" becomes "· Globe".
+- **Push copy:** Fly's landing notification moves into `useNotifications.ts` (`flightLandedContent`).
+- **The strays:** the update alert loses its sparkle, and a store comment loses its check mark.
+
+**`legacyColors` deleted.** Its last callers were Fly's screen, its airport picker, its timer pill, its landing note, the Timer's Fly placeholder, the start-up probe and the 404 page. Each `colors.X` is now the token the adapter mapped it to, so no pixel changes: 39 uses in 7 files, swapped by a script that refused any unmapped name. `useTheme` returns `{ theme, tokens, isDark }`. `legacyColors.ts` and its test are removed, and `expo-linear-gradient` had already gone.
+
+**Fly's re-tokening, the rest:**
+- The compass chip and the two mismatched chips are still in v1's own styling (`ValentineSpec`), and so is `LoveNoteCard`'s stacking under the controls. They're beyond the adapter, which only mapped the shared names.
+- They stay for Fly's own redesign (Phase 4b), and the D1 record's note stands.
+- Fly as a sticker in the Modes sheet also waits for new art.
+
+**Guards** at this commit:
+
+| Guard | Result |
+|---|---|
+| Jest | 51 suites, 356 tests, all passing (`legacyColors.test.ts`'s cases left with it) |
+| Lint | 0 errors, 29 warnings |
+| tsc | Clean |
+| React Compiler | 80 compiled, 5 skipped |
+| The emoji check | Clean |
+| `check-docs` | 0 errors |
+| Reassure (`npx reassure --branch`) | Timer 13, Stats 1, Settings **1** (2 before D2), Notes 1, leaf 12, settings-only 1. The Notes case first failed: Expo Router's `Link` needs the provider its root navigator supplies, and the perf test renders the screen alone. `screens.perf-test.tsx` stands the link in, as `notes.test.tsx` does; the router tests render the real one |
+| iOS bytecode (`npx expo export --platform ios --dump-sourcemap`) | **4,112,584 B**: +62,176 B (+1.5 %) on D1 after its finish fixes (4,050,408 B). Now **6.65 % over** NFR-PERF-002's limit of 3,856,208 B (5.04 % before D2). The new code is the picker's JS, the grouped list, the note editor and its swipe, the postcard stack, and the strings. E3 revisits |
 
 ## 4. Mathematical / Statistical Details
 

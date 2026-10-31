@@ -511,12 +511,28 @@ Kept current in the same commit as each piece of work, and applied at the merge 
   - The shared-components list: drop `ModeSwitcher`.
   - The sequence diagram's `ModeSwitcher` participant: rename it to the Modes sheet.
 - **The CHANGELOG line above:** "presets (25/5, 50/10, 52/17, 90/20)" becomes "presets (25/5, 50/10, 90/20 and Custom)".
-- **NFR-PERF-002's status note:** "D1 after the finish review's fixes: 4,050,408 B, 5.04 % over (D1 record §3.20)."
+- **NFR-PERF-002's status note:** "D2 built: 4,112,584 B, 6.65 % over (D2 record §3.9); D1 after its finish fixes was 4,050,408 B, 5.04 % over."
 
 **From D2's Settings rebuild (D2 record §3.6):**
 
 - **SRS FR-SET-001's Verify,** the second test's note: "(the number fields can be left, DEF-008)" becomes "(no number opens a keyboard: Settings sets them on the system wheel, DEF-008)".
 - **SRS §3.4, DEF-008:** add "Closed in D2: Settings sets every bounded number on the system wheel (`@react-native-picker/picker`), so no number field opens the number pad, and the deprecated `InputAccessoryView` is gone."
+
+**From D2's build (D2 record §3.6–3.9):**
+
+- **`docs/architecture/ARCHITECTURE.md`:**
+  - Drop `GiftModeModal` and `legacyColors` from the component and theme lists. The welcome is the only first-run screen, and `useTheme` returns `{ theme, tokens, isDark }` from the system appearance.
+  - Add the `/note-editor` form-sheet route (`src/screens/notes/NoteEditor.tsx`) beside `/love-note` and `/modes`.
+  - Add `src/components/settings/SettingsList.tsx` (the grouped-list rows and the number wheel) and `src/screens/stats/WeekStack.tsx` (the postcard stack).
+  - Dependencies: add `@react-native-picker/picker` 2.11.4.
+- **The CHANGELOG, v1.4:**
+  - "Settings is a native grouped list: numbers are set on a wheel, never typed, and light or dark follows your iPhone."
+  - "Love notes: tap to edit in a full-height sheet, swipe or long-press to delete, a 280-character limit, and restoring the defaults never removes your own notes."
+  - "Stats shows your week as a stack of day postcards, today in front, with your goal and love streak."
+  - "The first-launch gift screen is gone; the welcome is the only first-run screen, and the app's origin is in Settings › About."
+  - "New installs get new default love notes, in English or Turkish."
+- **SRS FR-SET-002's note:** "Light and dark follow the system appearance; v1's in-app switch is retired (D2, the owner)."
+- **SRS FR-NTE-002's status:** implemented (D2: 20 name-free defaults per language, `defaults.ts`; existing installs keep theirs).
 
 **From D2's contracts (D2 record §3.4), to apply when Stats ships:**
 

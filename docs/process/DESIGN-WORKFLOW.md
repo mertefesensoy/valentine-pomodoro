@@ -61,6 +61,8 @@ They will. Impeccable bans things the HIG recommends, the HIG prefers system def
 | HIG sheets and modals vs. the plan's "no stacked modals" | Bottom sheets and inline moments, presented the native way (`formSheet` / page sheet) | Phase 1 D1 |
 | Paywall look (brief) vs. Apple's in-app purchase rules | Apple's rules win on content and placement (price, terms, restore); the brief wins on styling | Phase 5 |
 | Launch screen: Apple's "don't include logos" vs. the brief's splash built from the mark | The owner kept the mark (C3 gate 2): static, small, on the page colour; the pages-to-logo animation never plays at launch (HIG review H-2) | Phase 1 C3 |
+| Capitalisation: Apple's title-style buttons and titles vs. the owner's sentence case | Sentence case for every label in English, matching how Turkish is written (the owner, C4 gate). An allowed brand choice, not an App Review rule | Phase 1 C4; D2 HIG review |
+| Appearance: v1's in-app System / Light / Dark switch vs. `dark-mode.md`'s "avoid offering an app-specific appearance setting" | Settled, no exception: the switch is retired and the app follows the phone (the owner, 2026-10-31). `themeMode` stays in storage, read as System | Phase 1 D2 |
 
 A new tension gets a row here, or an ADR if it is structural.
 

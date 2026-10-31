@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-d1-classic, DES
 
 # 2026-10-31 — Phase 1 D2: Stats, Settings, Notes and the gift screen
 
-**Status:** In progress. The owner confirmed the four briefs on 2026-10-31 ("Confirm all four"). Next: `/apple-design` on each, Stats' composition round, then the direction contracts.
+**Status:** In progress. The owner confirmed the four briefs on 2026-10-31 ("Confirm all four") and chose Stats' layout, the postcard stack. The three direction contracts are written and wait for the owner's approval.
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.3. This record holds what happened: each step's output, the owner's gates, the scores and the measurements.
 
@@ -24,8 +24,8 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | 1. Shape | Brief written (§3.1) | Brief written (§3.1) | Brief written (§3.1) | Brief written: retired (§3.1) |
 | Owner: the four briefs | **Confirmed**, 2026-10-31 ("Confirm all four") | **Confirmed** | **Confirmed** | **Confirmed** |
 | 2. `/apple-design` on the brief | Good; no Critical; 1 High, 5 Medium, 3 Low (§3.2) | Good; no Critical; 1 High (an owner question), 1 Medium, 2 Low (§3.2) | 1 Critical, 2 High, 2 Medium, 1 Low (§3.2) | Excellent; 1 Medium, 1 Low (§3.2) |
-| Composition round | In progress: three sketches on the decision page (§3.3) | Not needed: native grouped list | Not needed: native list | Not needed |
-| Owner: direction contracts | — | — | — | — |
+| Composition round | **The postcard stack**, the owner's pick, 2026-10-31 (§3.3) | Not needed: native grouped list | Not needed: native list | Not needed |
+| Owner: direction contracts | **Waiting** (written, §3.4) | **Waiting** (written, §3.4) | **Waiting** (written, §3.4) | None: a retirement, carried by Settings' About footer |
 | 3. Build (`animate-expo`) | — | — | — | — |
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | — | — | — | — |
 | 5. `break-ui` (TR at AX5) | — | — | — | — |
@@ -58,6 +58,9 @@ Fresh installs see v1's gift screen, then the welcome: two first-run screens in 
 | `.impeccable/surfaces/app-tabs-notes-tsx.md` | New. Notes' brief: native list rows, a sheet editor, the 280 cap, name-free defaults (§3.1). |
 | `.impeccable/surfaces/src-components-giftmodemodal-tsx.md` | New. The gift screen's brief: retired, with the origin moved to About (§3.1). |
 | `docs/implementations/2026-10-31-phase1-d2-screens.md` | This record. |
+| `.impeccable/surfaces/app-tabs-{stats,settings,notes}-tsx.md` | Each gains its direction contract (§3.4), which waits for the owner's approval. |
+| `art/review/d2-stats-*.html` | New. The three Stats decision sketches: the postcard stack, which is locked, and the two not chosen (§3.3). |
+| `docs/process/DESIGN-WORKFLOW.md` | Two §3 rows: sentence case against Apple's title-style capitalisation; the appearance switch, settled by retiring it. |
 
 ## 3. Implementation Approach
 
@@ -109,7 +112,7 @@ Two reviewers ran the apple-design skill in parallel: one on Stats and Gift, one
 | Stats | Low: the numbers' face; the Phase 3 couple week; room between the banner and the tab bar | **Accept** all three. The numbers use the system face with tabular figures, and Baloo 2 is for the title only. The contract names where the couple week will sit. About 12 pt between the banner and the bar. |
 | Gift | Medium: deleting every read of `hasSeenGiftMode` would make 1.3.1 updaters see the fresh-install welcome line | **Accept.** Only the gate's condition (`useWelcomeGate.ts:24`) goes; `welcomeAudience` keeps its read. `welcome.test.tsx` flips the gift case and checks both audiences. |
 | Gift | Low: a plain line among rows reads as a control; "Valentine Pomodoro" is a working name | **Accept.** The origin is the About group's footer, with the app's display name filled in from one variable. |
-| Settings | **High:** an in-app System / Light / Dark switch (`dark-mode.md`: "Avoid offering an app-specific appearance setting") | **The owner's call.** DESIGN.md says appearance follows the system, but v1 shipped the switch, and the owner's own phone is set to Dark in it (build 50 screenshot). Retire it (keep `themeMode`, read it as System), or keep it with a DESIGN-WORKFLOW §3 tension row. Asked with the contracts. |
+| Settings | **High:** an in-app System / Light / Dark switch (`dark-mode.md`: "Avoid offering an app-specific appearance setting") | **The owner's call.** DESIGN.md says appearance follows the system, but v1 shipped the switch, and the owner's own phone is set to Dark in it (build 50 screenshot). Retire it (keep `themeMode`, read it as System), or keep it with a DESIGN-WORKFLOW §3 tension row. **The owner, 2026-10-31: "Follow the phone only".** The switch is retired, `themeMode` stays in storage and is read as System, and DESIGN-WORKFLOW §3 records the settled row. |
 | Settings | Medium: the Notifications master switch sits apart from the reminders it dims | **Accept.** One Notifications group: the switch first, the daily reminder and quiet hours under it, and the denied state linking to iOS Settings. |
 | Settings | Low: Reset to defaults inside About | **Accept.** Its own last group. The alert names what it keeps (notes and stats), with Cancel and Reset. |
 | Settings | Open: the number control | **The wheel** (`@react-native-picker/picker`, the system UIPickerView) for every number row: durations 1–180, the long-break interval 2–10, the goal 0–1,440 in 5-minute steps. A stepper would take up to 179 taps, and RN has no native one. A new dependency, pinned to a release at least two weeks old: approved with the contract. The fallback, if refused: datetimepicker's countdown mode for the durations. |
@@ -146,9 +149,42 @@ Two reviewers ran the apple-design skill in parallel: one on Stats and Gift, one
   Each lends the lead one discipline: legible days, whole cells, nothing disappears, hairline dividers, state as a mark in a fixed cell, and scale alone.
 - **The sketches,** at 390 × 844, use the real tokens, Pomo & Doro's celebrating art, the goal and streak icons, and an embedded Baloo 2. There are three: the postcard stack, the washi timeline and the open spread. They sit in `.impeccable/mocks/decision/stats-*.html` (git-ignored) and move to `art/review/` once the round resolves.
 - **The decision page** is served at `127.0.0.1:65331` (key `32ace395`). The owner also has the three screenshots in the conversation.
-- **Waiting for the owner's pick.**
+- **How the choice was made:**
+  - The owner asked to see every design in detail, then answer through questions. A private page, [Stats Week Layouts](https://claude.ai/artifact/5SrZm2Ei23nARfyYyrSY1p), shows the three sketches live at 390 × 844, each with what it does well and what to watch.
+  - The decision page closed unanswered (`--wait` exited 4) once the pane moved to that page, so the round ended on the structured question, as the skill's fallback allows.
+- **The owner, 2026-10-31: "The postcard stack",** the dealt lead (recorded with `concept-seed --kind assigned`).
+- **The sketches are kept** in `art/review/`:
+  - `d2-stats-postcard-stack.html`, the locked composition;
+  - `d2-stats-washi-not-chosen.html`;
+  - `d2-stats-spread-not-chosen.html`.
 
-### 3.4 What follows the briefs
+### 3.4 The direction contracts
+
+Each brief now ends with its six-block contract (THESIS, OWN-WORLD, STORY, FIRST VIEWPORT, FORM, FINISH). Each opens with what was resolved since the brief:
+- **Stats** (`.impeccable/surfaces/app-tabs-stats-tsx.md`):
+  - the postcard stack;
+  - one summary line;
+  - each day's value printed, and an empty day one dashed cell in `edgeStrong`;
+  - today's postcard with its goal cells;
+  - the goal and streak strip, with a "Turn on a daily goal" button when it's off;
+  - today first at AX sizes;
+  - fitting an iPhone SE with the banner;
+  - Phase 3's partner stickers inside each postcard.
+- **Settings** (`app-tabs-settings-tsx.md`):
+  - the system wheel for every number, a new dependency (`@react-native-picker/picker`);
+  - one Notifications group;
+  - the appearance switch retired;
+  - About's footer carrying the origin line;
+  - Reset in its own last group.
+- **Notes** (`app-tabs-notes-tsx.md`):
+  - Preview above the list;
+  - Delete by swipe, menu (`Link.Menu`) and the editor's button;
+  - an additive restore;
+  - the editor as its own large sheet with an unsaved-changes guard;
+  - 20 new name-free defaults, for the owner's copy review.
+- **Gift** has no contract: a retirement, carried by Settings' About footer and the build list.
+
+### 3.5 What follows the briefs
 
 1. **The owner confirms the four briefs,** or corrects them once.
 2. **`/apple-design` on each brief.**
@@ -174,7 +210,9 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
 | The gift screen is retired (the owner) | Keep it name-free before the welcome; fold an origin line into the welcome | One first-run screen, as `onboarding.md` advises. PRODUCT.md already places the origin in About. |
 | Stats leads with this week (the owner) | Today, then the week; the streak as the hero | The Timer already shows today's row. The week is what Stats alone can show. |
 | A 280-character cap on notes, keeping longer existing notes (the owner) | No cap; 140 | It's long enough for a real note and fits the love-note sheet at large text sizes. Existing notes are never cut. |
-| Settings' numbers on a wheel that opens in place (proposed) | A stepper; the keypad with `react-native-keyboard-controller`'s toolbar | The HIG prefers choices to typing (`entering-data.md`), and the wheel retires the deprecated `InputAccessoryView`. The contract settles the dependency. |
+| Settings' numbers on the system wheel, `@react-native-picker/picker` (the contract; the owner approves the dependency with it) | A stepper; the keypad with `react-native-keyboard-controller`'s toolbar; datetimepicker's countdown mode | The HIG prefers choices to typing (`entering-data.md`) and pickers for long ranges (`pickers.md`). A stepper would take up to 179 taps, and RN has none natively. Countdown mode can't show 0 or serve the goal. The wheel retires the deprecated `InputAccessoryView`. |
+| Stats: the postcard stack (the owner) | The washi timeline; the open spread | The owner's pick from the dealt hand. Today leads at full size; the earlier days stay legible as edges. |
+| The app follows the phone's light or dark mode; the in-app switch is retired (the owner) | Keep System / Light / Dark as a deliberate exception | Apple's `dark-mode.md` and DESIGN.md both say appearance follows the system. Anyone who picked Light or Dark returns to the phone's setting. |
 
 **D1 items handed to D2, and where each goes:**
 - **The gift screen:** its brief retires it.

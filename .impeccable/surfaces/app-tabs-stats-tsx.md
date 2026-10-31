@@ -86,3 +86,48 @@ The owner, 2026-10-31: **lead with this week.**
 - **Open:**
   - the week's composition (the concept round);
   - where the Phase 3 couple week sits on the page.
+
+## Direction contract
+
+**Resolved since the brief:**
+- **The composition:** the postcard stack, the owner's pick on 2026-10-31.
+- **The HIG review's findings** are folded in (D2 record §3.2): a summary line, each day's value printed, "Today" in words, the iPhone SE fit, today first at AX sizes, and actions rather than descriptions.
+- **The theme:** it follows the phone (the owner, 2026-10-31).
+
+THESIS: The week as a stack of day postcards, today in front. It refuses the category default, a grid of number tiles over a bar chart. One glance shows today's progress at full size and the six days before it as readable edges, each counting in stickers.
+
+OWN-WORLD:
+- A flat `page` ground.
+- Postcards in `paper` with a crisp `edge`: radius 14 on an edge's top corners, 22 for today's card. Never a shadow.
+- Only the stickers lift: Pomo & Doro celebrating, in `stickerShadow`.
+- Empty cells are dashed in `edgeStrong`. The goal flag is in `successInk`, the streak icon in `primaryInk`.
+- Baloo 2 sets only the title and "Today". The system face sets every number, with tabular figures.
+
+STORY: How is my week going? Today comes first: its stickers, the dashed cells still to go, its minutes. Then the six days stacked behind it, each with its stickers, its count and its flag. Then the goal and the love streak. Nothing reads as a miss.
+
+FIRST VIEWPORT: iPhone portrait. It fits an iPhone SE at the default text size, banner included.
+- **Top:** the title "Stats" in Baloo 2, then the Sessions / Minutes switch (D1's built segmented control).
+- **One summary line,** read first by VoiceOver: "Last 7 days: 11 sessions · goal reached on 3 days", or the minutes in the Minutes view.
+- **The stack:** six day edges, oldest at the top, each 30–34 pt.
+  - Each edge carries its day, its stickers (18 pt, "+n" past four), its count and the goal flag.
+  - An empty day is one dashed cell, and VoiceOver says "no sessions".
+  - In the Minutes view, an edge's stickers become a fill toward the goal, with its minutes. A day past the goal is full and shows its number; with the goal off, plain minutes.
+- **Today's postcard,** in front:
+  - "Today" and the date;
+  - its stickers at 40 pt, with dashed cells up to the goal (D1 record §4.3);
+  - "1 session · 25 min · 25 min to the goal".
+- **Below the stack:**
+  - one paper strip with the goal (flag) and the love streak (streak icon), each with its value line;
+  - with the goal off, a 44 pt "Turn on a daily goal" button that opens Settings at the goal row;
+  - an empty week offers "Start a session";
+  - the all-time sessions and minutes, quiet;
+  - the ad slot, 12 pt above the tab bar.
+- **AX sizes:** today's postcard first, then the days as a list, newest first. Stickers and icons scale with `fontScale` up to 1.3×.
+- **Compact height:** today's card leads, with the stack trailing.
+- **Regular width:** centred at 560 pt.
+- **Phase 3:** each postcard holds both partners' stickers side by side, in the same frame.
+- **Signature interaction:** the stack itself. There's no motion on entry. The Sessions / Minutes switch crossfades the stack's contents in 150 ms, or switches instantly with Reduce Motion. Each day is one VoiceOver element: "Tuesday, 3 sessions, 75 minutes, goal reached".
+
+FORM: The postcard stack, structure 7 of 7 and the dealt lead, chosen by the owner on 2026-10-31. Sketch: `art/review/d2-stats-postcard-stack.html`. seed:fc916bfd00f1c093
+
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

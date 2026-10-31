@@ -77,3 +77,48 @@ Visited rarely, with a purpose: set the durations, the daily goal, the reminder 
 - **The number control:** a wheel needs a picker library. `@react-native-community/datetimepicker` covers only dates and times; `@react-native-picker/picker` would be a new dependency, pinned to a release at least two weeks old. The alternative is a stepper. Recommended: the wheel. The contract decides.
 - **Whether Notifications and the daily reminder share a group.** Proposed: Notifications stays a master switch in "Sound and feel", and the reminder group dims when it's off.
 - **Copy:** every string is an i18n key in English and Turkish, sentence case.
+
+## Direction contract
+
+**Resolved since the brief:**
+- **The number control:** the system wheel, `@react-native-picker/picker`. It's a new dependency, installed with `npx expo install` at the SDK's version, which must be at least two weeks old.
+- **One Notifications group:** the master switch first, with the reminders under it (HIG review).
+- **Reset** gets its own last group.
+- **The appearance switch is retired:** the app follows the phone (the owner, 2026-10-31). `themeMode` stays in storage and is read as System.
+- **The Timer layout row stays,** as the Classic brief puts it in both places.
+
+THESIS: iOS Settings, drawn in the diary's stationery. It refuses bespoke card stacks, typed numbers and emoji headings. Every row is a native control a fluent iPhone user already trusts, and nothing needs the keyboard.
+
+OWN-WORLD:
+- The `page` ground.
+- Groups are `paper` fields, radius 14, with a crisp `edge`. Hairline separators are inset from the leading edge.
+- Section headers are small, in sentence case and `inkSoft`; footers explain.
+- Values are in `inkSoft`; a value being edited turns `primaryInk`.
+- Native switches are tinted `primary`. Numbers use the system wheel, times the compact time picker.
+- Baloo 2 sets only the title. No shadows, no emoji.
+
+STORY: Find the row, change it, leave. One scroll holds everything, grouped by intent: how long, how much a day, when to be reminded, how it sounds, what you see, and about the app.
+
+FIRST VIEWPORT: iPhone portrait.
+- **The title:** "Settings".
+- **Timer:** Focus 25 min, Short break 5 min, Long break 15 min, Long break every 4. The footer says "Custom on the Timer uses these durations." Tapping a value opens the system wheel under its row, one at a time.
+- **Daily goal:** a switch, and Goal 50 min on a wheel in 5-minute steps. The wheel also lists the current value when it isn't a multiple of 5.
+- **Notifications:**
+  - the master switch first;
+  - then Daily reminder, a switch with its time in the compact picker;
+  - then Quiet hours, a switch with its start and end;
+  - when iOS has denied notifications, a footer says so and an "Open iOS Settings" row links there.
+- **Below the fold:**
+  - Sound and feel: Sound, Haptics.
+  - Love notes: Show love notes after a focus.
+  - Appearance: Timer layout, Ring or Facing pages.
+  - Fly: Ambient sounds.
+  - About: Watch the welcome again, Check for updates, the developer's website. Its footer is the origin line, with the app's name from one variable.
+  - Reset settings, in its own last group. It confirms in a native alert that names what it keeps: notes and stats.
+- **AX5 in Turkish:** a row's label and value stack.
+- **Regular width:** centred at a readable width.
+- **Signature interaction:** a row that opens into a wheel. The value turns `primaryInk` and the wheel unfolds under it in about 200 ms. With Reduce Motion it opens without movement (`useReducedMotion` gates `LayoutAnimation`). The row exposes `accessibilityState.expanded`, and the wheel is adjustable for VoiceOver.
+
+FORM: A native inset grouped list, the brief's form. There was no composition round: on an Operate surface, the native list is settled. seed: none (no roll)
+
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

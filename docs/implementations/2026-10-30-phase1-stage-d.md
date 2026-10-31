@@ -287,6 +287,10 @@ The owner chose **both** placements: "First pairing and 1.4 welcome screen". The
 - **Plumbing, moved into D1 by the owner (Q1):** `expo-localization` with an in-house translator. The owner replaced `i18next` for the bytecode on 2026-10-30 ([ADR-0048](../architecture/adr/0048-in-house-translator.md)). D3 finishes what D1 started.
   - The language follows the device.
   - `ios.infoPlist.CFBundleLocalizations: ["en", "tr"]`, so iOS offers the per-app language setting.
+- **An in-app language choice (the owner, 2026-10-31; deferred from D1 to D3):** Settings gets a Language row with System (the default, which follows the device as now), English and Türkçe. Until D3, the only switch is iOS's own per-app setting (Settings › Apps › Valentine Pomodoro › Language), which D1's `CFBundleLocalizations` already enables. D3 chooses how the row works:
+  - (a) It opens iOS's per-app language page (`Linking.openSettings()`), and iOS relaunches the app in the chosen language. That's how the translator already works: one language per process. But iOS shows that page's Language row only when the phone lists more than one preferred language, so check this on the device and give the row a fallback.
+  - (b) An in-app override, stored as an optional, additive settings field and read by `pickLanguage` before the device's locales. It's applied at the next launch or by re-rendering the tree.
+  - Either way, §9 gets FR-SET-005's amended statement when D3 lands. It now reads "following the device language", which the choice extends.
   - Turkish casing goes through one helper using `toLocaleUpperCase('tr-TR')` (İ/ı), never a bare `toUpperCase()`.
   - Plurals use i18next's `Intl.PluralRules` support.
 - **Every user-visible string is extracted:** screens, alerts, accessibility labels, notification copy (written in the device language when it is scheduled) and the update prompt.
@@ -419,7 +423,7 @@ From D1: `python -P art/type/build-fonts.py --check`. From D4: `node scripts/sou
 - [x] This plan is committed before any other file on the branch.
 - [ ] D1: every step of DESIGN-WORKFLOW §2. Critique and audit ≥ 16/20, no Critical HIG finding, `review-animations` clean. Guards green. The device checks on builds 48, 49 and 50 (need a physical device).
 - [ ] D2: the four briefs confirmed. The emoji check green. B2's notes tests green. The device check on D2's own build (needs a physical device).
-- [ ] D3: every string extracted, and the raw-text check green. The device check in TR at the largest size on D3's own build (needs a physical device).
+- [ ] D3: every string extracted, and the raw-text check green. The in-app language choice works (the owner, 2026-10-31). The device check in TR at the largest size on D3's own build (needs a physical device).
 - [ ] D4: three sounds, each ≤ 1.5 s and ≤ 25 KB, rebuilt byte for byte. The silent switch and the toggle respected on the device (needs a physical device).
 
 ## 7. Questions for the owner, answered 2026-10-30

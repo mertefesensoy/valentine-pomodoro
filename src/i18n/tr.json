@@ -99,5 +99,70 @@
     "start": "Başla",
     "art": "Pomo ve Doro tek bir günlüğün sayfalarına dönüşüyor",
     "replay": "Karşılamayı yeniden izle"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "minutes_one": "{{count}} dk",
+    "minutes_other": "{{count}} dk",
+    "everySessions_one": "{{count}} oturumda bir",
+    "everySessions_other": "{{count}} oturumda bir",
+    "timer": {
+      "header": "Zamanlayıcı",
+      "focus": "Odak",
+      "shortBreak": "Kısa mola",
+      "longBreak": "Uzun mola",
+      "longBreakEvery": "Uzun mola sıklığı",
+      "footer": "Zamanlayıcıdaki Özel seçeneği bu süreleri kullanır. Değişiklikler bir sonraki oturumdan itibaren geçerli olur."
+    },
+    "goal": {
+      "header": "Günlük hedef",
+      "toggle": "Günlük hedef belirle",
+      "customRow": "Özel hedef",
+      "presetA11y_one": "Günde {{count}} dakika",
+      "presetA11y_other": "Günde {{count}} dakika",
+      "footer": "Hedefe ulaşan günler aşk serine sayılır."
+    },
+    "notifications": {
+      "header": "Bildirimler",
+      "sessionAlerts": "Oturum uyarıları",
+      "reminder": "Günlük hatırlatıcı",
+      "reminderTime": "Hatırlatma saati",
+      "quiet": "Sessiz saatler",
+      "quietStart": "Başlangıç",
+      "quietEnd": "Bitiş",
+      "footer": "Oturum uyarıları, telefonun kilitliyken bile bir odak ya da mola bittiğinde haber verir. Sessiz saatler, günlük hatırlatıcıyı bu saatlerin dışına taşır.",
+      "denied": "Bu uygulamanın bildirimleri iOS Ayarları'nda kapalı, bu yüzden hatırlatıcı kurulamıyor.",
+      "openSettings": "iOS Ayarları'nı aç"
+    },
+    "feel": {
+      "header": "Ses ve titreşim",
+      "sound": "Ses",
+      "haptics": "Titreşim"
+    },
+    "notes": {
+      "header": "Aşk notları",
+      "show": "Her odaktan sonra bir not göster"
+    },
+    "appearance": {
+      "header": "Görünüm",
+      "footer": "Açık ya da koyu görünüm iPhone'unu izler."
+    },
+    "fly": {
+      "ambient": "Ortam sesleri"
+    },
+    "about": {
+      "header": "Hakkında",
+      "updates": "Güncellemeleri denetle",
+      "website": "Geliştiricinin web sitesi",
+      "origin": "{{app}}, Bengisu'ya bir hediye olarak başladı.",
+      "credit": "Mert Efe Şensoy tarafından sevgiyle yapıldı"
+    },
+    "reset": {
+      "button": "Ayarları sıfırla",
+      "title": "Ayarlar sıfırlansın mı?",
+      "message": "Zamanlayıcı süreleri ve anahtarlar varsayılanlarına döner. Notların, istatistiklerin, hedefin ve hatırlatıcıların olduğu gibi kalır.",
+      "cancel": "Vazgeç",
+      "confirm": "Sıfırla"
+    }
   }
 }

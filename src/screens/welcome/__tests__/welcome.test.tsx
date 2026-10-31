@@ -57,14 +57,18 @@ beforeEach(async () => {
 });
 
 describe('the welcome gate', () => {
-    it('waits on a fresh install while the first-launch gift screen is up', async () => {
+    // D2 retired v1's gift screen, so a fresh install's first run is the welcome alone. The
+    // gift's stored flag still tells 1.3.1 updaters apart, for the welcome's line.
+    it('greets a fresh install too, with the fresh-install line, now the gift screen is retired', async () => {
         await show(<TimerScreen />);
-        expect(welcomePushes()).toBe(0);
+        expect(welcomePushes()).toBe(1);
+        expect(useUiStore.getState().welcomeAudience).toBe('fresh');
     });
 
-    it('greets an existing install once, on an idle Timer', async () => {
+    it('greets an existing install once, on an idle Timer, with the updater line', async () => {
         await save(STORAGE_KEYS.GIFT_MODE, { hasSeenGiftMode: true });
         await show(<TimerScreen />);
+        expect(useUiStore.getState().welcomeAudience).toBe('updated');
         expect(welcomePushes()).toBe(1);
         await act(() => jest.advanceTimersByTime(5_000));
         expect(welcomePushes()).toBe(1);

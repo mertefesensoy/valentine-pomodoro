@@ -99,5 +99,70 @@
     "start": "Start",
     "art": "Pomo and Doro become the pages of one diary",
     "replay": "Watch the welcome again"
+  },
+  "settings": {
+    "title": "Settings",
+    "minutes_one": "{{count}} min",
+    "minutes_other": "{{count}} min",
+    "everySessions_one": "{{count}} session",
+    "everySessions_other": "{{count}} sessions",
+    "timer": {
+      "header": "Timer",
+      "focus": "Focus",
+      "shortBreak": "Short break",
+      "longBreak": "Long break",
+      "longBreakEvery": "Long break every",
+      "footer": "Custom on the Timer uses these durations. Changes apply from your next session."
+    },
+    "goal": {
+      "header": "Daily goal",
+      "toggle": "Set a daily goal",
+      "customRow": "Custom goal",
+      "presetA11y_one": "{{count}} minute a day",
+      "presetA11y_other": "{{count}} minutes a day",
+      "footer": "Days that reach the goal count toward your love streak."
+    },
+    "notifications": {
+      "header": "Notifications",
+      "sessionAlerts": "Session alerts",
+      "reminder": "Daily reminder",
+      "reminderTime": "Reminder time",
+      "quiet": "Quiet hours",
+      "quietStart": "Starts",
+      "quietEnd": "Ends",
+      "footer": "Session alerts tell you when a focus or a break ends, even with your phone locked. Quiet hours move the daily reminder out of them.",
+      "denied": "Notifications are off for this app in iOS Settings, so the reminder can't be set.",
+      "openSettings": "Open iOS Settings"
+    },
+    "feel": {
+      "header": "Sound and feel",
+      "sound": "Sound",
+      "haptics": "Haptics"
+    },
+    "notes": {
+      "header": "Love notes",
+      "show": "Show a note after each focus"
+    },
+    "appearance": {
+      "header": "Appearance",
+      "footer": "Light or dark follows your iPhone."
+    },
+    "fly": {
+      "ambient": "Ambient sounds"
+    },
+    "about": {
+      "header": "About",
+      "updates": "Check for updates",
+      "website": "Developer website",
+      "origin": "{{app}} began as a gift for Bengisu.",
+      "credit": "Made with love by Mert Efe Şensoy"
+    },
+    "reset": {
+      "button": "Reset settings",
+      "title": "Reset settings?",
+      "message": "Timer lengths and switches go back to their defaults. Your notes, stats, goal and reminders stay as they are.",
+      "cancel": "Cancel",
+      "confirm": "Reset"
+    }
   }
 }

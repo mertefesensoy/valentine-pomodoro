@@ -13,6 +13,7 @@ import { useStatsStore } from '../stores/statsStore';
 import { useUiStore } from '../stores/uiStore';
 import { StrawberryMilk } from '../theme/palette';
 import { resetStorage } from '../__fixtures__/storage/resetStorage';
+import { save, STORAGE_KEYS } from '../utils/storage';
 
 // The real app/ routes (Phase 1 B6): the root layout with src/App.tsx, the
 // native tabs, the four screens and the 404. Rendering them takes several
@@ -96,7 +97,7 @@ jest.mock('../startup/deferredStartup', () => ({
 const TABS = [
     { path: '/', url: 'valentinepomodoro://', text: 'Start focus' },
     { path: '/stats', url: 'valentinepomodoro://stats', text: 'Today Sessions' },
-    { path: '/settings', url: 'valentinepomodoro://settings', text: 'Settings ⚙️' },
+    { path: '/settings', url: 'valentinepomodoro://settings', text: 'Light or dark follows your iPhone.' },
     { path: '/notes', url: 'valentinepomodoro://notes', text: /^Love Notes/ },
 ];
 
@@ -170,6 +171,10 @@ function tabScreens() {
 
 beforeEach(async () => {
     await resetStorage();
+    // These tests are about tabs and links, not the one-time welcome: with v1's gift screen
+    // retired (D2), a fresh install would otherwise get the welcome at start-up idle.
+    // welcome.test.tsx covers the welcome's gate.
+    await save(STORAGE_KEYS.WELCOME, { seen: true });
     urlListener = null;
     mockNotificationTap = null;
     mockPrerenders.length = 0;
@@ -277,7 +282,7 @@ describe('tabs render late, then never hide', () => {
 
         await startupIdle();
         expect(screen.getByText('Today Sessions')).toBeOnTheScreen();
-        expect(screen.getByText('Settings ⚙️')).toBeOnTheScreen();
+        expect(screen.getByText('Light or dark follows your iPhone.')).toBeOnTheScreen();
         expect(screen.getByText(/^Love Notes/)).toBeOnTheScreen();
         expect(bannerHosts()).toHaveLength(0);
 
@@ -402,10 +407,12 @@ describe('the root', () => {
         expect(screen.getByText('Start focus')).toBeOnTheScreen();
     });
 
-    it('shows Gift Mode on the first launch only', async () => {
+    // D2 retired v1's first-launch gift screen (the owner, 2026-10-31): the welcome is the only
+    // first-run screen, and the app's origin is a line in Settings › About.
+    it('opens a fresh install on the Timer, with no gift screen over it', async () => {
         await launch(null);
-        expect(screen.getByText("Let's start")).toBeOnTheScreen();
-        await act(async () => useUiStore.getState().dismissGiftMode());
+        expect(screen.getByText('Start focus')).toBeOnTheScreen();
         expect(screen.queryByText("Let's start")).toBeNull();
+        expect(screen.queryByText('for Bengisu')).toBeNull();
     });
 });

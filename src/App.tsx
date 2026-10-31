@@ -15,7 +15,6 @@ import { useUpdateCheck } from './hooks/useUpdateCheck';
 import { WindowInsetsProvider } from './hooks/useWindowInsets';
 import { useTheme } from './theme/useTheme';
 import { navigationThemes } from './theme/navigationTheme';
-import GiftModeModal from './components/GiftModeModal';
 import { StoreGate } from './stores/StoreGate';
 import { useUiStore } from './stores/uiStore';
 import { AdManager } from './ads/AdManager';
@@ -43,8 +42,6 @@ SplashScreen.preventAutoHideAsync();
 // Inner component: everything below StoreGate, so the stores are hydrated
 function ThemedApp({ children }: { children: React.ReactNode }) {
   const { theme } = useTheme();
-  const hasSeenGiftMode = useUiStore((s) => s.hasSeenGiftMode);
-  const dismissGiftMode = useUiStore((s) => s.dismissGiftMode);
 
   // Start-up work: each call waits for the first frame itself (Phase 1 B7)
   useUpdateCheck(UPDATE_JSON_URL);
@@ -79,11 +76,6 @@ function ThemedApp({ children }: { children: React.ReactNode }) {
     // The navigator draws its backgrounds from the Sticker Diary tokens (Phase 1 D1)
     <ThemeProvider value={navigationThemes[theme.id]}>
       {children}
-
-      {/* Gift Mode - shows only on first launch */}
-      {!hasSeenGiftMode && (
-        <GiftModeModal visible={!hasSeenGiftMode} onDismiss={dismissGiftMode} />
-      )}
     </ThemeProvider>
   );
 }
@@ -92,7 +84,8 @@ function ThemedApp({ children }: { children: React.ReactNode }) {
  * The app's root (Phase 1 B6: rendered by app/_layout.tsx around the router's
  * navigator, which comes in as `children`). It provides the gesture root, the
  * window's safe-area insets and the hydrated stores, then the navigation
- * theme, and shows Gift Mode on first launch.
+ * theme. v1's first-launch gift screen is retired (D2, the owner): the one-time welcome is
+ * the only first-run screen, and the app's origin is a line in Settings › About.
  */
 export function App({ children }: { children: React.ReactNode }) {
   return (

@@ -28,7 +28,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | Owner: direction contracts | **Approved**, 2026-10-31 ("Approve, build D2"; §3.4) | **Approved**, with `@react-native-picker/picker` | **Approved** | None: a retirement, carried by Settings' About footer |
 | 3. Build (`animate-expo`) | **Built**, `b2db8c1` (§3.8) | **Built**, `23e595c` (§3.6) | **Built**, `de3867c` (§3.7) | **Retired**, `23e595c` (§3.6) |
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | First pass: critique 27/32, audit **15/20**, HIG **1 Critical** (day names), motion clean. After the fixes: critique 27/32 (84 %), audit 16/20, no Critical, motion clean (§3.12) | First pass: critique 34/40, audit 17/20, no Critical, motion not clean. After: critique 36/40, audit 18/20, no Critical, motion clean (§3.12) | First pass: **a P0** (rows unstyled in a release build), motion not clean. After: critique 37/40, audit 17/20, no Critical, motion clean (§3.12) | Retired: none |
-| 5. `break-ui` (TR at AX5) | — | — | — | — |
+| 5. `break-ui` (TR at AX5) | First pass: 2 Ugly (the zero-goal summary, the strip at AX5), 1 shared Ugly (number formats) (§3.13) | Shared: number formats; Turkish words wider than a row (a decision) | 2 Broken (an emoji cut at the cap; the editor header at AX5), 1 Ugly (line breaks lost) | Retired: none |
 | 6. `polish`, `harden`, `clarify` | — | — | — | — |
 | 7. Device check (the next build, with D1's finish-review fixes) | — | — | — | — |
 | FINISH: the finish review, its verdict, DESIGN.md | — | — | — | — |
@@ -544,6 +544,66 @@ The scores after the fixes are this context's re-reading against each finding, e
 | React Compiler | 80 compiled, 5 skipped |
 | The emoji check | Clean |
 | Reassure | Passing: Timer 13, Stats 1, Settings 1, Notes 1, leaf 12, settings-only 1 (unchanged) |
+
+### 3.13 `break-ui` (DESIGN-WORKFLOW §2 step 5)
+
+**The owner, 2026-10-31:** "Start the test".
+
+**How it ran.** As D1's did (D1 record §3.13):
+- **No in-app toggle.** A worst-case toggle inside a TestFlight build would ship to the App Store, which `break-ui` forbids (rule 4).
+- **The worst-case data** is a Jest regression fixture, `d2WorstCase.test.tsx`: Turkish (the device locale mocked to `tr-TR`), AX5 (font scale 3.1) on an iPhone SE-sized window (375 × 667), and the data below. It pins what holds; each break gets its assertion when it's fixed.
+- **Logic findings** were verified by rendering: strings, counts, number formats, what the store keeps, what the editor's field holds.
+- **Layout findings are inferred** from the styles, with SF Pro's advance widths estimated per glyph. Jest can't measure layout, so the device check confirms them.
+
+**The limits found:**
+- focus 1–180 minutes, short break 1–60, long break 1–120, the cycle 2–10 (`DURATION_LIMITS`, Settings);
+- the goal 1–1,440 (FR-STA-004);
+- a note: 280 code units in the editor (a legacy note keeps its length); the store has no limit, and the number of notes is unbounded;
+- sessions in a day: unbounded (16 hours of 25/5 is 32; a 1-minute focus allows hundreds).
+
+**The worst case:**
+- **Stats:** today 32 sessions (800 min), a 34-session day, 50-minute sessions, a single session, two empty days, the goal at 1,440 (reached on no day), a streak of 0 with a best of 12.
+- **Settings:** 180 / 60 / 120 minutes, every 10 sessions, a custom goal of 1,440.
+- **Notes:** 200 notes, a note typed on three lines, a duplicate, an emoji typed at the cap.
+
+**What broke** (first pass; the fixes wait for the owner):
+
+| # | Severity | Worst case | What happens | Verified or inferred | Fix |
+|---|---|---|---|---|---|
+| 1 | Broken | An emoji typed or pasted across the 280 cap (`"a" × 279 + "🍓"`) | `v.slice(0, max)` cuts the surrogate pair: the field and the saved note end in a lone `\uD83C`, which iOS draws as "�" | Verified (the field's last code unit is `d83c`) | Drop a trailing high surrogate (and a trailing zero-width joiner) after the slice (`NoteEditor.tsx:143`) |
+| 2 | Broken on a 375 pt iPhone | The editor's header at AX5 in Turkish | "Vazgeç" (about 171 pt) and "Kaydet" (about 167 pt) don't shrink (React Native's default `flexShrink` is 0): 354 pt against 343. Save's label runs past the edge, and the title collapses to nothing on every iPhone. In English the title truncates to "N…" | Inferred | Cap the header's three texts at 1.4×, as the titles are; iOS's own bar buttons stop growing at the accessibility sizes (`NoteEditor.tsx:118-133`) |
+| 3 | Ugly | A note typed on three lines | The store's `normalizeNote` folds every whitespace run, newlines included, into one space: it saves as "Birinci satır İkinci satır Üçüncü" | Verified | Decision for the owner (below) (`notesStore.ts:13-16`) |
+| 4 | Ugly | A week in which no day reaches the goal | The summary says "Son 7 gün: 103 oturum · 0 gün hedefe ulaşıldı" ("goal reached on 0 days"), which reads as a miss; the contract says nothing does | Verified | Leave the clause out at 0 (`StatsScreen.tsx:126`) |
+| 5 | Ugly | The goal and streak strip at AX4–AX5 | Each half has `flex: 1` (basis 0) and `minWidth: 150`, so the strip never wraps; each text column is about 108–117 pt, and "Hedef", "serisi" (and "streak" in English) at 46.5 pt break mid-word | Inferred | In the AX list, stack the halves with a horizontal divider (`StatsScreen.tsx:205-225`, `:281-282`) |
+| 6 | Ugly | Numbers of 1,000 or more | One number in two formats on one screen: "Son 7 gün: 2975 dakika" above "Tüm zamanlar: … 2.975 dakika"; "Hedef 1440 dk", "Bugün 640 dk kaldı"; Settings' "1440 dk" | Verified | Pass a formatted `n` (keeping `count` for the plural) in `stats.weekMinutes`, `weekSessions`, `goalTitle`, `leftToday`, `toGoal`, `minutesShort`, `streakValue` and `settings.minutes`, as `sessionsN` and `minutesN` already do |
+
+**Decisions for the owner:**
+- **Line breaks in notes (#3):** keep them, collapsing spaces and allowing at most one blank line (recommended: the editor is multi-line and invites them, and the sheet shows them), or make notes single-line, with Return ending the edit.
+- **Long notes at AX sizes:** a 280-character note is about 26 lines (about 1,800 pt) at AX5 on an iPhone SE, and a legacy v1 note of 1,200 characters about 7,700 pt. The contract says rows wrap fully; clamping to about 6 lines (the full text in the editor and to VoiceOver) is the alternative. Recommended: keep the contract and judge it at the device check.
+- **A streak of 0:** "0 gün · en iyi 12" is factual but reads as a loss beside the best. A softer line at 0, such as "Starts on your next goal day · best 12", is the alternative (PRODUCT principle 2). Recommended: the softer line.
+- **Turkish words wider than the screen at AX5:** in Settings, "Güncellemeleri" (about 353 pt) and "Geliştiricinin" (about 321 pt) are wider than a 375 pt iPhone's row (311 pt), and iOS breaks them by character, as it does in its own apps. Recommended: accept, since capping row text would break NFR-A11Y-003.
+
+**What held up:**
+- **Stats:**
+  - 32 and 34 sessions show 8 and 4 stickers, then "+24" and "+30";
+  - empty days are dashed, and VoiceOver hears "oturum yok";
+  - the day names have their own lines at AX5 (§3.12);
+  - the all-time line is grouped ("2.975");
+  - an empty week offers "Bir oturum başlat";
+  - at a 1,440 goal, today's dashed cells stop at its two rows, with the minutes left in words (D1 record §4.3);
+  - compact height and iPad keep their layouts.
+- **Settings:**
+  - at AX5 a row's label and value stack, and a switch drops under its label;
+  - 180 / 60 / 120, every 10 and 1,440 all show;
+  - the goal's five segments wrap 2-2-1 at the 2× cap, and "Karşılıklı sayfalar" (about 113 pt a word) fits its segment;
+  - the custom wheel lists all 1,440 minutes.
+- **Notes:**
+  - 200 notes mount only the first 10 rows (a virtualized list), with "200 not" in the header;
+  - a URL with no break opportunities wraps by character on iOS, with no overflow;
+  - the swipe's "Sil" is capped;
+  - Add wraps under the title.
+- **The editor:** whitespace alone can't be saved; a legacy long note keeps its length, with the neutral line.
+- **A duplicate note** is dropped on Save (`notesStore.ts:80`). That's harmless: the same text is already in the list.
 
 ## 4. Mathematical / Statistical Details
 

@@ -51,7 +51,7 @@ jest.mock('react-native-gesture-handler/ReanimatedSwipeable', () => {
 jest.mock('react-native-maps', () => {
     const React = require('react');
     const { View } = require('react-native');
-    const MapView = React.forwardRef(function MockMapView(props: { children?: unknown }, ref: unknown) {
+    const MapView = React.forwardRef(function MockMapView(props: Record<string, unknown> & { children?: unknown }, ref: unknown) {
         React.useImperativeHandle(ref, () => ({
             animateCamera: jest.fn(),
             animateToRegion: jest.fn(),
@@ -59,7 +59,10 @@ jest.mock('react-native-maps', () => {
             setCamera: jest.fn(),
             getCamera: jest.fn(async () => ({ center: { latitude: 0, longitude: 0 }, heading: 0, pitch: 0, zoom: 1, altitude: 0 })),
         }));
-        return React.createElement(View, { testID: 'map-view' }, props.children);
+        // The touch and region handlers ride on the View, so a test can drive them: Fly enters free
+        // mode only while a finger moves the map (flyCamera.test.tsx).
+        const { onTouchStart, onTouchEnd, onTouchCancel, onRegionChange } = props;
+        return React.createElement(View, { testID: 'map-view', onTouchStart, onTouchEnd, onTouchCancel, onRegionChange }, props.children);
     });
     const Plain = (props: { children?: unknown }) => React.createElement(View, null, props.children);
     return { __esModule: true, default: MapView, Marker: Plain, Polyline: Plain };

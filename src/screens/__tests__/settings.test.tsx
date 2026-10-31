@@ -96,6 +96,9 @@ describe('Settings as a native grouped list', () => {
 describe("Settings' daily goal", () => {
     it('selects a preset, then a custom value, and keeps it through off and on', async () => {
         await renderSettings();
+        // Plain numbers under one caption, so "100" never wraps (build 51 device check).
+        expect(screen.getByText('Minutes a day')).toBeOnTheScreen();
+        expect(screen.getByText('100')).toBeOnTheScreen();
         expect(screen.getByLabelText('50 minutes a day')).toBeSelected();
         await press(screen.getByLabelText('75 minutes a day'));
         expect(useStatsStore.getState().goalMinutes).toBe(75);

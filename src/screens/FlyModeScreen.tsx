@@ -166,6 +166,21 @@ export default function FlyModeScreen() {
     // Heading update throttle — live compass during map rotation (10fps max)
     const headingThrottleRef = useRef(0);
 
+    // A finger on the map. Only the user's own pan, pinch or rotate may enter free mode: Fly's own
+    // camera moves (following the plane, fitting the route) fire onRegionChange too, and switched
+    // the mode straight back to free, so the camera button snapped back to the hand (build 51
+    // device check). Apple Maps can't say whether a move was a gesture (react-native-maps:
+    // `isGesture` is Google Maps only), so the touch itself decides, plus a short tail after the
+    // finger lifts for a flick's deceleration.
+    const touchingMapRef = useRef(false);
+    const touchEndedAtRef = useRef(0);
+    const MAP_FLICK_TAIL_MS = 600;
+    const userIsMovingMap = () => touchingMapRef.current || Date.now() - touchEndedAtRef.current < MAP_FLICK_TAIL_MS;
+    const endMapTouch = () => {
+        touchingMapRef.current = false;
+        touchEndedAtRef.current = Date.now();
+    };
+
     // Airport table: a runtime-loaded asset (Phase 1 B1b), empty for the few
     // milliseconds until the first read finishes, then cached for the app's life.
     const airports = useAirports();
@@ -757,9 +772,15 @@ export default function FlyModeScreen() {
                 // Live heading update during rotation gesture (throttled to ~10fps).
                 // onRegionChangeComplete fires only after the gesture settles; this
                 // fires continuously so the CompassRose needle rotates in real-time.
-                // Also enters free mode so camera stops chasing the plane while rotating.
+                // While the user's finger moves the map (and only then), it also enters free
+                // mode, so the camera stops chasing the plane.
+                onTouchStart={() => {
+                    touchingMapRef.current = true;
+                }}
+                onTouchEnd={endMapTouch}
+                onTouchCancel={endMapTouch}
                 onRegionChange={async () => {
-                    enterFreeMode();
+                    if (userIsMovingMap()) enterFreeMode();
                     const now = Date.now();
                     if (now - headingThrottleRef.current < 100) return;
                     headingThrottleRef.current = now;

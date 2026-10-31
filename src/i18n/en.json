@@ -117,6 +117,7 @@
     "goal": {
       "header": "Daily goal",
       "toggle": "Set a daily goal",
+      "caption": "Minutes a day",
       "customRow": "Custom goal",
       "presetA11y_one": "{{count}} minute a day",
       "presetA11y_other": "{{count}} minutes a day",

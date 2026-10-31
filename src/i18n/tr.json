@@ -117,6 +117,7 @@
     "goal": {
       "header": "Günlük hedef",
       "toggle": "Günlük hedef belirle",
+      "caption": "Günde dakika",
       "customRow": "Özel hedef",
       "presetA11y_one": "Günde {{count}} dakika",
       "presetA11y_other": "Günde {{count}} dakika",

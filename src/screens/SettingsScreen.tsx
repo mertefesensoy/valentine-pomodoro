@@ -189,11 +189,14 @@ export default function SettingsScreen() {
                     />
                     {goalMinutes > 0 && (
                         <View style={styles.segmentRow}>
+                            {/* Plain numbers under one caption: "100 min" wrapped onto two lines
+                                and pushed Custom out of line (build 51 device check). */}
+                            <Text style={[styles.caption, { color: tokens.inkSoft }]}>{t('settings.goal.caption')}</Text>
                             <SegmentedControl<GoalSegment>
                                 segments={[
                                     ...GOAL_PRESETS.map((p) => ({
                                         value: p,
-                                        label: minutes(Number(p)),
+                                        label: p,
                                         accessibilityLabel: t('settings.goal.presetA11y', { count: Number(p) }),
                                     })),
                                     { value: 'custom' as const, label: t('presets.custom'), accessibilityLabel: t('presets.custom') },

@@ -63,9 +63,12 @@ function NoteRow({ note, index, first, last, tokens, onDelete }: {
                 </Pressable>
             )}
         >
-            <Link href={editorHref(index)}>
+            {/* `asChild`: without it the link renders its child inside a Text, which lays the row out
+                as inline text, drops its paper and padding, and lets the swipe's Delete show through
+                (build 51 device check). With it, the link hands its press to the row's Pressable. */}
+            <Link href={editorHref(index)} asChild>
                 <Link.Trigger>
-                    <View
+                    <Pressable
                         style={shape}
                         accessible
                         accessibilityRole="button"
@@ -82,7 +85,7 @@ function NoteRow({ note, index, first, last, tokens, onDelete }: {
                     >
                         {!first && <View style={[styles.separator, { backgroundColor: tokens.edge }]} />}
                         <Text style={[styles.note, { color: tokens.ink }]}>{note}</Text>
-                    </View>
+                    </Pressable>
                 </Link.Trigger>
                 <Link.Menu>
                     <Link.MenuAction title={t('notesScreen.edit')} onPress={() => router.push(editorHref(index))} />

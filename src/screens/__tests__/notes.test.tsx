@@ -8,14 +8,19 @@ import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import { DEFAULT_LOVE_NOTES, DEFAULT_LOVE_NOTES_TR } from '../../constants/defaults';
 import { useLoveNoteSheet } from '../../stores/loveNoteSheetStore';
 import { NOTE_MAX_LENGTH, useNotesStore } from '../../stores/notesStore';
+import { StrawberryMilk } from '../../theme/palette';
 import LoveNotesScreen from '../LoveNotesScreen';
 import { NoteEditor } from '../notes/NoteEditor';
 
 // The native context menu (`Link.Menu`) renders only on iOS inside a navigator; here a link is its
 // trigger, and the menu's actions are covered by the VoiceOver custom actions they mirror.
+// Every link's props, so a test can see how the rows use it (the real link's native preview view
+// renders nothing under Jest).
+const mockLinkProps = jest.fn();
 jest.mock('expo-router', () => {
-    const Link = function MockLink({ children }: { children: ReactNode }) {
-        return children;
+    const Link = function MockLink(props: { children: ReactNode }) {
+        mockLinkProps(props);
+        return props.children;
     };
     Link.Trigger = function MockLinkTrigger({ children }: { children: ReactNode }) {
         return children;
@@ -94,6 +99,20 @@ describe('Love notes (D2 Notes contract)', () => {
         expect(screen.getByText('20 notes')).toBeOnTheScreen();
         expect(screen.getByRole('button', { name: 'Preview a note' })).toBeOnTheScreen();
         expect(screen.getByLabelText(DEFAULT_LOVE_NOTES[0])).toBeOnTheScreen();
+    });
+
+    // Build 51 device check: the rows rendered as inline text, their paper and padding gone and the
+    // swipe's Delete showing through. Expo Router's Link wraps its child in a Text unless it's
+    // asChild; with asChild it hands its press to the child, which must be a pressable row.
+    it('gives every note link asChild, so each row is a pressable paper block', async () => {
+        mockLinkProps.mockClear();
+        await show(<LoveNotesScreen />);
+        const noteLinks = mockLinkProps.mock.calls.map(([props]) => props).filter((p) => p.href?.pathname === '/note-editor');
+        expect(noteLinks.length).toBeGreaterThan(0);
+        for (const props of noteLinks) expect(props.asChild).toBe(true);
+        const row = screen.getByLabelText(DEFAULT_LOVE_NOTES[0]);
+        expect(row).toHaveStyle({ backgroundColor: StrawberryMilk.tokens.paper });
+        expect(row.props.onClick ?? row.props.onPress ?? row.props.onResponderRelease).toBeDefined();
     });
 
     it('previews a random note in the love-note sheet Classic shows', async () => {

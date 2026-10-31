@@ -11,8 +11,9 @@ describe('the form sheets paint their whole surface', () => {
         expect(sheets.modes.contentStyle.backgroundColor).toBe(tokens.page);
     });
 
-    it('keeps both native form sheets sized to their content, without a grabber', () => {
-        for (const options of Object.values(sheetOptions(StrawberryMilk.tokens))) {
+    it('keeps both reading sheets sized to their content, without a grabber', () => {
+        const { loveNote, modes } = sheetOptions(StrawberryMilk.tokens);
+        for (const options of [loveNote, modes]) {
             expect(options).toMatchObject({
                 presentation: 'formSheet',
                 sheetAllowedDetents: 'fitToContents',
@@ -20,5 +21,17 @@ describe('the form sheets paint their whole surface', () => {
                 headerShown: false,
             });
         }
+    });
+
+    // D2 Notes contract: the editor is for writing, so it takes the full height (`sheets.md`),
+    // draws its own Cancel and Save header, and sits on the page colour.
+    it.each([StrawberryMilk, MidnightPlum])('in $id, the note editor is a full-height sheet on the page', ({ tokens }) => {
+        expect(sheetOptions(tokens).noteEditor).toMatchObject({
+            presentation: 'formSheet',
+            sheetAllowedDetents: [1],
+            sheetGrabberVisible: false,
+            headerShown: false,
+            contentStyle: { backgroundColor: tokens.page },
+        });
     });
 });

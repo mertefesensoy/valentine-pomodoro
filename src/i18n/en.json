@@ -164,5 +164,41 @@
       "cancel": "Cancel",
       "confirm": "Reset"
     }
+  },
+  "notesScreen": {
+    "title": "Love notes",
+    "count_one": "{{count}} note",
+    "count_other": "{{count}} notes",
+    "add": "Add",
+    "addA11y": "Add a note",
+    "preview": "Preview a note",
+    "edit": "Edit",
+    "editHint": "Opens the note to edit it",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "deleteTitle": "Delete this note?",
+    "deleteMessage": "It's removed from your notes. This can't be undone.",
+    "restore": "Restore default notes",
+    "restoreTitle": "Restore default notes?",
+    "restoreMessage": "This adds back any default notes you've removed. Your own notes stay as they are.",
+    "restoreConfirm": "Restore",
+    "restoredNone": "All the default notes are already here.",
+    "restored_one": "Added {{count}} note.",
+    "restored_other": "Added {{count}} notes.",
+    "emptyLine": "Add a note for after your next focus",
+    "editor": {
+      "new": "New note",
+      "edit": "Edit note",
+      "save": "Save",
+      "cancel": "Cancel",
+      "placeholder": "Write something sweet for after a focus",
+      "left_one": "{{count}} character left",
+      "left_other": "{{count}} characters left",
+      "long": "This note is longer than 280 characters. It's kept as it is, and it can't grow.",
+      "delete": "Delete note",
+      "discardTitle": "Discard your changes?",
+      "discard": "Discard changes",
+      "keep": "Keep editing"
+    }
   }
 }

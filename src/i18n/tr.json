@@ -164,5 +164,41 @@
       "cancel": "Vazgeç",
       "confirm": "Sıfırla"
     }
+  },
+  "notesScreen": {
+    "title": "Aşk notları",
+    "count_one": "{{count}} not",
+    "count_other": "{{count}} not",
+    "add": "Ekle",
+    "addA11y": "Not ekle",
+    "preview": "Bir notu önizle",
+    "edit": "Düzenle",
+    "editHint": "Notu düzenlemek için açar",
+    "delete": "Sil",
+    "cancel": "Vazgeç",
+    "deleteTitle": "Bu not silinsin mi?",
+    "deleteMessage": "Notlarından kaldırılır. Bu geri alınamaz.",
+    "restore": "Varsayılan notları geri getir",
+    "restoreTitle": "Varsayılan notlar geri getirilsin mi?",
+    "restoreMessage": "Kaldırdığın varsayılan notlar geri eklenir. Kendi notların olduğu gibi kalır.",
+    "restoreConfirm": "Geri getir",
+    "restoredNone": "Varsayılan notların hepsi zaten burada.",
+    "restored_one": "{{count}} not eklendi.",
+    "restored_other": "{{count}} not eklendi.",
+    "emptyLine": "Bir sonraki odağın için bir not ekle",
+    "editor": {
+      "new": "Yeni not",
+      "edit": "Notu düzenle",
+      "save": "Kaydet",
+      "cancel": "Vazgeç",
+      "placeholder": "Bir odaktan sonrası için tatlı bir şey yaz",
+      "left_one": "{{count}} karakter kaldı",
+      "left_other": "{{count}} karakter kaldı",
+      "long": "Bu not 280 karakterden uzun. Olduğu gibi kalır ve uzayamaz.",
+      "delete": "Notu sil",
+      "discardTitle": "Değişikliklerin silinsin mi?",
+      "discard": "Değişiklikleri sil",
+      "keep": "Düzenlemeye devam et"
+    }
   }
 }

@@ -31,6 +31,19 @@ jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock
 
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
 
+// Gesture Handler's ReanimatedSwipeable (the Notes rows' swipe, D2) runs on its v3 hooks, which
+// call a shared value's removeListener; Reanimated's mock has none, and the timer that calls it
+// crashes the Jest worker after the test. A swipe can't be exercised here anyway: the row renders
+// as itself, and its Delete is tested through the VoiceOver action it mirrors.
+jest.mock('react-native-gesture-handler/ReanimatedSwipeable', () => {
+    const React = require('react');
+    const MockSwipeable = React.forwardRef(function MockSwipeable(props: { children?: unknown }, ref: unknown) {
+        React.useImperativeHandle(ref, () => ({ close: jest.fn(), openLeft: jest.fn(), openRight: jest.fn(), reset: jest.fn() }));
+        return props.children;
+    });
+    return { __esModule: true, default: MockSwipeable };
+});
+
 // react-native-maps resolves its TurboModule at import time. TimerScreen loads
 // FlyModeScreen lazily (Phase 1 B1), but every test that opens Fly (the A1 guard)
 // still evaluates it, so keep this mock. The map becomes plain Views; the camera

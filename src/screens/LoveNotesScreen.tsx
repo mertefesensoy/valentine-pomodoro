@@ -1,330 +1,246 @@
-import { useMemo, useState } from 'react';
-import {
-    Alert,
-    FlatList,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
-    StyleSheet,
-    StatusBar,
-} from 'react-native';
+import { useRef, useState } from 'react';
+import { Alert, FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Link, router } from 'expo-router';
+
+import { Icon } from '../components/icons/Icon';
+import { plus } from '../components/icons/art/plus';
+import { ButtonRow, ListGroup } from '../components/settings/SettingsList';
+import { PressableScale } from '../components/ui/PressableScale';
+import { t } from '../i18n';
+import { useLoveNoteSheet } from '../stores/loveNoteSheetStore';
 import { useNotesStore } from '../stores/notesStore';
+import { fonts } from '../theme/type';
+import { edgeWidth, minTarget, radius, space } from '../theme/layout';
+import type { ThemeTokens } from '../theme/palette';
 import { useTheme } from '../theme/useTheme';
-import { useResponsive } from '../hooks/useResponsive';
+import { PoseSticker } from './classic/PoseSticker';
 
-type Mode = { type: 'add' } | { type: 'edit'; index: number; initial: string } | null;
+// Regular width (iPad, wide windows): the list centres at a readable width, as Classic does.
+const READABLE_WIDTH = 560;
+const DELETE_WIDTH = 88;
 
+const editorHref = (index: number) => ({ pathname: '/note-editor' as const, params: { index: String(index) } });
+
+/**
+ * One note: a paper slip in the inset group (D2 Notes contract). A tap opens it in the editor; a
+ * trailing swipe gives Delete; a long press gives the native menu, Edit then Delete (`Link.Menu`,
+ * no icons rather than SF Symbols); VoiceOver gets both as custom actions. The editor has its own
+ * Delete button, so no action needs a gesture (NFR-A11Y-004).
+ */
+function NoteRow({ note, index, first, last, tokens, onDelete }: {
+    note: string;
+    index: number;
+    first: boolean;
+    last: boolean;
+    tokens: ThemeTokens;
+    onDelete: (index: number) => void;
+}) {
+    const swipe = useRef<SwipeableMethods>(null);
+    const shape = [
+        styles.row,
+        { backgroundColor: tokens.paper, borderColor: tokens.edge },
+        first && styles.rowFirst,
+        last && styles.rowLast,
+    ];
+    return (
+        <ReanimatedSwipeable
+            ref={swipe}
+            friction={2}
+            rightThreshold={DELETE_WIDTH / 2}
+            overshootRight={false}
+            renderRightActions={() => (
+                <Pressable
+                    onPress={() => {
+                        swipe.current?.close();
+                        onDelete(index);
+                    }}
+                    style={[styles.deleteAction, { backgroundColor: tokens.danger }, first && styles.rowFirst, last && styles.rowLast]}
+                    accessibilityRole="button"
+                >
+                    <Text style={[styles.deleteText, { color: tokens.onDanger }]}>{t('notesScreen.delete')}</Text>
+                </Pressable>
+            )}
+        >
+            <Link href={editorHref(index)}>
+                <Link.Trigger>
+                    <View
+                        style={shape}
+                        accessible
+                        accessibilityRole="button"
+                        accessibilityLabel={note}
+                        accessibilityHint={t('notesScreen.editHint')}
+                        accessibilityActions={[
+                            { name: 'edit', label: t('notesScreen.edit') },
+                            { name: 'delete', label: t('notesScreen.delete') },
+                        ]}
+                        onAccessibilityAction={(e) => {
+                            if (e.nativeEvent.actionName === 'edit') router.push(editorHref(index));
+                            if (e.nativeEvent.actionName === 'delete') onDelete(index);
+                        }}
+                    >
+                        {!first && <View style={[styles.separator, { backgroundColor: tokens.edge }]} />}
+                        <Text style={[styles.note, { color: tokens.ink }]}>{note}</Text>
+                    </View>
+                </Link.Trigger>
+                <Link.Menu>
+                    <Link.MenuAction title={t('notesScreen.edit')} onPress={() => router.push(editorHref(index))} />
+                    <Link.MenuAction title={t('notesScreen.delete')} destructive onPress={() => onDelete(index)} />
+                </Link.Menu>
+            </Link>
+        </ReanimatedSwipeable>
+    );
+}
+
+/**
+ * Love notes (D2 Notes contract): the notes shown after a focus, as the diary's slips of paper.
+ * The title with the count and Add; "Preview a note" above the list, which opens the same
+ * love-note sheet Classic shows; the list; and "Restore default notes" at its foot, which adds
+ * back missing defaults and removes nothing. Notes people write keep their own emoji.
+ */
 export default function LoveNotesScreen() {
-    const { colors, isDark } = useTheme();
-    const { isTablet } = useResponsive();
     const notes = useNotesStore((s) => s.notes);
-    const isReady = useNotesStore((s) => s.isReady);
-    const addNote = useNotesStore((s) => s.addNote);
-    const editNote = useNotesStore((s) => s.editNote);
     const deleteNote = useNotesStore((s) => s.deleteNote);
-    const resetToDefaults = useNotesStore((s) => s.resetToDefaults);
+    const restoreDefaults = useNotesStore((s) => s.restoreDefaults);
     const pickRandomNote = useNotesStore((s) => s.pickRandomNote);
+    const { tokens } = useTheme();
+    const insets = useSafeAreaInsets();
+    const { width } = useWindowDimensions();
+    const [restored, setRestored] = useState<number | null>(null);
 
-    const [mode, setMode] = useState<Mode>(null);
-    const [draft, setDraft] = useState('');
-    const [preview, setPreview] = useState<string | null>(null);
-
-    const title = useMemo(() => `Love Notes 💌 (${notes.length})`, [notes.length]);
-
-    const openAdd = () => {
-        setDraft('');
-        setMode({ type: 'add' });
+    const add = () => router.push('/note-editor');
+    const preview = () => {
+        useLoveNoteSheet.getState().open(pickRandomNote(null));
+        router.push('/love-note');
     };
-
-    const openEdit = (index: number) => {
-        setDraft(notes[index] ?? '');
-        setMode({ type: 'edit', index, initial: notes[index] ?? '' });
-    };
-
-    const closeModal = () => {
-        setMode(null);
-        setDraft('');
-    };
-
-    const onSave = async () => {
-        const text = draft;
-        if (mode?.type === 'add') await addNote(text);
-        if (mode?.type === 'edit') await editNote(mode.index, text);
-        closeModal();
-    };
-
     const confirmDelete = (index: number) => {
-        Alert.alert('Delete note?', "This can't be undone.", [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Delete', style: 'destructive', onPress: () => deleteNote(index) },
+        Alert.alert(t('notesScreen.deleteTitle'), t('notesScreen.deleteMessage'), [
+            { text: t('notesScreen.cancel'), style: 'cancel' },
+            { text: t('notesScreen.delete'), style: 'destructive', onPress: () => deleteNote(index) },
+        ]);
+    };
+    const confirmRestore = () => {
+        Alert.alert(t('notesScreen.restoreTitle'), t('notesScreen.restoreMessage'), [
+            { text: t('notesScreen.cancel'), style: 'cancel' },
+            { text: t('notesScreen.restoreConfirm'), onPress: () => setRestored(restoreDefaults()) },
         ]);
     };
 
-    const confirmReset = () => {
-        Alert.alert('Reset notes?', 'Restore the default love notes list.', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Reset', style: 'destructive', onPress: resetToDefaults },
-        ]);
-    };
+    const addButton = (
+        <PressableScale
+            onPress={add}
+            accessibilityLabel={t('notesScreen.addA11y')}
+            style={[styles.add, { backgroundColor: tokens.primary }]}
+        >
+            <Icon glyph={plus} size={20} color={tokens.onPrimary} />
+            <Text style={[styles.addText, { color: tokens.onPrimary }]}>{t('notesScreen.add')}</Text>
+        </PressableScale>
+    );
+
+    const header = (
+        <View style={styles.headerBlock}>
+            <View style={styles.titleRow}>
+                <View style={styles.titleText}>
+                    <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header" maxFontSizeMultiplier={1.4}>
+                        {t('notesScreen.title')}
+                    </Text>
+                    <Text style={[styles.count, { color: tokens.inkSoft }]}>{t('notesScreen.count', { count: notes.length })}</Text>
+                </View>
+                {notes.length > 0 && addButton}
+            </View>
+            {notes.length > 0 && (
+                <ListGroup>
+                    <ButtonRow label={t('notesScreen.preview')} onPress={preview} />
+                </ListGroup>
+            )}
+        </View>
+    );
+
+    const footer = (
+        <View style={styles.footerBlock}>
+            <ListGroup>
+                <ButtonRow label={t('notesScreen.restore')} onPress={confirmRestore} />
+            </ListGroup>
+            {restored !== null && (
+                <Text style={[styles.restored, { color: tokens.inkSoft }]} accessibilityLiveRegion="polite">
+                    {restored === 0 ? t('notesScreen.restoredNone') : t('notesScreen.restored', { count: restored })}
+                </Text>
+            )}
+        </View>
+    );
+
+    const empty = (
+        <View style={styles.empty}>
+            <View style={styles.pair} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                <PoseSticker who="pomo" pose="idle" width={64} shadow={tokens.stickerShadow} />
+                <PoseSticker who="doro" pose="idle" width={64} shadow={tokens.stickerShadow} />
+            </View>
+            <Text style={[styles.emptyLine, { color: tokens.ink }]}>{t('notesScreen.emptyLine')}</Text>
+            {addButton}
+        </View>
+    );
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-            <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-            <View style={[styles.content, isTablet && styles.contentTablet]}>
-            <View style={styles.header}>
-                <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-                <Pressable onPress={openAdd} style={[styles.addButton, { backgroundColor: colors.accent }]}>
-                    <Text style={[styles.addButtonText, { color: colors.onAccent }]}>Add</Text>
-                </Pressable>
-            </View>
-
-            {!isReady ? (
-                <Text style={[styles.loadingText, { color: colors.textMuted }]}>Loading…</Text>
-            ) : (
-                <>
-                    <View style={styles.actionRow}>
-                        <Pressable onPress={() => setPreview(pickRandomNote(preview))} style={[styles.actionButton, { borderColor: colors.accentPurple }]}>
-                            <Text style={[styles.actionButtonText, { color: colors.accentPurple }]}>Randomize preview</Text>
-                        </Pressable>
-
-                        <Pressable onPress={confirmReset} style={[styles.actionButton, { borderColor: colors.accentPurple }]}>
-                            <Text style={[styles.actionButtonText, { color: colors.accentPurple }]}>Reset defaults</Text>
-                        </Pressable>
-                    </View>
-
-                    {preview ? (
-                        <View style={[styles.previewCard, { backgroundColor: colors.card, borderColor: colors.surfaceTint }]}>
-                            <Text style={[styles.previewText, { color: colors.text }]}>{preview}</Text>
-                        </View>
-                    ) : null}
-
-                    {/* The SafeAreaView's bottom inset includes the native tab bar (Phase 1 B6). */}
-                    <FlatList
-                        style={styles.list}
-                        contentContainerStyle={{ paddingBottom: 8 }}
-                        data={notes}
-                        keyExtractor={(_, i) => String(i)}
-                        ItemSeparatorComponent={() => <View style={styles.separator} />}
-                        renderItem={({ item, index }) => (
-                            <View style={[styles.noteCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                                <Text style={[styles.noteText, { color: colors.text }]}>{item}</Text>
-
-                                <View style={styles.noteActions}>
-                                    <Pressable onPress={() => openEdit(index)} style={styles.noteActionButton}>
-                                        <Text style={[styles.noteActionText, { color: colors.accentPurple }]}>Edit</Text>
-                                    </Pressable>
-                                    <Pressable onPress={() => confirmDelete(index)} style={styles.noteActionButton}>
-                                        <Text style={[styles.noteActionDeleteText, { color: colors.accent }]}>Delete</Text>
-                                    </Pressable>
-                                </View>
-                            </View>
-                        )}
-                    />
-                </>
+        <FlatList
+            style={{ backgroundColor: tokens.page }}
+            contentContainerStyle={[
+                styles.list,
+                {
+                    paddingTop: insets.top + space.s,
+                    paddingBottom: insets.bottom + space.xl,
+                    paddingHorizontal: Math.max(space.l, (width - READABLE_WIDTH) / 2),
+                },
+            ]}
+            data={notes}
+            keyExtractor={(note, index) => `${index}:${note}`}
+            renderItem={({ item, index }) => (
+                <NoteRow
+                    note={item}
+                    index={index}
+                    first={index === 0}
+                    last={index === notes.length - 1}
+                    tokens={tokens}
+                    onDelete={confirmDelete}
+                />
             )}
-
-            </View>
-
-            <Modal visible={mode !== null} animationType="slide" onRequestClose={closeModal}>
-                <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.bg }]}>
-                    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-                        <ScrollView
-                            contentContainerStyle={[styles.modalInner, isTablet && styles.modalInnerTablet]}
-                            keyboardShouldPersistTaps="handled"
-                        >
-                            <Text style={[styles.modalTitle, { color: colors.text }]}>{mode?.type === 'add' ? 'Add note' : 'Edit note'}</Text>
-
-                            <TextInput
-                                value={draft}
-                                onChangeText={setDraft}
-                                placeholder="Write something sweet…"
-                                placeholderTextColor={colors.textMuted}
-                                multiline
-                                style={[styles.textInput, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
-                            />
-
-                            <View style={styles.modalActions}>
-                                <Pressable onPress={closeModal} style={[styles.modalButton, { borderColor: colors.accentPurple }]}>
-                                    <Text style={[styles.modalButtonText, { color: colors.accentPurple }]}>Cancel</Text>
-                                </Pressable>
-
-                                <Pressable onPress={onSave} style={[styles.modalButton, styles.modalButtonPrimary, { backgroundColor: colors.accent, borderColor: colors.accent }]}>
-                                    <Text style={[styles.modalButtonTextPrimary, { color: colors.onAccent }]}>Save</Text>
-                                </Pressable>
-                            </View>
-                        </ScrollView>
-                    </KeyboardAvoidingView>
-                </SafeAreaView>
-            </Modal>
-        </SafeAreaView>
+            ListHeaderComponent={header}
+            ListHeaderComponentStyle={styles.headerSpacing}
+            ListFooterComponent={footer}
+            ListFooterComponentStyle={styles.footerSpacing}
+            ListEmptyComponent={empty}
+        />
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        // backgroundColor removed
-    },
-    content: {
-        flex: 1,
-        paddingHorizontal: 20,
-        paddingTop: 16,
-    },
-    contentTablet: {
-        maxWidth: 720,
-        alignSelf: 'center',
-        width: '100%',
-    },
-    header: {
+    list: { flexGrow: 1 },
+    headerSpacing: { marginBottom: space.l },
+    footerSpacing: { marginTop: space.xl },
+    headerBlock: { gap: space.l },
+    titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.m, flexWrap: 'wrap' },
+    titleText: { flex: 1, minWidth: 160 },
+    title: { fontFamily: fonts.semiBold, fontSize: 34, lineHeight: 42 },
+    count: { fontSize: 15, fontVariant: ['tabular-nums'] },
+    add: {
+        minHeight: minTarget,
+        paddingHorizontal: space.l,
+        borderRadius: radius.pill,
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: 8,
+        gap: space.xs,
     },
-    title: {
-        fontSize: 20,
-        fontWeight: '600',
-        // color removed
-    },
-    addButton: {
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        // backgroundColor removed
-        borderRadius: 12,
-    },
-    addButtonText: {
-        fontSize: 16,
-        fontWeight: '600',
-        // color removed
-    },
-    loadingText: {
-        marginTop: 16,
-        fontSize: 16,
-        // color removed
-    },
-    actionRow: {
-        marginTop: 12,
-        flexDirection: 'row',
-        gap: 12,
-    },
-    actionButton: {
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        borderWidth: 2,
-        // borderColor removed
-        borderRadius: 12,
-    },
-    actionButtonText: {
-        fontSize: 14,
-        fontWeight: '500',
-        // color removed
-    },
-    previewCard: {
-        marginTop: 12,
-        padding: 12,
-        borderRadius: 16,
-        borderWidth: 2,
-        // borderColor, backgroundColor removed
-    },
-    previewText: {
-        fontSize: 16,
-        // color removed
-    },
-    list: {
-        marginTop: 12,
-    },
-    separator: {
-        height: 10,
-    },
-    noteCard: {
-        padding: 12,
-        borderRadius: 16,
-        borderWidth: 1,
-        // borderColor, backgroundColor removed
-    },
-    noteText: {
-        fontSize: 16,
-        // color removed
-    },
-    noteActions: {
-        marginTop: 10,
-        flexDirection: 'row',
-        gap: 12,
-    },
-    noteActionButton: {
-        paddingVertical: 4,
-    },
-    noteActionText: {
-        fontSize: 14,
-        fontWeight: '500',
-        // color removed
-    },
-    noteActionDeleteText: {
-        fontSize: 14,
-        fontWeight: '500',
-        // color removed
-    },
-    modalContainer: {
-        flex: 1,
-        // backgroundColor removed
-    },
-    modalInner: {
-        paddingHorizontal: 24,
-        paddingTop: 24,
-        paddingBottom: 32,
-        flexGrow: 1,
-    },
-    modalInnerTablet: {
-        maxWidth: 600,
-        alignSelf: 'center',
-        width: '100%',
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        // color removed
-    },
-    textInput: {
-        marginTop: 20,
-        minHeight: 140,
-        borderWidth: 1,
-        borderRadius: 12,
-        // borderColor, backgroundColor removed
-        padding: 12,
-        textAlignVertical: 'top',
-        fontSize: 16,
-    },
-    modalActions: {
-        marginTop: 20,
-        flexDirection: 'row',
-        gap: 12,
-    },
-    modalButton: {
-        flex: 1,
-        alignItems: 'center',
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        borderWidth: 2,
-        // borderColor removed
-        borderRadius: 12,
-    },
-    modalButtonPrimary: {
-        // backgroundColor, borderColor removed
-    },
-    modalButtonText: {
-        fontSize: 16,
-        fontWeight: '500',
-        // color removed
-    },
-    modalButtonTextPrimary: {
-        fontSize: 16,
-        fontWeight: '600',
-        // color removed
-    },
+    addText: { fontSize: 17, fontWeight: '600' },
+    row: { borderLeftWidth: edgeWidth, borderRightWidth: edgeWidth, paddingHorizontal: space.l, paddingVertical: space.m, minHeight: minTarget },
+    rowFirst: { borderTopWidth: edgeWidth, borderTopLeftRadius: radius.m, borderTopRightRadius: radius.m },
+    rowLast: { borderBottomWidth: edgeWidth, borderBottomLeftRadius: radius.m, borderBottomRightRadius: radius.m },
+    separator: { position: 'absolute', top: 0, left: space.l, right: 0, height: StyleSheet.hairlineWidth },
+    note: { fontSize: 17, lineHeight: 23 },
+    deleteAction: { width: DELETE_WIDTH, alignItems: 'center', justifyContent: 'center' },
+    deleteText: { fontSize: 15, fontWeight: '600' },
+    footerBlock: { gap: space.s },
+    restored: { fontSize: 13, paddingHorizontal: space.l },
+    empty: { alignItems: 'center', gap: space.l, paddingVertical: space.xxl },
+    pair: { flexDirection: 'row', gap: space.s },
+    emptyLine: { fontSize: 17, textAlign: 'center' },
 });

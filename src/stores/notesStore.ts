@@ -1,7 +1,11 @@
 import { create } from 'zustand';
 import type { LoveNotes } from '../types';
-import { DEFAULT_LOVE_NOTES, FALLBACK_LOVE_NOTE } from '../constants/defaults';
+import { defaultLoveNotes, fallbackLoveNote } from '../constants/defaults';
+import { language } from '../i18n';
 import { loadSync, saveSync, STORAGE_KEYS } from '../utils/storage';
+
+/** A note's most characters (the owner, D2): longer notes already kept are never cut. */
+export const NOTE_MAX_LENGTH = 280;
 
 // The love notes store (Phase 1 B3), key `love_notes`, a bare JSON array of
 // strings. Replaces the useLoveNotes hook that AppProvider hosted.
@@ -30,7 +34,12 @@ export interface NotesStore {
     addNote(text: string): void;
     editNote(index: number, text: string): void;
     deleteNote(index: number): void;
-    resetToDefaults(): void;
+    /**
+     * Adds back, at the end, the default notes the list no longer has, and removes nothing, so the
+     * notes someone wrote are never lost (D2; HIG review: v1's reset replaced the whole list).
+     * Returns how many it added.
+     */
+    restoreDefaults(): number;
     /**
      * A random note, never `last` twice in a row while there are two or more
      * (FR-NTE-001); the fallback note when the list is empty. Reads the
@@ -45,17 +54,21 @@ export const useNotesStore = create<NotesStore>()((set, get) => {
         saveSync(STORAGE_KEYS.LOVE_NOTES, notes);
     };
 
+    // A fresh install's defaults are in the app's language (FR-NTE-002); an existing install has
+    // its own `love_notes`, written by the storage migration if it never edited them.
+    const defaults = defaultLoveNotes(language);
+
     return {
-        notes: DEFAULT_LOVE_NOTES,
+        notes: defaults,
         isReady: false,
 
         hydrate() {
             try {
                 const stored = loadSync<unknown>(STORAGE_KEYS.LOVE_NOTES, null);
-                set({ notes: isUsableNotes(stored) ? stored : DEFAULT_LOVE_NOTES, isReady: true });
+                set({ notes: isUsableNotes(stored) ? stored : defaults, isReady: true });
             } catch (error) {
                 console.error('[notesStore] hydrate failed; using defaults:', error);
-                set({ notes: DEFAULT_LOVE_NOTES, isReady: true });
+                set({ notes: defaults, isReady: true });
             }
         },
 
@@ -84,13 +97,16 @@ export const useNotesStore = create<NotesStore>()((set, get) => {
             commit(prev.filter((_, i) => i !== index));
         },
 
-        resetToDefaults() {
-            commit(DEFAULT_LOVE_NOTES);
+        restoreDefaults() {
+            const prev = get().notes;
+            const missing = defaults.filter((note) => !prev.includes(note));
+            if (missing.length > 0) commit([...prev, ...missing]);
+            return missing.length;
         },
 
         pickRandomNote(last) {
             const { notes } = get();
-            if (notes.length === 0) return FALLBACK_LOVE_NOTE;
+            if (notes.length === 0) return fallbackLoveNote(language);
             if (notes.length === 1) return notes[0];
 
             const idx = Math.floor(Math.random() * notes.length);

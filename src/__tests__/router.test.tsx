@@ -98,7 +98,7 @@ const TABS = [
     { path: '/', url: 'valentinepomodoro://', text: 'Start focus' },
     { path: '/stats', url: 'valentinepomodoro://stats', text: 'Today Sessions' },
     { path: '/settings', url: 'valentinepomodoro://settings', text: 'Light or dark follows your iPhone.' },
-    { path: '/notes', url: 'valentinepomodoro://notes', text: /^Love Notes/ },
+    { path: '/notes', url: 'valentinepomodoro://notes', text: 'Preview a note' },
 ];
 
 // How iOS hands URLs to the router: expo-linking's synchronous getLinkingURL()
@@ -283,7 +283,7 @@ describe('tabs render late, then never hide', () => {
         await startupIdle();
         expect(screen.getByText('Today Sessions')).toBeOnTheScreen();
         expect(screen.getByText('Light or dark follows your iPhone.')).toBeOnTheScreen();
-        expect(screen.getByText(/^Love Notes/)).toBeOnTheScreen();
+        expect(screen.getByText('Preview a note')).toBeOnTheScreen();
         expect(bannerHosts()).toHaveLength(0);
 
         await act(() => router.navigate('/stats'));
@@ -297,7 +297,7 @@ describe('tabs render late, then never hide', () => {
         const result = await launch(null);
         await act(() => router.navigate('/notes'));
         expect(result.getPathname()).toBe('/notes');
-        expect(screen.getByText(/^Love Notes/)).toBeOnTheScreen();
+        expect(screen.getByText('Preview a note')).toBeOnTheScreen();
     });
 
     it('a hidden tab stays visible to queries: nothing hides its content', async () => {

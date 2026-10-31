@@ -701,7 +701,7 @@ The scores after the fixes are this context's re-reading against each finding, e
 **The result:** every item reviewed, 224 marked "Looks right" and 7 with a change.
 - **Six change a default note**, and are applied in `src/constants/defaults.ts` (table below).
 - **The seventh,** `timer.phaseLine`, was saved identical to the current text, code point for code point, so nothing changes.
-- **The two tab-title questions** have no answer stored, so the tabs and titles stay as they are ("İstatistik" / "İstatistikler", "Notlar" / "Aşk notları").
+- **The two tab-title questions:** "Keep them as they are" for both (answered at 19:01 UTC, after the first read-back, so they were read again before build 52). The tabs and titles stay "İstatistik" / "İstatistikler" and "Notlar" / "Aşk notları".
 
 | Note | Before | After (the owner's) |
 |---|---|---|

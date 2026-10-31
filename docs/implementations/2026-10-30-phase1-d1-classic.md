@@ -593,10 +593,12 @@ F1, F2, F4 and F5 passed. F2 had been the one fix this machine couldn't prove (�
 - **What that costs.** The button is now inside Fly's `Suspense` boundary, so it doesn't exist while Fly's module evaluates on the first switch. ADR-0031 kept the switcher outside the boundary so the user could switch back during that wait. The wait is short: Hermes already ships the module in the one bundle, and only its evaluation is deferred (B1). The owner's placement outranks a way back during that split second. ADR-0031 gets a second as-built note.
 - **How it looks.** Still Classic's 44 pt paper chip, with the token colours and the crisp edge, the same glyph and the same label. It has the compass's size and shape, but not the compass's shadow, since paper sits by tone and edge (DESIGN.md). The compass keeps v1's look until Fly is re-tokened (D2's `legacyColors` item), so the two chips differ in surface for now, the paper one above the v1 one.
 - **Its contract.** It renders first in the column, has `accessibilityLabel` = `t('modes.button')` ("Modes" / "Modlar"), pushes `/modes`, and fires no haptic of its own, as in Classic. VoiceOver reaches it after the map, before the compass.
+- **Its stacking order.** Build 49's button sat at zIndex 100, above everything Fly draws. The column was at 5, below `FlyTimerPill` (90), whose own comment claimed the controls were at 100. The pill's digits scale with Dynamic Type (`TimerText` sets no cap). At AX5 a centred "180:00" pill spans roughly 52–337 pt on a 390 pt phone, and the chip starts at about 334 pt, so the pill would paint over the way back for the whole flight. The column is now at 100, as the pill's comment says. Nothing else changes order. FlySheet is at 2. Fly's landing love note (`LoveNoteCard`, full-screen, no zIndex) was already under the column at 5, as it was under build 49's button. That stays as it was. Fly's re-tokening (D2) is the place to fix it.
 
 | Change | Commit |
 |---|---|
 | `FlyModeScreen.tsx`: the Modes chip heads `mapControls` (`testID="fly-map-controls"`), and the compass takes `mapControlBtnGap`. `TimerScreen.tsx`: the floating Fly button and its style are gone, and the comment says where the button lives now. Tests: `flyModesButton.test.tsx` (new) renders the real Fly screen and checks that there is one Modes button, that it comes first in the column with the compass second, and that it pushes `/modes`. `flyLazyLoad.test.tsx` loses its press: its Fly stub has no button now, and its job is the lazy evaluation | `c935f3b` |
+| `FlyModeScreen.tsx`: `mapControls` at zIndex 100, above the timer pill (the stacking order, above). The four Fly suites pass again (7 tests); lint clean on the file | *(next commit)* |
 
 **Guards** (after the move):
 
@@ -765,6 +767,7 @@ Through the hop, the area sx·sy stays within 0.85 to 1.15, which the tests chec
   2. In Fly, landscape: the column sits just left of the sheet's strip, and it slides left with the sheet as the sheet opens. The Modes button never covers the sheet.
   3. The button opens the Modes sheet, Classic returns from it, and VoiceOver reads "Modes" (Turkish: "Modlar").
   4. Light and dark: the paper chip above the compass reads as intended (the compass keeps v1's look until D2).
+  5. During a flight at the largest text size: the timer pill never covers the Modes button.
 
 ## 7. Related Docs
 

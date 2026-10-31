@@ -1189,7 +1189,9 @@ const styles = StyleSheet.create({
         position: 'absolute',
         flexDirection: 'column',
         alignItems: 'center',
-        zIndex: 5,
+        // Above FlyTimerPill (90): at the largest text sizes the centred pill
+        // widens into this column, and the Modes button here is Fly's way back.
+        zIndex: 100,
         // top and right are set via mapControlsAnimatedStyle + inline insets
     },
     // backgroundColor + borderColor supplied inline (dark mode adaptive)

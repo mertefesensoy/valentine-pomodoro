@@ -861,7 +861,7 @@ Examples, with C = 16:
 - [x] The Classic and welcome contracts each have all six blocks and their seed references.
 - [x] DESIGN-WORKFLOW §2 steps 1–6 for both surfaces (§0, §3.1–3.13).
 - [x] The guards in the [Stage D plan §3.6](2026-10-30-phase1-stage-d.md#36-guards-green-at-every-commit), green at every commit.
-- [ ] **The owner's review of the Turkish copy:** every string in `src/i18n/tr.json`, which build 48 carries.
+- [x] **The owner's review of the Turkish copy:** every string in `src/i18n/tr.json`, which build 48 carries. Done 2026-10-31 on the copy proof page, together with D2's: D1's strings all confirmed (D2 record §3.15).
 - [ ] **The device check, build 48** (`v1.4.0-tf.48`), on a physical iPhone through TestFlight, after the owner's OK for the EAS build and the submission:
   1. The new app icon in default, dark and tinted; the splash in light and dark.
   2. Baloo 2 renders, and the timer's digits hold still as they count.

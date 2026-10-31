@@ -1,5 +1,5 @@
 import { useContext, useEffect } from 'react';
-import { Text } from 'react-native';
+import { ActionSheetIOS, Text } from 'react-native';
 // The router's testing library installs its own mocks when imported (expo-linking
 // among them), so it comes before the modules it mocks.
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
@@ -10,6 +10,7 @@ import { AdManager } from '../ads/AdManager';
 import { useHasBeenFocused, useScreenFocused } from '../hooks/useScreenFocus';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useStatsStore } from '../stores/statsStore';
+import { useNotesStore } from '../stores/notesStore';
 import { useUiStore } from '../stores/uiStore';
 import { StrawberryMilk } from '../theme/palette';
 import { resetStorage } from '../__fixtures__/storage/resetStorage';
@@ -414,5 +415,44 @@ describe('the root', () => {
         expect(screen.getByText('Start focus')).toBeOnTheScreen();
         expect(screen.queryByText("Let's start")).toBeNull();
         expect(screen.queryByText('for Bengisu')).toBeNull();
+    });
+});
+
+// covers: FR-NTE-001
+// D2 review round (§3.12): the editor's guard runs on the real navigator here, since the Notes
+// suite stands usePreventRemove in. A blocked removal comes back as an event after a render, and
+// Save's own removal must go straight through rather than ask or loop.
+describe('the note editor on the real navigator', () => {
+    let sheet: jest.SpyInstance;
+    beforeEach(() => {
+        sheet = jest.spyOn(ActionSheetIOS, 'showActionSheetWithOptions').mockImplementation(() => {});
+    });
+    afterEach(() => sheet.mockRestore());
+
+    async function openNewNote(text: string) {
+        const result = await launch('valentinepomodoro://notes');
+        await act(() => router.push('/note-editor'));
+        expect(result.getPathname()).toBe('/note-editor');
+        await act(async () => fireEvent.changeText(screen.getByLabelText('New note'), text));
+        return result;
+    }
+
+    it('Save closes the sheet without asking', async () => {
+        const result = await openNewNote('For after the exam');
+        await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Save' })));
+        expect(result.getPathname()).toBe('/notes');
+        expect(useNotesStore.getState().notes[0]).toBe('For after the exam');
+        expect(sheet).not.toHaveBeenCalled();
+    });
+
+    it('a blocked way out (what a swipe sends) asks first, and leaves on Discard', async () => {
+        const result = await openNewNote('half a thought');
+        await act(() => router.back());
+        expect(result.getPathname()).toBe('/note-editor');
+        expect(sheet).toHaveBeenCalledTimes(1);
+        const [options, pick] = sheet.mock.calls[0] as [{ options: string[] }, (i: number) => void];
+        await act(async () => pick(options.options.indexOf('Discard changes')));
+        expect(result.getPathname()).toBe('/notes');
+        expect(useNotesStore.getState().notes).not.toContain('half a thought');
     });
 });

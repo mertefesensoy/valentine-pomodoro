@@ -322,6 +322,8 @@ describe('the note editor', () => {
         expect(repeat).not.toHaveBeenCalled();
         await lastSheet().choose('Discard changes');
         expect(repeat).toHaveBeenCalledTimes(1);
+        // The hook's flag turns off with the choice, as usePreventRemove asks after a repeat.
+        expect(preventRemove().blocking).toBe(false);
     });
 
     it('lets Save leave without asking, though the sheet still blocks removal until it re-renders', async () => {
@@ -333,6 +335,8 @@ describe('the note editor', () => {
         await act(async () => callback({ repeat }));
         expect(repeat).toHaveBeenCalledTimes(1);
         expect(sheet).not.toHaveBeenCalled();
+        // A new note is still "dirty" after Save (its original is empty); the flag is off anyway.
+        expect(preventRemove().blocking).toBe(false);
     });
 
     it('dims a disabled Save in the same ink, and outlines the field as a control', async () => {

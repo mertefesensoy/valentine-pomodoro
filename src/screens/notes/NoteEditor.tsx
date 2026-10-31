@@ -55,10 +55,18 @@ export function NoteEditor() {
         AccessibilityInfo.announceForAccessibility(t('notesScreen.editor.left', { count: Math.max(left, 0) }));
     }, [left, original.length]);
 
-    // Save and Delete leave on purpose: the blocked removal they cause goes straight through.
+    // Leaving on purpose (Save, Delete, a confirmed discard): the ref lets the blocked removal this
+    // causes go straight through, since `dirty` is stale until the next render; the state turns
+    // the hook's flag off in the same handler, as `usePreventRemove` asks, so prevention and the
+    // flag never disagree (a new note stays "dirty" after Save).
     const leaving = useRef(false);
-    const close = () => {
+    const [exiting, setExiting] = useState(false);
+    const leave = () => {
         leaving.current = true;
+        setExiting(true);
+    };
+    const close = () => {
+        leave();
         router.back();
     };
     const askDiscard = (discard: () => void) => {
@@ -70,9 +78,12 @@ export function NoteEditor() {
             },
         );
     };
-    usePreventRemove(dirty, ({ repeat }) => {
-        if (leaving.current) repeat();
-        else askDiscard(repeat);
+    usePreventRemove(dirty && !exiting, ({ repeat }) => {
+        if (leaving.current) return repeat();
+        askDiscard(() => {
+            leave();
+            repeat();
+        });
     });
     const cancel = () => (dirty ? askDiscard(close) : close());
     const save = () => {

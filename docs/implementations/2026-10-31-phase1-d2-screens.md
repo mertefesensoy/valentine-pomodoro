@@ -72,7 +72,7 @@ Fresh installs see v1's gift screen, then the welcome: two first-run screens in 
 | `src/App.tsx`, `src/components/GiftModeModal.tsx` (removed), `src/screens/welcome/useWelcomeGate.ts` | v1's gift screen is retired, and the welcome no longer waits for it (§3.6). |
 | `src/screens/__tests__/settings.test.tsx` (new), `settingsKeyboard.test.tsx` (rewritten), `src/screens/welcome/__tests__/welcome.test.tsx`, `src/__tests__/router.test.tsx`, `src/i18n/en.json`, `tr.json` | The new Settings tested; `settingsKeyboard.test.tsx`, which the SRS cites for DEF-008, now proves no number opens a keyboard; the welcome's two audiences; the router tests mark the welcome seen; Settings' strings in English and Turkish (§3.6). |
 | `docs/process/DESIGN-WORKFLOW.md` | Two §3 rows: sentence case against Apple's title-style capitalisation; the appearance switch, settled by retiring it. |
-| `src/screens/LoveNotesScreen.tsx`, `src/screens/notes/NoteEditor.tsx`, `src/screens/__tests__/notes.test.tsx` | The review round (§3.12): the row's style flattened (the P0), the pressed tint, the swipe's tracking, stretch and corners, the restore announcement; the editor asks in an action sheet from Cancel and from a swipe (`usePreventRemove`), dims a disabled Save, edges its field in `edgeStrong`. The test's link renders through Expo Router's real Slot. |
+| `src/screens/LoveNotesScreen.tsx`, `src/screens/notes/NoteEditor.tsx`, `src/screens/__tests__/notes.test.tsx`, `src/__tests__/router.test.tsx` | The review round (§3.12): the row's style flattened (the P0), the pressed tint, the swipe's tracking, stretch and corners, the restore announcement; the editor asks in an action sheet from Cancel and from a swipe (`usePreventRemove`), dims a disabled Save, edges its field in `edgeStrong`. The test's link renders through Expo Router's real Slot. |
 | `src/screens/StatsScreen.tsx`, `src/screens/stats/WeekStack.tsx`, `src/screens/__tests__/stats.test.tsx` | The review round: the day names never truncate, the flag grows with the text, the Minutes track has an outline. |
 | `src/screens/SettingsScreen.tsx`, `src/components/settings/SettingsList.tsx`, `src/screens/__tests__/settings.test.tsx` | The review round: the denied footer announced and plain, one VoiceOver stop per switch row, the wheel's motion and its Reduce Motion fade, the wheel list rebuilt only when its range changes. |
 | `.impeccable/surfaces/app-tabs-stats-tsx.md`, `.impeccable/critique/2026-10-31T*` | The Stats contract's switch is instant (the owner); the six critique snapshots, before and after the fixes. |
@@ -485,7 +485,7 @@ The device check is §6 "build 51", together with the D1 record's list of the sa
 | Notes | N-5: Delete at AX sizes | `maxFontSizeMultiplier` 1.3, one line. |
 | Notes | Add's haptic | `haptic={false}`: PressableScale's own rule, off where a press only navigates. |
 | Notes | X-1: Restore is silent | `AccessibilityInfo.announceForAccessibility` with the result; `accessibilityLiveRegion` is Android-only. |
-| Notes | N-2: an edited sheet bounces silently | `usePreventRemove(dirty, …)` replaces `gestureEnabled: !dirty`. It sets the native prevent-dismiss, so a swipe is held and returns as a blocked removal (`RNSScreen.mm:676-692`). Cancel and the swipe ask the same question in an action sheet ("Discard changes", destructive; "Keep editing"). Save and Delete set a `leaving` ref, so the removal they cause goes straight through (`repeat()`), and the hook's own `repeat` turns prevention off before re-dispatching. |
+| Notes | N-2: an edited sheet bounces silently | `usePreventRemove(dirty && !exiting, …)` replaces `gestureEnabled: !dirty`. It sets the native prevent-dismiss, so a swipe is held and comes back as a blocked removal (`RNSScreen.mm:676-692`). Cancel and the swipe ask the same question in an action sheet ("Discard changes", destructive; "Keep editing"). Leaving on purpose (Save, Delete, a confirmed discard) sets a ref and an `exiting` state together. The ref lets a removal that's still blocked go straight through (`repeat()`, which turns prevention off before re-dispatching), because `dirty` is stale until the next render. The state turns the hook's flag off in the same handler, as the hook asks: a new note stays "dirty" after Save, and a flag left on would warn in development and disagree with the prevention. |
 | Notes | N-1: Save's state by hue alone | Disabled is the same `primaryInk` at 40 %, as a system bar button dims. |
 | Notes | N-3: the field's edge | `edgeStrong` (palette.json: boundaries that identify a control, 3:1). |
 | Stats | S-1 (Critical): the day names truncate | In the stack the day column is 56 pt × the font scale (from 1, uncapped below the list's threshold), with no line limit. In the AX list the name takes a line of its own. |
@@ -508,6 +508,11 @@ The device check is §6 "build 51", together with the D1 record's list of the sa
 - **`notes.test.tsx`:** the link stand-in renders through Expo Router's real `Slot`, as the device does. Against the old row, six tests fail with the Slot's error.
   - New: the pressed tint; the Delete action's corners, colour and no border; the restore announcement.
   - The editor: the action sheet from Cancel; the same question from a blocked swipe, and only while dirty; Save leaving without asking; Save's dimming and the field's edge.
+- **`router.test.tsx`, on the app's real navigator,** because the Notes suite stands `usePreventRemove` in (the same blind spot as the P0's stand-in):
+  - Save closes the sheet without asking, and the note is kept.
+  - A blocked way out (`router.back()`, what a swipe sends) keeps the editor open and asks; Discard then leaves.
+  - **What they prove:** with the guard turned off, the second test fails (it lands on `/notes`). The first passes even with the ref path broken. Under the real navigator, `router.back()` is queued behind the `exiting` state, so prevention is already off when it's processed. It proves the outcome, not which path produced it; the ref covers a dispatch that isn't queued.
+  - **How the library holds it** (`expo-router/build/global-state/removalPrevention.js`): the prevented routes are React state, and the blocked-removal event is reported from a layout effect after a render (`useNavigationTreeReportEvents.js:124`). So `repeat()` queues the prevention change, then dispatches, as the hook's own documented example does.
 - **`stats.test.tsx`:** at xxLarge (font scale 1.235), the day column is 56 × 1.235 with no line limit, and the flag is 14 × 1.235. At an AX size, the name takes a line of its own.
 - **`settings.test.tsx`:** one VoiceOver stop per switch row; the denied announcement; the wheel's motion, the same without `update` under Reduce Motion; the Custom goal wheel closing animated when a preset is chosen.
 
@@ -533,7 +538,7 @@ The scores after the fixes are this context's re-reading against each finding, e
 
 | Guard | Result |
 |---|---|
-| Jest | 52 suites, 369 tests, all passing |
+| Jest | 52 suites, 371 tests, all passing |
 | Lint | 0 errors, 29 warnings |
 | tsc | Clean |
 | React Compiler | 80 compiled, 5 skipped |
@@ -577,7 +582,7 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
 - [ ] **The device check, the next build (52).** It carries §3.11's fixes and §3.12's, so it repeats the build 51 list below and adds:
   1. **Notes' rows** are paper blocks with padding, corners and hairlines (the P0), and tint while pressed.
   2. **The swipe** tracks the finger, stretches over red past Delete, and the first and last rows' Delete has no black line.
-  3. **The editor:** with unsaved text, Cancel and a swipe down both ask in an action sheet; Save never asks; Save dims while there's nothing to save; the field has a visible edge.
+  3. **The editor:** with unsaved text, Cancel and a swipe down both ask in an action sheet. Save never asks, and after Save the sheet actually closes, for a new note and an edited one. Delete note closes it too. Save dims while there's nothing to save; the field has a visible edge.
   4. **Stats** at xxLarge and at the largest text size: every day's name reads in full, in English and Turkish; the flags grow with the text.
   5. **Settings:** a wheel fades in while the rows below slide; with Reduce Motion, it only fades. With VoiceOver, a switch row is one stop, and a refused reminder is spoken.
   6. The motion review's feel checks (§3.12).

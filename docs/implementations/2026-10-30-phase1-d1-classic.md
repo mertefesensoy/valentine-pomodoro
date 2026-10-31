@@ -29,7 +29,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 | 7. Device check, build 48 | Build 48 on EAS from `61fd06e` (§3.15). The owner's check, 2026-10-30: four findings (F1–F4, §3.16), fixed for build 49 | The same build. The owner asked for a livelier morph (F5, §3.16), rebuilt for build 49 |
 | 7. Device check, build 49 | Build 49 on EAS from `9f0de71`, submitted to TestFlight, tag `v1.4.0-tf.49` pushed (§3.17). The owner's check, 2026-10-31: "All well" except one finding (F6, §3.18): Fly's Modes button belongs at the top right, where the compass was. Fixed in build 50 | The same build: "All well" |
 | 7. Device check, build 50 | Build 50 on EAS from `98f6a1f`, submitted to TestFlight, tag `v1.4.0-tf.50` pushed (§3.19). The owner's check, 2026-10-31: every check passed, "all well" (§6) | The same build; no welcome change since build 49 |
-| FINISH (both contracts): the finish review, its verdict, DESIGN.md | **Pending:** the device checks are done (build 50); the review runs with the owner's iPhone screenshots as the evidence | **Pending:** the same |
+| FINISH (both contracts): the finish review, its verdict, DESIGN.md | **In progress** (§3.20). Round 1: recapture. The six iPhone captures are valid, but iPad, a shipped device class, has none | **Captures waived by the owner** (§3.20). The verdict is the owner's device checks. DESIGN.md's welcome exception is still to be written |
 
 **FINISH is not yet discharged.** Each direction contract ends with "this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance". That waits for evidence this machine can't make:
 - After the device check, a fresh `impeccable-finish-reviewer` gets both contracts and the owner's screenshots, labelled as hardware evidence.
@@ -640,6 +640,19 @@ The question was "Build 50 with this fix and submit it to TestFlight?", so the O
 | **50** | **21,609,582** (+216 B on 49) |
 
 It carries F6 and nothing else (§3.18). The device checklist is §6, "build 50". TestFlight lists the build once Apple finishes processing it.
+
+### 3.20 The finish review (FINISH)
+
+**Round 1, 2026-10-31: recapture.**
+- **The evidence:** the owner's six iPhone captures from build 50: The Ring dark and paused; Facing Pages dark and light, paused; the Modes sheet over Classic and over Fly; Fly running. They passed the reviewer's evidence check.
+- **Where they are:** untracked in `.impeccable/review/`, which is excluded locally (`.git/info/exclude`) because they're screenshots of the owner's phone.
+- **Why the review stopped:** `app.json` ships iPad (`supportsTablet: true`, since v1.3.1), and no capture shows it. The brief promises a centred, readable width there (§6), and §3.9 and §3.13 record 560 pt.
+- **Dropping iPad isn't open:** as far as is known, App Store Connect rejects an update that drops a device family the live version supports.
+- **Asked of the owner:**
+  - on an iPad: The Ring, Facing Pages and the Modes sheet, dark, in a paused session;
+  - on the iPhone: idle with the presets, focus running, The Ring in light, and today's row after a completion.
+
+**The welcome: captures waived by the owner,** 2026-10-31: "i confirm it no ned for an extra screen rocording all works well". The welcome gets no finish-review captures, so its verdict is the owner's, from the device checks of builds 49 and 50 (§6). The documenter still carries its exception into DESIGN.md (§1).
 
 ## 4. Mathematical / Statistical Details
 

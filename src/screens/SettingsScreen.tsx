@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import {
     AccessibilityInfo,
     Alert,
@@ -12,6 +12,7 @@ import {
     type LayoutAnimationConfig,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Notifications from 'expo-notifications';
 import { useReducedMotion } from 'react-native-reanimated';
 import { router } from 'expo-router';
 
@@ -22,6 +23,7 @@ import { DURATION_LIMITS, classicLayoutOf, customDurationsOf, editCustomPatch, t
 import { useUpdateCheck } from '../hooks/useUpdateCheck';
 import { formatNumber, t } from '../i18n';
 import { HiddenStartupDiagnostics } from '../startup/StartupDiagnostics';
+import { useSettingsFocus } from '../stores/settingsFocusStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useStatsStore } from '../stores/statsStore';
 import { fonts } from '../theme/type';
@@ -84,7 +86,20 @@ export default function SettingsScreen() {
     const [customGoal, setCustomGoal] = useState(false);
     const [lastGoal, setLastGoal] = useState(goalMinutes > 0 ? goalMinutes : 50);
     const [reminderBusy, setReminderBusy] = useState(false);
-    const [denied, setDenied] = useState(false);
+    // Why the reminder is off after asking for it: iOS denied notifications, or scheduling failed.
+    const [notice, setNotice] = useState<'denied' | 'failed' | null>(null);
+
+    // Another screen can ask for a group (Stats' "Turn on a daily goal"): once the goal group has
+    // laid out, it scrolls into view and the request is cleared (the Stats contract).
+    const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
+    const [columnY, setColumnY] = useState<number | null>(null);
+    const [goalY, setGoalY] = useState<number | null>(null);
+    const focusSection = useSettingsFocus((s) => s.section);
+    useEffect(() => {
+        if (focusSection !== 'goal' || columnY === null || goalY === null) return;
+        scroll.current?.scrollTo({ y: Math.max(0, columnY + goalY - space.s), animated: !reduced });
+        useSettingsFocus.getState().clear();
+    }, [focusSection, columnY, goalY, reduced]);
 
     const animateWheels = () => LayoutAnimation.configureNext(reduced ? WHEEL_MOTION_REDUCED : WHEEL_MOTION);
     const toggle = (wheel: Wheel) => {
@@ -146,13 +161,19 @@ export default function SettingsScreen() {
     // and would skip the whole screen.
     const toggleReminder = (on: boolean) => {
         setReminderBusy(true);
+        // The store says only whether it worked, so a refusal is told from a failure by asking
+        // iOS: "Notifications are off" for a failed schedule would send people to the wrong place
+        // (D2 record §3.14).
         const change = on
-            ? enableDailyReminder().then((ok) => {
-                  setDenied(!ok);
+            ? enableDailyReminder().then(async (ok) => {
+                  if (ok) return setNotice(null);
+                  const { granted } = await Notifications.getPermissionsAsync().catch(() => ({ granted: false }));
+                  const why = granted ? 'failed' : 'denied';
+                  setNotice(why);
                   // accessibilityLiveRegion is Android-only; iOS hears why from an announcement.
-                  if (!ok) AccessibilityInfo.announceForAccessibility(t('settings.notifications.denied'));
+                  AccessibilityInfo.announceForAccessibility(t(`settings.notifications.${why}`));
               })
-            : disableDailyReminder().then(() => setDenied(false));
+            : disableDailyReminder().then(() => setNotice(null));
         return change.finally(() => setReminderBusy(false));
     };
 
@@ -182,13 +203,17 @@ export default function SettingsScreen() {
 
     return (
         <ScrollView
+            ref={scroll}
             style={{ backgroundColor: tokens.page }}
             contentContainerStyle={[
                 styles.page,
                 { paddingTop: insets.top + space.s, paddingBottom: insets.bottom + space.xl },
             ]}
         >
-            <View style={[styles.column, { width: Math.min(width, READABLE_WIDTH) - space.l * 2 }]}>
+            <View
+                style={[styles.column, { width: Math.min(width, READABLE_WIDTH) - space.l * 2 }]}
+                onLayout={(e) => setColumnY(e.nativeEvent.layout.y)}
+            >
                 <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header" maxFontSizeMultiplier={1.4}>
                     {t('settings.title')}
                 </Text>
@@ -214,58 +239,60 @@ export default function SettingsScreen() {
                     </ValueRow>
                 </ListGroup>
 
-                <ListGroup header={t('settings.goal.header')} footer={goalMinutes > 0 ? t('settings.goal.footer') : undefined}>
-                    <SwitchRow
-                        label={t('settings.goal.toggle')}
-                        value={goalMinutes > 0}
-                        onValueChange={(on) => {
-                            closeWheels();
-                            setGoalMinutes(on ? lastGoal : 0);
-                        }}
-                    />
-                    {goalMinutes > 0 && (
-                        <View style={styles.segmentRow}>
-                            {/* Plain numbers under one caption: "100 min" wrapped onto two lines
-                                and pushed Custom out of line (build 51 device check). */}
-                            <Text style={[styles.caption, { color: tokens.inkSoft }]}>{t('settings.goal.caption')}</Text>
-                            <SegmentedControl<GoalSegment>
-                                segments={[
-                                    ...GOAL_PRESETS.map((p) => ({
-                                        value: p,
-                                        label: p,
-                                        accessibilityLabel: t('settings.goal.presetA11y', { count: Number(p) }),
-                                    })),
-                                    { value: 'custom' as const, label: t('presets.custom'), accessibilityLabel: t('presets.custom') },
-                                ]}
-                                value={goalSegment}
-                                onChange={chooseGoal}
-                            />
-                        </View>
-                    )}
-                    {goalMinutes > 0 && goalSegment === 'custom' && (
-                        <ValueRow
-                            label={t('settings.goal.customRow')}
-                            value={minutes(goalMinutes)}
-                            expanded={open === 'goal'}
-                            onPress={() => toggle('goal')}
-                        >
-                            <NumberWheel
-                                value={goalMinutes}
-                                min={1}
-                                max={GOAL_MAX}
-                                format={minutes}
+                <View onLayout={(e) => setGoalY(e.nativeEvent.layout.y)}>
+                    <ListGroup header={t('settings.goal.header')} footer={goalMinutes > 0 ? t('settings.goal.footer') : undefined}>
+                        <SwitchRow
+                            label={t('settings.goal.toggle')}
+                            value={goalMinutes > 0}
+                            onValueChange={(on) => {
+                                closeWheels();
+                                setGoalMinutes(on ? lastGoal : 0);
+                            }}
+                        />
+                        {goalMinutes > 0 && (
+                            <View style={styles.segmentRow}>
+                                {/* Plain numbers under one caption: "100 min" wrapped onto two lines
+                                    and pushed Custom out of line (build 51 device check). */}
+                                <Text style={[styles.caption, { color: tokens.inkSoft }]}>{t('settings.goal.caption')}</Text>
+                                <SegmentedControl<GoalSegment>
+                                    segments={[
+                                        ...GOAL_PRESETS.map((p) => ({
+                                            value: p,
+                                            label: p,
+                                            accessibilityLabel: t('settings.goal.presetA11y', { count: Number(p) }),
+                                        })),
+                                        { value: 'custom' as const, label: t('presets.custom'), accessibilityLabel: t('presets.custom') },
+                                    ]}
+                                    value={goalSegment}
+                                    onChange={chooseGoal}
+                                />
+                            </View>
+                        )}
+                        {goalMinutes > 0 && goalSegment === 'custom' && (
+                            <ValueRow
                                 label={t('settings.goal.customRow')}
-                                onChange={setGoal}
-                            />
-                        </ValueRow>
-                    )}
-                </ListGroup>
+                                value={minutes(goalMinutes)}
+                                expanded={open === 'goal'}
+                                onPress={() => toggle('goal')}
+                            >
+                                <NumberWheel
+                                    value={goalMinutes}
+                                    min={1}
+                                    max={GOAL_MAX}
+                                    format={minutes}
+                                    label={t('settings.goal.customRow')}
+                                    onChange={setGoal}
+                                />
+                            </ValueRow>
+                        )}
+                    </ListGroup>
+                </View>
 
-                {/* The denied footer is a plain footer, in `inkSoft`: `dangerInk` means a destructive
-                    action (HIG T-4), and the "Open iOS Settings" row carries what to do. */}
+                {/* Why the reminder is off is a plain footer, in `inkSoft`: `dangerInk` means a destructive
+                    action (HIG T-4). When iOS denied it, the "Open iOS Settings" row carries what to do. */}
                 <ListGroup
                     header={t('settings.notifications.header')}
-                    footer={denied ? t('settings.notifications.denied') : t('settings.notifications.footer')}
+                    footer={notice ? t(`settings.notifications.${notice}`) : t('settings.notifications.footer')}
                 >
                     <SwitchRow
                         label={t('settings.notifications.sessionAlerts')}
@@ -302,7 +329,9 @@ export default function SettingsScreen() {
                             onChange={(endHHMM) => setQuietHours({ ...reminder.quietHours, endHHMM })}
                         />
                     )}
-                    {denied && <ButtonRow label={t('settings.notifications.openSettings')} onPress={() => Linking.openSettings()} />}
+                    {notice === 'denied' && (
+                        <ButtonRow label={t('settings.notifications.openSettings')} onPress={() => Linking.openSettings().catch(() => {})} />
+                    )}
                 </ListGroup>
 
                 <ListGroup header={t('settings.feel.header')}>
@@ -355,7 +384,7 @@ export default function SettingsScreen() {
                 >
                     <ButtonRow label={t('welcome.replay')} onPress={() => router.push('/welcome')} />
                     <ButtonRow label={t('settings.about.updates')} onPress={() => checkForUpdates({ force: true })} />
-                    <ButtonRow label={t('settings.about.website')} onPress={() => Linking.openURL(DEVELOPER_URL)} />
+                    <ButtonRow label={t('settings.about.website')} onPress={() => Linking.openURL(DEVELOPER_URL).catch(() => {})} />
                 </ListGroup>
 
                 <ListGroup>

@@ -133,10 +133,11 @@
       "quietEnd": "Ends",
       "footer": "Session alerts tell you when a focus or a break ends, even with your phone locked. Quiet hours move the daily reminder out of them.",
       "denied": "Notifications are off for this app in iOS Settings, so the reminder can't be set.",
+      "failed": "The reminder couldn't be set. Try again in a moment.",
       "openSettings": "Open iOS Settings"
     },
     "feel": {
-      "header": "Sound and feel",
+      "header": "Sound and haptics",
       "sound": "Sound",
       "haptics": "Haptics"
     },
@@ -242,5 +243,9 @@
     "goalOffFooter": "A daily goal marks the days you reach it and counts your love streak.",
     "startSession": "Start a session",
     "allTime": "All time: {{sessions}} · {{minutes}}"
+  },
+  "updates": {
+    "failedTitle": "Couldn't check for updates",
+    "failedMessage": "Check your connection and try again."
   }
 }

@@ -29,7 +29,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | 3. Build (`animate-expo`) | **Built**, `b2db8c1` (§3.8) | **Built**, `23e595c` (§3.6) | **Built**, `de3867c` (§3.7) | **Retired**, `23e595c` (§3.6) |
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | First pass: critique 27/32, audit **15/20**, HIG **1 Critical** (day names), motion clean. After the fixes: critique 27/32 (84 %), audit 16/20, no Critical, motion clean (§3.12) | First pass: critique 34/40, audit 17/20, no Critical, motion not clean. After: critique 36/40, audit 18/20, no Critical, motion clean (§3.12) | First pass: **a P0** (rows unstyled in a release build), motion not clean. After: critique 37/40, audit 17/20, no Critical, motion clean (§3.12) | Retired: none |
 | 5. `break-ui` (TR at AX5) | 2 Ugly (the zero-goal summary, the strip at AX5) and the shared number formats: **fixed**; a streak of 0 softened (§3.13) | The number formats: **fixed**; Turkish words wider than a row: accepted (the owner) | 2 Broken (an emoji cut at the cap, the editor header at AX5) and 1 Ugly (line breaks lost): **fixed** | Retired: none |
-| 6. `polish`, `harden`, `clarify` | — | — | — | — |
+| 6. `polish`, `harden`, `clarify` | Done: "Turn on a daily goal" opens Settings at the goal row; Turkish "kaldı" (§3.14) | Done: a failed reminder told from a refusal; "Check for updates" offline; link rejections; "Sound and haptics" (§3.14) | Done (§3.13–3.14) | Retired: none |
 | 7. Device check (the next build, with D1's finish-review fixes) | — | — | — | — |
 | FINISH: the finish review, its verdict, DESIGN.md | — | — | — | — |
 
@@ -77,6 +77,7 @@ Fresh installs see v1's gift screen, then the welcome: two first-run screens in 
 | `src/screens/SettingsScreen.tsx`, `src/components/settings/SettingsList.tsx`, `src/screens/__tests__/settings.test.tsx` | The review round: the denied footer announced and plain, one VoiceOver stop per switch row, the wheel's motion and its Reduce Motion fade, the wheel list rebuilt only when its range changes. |
 | `.impeccable/surfaces/app-tabs-stats-tsx.md`, `.impeccable/critique/2026-10-31T*` | The Stats contract's switch is instant (the owner); the six critique snapshots, before and after the fixes. |
 | `src/screens/__tests__/d2WorstCase.test.tsx` (new), `src/screens/notes/NoteEditor.tsx`, `src/stores/notesStore.ts`, `src/screens/StatsScreen.tsx`, `src/screens/stats/WeekStack.tsx`, `src/screens/SettingsScreen.tsx`, `src/i18n/index.ts`, `en.json`, `tr.json`, `notes.test.tsx`, `stats.test.tsx` | `break-ui` (§3.13): the Turkish AX5 worst-case fixture; the cap keeps characters whole; the editor header caps at 1.4×; notes keep line breaks; the zero-goal summary, the stacked strip at AX sizes and the softer streak line; counts of 1,000 or more grouped everywhere through one `formatNumber`. |
+| `src/stores/settingsFocusStore.ts` (new), `src/screens/SettingsScreen.tsx`, `src/screens/StatsScreen.tsx`, `src/hooks/useUpdateCheck.ts`, `en.json`, `tr.json`, `settings.test.tsx`, `stats.test.tsx`, `useUpdateCheck.test.tsx`, `d2WorstCase.test.tsx` | Step 6 (§3.14): Settings opens at the goal row from Stats; a failed reminder is told from a refusal; an offline "Check for updates" says so; link rejections caught; "Sound and haptics"; Turkish "hedefe … dk kaldı". |
 
 ## 3. Implementation Approach
 
@@ -654,6 +655,52 @@ The scores after the fixes are this context's re-reading against each finding, e
 | React Compiler | 80 compiled, 5 skipped |
 | The emoji check | Clean |
 | Reassure | Passing: Timer 13, Stats 1, Settings 1, Notes 1, leaf 12, settings-only 1 (unchanged) |
+
+### 3.14 `polish`, `harden` and `clarify` (DESIGN-WORKFLOW §2 step 6)
+
+**The owner, 2026-10-31:** "Start step 6".
+
+**How it ran.**
+- One pass over each screen's whole path: arrival, empty, loading, error, success and permission states, terminology, and the code.
+- The critique snapshots of §3.12 are closed by the edits since, so the pass was independent (polish reference §2).
+- §3.12–3.13 had already settled the accessibility, motion and worst-case data, so this pass found less.
+
+**Found and fixed:**
+
+| # | Kind | Finding | Fix |
+|---|---|---|---|
+| 1 | Harden | `enableDailyReminder` returns `false` both when iOS denies notifications and when scheduling fails, so a failed schedule showed "Notifications are off for this app in iOS Settings" and the "Open iOS Settings" row: the wrong place to send people | After a `false`, Settings asks iOS (`getPermissionsAsync`). Granted means a failure: "The reminder couldn't be set. Try again in a moment.", announced, with no iOS Settings row. Denied keeps the denied footer and the row. The store's API is unchanged |
+| 2 | Harden | Offline, "Check for updates" did nothing at all: the fetch failed silently, as the launch check must | A check someone asked for (`force`) now says "Couldn't check for updates" / "Check your connection and try again."; the launch check stays silent (`useUpdateCheck.ts`, new `updates` strings in both languages) |
+| 3 | Harden | "Developer website" and "Open iOS Settings" left `Linking` rejections unhandled | Each catches its rejection |
+| 4 | Polish | The contract says "Turn on a daily goal" opens Settings **at the goal row**; it opened Settings at the top. At the default size the goal group is in view anyway; at AX sizes it's several screens down | A small, unpersisted store (`settingsFocusStore.ts`, after the love-note sheet's) carries the request. Settings scrolls the goal group into view once it has laid out (animated, or not under Reduce Motion), then clears it |
+| 5 | Clarify | "Sound and feel" was vague beside its "Haptics" row (iOS says "Sounds & Haptics") | "Sound and haptics"; the Turkish was already "Ses ve titreşim" |
+| 6 | Clarify | Turkish "hedefe 25 dk" had no verb | "hedefe 25 dk kaldı" ("25 min left to the goal") |
+
+**Read and kept:**
+- The English copy reads in the brand's voice: plain, warm, sentence case.
+- Each action names its verb and object ("Delete note", "Restore default notes"). Confirmations name the action on the message and the button ("Delete this note?" / "Delete"). The empty states invite the next step.
+- "Session" stays the counted noun on Stats ("Start a session"), matching Classic's "1 session today".
+- The quiet-hours footer isn't reworded: rewording it would mean restating what the scheduler does.
+
+**For the owner's copy review** (with every Turkish string, D1's included, and the 20 default notes in both languages):
+- The Stats tab is "İstatistik" and its title "İstatistikler" (singular against plural); the Notes tab is "Notlar" and its title "Aşk notları". Should the tab and title match?
+- The update prompt's existing alerts are English-only (`useUpdateCheck.ts`). That extraction is D3's (EN/TR), as planned.
+
+**Tests:**
+- **`settings.test.tsx`:** a failed schedule says so, is announced, and offers no iOS Settings row; a denial keeps its footer and row (permissions mocked per test). The goal group scrolls into view once laid out, then the request clears.
+- **`stats.test.tsx`:** "Turn on a daily goal" requests the goal group.
+- **`useUpdateCheck.test.tsx`:** offline, the launch check stays silent and "Check for updates" says it couldn't check.
+- **`d2WorstCase.test.tsx`:** "hedefe 640 dk kaldı".
+
+**Guards:**
+
+| Guard | Result |
+|---|---|
+| Jest | 53 suites, 385 tests, all passing |
+| Lint | 0 errors, 29 warnings |
+| tsc | Clean |
+| React Compiler | 80 compiled, 5 skipped |
+| The emoji check | Clean |
 
 ## 4. Mathematical / Statistical Details
 

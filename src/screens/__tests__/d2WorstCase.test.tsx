@@ -118,6 +118,8 @@ describe('D2 worst case, in Turkish at AX5 on an iPhone SE', () => {
         // The largest goal, grouped as Turkish writes it, as every count of 1,000 or more is (#6).
         expect(screen.getByText('Hedef 1.440 dk')).toBeOnTheScreen();
         expect(screen.getByText('Bugün 640 dk kaldı')).toBeOnTheScreen();
+        // Today's line says what's left with a verb, as Turkish needs (step 6, §3.14).
+        expect(screen.getByText(/hedefe 640 dk kaldı/)).toBeOnTheScreen();
         // A streak of 0 says how it starts (the owner's decision).
         expect(screen.getByText('Hedefine ulaştığın gün başlar · en iyi 12')).toBeOnTheScreen();
         // The strip's halves stack at AX5, so no word breaks in a narrow column (#5).

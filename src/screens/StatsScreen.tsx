@@ -13,6 +13,7 @@ import { ButtonRow, ListGroup } from '../components/settings/SettingsList';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { useHasBeenFocused, useScreenFocused } from '../hooks/useScreenFocus';
 import { formatNumber, t } from '../i18n';
+import { useSettingsFocus } from '../stores/settingsFocusStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useStatsStore, useStatsViews } from '../stores/statsStore';
 import { fonts } from '../theme/type';
@@ -250,7 +251,14 @@ export default function StatsScreen() {
                         </View>
                     ) : (
                         <ListGroup footer={t('stats.goalOffFooter')}>
-                            <ButtonRow label={t('stats.turnOnGoal')} onPress={() => router.navigate('/settings')} />
+                            <ButtonRow
+                                label={t('stats.turnOnGoal')}
+                                onPress={() => {
+                                    // Settings opens at the goal row, not its top (the contract).
+                                    useSettingsFocus.getState().request('goal');
+                                    router.navigate('/settings');
+                                }}
+                            />
                         </ListGroup>
                     )}
 

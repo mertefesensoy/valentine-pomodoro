@@ -16,6 +16,7 @@ import * as Application from 'expo-application';
 import Constants from 'expo-constants';
 import { compareSemver } from '../utils/semver';
 import { runAfterFirstFrame } from '../startup/deferredStartup';
+import { t } from '../i18n';
 
 // Module-level session guard: resets on process restart (cold launch),
 // so the check fires exactly once per app open — never twice in one session.
@@ -81,11 +82,15 @@ export function useUpdateCheck(updateJsonUrl: string) {
                     ? await fetchLatestIos()
                     : await fetchLatestAndroid(updateJsonUrl);
             } catch {
-                // Offline or timed out — never block the user
-                return;
+                // Offline or timed out: never block the user. Only a check someone asked for
+                // ("Check for updates") says so, instead of doing nothing (D2 record §3.14).
+                latest = null;
             }
 
-            if (!latest) return;
+            if (!latest) {
+                if (force) Alert.alert(t('updates.failedTitle'), t('updates.failedMessage'));
+                return;
+            }
 
             const current = getCurrentVersion();
             const isNewer = compareSemver(latest.version, current) === 1;

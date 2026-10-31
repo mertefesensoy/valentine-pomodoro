@@ -1,16 +1,24 @@
 import type { ReactNode } from 'react';
-import { AccessibilityInfo, Alert, LayoutAnimation, Linking } from 'react-native';
+import { AccessibilityInfo, Alert, LayoutAnimation, Linking, ScrollView } from 'react-native';
+import * as Notifications from 'expo-notifications';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
 import { StoreGate } from '../../stores/StoreGate';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
+import { useSettingsFocus } from '../../stores/settingsFocusStore';
 import { useSettingsStore } from '../../stores/settingsStore';
+import { space } from '../../theme/layout';
 import { useStatsStore } from '../../stores/statsStore';
 import SettingsScreen from '../SettingsScreen';
 
 jest.mock('../../hooks/useUpdateCheck', () => ({
     useUpdateCheck: () => ({ checkForUpdates: jest.fn() }),
+}));
+// iOS's notification permission, per test: the reminder's notice tells a refusal from a failure.
+jest.mock('expo-notifications', () => ({
+    ...jest.requireActual<object>('expo-notifications'),
+    getPermissionsAsync: jest.fn(async () => ({ granted: false })),
 }));
 // Reduce Motion, per test (Reanimated runs on its Jest mock).
 let mockReduceMotion = false;
@@ -108,6 +116,25 @@ describe('Settings as a native grouped list', () => {
     });
 });
 
+// covers: FR-STA-004
+// Step 6 (D2 record §3.14): Stats' "Turn on a daily goal" opens Settings at the goal group (the
+// Stats contract), which matters at large text sizes, where the group is below the fold.
+describe('Settings opened at a group', () => {
+    it('scrolls the goal group into view once it has laid out, then forgets the request', async () => {
+        const scrollTo = jest.spyOn(ScrollView.prototype as unknown as { scrollTo: () => void }, 'scrollTo');
+        scrollTo.mockClear();
+        useSettingsFocus.getState().request('goal');
+        await renderSettings();
+        const goalGroup = screen.getByText('Daily goal').parent!.parent!;
+        await act(async () => fireEvent(goalGroup.parent!, 'layout', { nativeEvent: { layout: { x: 0, y: 64, width: 343, height: 2000 } } }));
+        expect(scrollTo).not.toHaveBeenCalled();
+        await act(async () => fireEvent(goalGroup, 'layout', { nativeEvent: { layout: { x: 0, y: 420, width: 343, height: 200 } } }));
+        expect(scrollTo).toHaveBeenCalledWith({ y: 64 + 420 - space.s, animated: true });
+        expect(useSettingsFocus.getState().section).toBeNull();
+        scrollTo.mockRestore();
+    });
+});
+
 // covers: NFR-A11Y-004
 // Review round (D2 record §3.12, motion review): a wheel fades in and out with ease-out while the
 // rows below move with ease-in-out; Reduce Motion keeps the fade and drops the movement; every
@@ -183,6 +210,7 @@ describe("Settings' notifications, About and reset", () => {
     it('says why the reminder is off when iOS denies notifications, with a way to iOS Settings', async () => {
         const openSettings = jest.spyOn(Linking, 'openSettings').mockResolvedValue(undefined);
         const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility').mockImplementation(() => {});
+        jest.mocked(Notifications.getPermissionsAsync).mockResolvedValueOnce({ granted: false } as never);
         await renderSettings();
         await act(async () => useSettingsStore.setState({ enableDailyReminder: async () => false } as never));
         await act(async () => fireEvent(screen.getByLabelText('Daily reminder'), 'valueChange', true));
@@ -194,6 +222,21 @@ describe("Settings' notifications, About and reset", () => {
         await press(screen.getByRole('button', { name: 'Open iOS Settings' }));
         expect(openSettings).toHaveBeenCalled();
         openSettings.mockRestore();
+    });
+
+    // Step 6 (D2 record §3.14): the store's false meant either; "Notifications are off" for a
+    // failed schedule sent people to iOS Settings for nothing.
+    it('says the reminder could not be set when iOS allows notifications but scheduling fails', async () => {
+        const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility').mockImplementation(() => {});
+        jest.mocked(Notifications.getPermissionsAsync).mockResolvedValueOnce({ granted: true } as never);
+        await renderSettings();
+        await act(async () => useSettingsStore.setState({ enableDailyReminder: async () => false } as never));
+        await act(async () => fireEvent(screen.getByLabelText('Daily reminder'), 'valueChange', true));
+        const failed = "The reminder couldn't be set. Try again in a moment.";
+        expect(screen.getByText(failed)).toBeOnTheScreen();
+        expect(announce).toHaveBeenCalledWith(failed);
+        expect(screen.queryByRole('button', { name: 'Open iOS Settings' })).toBeNull();
+        announce.mockRestore();
     });
 
     it("carries the app's origin in About, where v1's gift screen used to, and replays the welcome", async () => {

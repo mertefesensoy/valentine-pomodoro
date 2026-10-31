@@ -5,6 +5,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
 import { StoreGate } from '../../stores/StoreGate';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
+import { useSettingsFocus } from '../../stores/settingsFocusStore';
 import { useStatsStore } from '../../stores/statsStore';
 import type { DayStats } from '../../types';
 import StatsScreen from '../StatsScreen';
@@ -128,6 +129,8 @@ describe('Stats: the postcard stack (D2 Stats contract)', () => {
             await fireEvent.press(screen.getByRole('button', { name: 'Turn on a daily goal' }));
         });
         expect(router.navigate).toHaveBeenCalledWith('/settings');
+        // Settings opens at the goal row (step 6, D2 record §3.14).
+        expect(useSettingsFocus.getState().section).toBe('goal');
     });
 
     it('invites a first session on an empty week', async () => {

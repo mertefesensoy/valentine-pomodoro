@@ -119,6 +119,28 @@ describe('the update check after B7', () => {
         expect(alert).toHaveBeenCalledTimes(1);
     });
 
+    // Step 6 (D2 record §3.14): offline, "Check for updates" did nothing at all.
+    it('"Check for updates" says when it could not check; the launch check stays silent', async () => {
+        fetchMock = jest.fn(async () => {
+            throw new Error('offline');
+        });
+        const { useUpdateCheck, scheduler, alert } = launch();
+        const { result } = await renderHook(() => useUpdateCheck(URL));
+        await act(async () => {
+            scheduler.markFirstFrame();
+            jest.advanceTimersByTime(0);
+        });
+        await settle();
+        expect(alert).not.toHaveBeenCalled();
+
+        await act(async () => {
+            void result.current.checkForUpdates({ force: true });
+        });
+        await settle();
+        expect(alert).toHaveBeenCalledTimes(1);
+        expect(alert.mock.calls[0].slice(0, 2)).toEqual(["Couldn't check for updates", 'Check your connection and try again.']);
+    });
+
     it('still runs when the first-frame signal never arrives (the fallback)', async () => {
         jest.spyOn(console, 'warn').mockImplementation(() => {});
         const { useUpdateCheck, scheduler } = launch();

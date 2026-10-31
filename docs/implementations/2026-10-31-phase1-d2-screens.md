@@ -29,7 +29,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | 3. Build (`animate-expo`) | **Built**, `b2db8c1` (§3.8) | **Built**, `23e595c` (§3.6) | **Built**, `de3867c` (§3.7) | **Retired**, `23e595c` (§3.6) |
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | First pass: critique 27/32, audit **15/20**, HIG **1 Critical** (day names), motion clean. After the fixes: critique 27/32 (84 %), audit 16/20, no Critical, motion clean (§3.12) | First pass: critique 34/40, audit 17/20, no Critical, motion not clean. After: critique 36/40, audit 18/20, no Critical, motion clean (§3.12) | First pass: **a P0** (rows unstyled in a release build), motion not clean. After: critique 37/40, audit 17/20, no Critical, motion clean (§3.12) | Retired: none |
 | 5. `break-ui` (TR at AX5) | 2 Ugly (the zero-goal summary, the strip at AX5) and the shared number formats: **fixed**; a streak of 0 softened (§3.13) | The number formats: **fixed**; Turkish words wider than a row: accepted (the owner) | 2 Broken (an emoji cut at the cap, the editor header at AX5) and 1 Ugly (line breaks lost): **fixed** | Retired: none |
-| 6. `polish`, `harden`, `clarify` | Done: "Turn on a daily goal" opens Settings at the goal row; Turkish "kaldı" (§3.14) | Done: a failed reminder told from a refusal; "Check for updates" offline; link rejections; "Sound and haptics" (§3.14) | Done (§3.13–3.14) | Retired: none |
+| 6. `polish`, `harden`, `clarify` | Done: "Turn on a daily goal" opens Settings at the goal row; Turkish "kaldı" (§3.14). The Turkish copy and the default notes wait for the owner's review on the copy proof page | Done: a failed reminder told from a refusal; "Check for updates" offline; link rejections; "Sound and haptics" (§3.14) | Done (§3.13–3.14) | Retired: none |
 | 7. Device check (the next build, with D1's finish-review fixes) | — | — | — | — |
 | FINISH: the finish review, its verdict, DESIGN.md | — | — | — | — |
 
@@ -78,6 +78,7 @@ Fresh installs see v1's gift screen, then the welcome: two first-run screens in 
 | `.impeccable/surfaces/app-tabs-stats-tsx.md`, `.impeccable/critique/2026-10-31T*` | The Stats contract's switch is instant (the owner); the six critique snapshots, before and after the fixes. |
 | `src/screens/__tests__/d2WorstCase.test.tsx` (new), `src/screens/notes/NoteEditor.tsx`, `src/stores/notesStore.ts`, `src/screens/StatsScreen.tsx`, `src/screens/stats/WeekStack.tsx`, `src/screens/SettingsScreen.tsx`, `src/i18n/index.ts`, `en.json`, `tr.json`, `notes.test.tsx`, `stats.test.tsx` | `break-ui` (§3.13): the Turkish AX5 worst-case fixture; the cap keeps characters whole; the editor header caps at 1.4×; notes keep line breaks; the zero-goal summary, the stacked strip at AX sizes and the softer streak line; counts of 1,000 or more grouped everywhere through one `formatNumber`. |
 | `src/stores/settingsFocusStore.ts` (new), `src/screens/SettingsScreen.tsx`, `src/screens/StatsScreen.tsx`, `src/hooks/useUpdateCheck.ts`, `en.json`, `tr.json`, `settings.test.tsx`, `stats.test.tsx`, `useUpdateCheck.test.tsx`, `d2WorstCase.test.tsx` | Step 6 (§3.14): Settings opens at the goal row from Stats; a failed reminder is told from a refusal; an offline "Check for updates" says so; link rejections caught; "Sound and haptics"; Turkish "hedefe … dk kaldı". |
+| `scripts/design/copy-proof/build.mjs` (new), `scripts/design/copy-proof/template.html` (new), `art/review/copy-proof.html` (new) | The owner's copy proof page, built from the string files and published as a private artifact whose marks Claude reads back (§3.14). |
 
 ## 3. Implementation Approach
 
@@ -686,6 +687,13 @@ The scores after the fixes are this context's re-reading against each finding, e
 - The Stats tab is "İstatistik" and its title "İstatistikler" (singular against plural); the Notes tab is "Notlar" and its title "Aşk notları". Should the tab and title match?
 - The update prompt's existing alerts are English-only (`useUpdateCheck.ts`). That extraction is D3's (EN/TR), as planned.
 
+**The copy proof page** (`scripts/design/copy-proof/`, built to `art/review/copy-proof.html`) is published as a private artifact for the owner: https://claude.ai/artifact/TmachCPtjwYoFfYpPbVuvp.
+- **What it holds:** every Turkish string the next build carries (189, D1's included, since D1's copy review is still open), each beside its English. It also holds the 21 default notes (the 20 and the empty-list fallback) in both languages, and the two questions above.
+- **How it works:** the owner marks each string "Looks right" or writes a change with an optional reason. The page warns when a change drops a placeholder the app fills in.
+- **Where the marks go:** to the artifact's own database (`db`, default rules: only the owner writes), in one `verdicts` collection keyed by the string's i18n key (`note-en-NN`, `note-tr-NN` for notes, `q-stats-tab` and `q-notes-tab` for the questions), as `{status: "ok" | "change" | "answer", text, note, choice, at}`. A later session reads them back with `ArtifactData` `list` and applies them.
+- **Built from the string files themselves,** so it shows exactly what ships. Rebuild it after any string change and republish with the artifact's `url`, which keeps the marks.
+- **Checked once:** a probe verdict was written, read back through the same collection and deleted.
+
 **Tests:**
 - **`settings.test.tsx`:** a failed schedule says so, is announced, and offers no iOS Settings row; a denial keeps its footer and row (permissions mocked per test). The goal group scrolls into view once laid out, then the request clears.
 - **`stats.test.tsx`:** "Turn on a daily goal" requests the goal group.
@@ -749,6 +757,7 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
      - A note written on several lines keeps its lines, in the list and the love-note sheet.
      - An emoji typed at the end of a full note never leaves a "�".
      - Judge how long notes read at the largest size (the owner kept the full text).
+- [ ] **The owner's copy review** on the copy proof page (§3.14): every Turkish string (D1's and D2's) and the 21 default notes in both languages, and the two tab-title questions. The marks are read back and applied before build 52.
 - [ ] B2's notes tests stay green: Bengisu's install keeps its notes.
 - [ ] The emoji check (`src/__tests__/noEmojiIcons.test.ts`) passes.
 - [ ] **The device check, build 51** (needs a physical device). It goes with the D1 record's §6 "build 51" list, for D1's finish fixes and the six recaptures.

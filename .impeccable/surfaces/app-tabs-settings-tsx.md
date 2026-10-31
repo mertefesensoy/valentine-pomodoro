@@ -102,7 +102,7 @@ STORY: Find the row, change it, leave. One scroll holds everything, grouped by i
 FIRST VIEWPORT: iPhone portrait.
 - **The title:** "Settings".
 - **Timer:** Focus 25 min, Short break 5 min, Long break 15 min, Long break every 4. The footer says "Custom on the Timer uses these durations." Tapping a value opens the system wheel under its row, one at a time.
-- **Daily goal:** a switch, and Goal 50 min on a wheel in 5-minute steps. The wheel also lists the current value when it isn't a multiple of 5.
+- **Daily goal:** a switch; the four presets, 25, 50, 75 and 100, plus Custom, on D1's built segmented control; Custom opens a wheel in 1-minute steps, from 1 to 1,440. Off is the switch, which is 0. This keeps FR-STA-004 exactly: presets, or any custom value from 0 to 1,440.
 - **Notifications:**
   - the master switch first;
   - then Daily reminder, a switch with its time in the compact picker;

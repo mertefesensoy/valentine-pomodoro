@@ -108,7 +108,7 @@ STORY: How is my week going? Today comes first: its stickers, the dashed cells s
 FIRST VIEWPORT: iPhone portrait. It fits an iPhone SE at the default text size, banner included.
 - **Top:** the title "Stats" in Baloo 2, then the Sessions / Minutes switch (D1's built segmented control).
 - **One summary line,** read first by VoiceOver: "Last 7 days: 11 sessions · goal reached on 3 days", or the minutes in the Minutes view.
-- **The stack:** six day edges, oldest at the top, each 30–34 pt.
+- **The stack:** six day edges, oldest at the top, each 30–34 pt. On a screen 667 pt tall the pitch is 30 pt and today's card 138 pt, with the title at 30 pt. An iPhone SE render (`art/review/d2-stats-postcard-stack-se.html`) fits everything above the banner: the summary line, all seven days, the goal and streak strip, and the all-time line.
   - Each edge carries its day, its stickers (18 pt, "+n" past four), its count and the goal flag.
   - An empty day is one dashed cell, and VoiceOver says "no sessions".
   - In the Minutes view, an edge's stickers become a fill toward the goal, with its minutes. A day past the goal is full and shows its number; with the goal off, plain minutes.

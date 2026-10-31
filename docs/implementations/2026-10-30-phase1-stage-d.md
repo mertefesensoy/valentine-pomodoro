@@ -513,6 +513,14 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 - **The CHANGELOG line above:** "presets (25/5, 50/10, 52/17, 90/20)" becomes "presets (25/5, 50/10, 90/20 and Custom)".
 - **NFR-PERF-002's status note:** "D1 after the finish review's fixes: 4,050,408 B, 5.04 % over (D1 record §3.20)."
 
+**From D2's contracts (D2 record §3.4), to apply when Stats ships:**
+
+- **SRS FR-STA-003**, the statement, replacing the current text. The owner chose the postcard stack, which shows the seven days as stacked day postcards, not as a chart:
+
+```markdown
+**Statement:** The Stats screen shall show today, the all-time totals and the last seven days, each day with its sessions and minutes, switchable between a sessions view and a minutes view, under one summary line of the week.
+```
+
 **Phase 2 inherits (the owner, Q3, 2026-10-30):** the pages-to-logo morph also plays at the first pairing. It reuses D1's welcome-screen choreography (§3.2.11). For the rehaul plan's Phase 2 section and the ROADMAP's Phase 2 row:
 
 ```markdown

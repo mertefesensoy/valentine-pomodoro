@@ -115,7 +115,7 @@ Two reviewers ran the apple-design skill in parallel: one on Stats and Gift, one
 | Settings | **High:** an in-app System / Light / Dark switch (`dark-mode.md`: "Avoid offering an app-specific appearance setting") | **The owner's call.** DESIGN.md says appearance follows the system, but v1 shipped the switch, and the owner's own phone is set to Dark in it (build 50 screenshot). Retire it (keep `themeMode`, read it as System), or keep it with a DESIGN-WORKFLOW §3 tension row. **The owner, 2026-10-31: "Follow the phone only".** The switch is retired, `themeMode` stays in storage and is read as System, and DESIGN-WORKFLOW §3 records the settled row. |
 | Settings | Medium: the Notifications master switch sits apart from the reminders it dims | **Accept.** One Notifications group: the switch first, the daily reminder and quiet hours under it, and the denied state linking to iOS Settings. |
 | Settings | Low: Reset to defaults inside About | **Accept.** Its own last group. The alert names what it keeps (notes and stats), with Cancel and Reset. |
-| Settings | Open: the number control | **The wheel** (`@react-native-picker/picker`, the system UIPickerView) for every number row: durations 1–180, the long-break interval 2–10, the goal 0–1,440 in 5-minute steps. A stepper would take up to 179 taps, and RN has no native one. A new dependency, pinned to a release at least two weeks old: approved with the contract. The fallback, if refused: datetimepicker's countdown mode for the durations. |
+| Settings | Open: the number control | **The wheel** (`@react-native-picker/picker`, the system UIPickerView) for every number row: durations 1–180, the long-break interval 2–10, and a custom goal 1–1,440 in 1-minute steps, beside the four presets, so FR-STA-004's "any custom value" holds. The review had suggested 5-minute steps, which would narrow FR-STA-004, and tests use 1- and 600-minute goals. A stepper would take up to 179 taps, and RN has no native one. A new dependency, pinned to a release at least two weeks old: approved with the contract. The fallback, if refused: datetimepicker's countdown mode for the durations. |
 | Settings | Low: drop the Timer layout row, since the Modes sheet has it | **Declined.** The Classic brief, confirmed by the owner at C4, puts the layout choice in both places (§3, "Choosing the layout"). |
 | Settings | Platform: `LayoutAnimation` ignores Reduce Motion; an open row's state | **Accept.** Gated with `useReducedMotion`; `accessibilityState={{ expanded }}`. |
 | Notes | **Critical:** with the inline links gone, Delete is reachable only by swipe or long press (NFR-A11Y-004; `context-menus.md`: menu items also belong in the main interface) | **Accept.** A "Delete note" button at the editor's foot, confirming as today. |
@@ -183,6 +183,13 @@ Each brief now ends with its six-block contract (THESIS, OWN-WORLD, STORY, FIRST
   - the editor as its own large sheet with an unsaved-changes guard;
   - 20 new name-free defaults, for the owner's copy review.
 - **Gift** has no contract: a retirement, carried by Settings' About footer and the build list.
+
+**Checked before the approval ask:**
+- **The iPhone SE fit,** which the Stats contract promises: the postcard stack rendered at 375 × 667, with a 20 pt status bar, a 49 pt tab bar, the banner 12 pt above it, and the summary line. With a 30 pt pitch and a 138 pt card for today, everything fits above the banner: the week, today, the goal and streak, and the all-time line. The render is kept as `art/review/d2-stats-postcard-stack-se.html`.
+- **The requirements:**
+  - FR-SET-002 asks only that both themes exist, so following the phone meets it; `app.json` already sets `userInterfaceStyle: "automatic"`.
+  - FR-STA-004 allows any custom goal, so the goal wheel steps by 1 minute.
+  - FR-STA-003 says "a 7-day chart". The postcard stack shows the seven days without being a chart by that wording, so the Stage D plan's §9 gets the amended statement.
 
 ### 3.5 What follows the briefs
 

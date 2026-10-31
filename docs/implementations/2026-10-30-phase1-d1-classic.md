@@ -999,5 +999,6 @@ Every string build 48 carries in Turkish, beside its English (generated from `sr
 <!-- backlinks:start -->
 - [Load Fly Mode lazily](../architecture/adr/0031-lazy-fly-mode.md)
 - [An in-house translator over i18next, for English and Turkish](../architecture/adr/0048-in-house-translator.md)
+- ["Phase 1 D2: Stats, Settings and Notes rebuilt in the Sticker Diary design, the gift screen retired"](2026-10-31-phase1-d2-screens.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

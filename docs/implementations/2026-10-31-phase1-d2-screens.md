@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-d1-classic, DES
 
 # 2026-10-31 — Phase 1 D2: Stats, Settings, Notes and the gift screen
 
-**Status:** In progress. Shaping: the four briefs are written and wait for the owner's confirmation.
+**Status:** In progress. The owner confirmed the four briefs on 2026-10-31 ("Confirm all four"). Next: `/apple-design` on each, Stats' composition round, then the direction contracts.
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.3. This record holds what happened: each step's output, the owner's gates, the scores and the measurements.
 
@@ -22,7 +22,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | Step | Stats | Settings | Notes | Gift |
 |---|---|---|---|---|
 | 1. Shape | Brief written (§3.1) | Brief written (§3.1) | Brief written (§3.1) | Brief written: retired (§3.1) |
-| Owner: the four briefs | **Waiting** | **Waiting** | **Waiting** | **Waiting** |
+| Owner: the four briefs | **Confirmed**, 2026-10-31 ("Confirm all four") | **Confirmed** | **Confirmed** | **Confirmed** |
 | 2. `/apple-design` on the brief | — | — | — | — |
 | Composition round | Planned: the week is open (§3.2) | Not needed: native grouped list | Not needed: native list | Not needed |
 | Owner: direction contracts | — | — | — | — |
@@ -134,7 +134,7 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
 
 ## 6. Verification
 
-- [ ] The owner confirms the four briefs.
+- [x] The owner confirms the four briefs (2026-10-31, "Confirm all four").
 - [ ] `/apple-design` on each brief: no Critical finding.
 - [ ] The owner approves the direction contracts, after Stats' composition round.
 - [ ] Each screen: critique and audit at 16/20 or better, no Critical HIG finding, `review-animations` clean, `break-ui` in Turkish at AX5.

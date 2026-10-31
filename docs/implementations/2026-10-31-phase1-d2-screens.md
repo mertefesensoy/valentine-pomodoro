@@ -30,7 +30,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | First pass: critique 27/32, audit **15/20**, HIG **1 Critical** (day names), motion clean. After the fixes: critique 27/32 (84 %), audit 16/20, no Critical, motion clean (§3.12) | First pass: critique 34/40, audit 17/20, no Critical, motion not clean. After: critique 36/40, audit 18/20, no Critical, motion clean (§3.12) | First pass: **a P0** (rows unstyled in a release build), motion not clean. After: critique 37/40, audit 17/20, no Critical, motion clean (§3.12) | Retired: none |
 | 5. `break-ui` (TR at AX5) | 2 Ugly (the zero-goal summary, the strip at AX5) and the shared number formats: **fixed**; a streak of 0 softened (§3.13) | The number formats: **fixed**; Turkish words wider than a row: accepted (the owner) | 2 Broken (an emoji cut at the cap, the editor header at AX5) and 1 Ugly (line breaks lost): **fixed** | Retired: none |
 | 6. `polish`, `harden`, `clarify` | Done: "Turn on a daily goal" opens Settings at the goal row; Turkish "kaldı" (§3.14). The Turkish copy and the default notes: **reviewed** by the owner, six note changes applied (§3.15) | Done: a failed reminder told from a refusal; "Check for updates" offline; link rejections; "Sound and haptics" (§3.14) | Done (§3.13–3.14) | Retired: none |
-| 7. Device check (the next build, with D1's finish-review fixes) | — | — | — | — |
+| 7. Device check (the next build, with D1's finish-review fixes) | Build 51 checked (§3.11); **build 52** submitted (§3.16), its check pending | Build 51 checked; build 52 pending | Build 51 checked (N1 fixed); build 52 pending | Retired: none |
 | FINISH: the finish review, its verdict, DESIGN.md | — | — | — | — |
 
 **Alongside the screens** (Stage D plan §3.3), D2 also does:
@@ -720,6 +720,24 @@ The scores after the fixes are this context's re-reading against each finding, e
 
 **Guards:** Jest 53 suites, 385 tests, all passing; lint 0 errors; tsc clean; the emoji check clean (it allows `defaults.ts`, whose notes keep their emoji).
 
+### 3.16 Build 52 (the owner, 2026-10-31: "Build 52, submit it to TestFlight and push the tag v1.4.0-tf.52")
+
+The build that carries everything since build 51: §3.11's device-check fixes, D2 steps 4–6 (§3.12–3.14) and the owner's copy review (§3.15). The owner's answers to the two tab-title questions were read back first (§3.15); they change nothing.
+
+| Item | Value |
+|---|---|
+| Commit | `3f24c41` on `phase1/stage-d` (the branch stays unpushed) |
+| Command | `eas build --platform ios --profile production --non-interactive --no-wait --auto-submit --json` |
+| Pre-flight | The tree clean. Jest 53 suites, 385 tests; lint 0 errors; tsc clean; the emoji check clean. Reassure unchanged: Timer 13, Stats 1, Settings 1, Notes 1, leaf 12, settings-only 1. `expo-doctor`: 18 of 20, the same two failures as build 51. One is `@expo/config-plugins`. The other, the patch mismatches, now lists five packages: `expo` 58.0.22, `@expo/metro-runtime` 58.0.16, `expo-audio` 58.0.11, `expo-build-properties` 58.0.12 and `expo-router` 58.0.29, each one patch ahead and days old. The two-week rule still keeps them out |
+| Version and build | 1.4.0 (52); EAS incremented the remote build number from 51 |
+| EAS build | `9222d622-7997-4147-99d8-748e57efb6e4`, queued 2026-10-31 19:05 UTC (22:05 UTC+3) |
+| Build result | **Finished** 19:12 UTC (22:12 UTC+3); EAS reports the source as `3f24c41d` |
+| TestFlight submission | `e7baeb2f-6a80-4d16-98bc-dd2a0fd893b3`, **finished**: EAS's `submit-ios` workflow succeeded at 19:12:28 UTC |
+| Tag | `v1.4.0-tf.52`, annotated, on `3f24c41`, **pushed** on the owner's word in the same message as the build. The remote tag object is `65e520f` and peels to `3f24c41`; the branch stays unpushed |
+| IPA | **21,702,234 B**, +4,227 B (+0.02 %) on build 51 (21,698,007 B) |
+
+The device check is §6 "the next build (52)", which repeats the build 51 list, together with the D1 record's §6 list and its six recaptures for D1's verdict pass.
+
 **Tests:**
 - **`settings.test.tsx`:** a failed schedule says so, is announced, and offers no iOS Settings row; a denial keeps its footer and row (permissions mocked per test). The goal group scrolls into view once laid out, then the request clears.
 - **`stats.test.tsx`:** "Turn on a daily goal" requests the goal group.
@@ -770,7 +788,7 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
 - [x] The owner approves the direction contracts, after Stats' composition round (2026-10-31, "Approve, build D2", with the picker dependency).
 - [x] Each screen: critique and audit at 16/20 or better, no Critical HIG finding, `review-animations` clean (§3.12, after the fix batch; Accessibility and Adaptivity provisional until the device check).
 - [x] Each screen: `break-ui` in Turkish at AX5 (§3.13: 2 Broken and 4 Ugly fixed; the layout findings confirmed at the device check).
-- [ ] **The device check, the next build (52).** It carries §3.11's fixes and §3.12's, so it repeats the build 51 list below and adds:
+- [ ] **The device check, build 52** (submitted, §3.16; needs a physical device). It carries §3.11's fixes and §3.12's, so it repeats the build 51 list below and adds:
   1. **Notes' rows** are paper blocks with padding, corners and hairlines (the P0), and tint while pressed.
   2. **The swipe** tracks the finger, stretches over red past Delete, and the first and last rows' Delete has no black line.
   3. **The editor:** with unsaved text, Cancel and a swipe down both ask in an action sheet. Save never asks, and after Save the sheet actually closes, for a new note and an edited one. Delete note closes it too. Save dims while there's nothing to save; the field has a visible edge.

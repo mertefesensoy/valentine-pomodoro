@@ -28,8 +28,8 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 | 6. `polish`, `harden`, `clarify` | Done (§3.12–3.13); the Turkish copy waits for the owner's review | Done; the Turkish copy waits for the owner's review |
 | 7. Device check, build 48 | Build 48 on EAS from `61fd06e` (§3.15). The owner's check, 2026-10-30: four findings (F1–F4, §3.16), fixed for build 49 | The same build. The owner asked for a livelier morph (F5, §3.16), rebuilt for build 49 |
 | 7. Device check, build 49 | Build 49 on EAS from `9f0de71`, submitted to TestFlight, tag `v1.4.0-tf.49` pushed (§3.17). The owner's check, 2026-10-31: "All well" except one finding (F6, §3.18): Fly's Modes button belongs at the top right, where the compass was. Fixed in build 50 | The same build: "All well" |
-| 7. Device check, build 50 | Build 50 on EAS from `98f6a1f`, submitted to TestFlight (§3.19); the tag `v1.4.0-tf.50` is local, its push waits for the owner's OK. The owner's check: **pending** (§6) | The same build; no welcome change since build 49 |
-| FINISH (both contracts): the finish review, its verdict, DESIGN.md | **Pending:** after the device check, with the owner's iPhone screenshots as the evidence | **Pending:** the same |
+| 7. Device check, build 50 | Build 50 on EAS from `98f6a1f`, submitted to TestFlight, tag `v1.4.0-tf.50` pushed (§3.19). The owner's check, 2026-10-31: every check passed, "all well" (§6) | The same build; no welcome change since build 49 |
+| FINISH (both contracts): the finish review, its verdict, DESIGN.md | **Pending:** the device checks are done (build 50); the review runs with the owner's iPhone screenshots as the evidence | **Pending:** the same |
 
 **FINISH is not yet discharged.** Each direction contract ends with "this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance". That waits for evidence this machine can't make:
 - After the device check, a fresh `impeccable-finish-reviewer` gets both contracts and the owner's screenshots, labelled as hardware evidence.
@@ -619,7 +619,7 @@ F1, F2, F4 and F5 passed. F2 had been the one fix this machine couldn't prove (�
 
 ### 3.19 Build 50 (the owner's OK, 2026-10-31: "Build 50")
 
-The question was "Build 50 with this fix and submit it to TestFlight?", so the OK covers the build and the submission. Builds 48 and 49 were asked with the tag push in the question; this one wasn't, so the tag is created but not pushed.
+The question was "Build 50 with this fix and submit it to TestFlight?", so the OK covers the build and the submission. Builds 48 and 49 were asked with the tag push in the question; this one wasn't, so the tag was created but not pushed. The owner's next message, 2026-10-31, said "push the tag", and it was pushed.
 
 | Item | Value |
 |---|---|
@@ -630,7 +630,7 @@ The question was "Build 50 with this fix and submit it to TestFlight?", so the O
 | EAS build | `5ff314d5-d75b-4c6c-a62b-c86f25a59198`, queued 2026-10-31 08:26 UTC (11:26 UTC+3) |
 | Build result | **Finished** 2026-10-31 08:32 UTC (11:32 UTC+3); EAS reports the source as `98f6a1f5` |
 | TestFlight submission | `9a02ba7c-e87e-4acb-a11e-3e5609ae1014`, **finished**: EAS's `submit-ios` workflow started as the build completed and succeeded at 08:32:34 UTC |
-| Tag | `v1.4.0-tf.50`, annotated in the tf.49 format, on `98f6a1f`, **local only**. Its push waits for the owner's OK |
+| Tag | `v1.4.0-tf.50`, annotated in the tf.49 format, on `98f6a1f`, **pushed** after the owner's "push the tag". The remote tag object is `3922ebe` and peels to `98f6a1f`; the branch stays unpushed |
 
 **Binary** (read from the artifact's `Content-Length`, as for builds 48 and 49):
 
@@ -787,7 +787,7 @@ Through the hop, the area sx·sy stays within 0.85 to 1.15, which the tests chec
      - Nothing is clipped at the largest text size or in landscape.
      - Pomo's glints show in dark.
      - Reduce Motion is still a fade.
-- [ ] **The device check, build 50** (`v1.4.0-tf.50`), for F6 (§3.18):
+- [x] **The device check, build 50** (`v1.4.0-tf.50`), for F6 (§3.18). The owner, 2026-10-31: "all cheks are passed all well":
   1. In Fly, portrait: the Modes button is at the top right, and the compass is under it, 8 pt apart. During a flight, the camera button comes third.
   2. In Fly, landscape: the column sits just left of the sheet's strip, and it slides left with the sheet as the sheet opens. The Modes button never covers the sheet.
   3. The button opens the Modes sheet, Classic returns from it, and VoiceOver reads "Modes" (Turkish: "Modlar").

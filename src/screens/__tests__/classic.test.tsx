@@ -1,11 +1,12 @@
 // covers: FR-SET-001, NFR-I18N-001, NFR-A11Y-003, NFR-A11Y-002
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { ModeSheet } from '../../components/modes/ModeSheet';
 import { StoreGate } from '../../stores/StoreGate';
 import { useSettingsStore } from '../../stores/settingsStore';
+import { useStatsStore } from '../../stores/statsStore';
 import { useUiStore } from '../../stores/uiStore';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import TimerScreen from '../TimerScreen';
@@ -36,6 +37,20 @@ async function show(node: React.ReactElement) {
         </GestureHandlerRootView>,
     );
     await act(async () => {});
+}
+
+// Jest's window is 750 × 1334 at font scale 2, an AX size (the Jest preset's Dimensions mock),
+// where Facing Pages stacks and the Ring keeps its fixed rule. This runs a test on an iPhone at the
+// default text size instead, as the owner's build 50 captures were, then puts Jest's window back.
+async function onPhone(run: () => Promise<void>) {
+    const jestWindow = Dimensions.get('window');
+    const phone = { width: 393, height: 852, scale: 3, fontScale: 1 };
+    try {
+        await act(async () => Dimensions.set({ window: phone, screen: phone }));
+        await run();
+    } finally {
+        await act(async () => Dimensions.set({ window: jestWindow, screen: jestWindow }));
+    }
 }
 
 async function press(target: Parameters<typeof fireEvent.press>[0]) {
@@ -174,8 +189,51 @@ describe('Classic after its first reviews (critique, HIG, review-animations)', (
         expect(screen.getByText('Pomo & Doro are waiting for you')).toBeOnTheScreen();
     });
 
-    it('explains the empty sticker row before the first sticker', async () => {
+    it('explains the empty sticker row before the first sticker when there is no goal', async () => {
         await show(<TimerScreen />);
+        // With the default goal, the dashed cells explain the row; the sentence is for no goal.
+        expect(screen.queryByText('Finish a focus and your first sticker lands here')).toBeNull();
+        await act(async () => useStatsStore.setState({ goalMinutes: 0 }));
         expect(screen.getByText('Finish a focus and your first sticker lands here')).toBeOnTheScreen();
+        expect(screen.getByLabelText('No sessions yet today')).toBeOnTheScreen();
+    });
+
+    it("labels today's row and counts the sessions left for today's goal", async () => {
+        await show(<TimerScreen />);
+        // The default 50-minute goal in 25-minute sessions: two dashed cells to fill (D1 record §4.3).
+        expect(screen.getByText('Today')).toBeOnTheScreen();
+        expect(screen.getByLabelText("No sessions yet today. 2 more for today's goal")).toBeOnTheScreen();
+    });
+
+    it("carries the partner slot on Facing Pages' right page, facing and stacked", async () => {
+        const check = async () => {
+            await show(<TimerScreen />);
+            await act(async () => useSettingsStore.getState().updateSettings({ classicLayout: 'spread' }));
+            // The pair's line lives on the right page now, once (finish review fix 4); the pages'
+            // labels are decoration, hidden from VoiceOver.
+            expect(screen.getAllByText('Pomo & Doro are ready when you are')).toHaveLength(1);
+            expect(screen.getByText('You', { includeHiddenElements: true })).toBeOnTheScreen();
+            expect(screen.getByText('Doro', { includeHiddenElements: true })).toBeOnTheScreen();
+            expect(screen.queryByText('You')).toBeNull();
+        };
+        await check(); // Jest's own window: an AX size, where the pages stack
+        await onPhone(check); // facing pages
+    });
+
+    it('sizes the Ring to the height its slot leaves, down to a floor', async () => {
+        await onPhone(async () => {
+            await show(<TimerScreen />);
+            // Finish review fix 7: the slot reports the column's spare height, and the ring fills it.
+            const slot = screen.getByTestId('ring-slot');
+            const ringWidth = () => StyleSheet.flatten(screen.getByTestId('phase-ring').props.style).width;
+            const layout = (height: number) => ({ nativeEvent: { layout: { x: 0, y: 0, width: 345, height } } });
+            await act(async () => fireEvent(slot, 'layout', layout(250)));
+            expect(ringWidth()).toBe(250);
+            await act(async () => fireEvent(slot, 'layout', layout(120)));
+            expect(ringWidth()).toBe(200);
+            // Never wider than its cap: 86 % of the 345 pt column.
+            await act(async () => fireEvent(slot, 'layout', layout(600)));
+            expect(ringWidth()).toBeCloseTo(345 * 0.86);
+        });
     });
 });

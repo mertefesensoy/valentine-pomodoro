@@ -70,12 +70,19 @@
     "break": "Pomo & Doro are on a break with you",
     "paused": "Pomo & Doro are waiting for you"
   },
+  "spread": {
+    "you": "You",
+    "doro": "Doro"
+  },
   "today": {
     "a11y_one": "{{count}} session today",
     "a11y_other": "{{count}} sessions today",
     "a11y_zero": "No sessions yet today",
     "more": "+{{count}}",
-    "empty": "Finish a focus and your first sticker lands here"
+    "empty": "Finish a focus and your first sticker lands here",
+    "label": "Today",
+    "left_one": "{{count}} more for today's goal",
+    "left_other": "{{count}} more for today's goal"
   },
   "goal": {
     "reached": "Goal reached",

@@ -16,7 +16,6 @@ import { t } from '../../i18n';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useUiStore } from '../../stores/uiStore';
 import { useTheme } from '../../theme/useTheme';
-import { fonts } from '../../theme/type';
 import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
 
 /**
@@ -78,7 +77,15 @@ export function ModeSheet() {
                         accessibilityState={{ selected: activeMode === 'fly' }}
                         style={styles.rowHead}
                     >
-                        <View style={[styles.flyBadge, { backgroundColor: tokens.primarySoft }]}>
+                        {/* The tile stays visible on the selected row, which is primarySoft too (finish review fix 8c). */}
+                        <View
+                            style={[
+                                styles.flyBadge,
+                                activeMode === 'fly'
+                                    ? { backgroundColor: tokens.paper, borderColor: tokens.edge }
+                                    : { backgroundColor: tokens.primarySoft, borderColor: 'transparent' },
+                            ]}
+                        >
                             <Icon glyph={fly} size={26} color={tokens.primaryInk} />
                         </View>
                         <Text style={[styles.rowLabel, { color: tokens.ink }]}>{t('modes.fly')}</Text>
@@ -92,10 +99,11 @@ export function ModeSheet() {
 
 const styles = css.create({
     sheet: { padding: space.xl, gap: space.l },
-    title: { fontFamily: fonts.semiBold, fontSize: 22 },
+    // The system face: Baloo 2 is the timer's alone (brief §7; finish review fix 8b).
+    title: { fontSize: 22, fontWeight: '700' },
     row: { borderRadius: radius.m, borderWidth: edgeWidth, padding: space.m, gap: space.s },
     rowHead: { flexDirection: 'row', alignItems: 'center', gap: space.m, minHeight: minTarget },
     rowLabel: { fontSize: 17, fontWeight: '600', flex: 1 },
     caption: { fontSize: 13, fontWeight: '500' },
-    flyBadge: { width: 44, height: 44, borderRadius: radius.m, alignItems: 'center', justifyContent: 'center' },
+    flyBadge: { width: 44, height: 44, borderRadius: radius.m, borderWidth: edgeWidth, alignItems: 'center', justifyContent: 'center' },
 });

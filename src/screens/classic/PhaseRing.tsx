@@ -55,7 +55,7 @@ export function PhaseRing({ size, progress, isBreak, trackColor, focusColor, bre
     const stroke = Math.round(size * 0.055);
     const r = (size - stroke) / 2;
     return (
-        <View style={{ width: size, height: size }}>
+        <View style={{ width: size, height: size }} testID="phase-ring">
             <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
                 <Circle cx={size / 2} cy={size / 2} r={r} stroke={trackColor} strokeWidth={stroke} fill="none" />
             </Svg>

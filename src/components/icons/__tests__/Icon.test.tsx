@@ -32,6 +32,30 @@ describe('Sticker', () => {
         expect(svg.props.width ?? svg.props.style?.width).toBeDefined();
     });
 
+    it("lifts on the theme's shadow, drawn inside the Svg, and keeps its layout box", async () => {
+        // DESIGN.md "Only Stickers Lift" (finish review fix 3): the silhouette in the token's colour,
+        // its alpha on the group, offset and blurred, under the art.
+        await render(<Sticker art={pomoIdle} width={50} shadow="#4A2C2929" accessibilityLabel="Pomo" />);
+        const svg = screen.getByLabelText('Pomo');
+        const room = 50 * 0.12;
+        expect(svg.props.width ?? svg.props.style?.width).toBeCloseTo(50 + room * 2);
+        expect(JSON.stringify(svg.props.style)).toContain(`${-room}`);
+        const tree = JSON.stringify(screen.toJSON());
+        // react-native-svg hands colours to native as ARGB integers: #4A2C29, opaque.
+        expect(tree).toContain(`"payload":${0xff4a2c29}`);
+        expect(tree).toContain(`"opacity":${0x29 / 255}`);
+        expect(tree).toContain('"filter":"lift"');
+        expect(tree).toContain('stdDeviation');
+        expect(tree.match(/"d":/g)).toHaveLength(pomoIdle.paths.length * 2);
+    });
+
+    it('lies flat without one', async () => {
+        await render(<Sticker art={pomoIdle} width={50} accessibilityLabel="Pomo" />);
+        const tree = JSON.stringify(screen.toJSON());
+        expect(tree).not.toContain('stdDeviation');
+        expect(tree.match(/"d":/g)).toHaveLength(pomoIdle.paths.length);
+    });
+
     it('carries its own fills, die-cut edge included', () => {
         expect(pomoIdle.paths.some((p) => p.fill.toLowerCase() === '#ffffff')).toBe(true);
         expect(pomoIdle.paths.some((p) => p.fill.toLowerCase() === '#f7a9be')).toBe(true);

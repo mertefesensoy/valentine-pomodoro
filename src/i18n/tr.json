@@ -70,12 +70,19 @@
     "break": "Pomo ve Doro seninle molada",
     "paused": "Pomo ve Doro seni bekliyor"
   },
+  "spread": {
+    "you": "Sen",
+    "doro": "Doro"
+  },
   "today": {
     "a11y_one": "Bugün {{count}} oturum",
     "a11y_other": "Bugün {{count}} oturum",
     "a11y_zero": "Bugün henüz oturum yok",
     "more": "+{{count}}",
-    "empty": "Bir odak bitir, ilk çıkartman buraya yapışsın"
+    "empty": "Bir odak bitir, ilk çıkartman buraya yapışsın",
+    "label": "Bugün",
+    "left_one": "Bugünün hedefi için {{count}} oturum daha",
+    "left_other": "Bugünün hedefi için {{count}} oturum daha"
   },
   "goal": {
     "reached": "Hedefe ulaştın",

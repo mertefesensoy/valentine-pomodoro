@@ -17,7 +17,7 @@ import { useUiStore } from "../stores/uiStore";
 import { useLoveNoteSheet } from "../stores/loveNoteSheetStore";
 import { useTheme } from "../theme/useTheme";
 import { type } from "../theme/type";
-import { minTarget, space } from "../theme/layout";
+import { edgeWidth, minTarget, radius, space } from "../theme/layout";
 import { useScreenFocused } from "../hooks/useScreenFocus";
 import { AdManager } from "../ads/AdManager";
 import { AdPolicy } from "../ads/AdPolicy";
@@ -27,7 +27,7 @@ import { getTodayKey } from "../utils/time";
 import { PhaseRing } from "./classic/PhaseRing";
 import { PoseSticker, poseFor } from "./classic/PoseSticker";
 import { SpreadPages } from "./classic/SpreadPages";
-import { TodayStickers } from "./classic/TodayStickers";
+import { TodayStickers, goalCellsLeft } from "./classic/TodayStickers";
 import { ClassicControls } from "./classic/ClassicControls";
 import { useWelcomeGate } from "./welcome/useWelcomeGate";
 
@@ -58,6 +58,9 @@ const STACK_FONT_SCALE = 1.6;
 const COMPACT_HEIGHT = 500;
 // Regular width (iPad, wide windows): both layouts centre at a readable width.
 const READABLE_WIDTH = 560;
+// The Ring's floor when it sizes to the height left (finish review fix 7): below it the page
+// scrolls rather than shrink the timer further (an iPhone SE at default text size).
+const MIN_RING = 200;
 
 /** The wall-clock minute a running phase ends in, seconds dropped (Stage D plan §4.6). */
 function clockMinute(epochMs: number): string {
@@ -86,6 +89,9 @@ export default function TimerScreen() {
   // Today's stickers and goal: both change only when a focus completes.
   const todayCount = useStatsStore((s) => s.days[getTodayKey()]?.focusSessions ?? 0);
   const goalHitToday = useStatsStore((s) => Boolean(s.days[getTodayKey()]?.goalHit));
+  // Today's goal and minutes, for the dashed cells still to fill (D1 record §4.3).
+  const goalToday = useStatsStore((s) => s.days[getTodayKey()]?.goalMinutes ?? s.goalMinutes);
+  const minutesToday = useStatsStore((s) => s.days[getTodayKey()]?.focusMinutes ?? 0);
   const pickRandomNote = useNotesStore((s) => s.pickRandomNote);
   const activeMode = useUiStore((s) => s.activeMode);
   // Session state and actions: re-renders on session changes, not each second.
@@ -357,9 +363,22 @@ export default function TimerScreen() {
     />
   );
 
+  // Portrait, below the AX sizes, the Ring takes the height left once everything else is laid
+  // out: its slot fills the column and reports its height (finish review fix 7; build 50's Ring
+  // overflowed an 852 pt screen by about 15 pt, so Skip met the tab bar). Before that first
+  // layout, at AX sizes (where the page scrolls by design) and in landscape, the fixed rule.
+  const [ringSlot, setRingSlot] = useState<number | null>(null);
+  const ringFits = layout === 'ring' && !compactHeight && fontScale < STACK_FONT_SCALE;
+  // The goal moment shows for 1.4 s under today's row, during the sticker placement. The ring
+  // holds its size through it: the slot keeps the ring's height and its reports are ignored, so
+  // the page scrolls for that moment rather than the timer shrinking and growing back.
+  const goalMomentShowing = !!goalPopup && focused;
+  const ringCap = Math.min(pageWidth * (fontScale >= STACK_FONT_SCALE ? 0.66 : 0.86), 340);
   const ringSize = compactHeight
     ? Math.min(height - insets.top - insets.bottom - space.xl, width * 0.42)
-    : Math.min(pageWidth * (fontScale >= STACK_FONT_SCALE ? 0.66 : 0.86), height * 0.36, 340);
+    : ringFits && ringSlot !== null
+      ? Math.max(MIN_RING, Math.min(ringCap, ringSlot))
+      : Math.min(ringCap, height * 0.36);
 
   const face =
     layout === 'spread' ? (
@@ -370,6 +389,7 @@ export default function TimerScreen() {
         pose={pose}
         progress={ringProgress}
         isBreak={isBreak}
+        line={t(partnerLine)}
       >
         {timer(56)}
         {subLine}
@@ -388,23 +408,31 @@ export default function TimerScreen() {
       </PhaseRing>
     );
 
-  const partner = (
-    <View style={styles.partner}>
-      {layout === 'ring' && (
-        <View style={styles.pair} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-          <PoseSticker who="pomo" pose={pose} width={44} />
-          <PoseSticker who="doro" pose={pose} width={44} />
+  // The partner slot: on the Ring, one paper field with the pair and their line, as the C4
+  // sketch draws it (finish review fix 5); Facing Pages carries it on its right page (fix 4).
+  const partner = layout === 'ring' ? (
+    <View style={[styles.partner, { backgroundColor: tokens.paper, borderColor: tokens.edge }]}>
+      <View style={styles.pair} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <PoseSticker who="pomo" pose={pose} width={40} shadow={tokens.stickerShadow} />
+        <View style={styles.pairOverlap}>
+          <PoseSticker who="doro" pose={pose} width={40} shadow={tokens.stickerShadow} />
         </View>
-      )}
-      <Text style={[styles.partnerLine, { color: tokens.inkSoft }]}>{t(partnerLine)}</Text>
+      </View>
+      <Text style={[styles.partnerLine, { color: tokens.ink }]}>{t(partnerLine)}</Text>
     </View>
-  );
+  ) : null;
 
   const today = (
     <TodayStickers
       tokens={tokens}
       count={todayCount}
       goalHit={goalHitToday}
+      sessionsToGoal={goalCellsLeft({
+        goalMinutes: goalToday,
+        minutesToday,
+        focusMinutes: settings.durations.focus,
+        goalHit: goalHitToday,
+      })}
       goalStreak={goalPopup && focused ? goalPopup.newStreak : null}
       onGoalMomentDone={clearGoalHitPulse}
       animate={focused}
@@ -492,7 +520,17 @@ export default function TimerScreen() {
             ) : (
               <>
                 <View style={styles.centre}>
-                  {face}
+                  {ringFits ? (
+                    <View
+                      style={[styles.ringSlot, goalMomentShowing && { minHeight: ringSize }]}
+                      testID="ring-slot"
+                      onLayout={(e) => {
+                        if (!goalMomentShowing) setRingSlot(Math.floor(e.nativeEvent.layout.height));
+                      }}
+                    >
+                      {face}
+                    </View>
+                  ) : face}
                   {partner}
                   {today}
                 </View>
@@ -590,17 +628,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
-  partner: {
+  // The Ring's slot takes the column's spare height, never its own content's (flexBasis 0),
+  // so its measured height is the room the ring may fill.
+  ringSlot: {
+    flexGrow: 1,
+    flexBasis: 0,
+    minHeight: MIN_RING,
+    alignSelf: 'stretch',
     alignItems: 'center',
-    gap: space.xs,
+    justifyContent: 'center',
+  },
+  partner: {
+    alignSelf: 'stretch',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.m,
+    minHeight: 72,
+    paddingVertical: space.m,
+    paddingHorizontal: space.l,
+    borderRadius: radius.l,
+    borderWidth: edgeWidth,
   },
   pair: {
     flexDirection: 'row',
-    gap: space.xs,
+  },
+  // Doro tucks in behind Pomo by 8 pt, as the sketch overlaps them.
+  pairOverlap: {
+    marginLeft: -space.s,
   },
   partnerLine: {
+    flex: 1,
     fontSize: 15,
     fontWeight: '500',
-    textAlign: 'center',
   },
 });

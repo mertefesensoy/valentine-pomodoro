@@ -25,12 +25,13 @@ const POSE_OUT = FadeOut.duration(250);
  * Pomo or Doro in the pose for the moment (ADR-0047). A pose change keys a new sticker, so
  * the old one fades out under the new one with no React render per frame. Opacity only, so it
  * stays the same under Reduce Motion. Decoration: the line beside it carries the meaning.
+ * It always lifts, in the theme's `stickerShadow` (finish review fix 3).
  */
-export function PoseSticker({ who, pose, width }: { who: 'pomo' | 'doro'; pose: Pose; width: number }) {
+export function PoseSticker({ who, pose, width, shadow }: { who: 'pomo' | 'doro'; pose: Pose; width: number; shadow: string }) {
     return (
         <View style={{ width, height: width }}>
             <Animated.View key={pose} entering={POSE_IN} exiting={POSE_OUT} style={StyleSheet.absoluteFill}>
-                <Sticker art={ART[who][pose]} width={width} />
+                <Sticker art={ART[who][pose]} width={width} shadow={shadow} />
             </Animated.View>
         </View>
     );

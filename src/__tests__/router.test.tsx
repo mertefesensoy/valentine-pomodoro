@@ -96,7 +96,7 @@ jest.mock('../startup/deferredStartup', () => ({
 // What each tab shows, and nothing else does.
 const TABS = [
     { path: '/', url: 'valentinepomodoro://', text: 'Start focus' },
-    { path: '/stats', url: 'valentinepomodoro://stats', text: 'Today Sessions' },
+    { path: '/stats', url: 'valentinepomodoro://stats', text: /^Last 7 days/ },
     { path: '/settings', url: 'valentinepomodoro://settings', text: 'Light or dark follows your iPhone.' },
     { path: '/notes', url: 'valentinepomodoro://notes', text: 'Preview a note' },
 ];
@@ -277,11 +277,11 @@ describe('tabs render late, then never hide', () => {
 
     it('the other tabs render at start-up idle; Stats requests no banner until it is opened', async () => {
         await launch(null);
-        expect(screen.queryByText('Today Sessions')).toBeNull();
+        expect(screen.queryByText(/^Last 7 days/)).toBeNull();
         expect(mockPrerenders).toHaveLength(3);
 
         await startupIdle();
-        expect(screen.getByText('Today Sessions')).toBeOnTheScreen();
+        expect(screen.getByText(/^Last 7 days/)).toBeOnTheScreen();
         expect(screen.getByText('Light or dark follows your iPhone.')).toBeOnTheScreen();
         expect(screen.getByText('Preview a note')).toBeOnTheScreen();
         expect(bannerHosts()).toHaveLength(0);
@@ -307,7 +307,7 @@ describe('tabs render late, then never hide', () => {
         await act(() => router.navigate('/stats'));
         expect(screen.getByText('Start focus')).toBeOnTheScreen();
         await act(() => router.navigate('/'));
-        expect(screen.getByText('Today Sessions')).toBeOnTheScreen();
+        expect(screen.getByText(/^Last 7 days/)).toBeOnTheScreen();
     });
 
     // covers: FR-ADS-001, FR-NTE-001

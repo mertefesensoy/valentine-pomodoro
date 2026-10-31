@@ -1,0 +1,201 @@
+import { StyleSheet, Text, View } from 'react-native';
+
+import { Icon } from '../../components/icons/Icon';
+import { goal as goalGlyph } from '../../components/icons/art/goal';
+import { Sticker } from '../../components/stickers/Sticker';
+import { doroCelebrating } from '../../components/stickers/art/doroCelebrating';
+import { pomoCelebrating } from '../../components/stickers/art/pomoCelebrating';
+import { language, t } from '../../i18n';
+import type { ThemeTokens } from '../../theme/palette';
+import { edgeWidth, radius, space } from '../../theme/layout';
+import type { DayStats } from '../../types';
+import { fonts } from '../../theme/type';
+
+export type Metric = 'sessions' | 'minutes';
+export type Day = { key: string; stats: DayStats };
+
+const LOCALE = language === 'tr' ? 'tr-TR' : 'en-US';
+// An edge shows at most this many stickers, then "+n" (whole cells, never shrunk).
+const EDGE_STICKERS = 4;
+
+/** "YYYY-MM-DD" as a local date (never parsed as UTC). */
+export function dateOfKey(key: string): Date {
+    const [y, m, d] = key.split('-').map(Number);
+    return new Date(y, (m ?? 1) - 1, d ?? 1);
+}
+
+export const formatNumber = (n: number) => Math.round(n).toLocaleString(LOCALE);
+
+/** What VoiceOver reads for a day: its name and date, sessions, minutes, and the goal if reached. */
+export function dayLabel(key: string, stats: DayStats, today: boolean): string {
+    const date = dateOfKey(key);
+    const name = today ? t('stats.today') : date.toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric' });
+    if (stats.focusSessions === 0) return `${name}, ${t('stats.noSessions')}`;
+    const parts = [
+        name,
+        t('stats.sessions', { count: stats.focusSessions }),
+        t('stats.minutes', { count: Math.round(stats.focusMinutes) }),
+    ];
+    if (stats.goalHit) parts.push(t('stats.goalReached'));
+    return parts.join(', ');
+}
+
+function Stickers({ count, size, max, tokens }: { count: number; size: number; max: number; tokens: ThemeTokens }) {
+    const shown = Math.min(count, max);
+    return (
+        <>
+            {Array.from({ length: shown }, (_, i) => (
+                <Sticker key={i} art={i % 2 ? doroCelebrating : pomoCelebrating} width={size} shadow={tokens.stickerShadow} />
+            ))}
+            {count > max && (
+                <View style={[styles.more, { backgroundColor: tokens.primarySoft }]}>
+                    <Text style={[styles.moreText, { color: tokens.primaryInk }]} maxFontSizeMultiplier={1.3}>
+                        {t('today.more', { count: count - max })}
+                    </Text>
+                </View>
+            )}
+        </>
+    );
+}
+
+/** A dashed cell: an empty day, or a session still owed to the goal. `edgeStrong`, 3:1 or more on paper. */
+export function DashedCell({ size, tokens }: { size: number; tokens: ThemeTokens }) {
+    return <View style={{ width: size - 2, height: size - 2, borderRadius: size, borderWidth: 1.5, borderStyle: 'dashed', borderColor: tokens.edgeStrong }} />;
+}
+
+/** The minutes view's fill toward the goal; full past it. Without a goal, no fill. */
+function MinutesFill({ minutes, goal, tokens }: { minutes: number; goal: number; tokens: ThemeTokens }) {
+    if (goal <= 0) return null;
+    const share = Math.min(minutes / goal, 1);
+    return (
+        <View style={[styles.track, { backgroundColor: tokens.ringTrack }]}>
+            <View style={[styles.fill, { width: `${share * 100}%`, backgroundColor: share >= 1 ? tokens.ringBreak : tokens.ringFocus }]} />
+        </View>
+    );
+}
+
+/**
+ * One of the six earlier days, as a postcard's edge in the stack (D2 Stats contract): its day,
+ * its stickers or its minutes, its count, and the goal flag. An empty day is one dashed cell,
+ * never "missed" (PRODUCT principle 2). One element for VoiceOver.
+ */
+export function DayEdge({ day, metric, goal, height, sticker, tilt, stacked, tokens }: {
+    day: Day;
+    metric: Metric;
+    goal: number;
+    height: number;
+    sticker: number;
+    tilt: number;
+    stacked: boolean;
+    tokens: ThemeTokens;
+}) {
+    const { focusSessions, focusMinutes, goalHit } = day.stats;
+    const date = dateOfKey(day.key);
+    const name = `${date.toLocaleDateString(LOCALE, { weekday: 'short' })} ${date.getDate()}`;
+    return (
+        <View
+            style={[
+                styles.edge,
+                stacked ? styles.edgeStacked : styles.edgeList,
+                { minHeight: height, backgroundColor: tokens.paper, borderColor: tokens.edge, transform: [{ rotate: `${tilt}deg` }] },
+            ]}
+            accessible
+            accessibilityLabel={dayLabel(day.key, day.stats, false)}
+        >
+            <Text style={[styles.edgeDay, { color: tokens.inkSoft }]} numberOfLines={1}>
+                {name}
+            </Text>
+            <View style={styles.edgeBody}>
+                {focusSessions === 0 ? (
+                    <DashedCell size={sticker} tokens={tokens} />
+                ) : metric === 'sessions' ? (
+                    <Stickers count={focusSessions} size={sticker} max={EDGE_STICKERS} tokens={tokens} />
+                ) : (
+                    <MinutesFill minutes={focusMinutes} goal={goal} tokens={tokens} />
+                )}
+            </View>
+            {focusSessions > 0 && (
+                <Text style={[styles.edgeCount, { color: tokens.ink }]}>
+                    {metric === 'sessions' ? focusSessions : formatNumber(focusMinutes)}
+                </Text>
+            )}
+            <View style={styles.flagCell}>{goalHit ? <Icon glyph={goalGlyph} size={14} color={tokens.successInk} /> : null}</View>
+        </View>
+    );
+}
+
+/** Today's postcard, in front of the stack: its stickers with dashed cells to the goal, and its line. */
+export function TodayCard({ day, metric, goal, cellsLeft, sticker, compact, tokens }: {
+    day: Day;
+    metric: Metric;
+    goal: number;
+    cellsLeft: number;
+    sticker: number;
+    compact: boolean;
+    tokens: ThemeTokens;
+}) {
+    const { focusSessions, focusMinutes, goalHit } = day.stats;
+    const date = dateOfKey(day.key).toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' });
+    const minutesText = t('stats.minutesShort', { count: Math.round(focusMinutes) });
+    const left = Math.max(goal - focusMinutes, 0);
+    const tail = goal <= 0 ? null : goalHit ? t('stats.goalReached') : t('stats.toGoal', { count: Math.ceil(left) });
+    return (
+        <View
+            style={[styles.today, compact && styles.todayCompact, { backgroundColor: tokens.paper, borderColor: tokens.edge }]}
+            accessible
+            accessibilityLabel={dayLabel(day.key, day.stats, true)}
+        >
+            <Text style={[styles.todayDate, { color: tokens.inkSoft }]}>{date}</Text>
+            <Text style={[styles.todayTitle, { color: tokens.ink }]} maxFontSizeMultiplier={1.4}>
+                {t('stats.today')}
+            </Text>
+            {metric === 'sessions' ? (
+                <View style={styles.todayRow}>
+                    <Stickers count={focusSessions} size={sticker} max={8} tokens={tokens} />
+                    {Array.from({ length: cellsLeft }, (_, i) => (
+                        <DashedCell key={i} size={sticker} tokens={tokens} />
+                    ))}
+                    {focusSessions === 0 && cellsLeft === 0 && <DashedCell size={sticker} tokens={tokens} />}
+                </View>
+            ) : (
+                <View style={styles.todayFill}>
+                    <MinutesFill minutes={focusMinutes} goal={goal} tokens={tokens} />
+                </View>
+            )}
+            <Text style={[styles.todayLine, { color: tokens.ink }]}>
+                {t('stats.sessions', { count: focusSessions })} · {minutesText}
+                {tail ? <Text style={{ color: tokens.inkSoft }}> · {tail}</Text> : null}
+            </Text>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    edge: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: space.s,
+        paddingHorizontal: space.m,
+        paddingTop: space.s,
+        borderWidth: edgeWidth,
+    },
+    // In the stack each edge is a postcard's top, tucked under the next; as a list (AX sizes) each
+    // is a whole slip.
+    edgeStacked: { borderTopLeftRadius: radius.m, borderTopRightRadius: radius.m, borderBottomWidth: 0, marginBottom: -space.s },
+    edgeList: { borderRadius: radius.m, paddingBottom: space.s, flexWrap: 'wrap' },
+    edgeDay: { width: 56, fontSize: 13, fontWeight: '600' },
+    edgeBody: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 3, minHeight: 18 },
+    edgeCount: { fontSize: 13, fontWeight: '600', fontVariant: ['tabular-nums'], textAlign: 'right' },
+    flagCell: { width: 14, alignItems: 'center' },
+    more: { borderRadius: radius.s, paddingHorizontal: space.xs, paddingVertical: 1 },
+    moreText: { fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'] },
+    track: { flex: 1, height: 6, borderRadius: 3, overflow: 'hidden', marginTop: 6 },
+    fill: { position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 3 },
+    today: { borderWidth: edgeWidth, borderRadius: radius.l, paddingHorizontal: space.l, paddingVertical: space.m, gap: space.xs },
+    todayCompact: { flex: 1 },
+    todayDate: { fontSize: 13, fontWeight: '600' },
+    todayTitle: { fontFamily: fonts.semiBold, fontSize: 22, lineHeight: 28 },
+    todayRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space.s, marginVertical: space.xs },
+    todayFill: { flexDirection: 'row', marginVertical: space.s },
+    todayLine: { fontSize: 15, fontVariant: ['tabular-nums'] },
+});

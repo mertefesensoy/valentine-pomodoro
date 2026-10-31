@@ -58,6 +58,12 @@ import { AdManager } from '../ads/AdManager';
 import { AdPolicy } from '../ads/AdPolicy';
 import { useNotifications } from '../hooks/useNotifications';
 import LoveNoteCard from '../components/LoveNoteCard';
+import { Icon } from '../components/icons/Icon';
+import { modes as modesGlyph } from '../components/icons/art/modes';
+import { PressableScale } from '../components/ui/PressableScale';
+import { edgeWidth, minTarget } from '../theme/layout';
+import { t } from '../i18n';
+import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import type { CameraMode } from '../types';
 
@@ -133,7 +139,7 @@ export default function FlyModeScreen() {
     // the landing note and the interstitial wait, and the frame callback below
     // stops. Always true outside a navigator.
     const focused = useScreenFocused();
-    const { colors, isDark } = useTheme();
+    const { colors, isDark, tokens } = useTheme();
 
     // Sheet animation state — sheetProgress 0=peek, 1=full
     const sheetProgress = useSharedValue(1);
@@ -848,14 +854,28 @@ export default function FlyModeScreen() {
                     })}
             </MapView>
 
-            {/* ── Map overlay controls: compass + view mode ───────────────── */}
+            {/* ── Map overlay controls: Modes + compass + view mode ───────── */}
             <Animated.View
                 style={[styles.mapControls, { top: insets.top + 12 }, mapControlsAnimatedStyle]}
                 pointerEvents="box-none"
+                testID="fly-map-controls"
             >
+                {/* Modes — Classic's button and sheet, at the top trailing corner
+                    where Classic has it, so the way in is the way back (the owner,
+                    after build 49). It heads this column so it slides clear of the
+                    landscape sheet with the compass. Paper, in Classic's tokens. */}
+                <PressableScale
+                    onPress={() => router.push('/modes')}
+                    haptic={false}
+                    accessibilityLabel={t('modes.button')}
+                    style={[styles.modesBtn, { backgroundColor: tokens.paper, borderColor: tokens.edge }]}
+                >
+                    <Icon glyph={modesGlyph} size={24} color={tokens.ink} />
+                </PressableScale>
+
                 {/* Compass — always visible; tap to snap north */}
                 <Pressable
-                    style={[styles.mapControlBtn, {
+                    style={[styles.mapControlBtn, styles.mapControlBtnGap, {
                         backgroundColor: isDark ? 'rgba(45,45,45,0.95)' : 'rgba(247,243,240,0.95)',
                         borderColor: `${ValentineSpec.accentPrimary}30`,
                     }]}
@@ -1164,7 +1184,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: '600',
     },
-    // ── Map overlay control buttons (compass + view mode) ──────────────────
+    // ── Map overlay control buttons (Modes + compass + view mode) ──────────
     mapControls: {
         position: 'absolute',
         flexDirection: 'column',
@@ -1188,6 +1208,16 @@ const styles = StyleSheet.create({
     },
     mapControlBtnGap: {
         marginTop: 8,
+    },
+    // backgroundColor + borderColor supplied inline (theme tokens). The compass's
+    // size and shape, but no shadow: paper sits by tone and edge (DESIGN.md).
+    modesBtn: {
+        width: minTarget,
+        height: minTarget,
+        borderRadius: minTarget / 2,
+        borderWidth: edgeWidth,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     mapControlIcon: {
         fontSize: 20,

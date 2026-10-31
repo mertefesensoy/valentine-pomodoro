@@ -17,7 +17,7 @@ import { useUiStore } from "../stores/uiStore";
 import { useLoveNoteSheet } from "../stores/loveNoteSheetStore";
 import { useTheme } from "../theme/useTheme";
 import { type } from "../theme/type";
-import { edgeWidth, minTarget, space } from "../theme/layout";
+import { minTarget, space } from "../theme/layout";
 import { useScreenFocused } from "../hooks/useScreenFocus";
 import { AdManager } from "../ads/AdManager";
 import { AdPolicy } from "../ads/AdPolicy";
@@ -441,23 +441,16 @@ export default function TimerScreen() {
 
       {activeMode === 'fly' ? (
         // ── Fly Mode ─────────────────────────────────────────────────────────
-        // FlyModeScreen fills all space; the Modes button floats over the map,
-        // the same button and sheet as Classic's, so the way in is the way back
-        // (build 48, F3). It sits outside Suspense, so Classic stays reachable
-        // while Fly loads (ADR-0031), and at the top leading corner, on a paper
-        // chip the size of Fly's compass, which holds the trailing one.
+        // FlyModeScreen fills all space. Its map controls start with Classic's
+        // Modes button, at the top trailing corner where Classic has it, so the
+        // way in is the way back (build 48 F3, moved there after build 49). It
+        // lives in Fly's control column, which slides clear of the landscape
+        // sheet, so it is inside Suspense: the split second while Fly's module
+        // evaluates has no button (ADR-0031).
         <View style={styles.flyContainer}>
           <Suspense fallback={<FlyModePlaceholder />}>
             <FlyModeScreen />
           </Suspense>
-          <PressableScale
-            onPress={() => router.push('/modes')}
-            haptic={false}
-            accessibilityLabel={t('modes.button')}
-            style={[styles.flyModeButton, { top: insets.top + 12, backgroundColor: tokens.paper, borderColor: tokens.edge }]}
-          >
-            <Icon glyph={modesGlyph} size={24} color={tokens.ink} />
-          </PressableScale>
         </View>
       ) : (
         // ── Classic ──────────────────────────────────────────────────────────
@@ -523,7 +516,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'stretch',
   },
-  // Fly mode: map + overlaid mode switcher
+  // Fly mode: the map, its controls (Modes among them) its own
   flyContainer: {
     flex: 1,
   },
@@ -531,18 +524,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  flyModeButton: {
-    position: 'absolute',
-    // top is inset-aware and set inline
-    left: 12,
-    width: minTarget,
-    height: minTarget,
-    borderRadius: minTarget / 2,
-    borderWidth: edgeWidth,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 100,
   },
   scroll: {
     flex: 1,

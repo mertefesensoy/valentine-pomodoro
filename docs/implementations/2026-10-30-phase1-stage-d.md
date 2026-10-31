@@ -456,7 +456,7 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 ```
 
 **`docs/roadmap/ROADMAP.md`**, the status board: Phase 1 Stage D → in progress (2026-10-30). Per-task rows:
-- **D1:** in progress (2026-10-30). Built, reviewed and hardened: the theme switch, EN/TR plumbing, Baloo 2, the tab bar, the icon and sticker components, Classic (The Ring and Facing Pages, presets, the sticker placement, the love-note and mode sheets) and the v1.4 welcome screen. Critique 35/40, audit 16/20, HIG no Critical, motion clean. Build 48 (`v1.4.0-tf.48`) was device-checked by the owner, with five findings; the fixes and the reanimated welcome are built for build 49 (D1 record §3.16). Waiting: the owner's OK for build 49, its device check, and the finish review.
+- **D1:** in progress (2026-10-30). Built, reviewed and hardened: the theme switch, EN/TR plumbing, Baloo 2, the tab bar, the icon and sticker components, Classic (The Ring and Facing Pages, presets, the sticker placement, the love-note and mode sheets) and the v1.4 welcome screen. Critique 35/40, audit 16/20, HIG no Critical, motion clean. Build 48 (`v1.4.0-tf.48`) was device-checked by the owner, with five findings; the fixes and the reanimated welcome shipped in build 49 (`v1.4.0-tf.49`, D1 record §3.16–3.17). Build 49's device check, 2026-10-31: all well but one finding, Fly's Modes button at the top right where the compass was, built for the next build (D1 record §3.18). Waiting: the owner's OK for that build, its device check, and the finish review.
 
 **SRS** status changes, added as each task lands:
 - **FR-SET-002** → `implemented` (Verify: T, `src/theme/__tests__/legacyColors.test.ts` and `src/__tests__/router.test.tsx`; D, the D1 device check). `useTheme` returns Strawberry Milk or Midnight Plum from `palette.ts` (D1, `46a5b00`).
@@ -502,7 +502,7 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 - **SRS §3.4, DEF-008:** add "Reopened by the build 48 device check: on the New Architecture an `InputAccessoryView` binds to the first input carrying its `nativeID` and no other, so the shared Done bar reached Focus only. Fixed 2026-10-30 (`cec4319`) with one bar per field."
 - **SRS FR-SET-001**, the settings list: add "the Timer's preset and Custom's durations (`presetChoice`, `customDurations`; optional, derived from `durations` when absent)".
 - **`docs/architecture/ARCHITECTURE.md`**:
-  - The `TimerScreen` row: replace "with `ModeSwitcher` outside the boundary" with "with the Modes button (opening the `/modes` sheet) outside the boundary".
+  - The `TimerScreen` row: replace "with `ModeSwitcher` outside the boundary" with "with the Modes button (opening the `/modes` sheet) at the head of `FlyModeScreen`'s map controls, inside the boundary (D1 record §3.18)".
   - The shared-components list: drop `ModeSwitcher`.
   - The sequence diagram's `ModeSwitcher` participant: rename it to the Modes sheet.
 - **The CHANGELOG line above:** "presets (25/5, 50/10, 52/17, 90/20)" becomes "presets (25/5, 50/10, 90/20 and Custom)".

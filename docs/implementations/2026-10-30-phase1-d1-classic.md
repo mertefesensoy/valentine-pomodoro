@@ -27,7 +27,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 | 5. `break-ui` (TR at AX5) | 2 Broken and 1 Ugly fixed; 2 Fragile noted (§3.13) | 1 Broken fixed (§3.13) |
 | 6. `polish`, `harden`, `clarify` | Done (§3.12–3.13); the Turkish copy waits for the owner's review | Done; the Turkish copy waits for the owner's review |
 | 7. Device check, build 48 | Build 48 on EAS from `61fd06e` (§3.15). The owner's check, 2026-10-30: four findings (F1–F4, §3.16), fixed for build 49 | The same build. The owner asked for a livelier morph (F5, §3.16), rebuilt for build 49 |
-| 7. Device check, build 49 | Build 49 on EAS from `9f0de71`, submitted to TestFlight, tag `v1.4.0-tf.49` pushed (§3.17); waiting for the owner's device check | The same build |
+| 7. Device check, build 49 | Build 49 on EAS from `9f0de71`, submitted to TestFlight, tag `v1.4.0-tf.49` pushed (§3.17). The owner's check, 2026-10-31: "All well" except one finding (F6, §3.18): Fly's Modes button belongs at the top right, where the compass was. Fixed for the next build | The same build: "All well" |
 | FINISH (both contracts): the finish review, its verdict, DESIGN.md | **Pending:** after the device check, with the owner's iPhone screenshots as the evidence | **Pending:** the same |
 
 **FINISH is not yet discharged.** Each direction contract ends with "this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance". That waits for evidence this machine can't make:
@@ -97,7 +97,8 @@ See the [Stage D plan §1](2026-10-30-phase1-stage-d.md#1-problem--motivation). 
 | `src/constants/presets.ts`, `src/types/index.ts`, `src/screens/classic/ClassicControls.tsx`, `src/i18n/en.json`, `tr.json`, `src/constants/__tests__/presets.test.tsx`, `src/screens/__tests__/classic.test.tsx`, `classicWorstCase.test.tsx` | Build 49, F4. The presets are 25/5, 50/10, 90/20 and Custom. Two optional settings fields, `presetChoice` and `customDurations`, are read defensively. The patches are pure, with tests, and the Custom key is in English and Turkish. |
 | `src/screens/welcome/choreography.ts`, `src/screens/welcome/__tests__/choreography.test.ts`, `src/screens/welcome/WelcomeScreen.tsx`, `.impeccable/surfaces/app-welcome-tsx.md` | Build 49, F5. New: the welcome's keyframed timeline as a pure module, and its tests. The screen now runs on that timeline, and the brief carries the owner's amendment. |
 | `src/utils/easing.ts`, `src/utils/__tests__/easing.test.ts` | Removed in build 49: the welcome was their only user, and its timeline uses closed-form easings (§4.2). |
-| `docs/architecture/adr/0031-lazy-fly-mode.md` | An as-built note: the Modes button replaced `ModeSwitcher`, outside the same boundary. |
+| `docs/architecture/adr/0031-lazy-fly-mode.md` | An as-built note: the Modes button replaced `ModeSwitcher`, outside the same boundary. After build 49, a second note: the button moved inside the boundary (F6). |
+| `src/screens/FlyModeScreen.tsx`, `src/screens/TimerScreen.tsx`, `src/screens/__tests__/flyModesButton.test.tsx`, `flyLazyLoad.test.tsx` | After build 49, F6 (§3.18). Fly's Modes button heads Fly's own map-control column at the top right, with the compass under it. New: a test on the real Fly screen that the button comes first in that column and opens the sheet. |
 | `scripts/art/review-welcome-choreography.mjs`, `art/review/d1-welcome-choreography.html` | Build 49, F5. New: the browser preview of that same timeline, sampled at 60 Hz, for the owner. It is deterministic. |
 
 ## 3. Implementation Approach
@@ -576,6 +577,43 @@ The owner checked build 48 on an iPhone on 2026-10-30 (22:42) and sent two scree
 
 It carries the build 48 fixes and the reanimated welcome (§3.16). The device checklist is §6, "build 49". TestFlight lists the build once Apple finishes processing it.
 
+### 3.18 The build 49 device check: one finding (F6)
+
+**The owner, 2026-10-31:** "All well but one issue is the fly mode mode changer button should be at the top right of the screen where the compass is originally located."
+
+F1, F2, F4 and F5 passed. F2 had been the one fix this machine couldn't prove (§3.16.1), and the phone settles it. F3 works, but in the wrong place.
+
+| # | Finding | Cause |
+|---|---|---|
+| F6 | Fly's Modes button should be at the top right, where the compass was | Build 49 put it at the top leading corner, because the compass held the trailing one (§5). Classic has its Modes button at the top trailing corner, so the way back sat on the opposite side from the way in. |
+
+**The plan, then the build:**
+- **Where it goes.** The Modes button becomes the first chip in Fly's top-right control column, and the compass (and the camera button during a flight) moves one slot down, 8 pt under it. That is the plain reading of "where the compass is originally located": the button takes the compass's place, and the compass stays on the map, under it.
+- **Why inside Fly's column, and not a button that floats over it.** In landscape the Fly sheet sits on the right. The column's `right` follows the sheet: 12 pt in portrait, then from 44 pt (just clear of the 32 pt peek strip) to the panel's width plus 12 as the sheet opens (`mapControlsAnimatedStyle`). A button that `TimerScreen` placed at `right: 12` couldn't follow that. It would sit on the peek strip, and over the corner of the open panel. So the button lives in `FlyModeScreen`'s column and slides with the compass.
+- **What that costs.** The button is now inside Fly's `Suspense` boundary, so it doesn't exist while Fly's module evaluates on the first switch. ADR-0031 kept the switcher outside the boundary so the user could switch back during that wait. The wait is short: Hermes already ships the module in the one bundle, and only its evaluation is deferred (B1). The owner's placement outranks a way back during that split second. ADR-0031 gets a second as-built note.
+- **How it looks.** Still Classic's 44 pt paper chip, with the token colours and the crisp edge, the same glyph and the same label. It has the compass's size and shape, but not the compass's shadow, since paper sits by tone and edge (DESIGN.md). The compass keeps v1's look until Fly is re-tokened (D2's `legacyColors` item), so the two chips differ in surface for now, the paper one above the v1 one.
+- **Its contract.** It renders first in the column, has `accessibilityLabel` = `t('modes.button')` ("Modes" / "Modlar"), pushes `/modes`, and fires no haptic of its own, as in Classic. VoiceOver reaches it after the map, before the compass.
+
+| Change | Commit |
+|---|---|
+| `FlyModeScreen.tsx`: the Modes chip heads `mapControls` (`testID="fly-map-controls"`), and the compass takes `mapControlBtnGap`. `TimerScreen.tsx`: the floating Fly button and its style are gone, and the comment says where the button lives now. Tests: `flyModesButton.test.tsx` (new) renders the real Fly screen and checks that there is one Modes button, that it comes first in the column with the compass second, and that it pushes `/modes`. `flyLazyLoad.test.tsx` loses its press: its Fly stub has no button now, and its job is the lazy evaluation | *(this commit)* |
+
+**Guards** (after the move):
+
+| Guard | Result |
+|---|---|
+| Jest | 47 suites, 353 tests, all passing (the new suite adds one test; the lazy-load test keeps its three) |
+| Lint (`npm run lint`) | 0 errors, 31 warnings (unchanged) |
+| TypeScript (`tsc --noEmit`) | Clean |
+| React Compiler | 67 compiled, 6 skipped, no worklet-count change (unchanged) |
+| Reassure (`npx reassure --branch`) | Unchanged: settings-only 1, Timer 13, Stats 1, Settings 2, Notes 1, leaf 12 |
+| `check-docs` | 0 errors after `--write` (TRACEABILITY lists the new test) |
+| iOS bytecode (`npx expo export --platform ios --dump-sourcemap`) | **4,044,240 B**: +676 B on build 49 (4,043,564 B). **4.88 % over** NFR-PERF-002's limit (4.86 % at build 49); E3 revisits |
+
+**The bytecode command must keep `--dump-sourcemap`.** The same export without it wrote a 4,933,164 B `.hbc`, 22 % larger, under the same file name. Every figure in this record (§3.16.3, §4.1) used the flag, so only figures taken with it compare.
+
+**The test's trace.** No SRS row covers the way back between modes. `flyModesButton.test.tsx` is tagged NFR-A11Y-003, for the two VoiceOver labels it asserts.
+
 ## 4. Mathematical / Statistical Details
 
 The numeric rules D1 implements are in the [Stage D plan §4](2026-10-30-phase1-stage-d.md#4-mathematical--statistical-details): contrast, tabular digits, the font build, the sticker spring, "Break at" and bytecode.
@@ -683,7 +721,8 @@ Through the hop, the area sx·sy stays within 0.85 to 1.15, which the tests chec
 | The love-note sheet stays until it is dismissed | Keep v1's 8 s auto-close | A sheet that closes itself takes the text away from someone reading at a large size (WCAG 2.2.1, Timing Adjustable). The interstitial already waits for the sheet to close, so the ad policy is unchanged. |
 | Run stage-d's Impeccable launcher, not stage-c's | Use the base directory the Skill tool reports | The copies are identical; stage-d's own launcher keeps every read and write inside this worktree. |
 | Build 49, F4: Custom stores its own durations beside the active ones | (a) Custom as the absence of a match, which build 48 had. (b) A Custom segment that opens Settings | (a) loses the typed durations the moment a preset is chosen: the owner's "useless". (b) makes one segment an action among selections. Storing `customDurations` keeps them, and the engine still reads only `durations`. |
-| Build 49, F3: Fly's Modes button at the top leading corner | Move Fly's compass; keep the old pill | The compass belongs to the map and has its own landscape placement (FlySheet). The pill was a second way to switch modes, with emoji. |
+| Build 49, F3: Fly's Modes button at the top leading corner (**superseded by F6**, below) | Move Fly's compass; keep the old pill | The compass belongs to the map and has its own landscape placement (FlySheet). The pill was a second way to switch modes, with emoji. |
+| After build 49, F6: the Modes button heads Fly's map-control column, top right, with the compass under it | (a) Keep it in `TimerScreen`, outside `Suspense`, at the top right. (b) Swap: the compass to the top left. (c) The compass on top, Modes under it | (a) can't follow the column's landscape slide, so it would sit on the sheet's strip and panel. (b) moves a map control away from the map's other controls and its landscape placement. (c) isn't "where the compass is". Being inside the boundary costs only the moment while Fly's module evaluates (§3.18). |
 | Build 49, F5: a keyframed timeline on one shared value | Springs per element; Lottie | One driver keeps every layer, the arcs and the haptic's frame in step and testable. Lottie would mean new art outside VectorCraft. Springs can't be audited beat by beat, nor sampled for the owner's preview. |
 | Build 49, F5: the cover turns with `rotateY` in perspective | Keep build 48's `scaleX` | A flat scale reads as a squash, which was the device check's open question. A turn about the spine is how a book opens, and React Native's matrices match the preview's CSS. |
 | Build 49, F5: About replays the welcome now | Wait for D2 | The owner's phone has already seen build 48's welcome, so without a replay the rebuilt one couldn't be checked on build 49. |
@@ -706,7 +745,7 @@ Through the hop, the area sx·sy stays within 0.85 to 1.15, which the tests chec
   9. The scroll edge effect under the bar when Facing Pages scrolls at accessibility sizes.
   10. The welcome: the Timer paints first, then the welcome fades in (never at launch); it shows once over the update from build 47, once on a fresh install (after the gift screen), never again; never over a running session. The morph's feel, whether its flat opening reads as a squash, the pages-meet haptic, and the Reduce Motion fade.
   11. `toLocaleUpperCase('tr-TR')` on Hermes (§3.5).
-- [ ] **The device check, build 49** (after the owner's OK for the build), for the build 48 findings (§3.16):
+- [x] **The device check, build 49** (`v1.4.0-tf.49`), for the build 48 findings (§3.16). The owner, 2026-10-31: "All well", except F3's position, now F6 (§3.18):
   1. **F1:** every Settings number field (Focus, Short Break, Long Break, the long-break interval, the custom goal) shows the Done bar, and Done closes the keyboard.
   2. **F2:** no strip at the bottom of the Modes sheet or the love-note sheet, in light and dark. Modes scrolls at the largest text size.
   3. **F3:** in Fly, the top-left Modes button opens the sheet, and Classic returns from it, including while Fly is still loading.
@@ -721,6 +760,11 @@ Through the hop, the area sx·sy stays within 0.85 to 1.15, which the tests chec
      - Nothing is clipped at the largest text size or in landscape.
      - Pomo's glints show in dark.
      - Reduce Motion is still a fade.
+- [ ] **The device check, the next build** (after the owner's OK for the build), for F6 (§3.18):
+  1. In Fly, portrait: the Modes button is at the top right, and the compass is under it, 8 pt apart. During a flight, the camera button comes third.
+  2. In Fly, landscape: the column sits just left of the sheet's strip, and it slides left with the sheet as the sheet opens. The Modes button never covers the sheet.
+  3. The button opens the Modes sheet, Classic returns from it, and VoiceOver reads "Modes" (Turkish: "Modlar").
+  4. Light and dark: the paper chip above the compass reads as intended (the compass keeps v1's look until D2).
 
 ## 7. Related Docs
 

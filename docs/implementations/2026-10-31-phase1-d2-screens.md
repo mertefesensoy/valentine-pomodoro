@@ -60,6 +60,10 @@ Fresh installs see v1's gift screen, then the welcome: two first-run screens in 
 | `docs/implementations/2026-10-31-phase1-d2-screens.md` | This record. |
 | `.impeccable/surfaces/app-tabs-{stats,settings,notes}-tsx.md` | Each gains its direction contract (§3.4), which waits for the owner's approval. |
 | `art/review/d2-stats-*.html` | New. The three Stats decision sketches: the postcard stack, which is locked, and the two not chosen (§3.3). |
+| `src/screens/SettingsScreen.tsx`, `src/components/settings/SettingsList.tsx` (new), `src/constants/app.ts` (new), `package.json`, `package-lock.json` | Settings rebuilt as a native inset grouped list, with `@react-native-picker/picker` 2.11.4 for its wheels (§3.6). |
+| `src/theme/useTheme.ts` | The theme follows the phone; `themeMode` is no longer read (§3.6). |
+| `src/App.tsx`, `src/components/GiftModeModal.tsx` (removed), `src/screens/welcome/useWelcomeGate.ts` | v1's gift screen is retired, and the welcome no longer waits for it (§3.6). |
+| `src/screens/__tests__/settings.test.tsx` (new; replaces `settingsKeyboard.test.tsx`), `src/screens/welcome/__tests__/welcome.test.tsx`, `src/__tests__/router.test.tsx`, `src/i18n/en.json`, `tr.json` | The new Settings tested; the welcome's two audiences; the router tests mark the welcome seen; Settings' strings in English and Turkish (§3.6). |
 | `docs/process/DESIGN-WORKFLOW.md` | Two §3 rows: sentence case against Apple's title-style capitalisation; the appearance switch, settled by retiring it. |
 
 ## 3. Implementation Approach
@@ -205,6 +209,45 @@ Each brief now ends with its six-block contract (THESIS, OWN-WORLD, STORY, FIRST
    - then Fly's icons and tokens;
    - last, the emoji check and `legacyColors`' deletion.
 6. **The reviews, `break-ui`, polish,** and the device check on the next build, which also carries D1's finish-review fixes.
+
+### 3.6 Built: Settings, the theme, and the gift screen's retirement (`23e595c`)
+
+**The dependency:** `@react-native-picker/picker` 2.11.4, Expo SDK 58's pinned version (`bundledNativeModules.json`), released 2025-10-15. Installed with `npx expo install`; the lockfile adds only that package. It's native, so it ships with the next EAS build.
+
+**Settings,** as its contract describes:
+- **The pieces:** `SettingsList.tsx` holds them: `ListGroup` (a header, a paper field with hairline separators, a footer), `SwitchRow`, `ValueRow` (a value that opens its control under the row, reporting `expanded`), `TimeRow` (the compact `DateTimePicker`), `ButtonRow` and `NumberWheel`.
+- **The wheel** lists the range, plus a stored value outside it, so it always opens on what's stored.
+- **Opening:** one wheel is open at a time. A row opens with `LayoutAnimation` over 200 ms, opacity only; with Reduce Motion, in place.
+- **Durations:** a wheel change goes through `editCustomPatch`, read from the store at the moment of the change, so it selects Custom (build 48, F4).
+- **The goal:** the four presets and Custom on D1's segmented control, with Custom's wheel running from 1 to 1,440 minutes. The switch turns it off and restores the last goal.
+- **Notifications:**
+  - Session alerts (`settings.notifications`, the end-of-session notification), the daily reminder and quiet hours sit in one group.
+  - **They stay independent switches,** each named for what it governs. "Master switch" would have changed behaviour: the reminder never depended on session alerts.
+  - A denied permission shows the reason in the group's footer, with an "Open iOS Settings" row (`Linking.openSettings()`).
+- **About** keeps the welcome replay, the update check and the developer's website. Its footer is the origin line, with the name from `APP_NAME` (`expo-constants`, `app.json`), and the credit, which holds B7's 1.5 s long-press to the start-up probe. The credit's emoji is gone.
+- **Removed:**
+  - the typed fields and every `InputAccessoryView`;
+  - the System / Light / Dark switch, Background Animations, and the streak line, which Stats shows;
+  - the emoji headings.
+- **The React Compiler** now compiles the screen (72 compiled, 5 skipped). v1's `try` / `finally` in the reminder toggle had made it skip; it's a promise chain now.
+
+**The theme:** `useTheme` reads `useColorScheme()` only. `settings.themeMode` stays in storage, and the v1.3.1 fixtures' `'dark'` value is kept and ignored. `app.json` already sets `userInterfaceStyle: "automatic"`, so native controls follow the same appearance.
+
+**The gift screen:**
+- `GiftModeModal` and its gate in `App.tsx` are removed.
+- `useWelcomeGate` no longer requires `hasSeenGiftMode`.
+- `uiStore` still reads that stored flag to pick the welcome's line (`welcomeAudience`): `fresh` on a new install, `updated` for 1.3.1 updaters.
+- `welcome.test.tsx` now checks that a fresh install gets the welcome with the fresh line.
+- The router tests, which are about tabs and links, mark the welcome seen in their setup.
+
+**Guards** at this commit:
+
+| Guard | Result |
+|---|---|
+| Jest | 48 suites, 364 tests, all passing |
+| Lint | 0 errors, 30 warnings (31 before) |
+| tsc | Clean |
+| React Compiler | 72 compiled, 5 skipped |
 
 ## 4. Mathematical / Statistical Details
 

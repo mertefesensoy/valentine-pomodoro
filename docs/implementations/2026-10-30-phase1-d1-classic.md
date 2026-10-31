@@ -652,6 +652,37 @@ It carries F6 and nothing else (§3.18). The device checklist is §6, "build 50"
   - on an iPad: The Ring, Facing Pages and the Modes sheet, dark, in a paused session;
   - on the iPhone: idle with the presets, focus running, The Ring in light, and today's row after a completion.
 
+**Round 2, 2026-10-31: fix.**
+- **The owner's word on iPad:** "No iPad". The review then ran on the six iPhone captures. iPad stays shipped and is **unreviewed by capture**, a gap the owner accepted, so the reviewer judged regular width from the code only.
+- **The rest was also judged from code:** idle, focus running, a break, completion, The Ring in light, landscape and Turkish at AX5.
+- **Not read by the reviewer:** PRODUCT.md (it checked only that the file exists), the three Jest suites, `app/modes.tsx`, `app/love-note.tsx`, `sheetOptions.ts`, `TimerText.tsx`, the icons.
+- **Keep, the reviewer's list:**
+  - the Baloo timer as the only large thing, with its quiet rotated "Paused" stamp;
+  - the exact `page` grounds;
+  - one moving part;
+  - the custom icons;
+  - Fly's Modes button where the owner put it.
+
+The eight material fixes are checked below against the two C4 sketches the owner picked (`art/review/c4-classic-ring.html`, `c4-classic-facing-pages.html`), DESIGN.md and the captures. None of the deviations was a recorded decision. `stickerShadow` is used nowhere in `src`.
+
+| # | Finding | Disposition | The plan |
+|---|---|---|---|
+| 1 | Facing Pages: the spine frame covers the tops of both stickers | **Accept** | Rebuild the spread as the sketch draws it. Each page holds its label and its sticker at the top; the frame sits below the stickers; the right page's foot holds the partner line. The pages become absolute backgrounds behind a three-row content column (heads, frame, feet), so nothing overlaps a sticker by construction, with no measuring. VoiceOver keeps the frame first; the labels are decoration, and the line speaks. |
+| 2 | The spread reads as three cards, not an open diary | **Accept**, in part | As the sketch draws it: outer corners 22, spine-side corners 8, each page tilted about its bottom spine-side corner (`transformOrigin`) by the brief's 1° (the sketch has 1.2°). The frame is filled in `page` with a 6 pt `page` halo that seats it on the spine, and bordered in `edge` (#8a). **Not taken: "the gutter closed to a spine".** The sketch keeps a gap between the pages (14 px), so the build keeps its 8 pt. |
+| 3 | Stickers don't lift; in light the white die-cut edge vanishes into the paper | **Accept** | A soft shadow drawn inside the SVG: the art's silhouette in `stickerShadow`, offset 1 × 2 pt and blurred (`FeGaussianBlur`), under the art. It matches the sketch's `1px 3px 5px`. Not a view shadow: on a view with no background, iOS renders the shadow offscreen per sticker, the today row holds up to 16, and the ring repaints every frame during focus. It's opt-in (`lift`) on Pomo & Doro's poses and today's stickers, so the welcome's layered art is unchanged. The edge in light reads against the shadow, as in the sketch; the device check judges it. |
+| 4 | Facing Pages has no partner slot: the pages hold only stickers | **Accept**, worded for brief §5 | "You" over Pomo on the left page, "Doro" over Doro on the right. The pair's line ("Pomo & Doro are studying with you", and its other states) moves to the right page's foot. The separate line under the spread goes. No "partner slot" text, which is the sketch's annotation: brief §5 says the slot "never promises pairing before pairing ships". New keys in English and Turkish, added to the copy table the owner reviews. |
+| 5 | The Ring's partner strip lost the sketch's paper field, so the Ring page has no paper | **Accept** | One paper field (`paper`, an `edge` border, radius 22) holding a row: the pair at 40 pt, overlapping by 8 as in the sketch, then the line. No "partner slot" tag (#4). A single field on the page isn't a card inside a card. |
+| 6 | Today's row has no label and no cells to fill, so "how today is going" doesn't read | **Accept**, with a goal rule | A "Today" label leads the row. Dashed cells stand for the sessions still needed for today's goal (§4.3), and filled stickers replace them as sessions complete. "+n" and the goal mark are unchanged. At 0 the dashed cells show, with the sentence "Finish a focus…" under them. VoiceOver reads the count against the goal. The sketch's "3 of 4" text is not taken: the goal is in minutes, so a sessions count beside it would mislead. |
+| 7 | Skip almost touches the tab bar, while a dead band sits above the cycle row | **Accept, with the cause corrected** | Measured in the captures, Facing Pages clears the bar by 16 pt (37 px), the page's bottom padding. So `insets.bottom` does include the bar, and B6's and the brief's M-5 claims hold. The Ring is the one that fails: its column is about 15 pt taller than the 852 pt screen, so it scrolls, its padding falls below the fold, and Skip's bottom edge meets the bar. **Fix:** the ring takes the height that is left. Its slot fills the column (`flexGrow: 1`, `flexBasis: 0`, with a floor), reports its height on layout, and the ring is the smaller of its width cap and that height. Before the first layout, and in Jest, the ring uses today's formula. **The band stays.** It is the presets' reserved height while running, the brief's "nothing jumps on Start" (§6). |
+| 8 | Contract tokens and the Fly row | **Accept** a and b; **c in part** | (a) The spine frame uses `edge`, not `edgeStrong` (#2). (b) The Modes sheet title uses the system face; Baloo stays the timer's. (c) Fly's tile stays visible when Fly is selected: paper with an `edge` border on the selected row. No Fly sticker art exists, and the rules bar emoji and SF Symbols where custom art should be, so Fly as a sticker goes to D2 with Fly's re-tokening. |
+
+**After the fixes:**
+- **Guards:** Jest, lint, tsc, the React Compiler, Reassure, `check-docs`, and bytecode with `--dump-sourcemap`.
+- **Build:** the owner's OK for build 51, with the tag push named in the question.
+- **Evidence:** the owner recaptures the same six viewports.
+- **Verdict:** the same reviewer scores each fix as resolved, partial or unresolved. Two rounds is the budget.
+- **Then:** the documenter writes DESIGN.md, with the welcome exception.
+
 **The welcome: captures waived by the owner,** 2026-10-31: "i confirm it no ned for an extra screen rocording all works well". The welcome gets no finish-review captures, so its verdict is the owner's, from the device checks of builds 49 and 50 (§6). The documenter still carries its exception into DESIGN.md (§1).
 
 ## 4. Mathematical / Statistical Details
@@ -753,6 +784,31 @@ Through the hop, the area sx·sy stays within 0.85 to 1.15, which the tests chec
 **The sparkles.** There are ten, five per face. Sparkle k flies at angle −90° ∓ (−50° + 30°k), a fan over the upper 120°, to a reach of 0.12 to 0.155 W with the `out` easing. It falls 0.06 H × u² under gravity over 560 ms, fading in over the first 12 % and out as 1 − ((u − 0.12) / 0.88)².
 
 **The haptic** fires once, as *t* crosses 1,650 ms. That is Pomo's launch plus her air time, the frame her feet reach the page.
+
+### 4.3 Today's goal cells (finish review fix #6)
+
+Today's row shows a dashed cell for each focus session still needed to reach today's goal, and filled stickers for the sessions done.
+
+Notation:
+- G is today's goal in minutes: the day's snapshot `days[today].goalMinutes`, or `goalMinutes` when the day has none.
+- M is today's focus minutes, `days[today].focusMinutes`.
+- F is the current focus length in minutes, `settings.durations.focus`.
+- n is today's focus sessions.
+- C is the row's capacity, two rows of cells, `perRow × 2`.
+- s is the filled cells shown: n, or C − 1 with "+n" once n > C.
+
+The empty cells are
+
+  e = 0 when the goal is reached, or G ≤ 0, or F ≤ 0;
+  otherwise e = min(⌈(G − M) / F⌉, C − s), floored at 0.
+
+Using minutes left, not ⌈G / F⌉ − n, keeps the count right when today's sessions had other lengths: after a 50-minute session against a 50-minute goal, no cell is left whatever F is now. The cap keeps the row inside its two rows, so a 1-minute focus against a 50-minute goal fills the row with dashed cells and never overflows it.
+
+Examples, with C = 16:
+- G = 50, F = 25, M = 0: e = 2.
+- G = 50, F = 25, M = 25, n = 1: e = 1.
+- G = 50, F = 1, M = 1, n = 1: e = min(49, 15) = 15.
+- The goal reached: e = 0, and the goal mark follows the stickers.
 
 ## 5. Design Decisions
 

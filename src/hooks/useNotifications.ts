@@ -29,13 +29,22 @@ export function useNotifications() {
             // Don't schedule if it's already in the past
             if (endAtMs <= Date.now() + 250) return null;
 
+            // A date trigger must say so: expo-notifications (SDK 52 and later) reads one only from
+            // `{ type: 'date', date }`. The old `{ date, channelId }` matched no trigger type and fell
+            // through to null on iOS, "deliver now": each phase's end message arrived as it started
+            // ("Time for a sweet break" when a focus began, the owner's long-standing bug, D2 record
+            // §3.18).
             const id = await Notifications.scheduleNotificationAsync({
                 content: {
                     title,
                     body,
                     sound: false, // We handle sound separately via expo-audio
                 },
-                trigger: { date: new Date(endAtMs), channelId: "timer" } as any,
+                trigger: {
+                    type: Notifications.SchedulableTriggerInputTypes.DATE,
+                    date: new Date(endAtMs),
+                    channelId: "timer",
+                },
             });
 
             return id;

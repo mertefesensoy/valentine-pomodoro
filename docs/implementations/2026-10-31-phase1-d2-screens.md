@@ -787,6 +787,27 @@ The device check is §6 "the next build (52)", which repeats the build 51 list, 
 | The emoji check | Clean |
 | Reassure | Unchanged: Timer 13, Stats 1, Settings 1, Notes 1, leaf 12, settings-only 1 |
 
+### 3.18 The session notifications fired at the start of each phase
+
+**The owner, 2026-11-01:** "a long lasting bug that i couldn't fix for a very long while was that when i started a new focus session the notification said time for a sweet break but it was suppose to give the focus start notification and when the break starts it gives the focus start notification".
+
+**What happened.**
+- `useTimer` schedules one notification for the end of the phase that starts or resumes (FR-NTF-001). `getNotificationContent` words it for that end: a focus ends with "Focus complete 💗 · Time for a sweet break", a break with "Break's over 💘 · Back to your goals". The wording and the scheduling time were right.
+- `useNotifications.scheduleSessionEnd` passed the trigger as `{ date, channelId: 'timer' } as any`. Since SDK 52, expo-notifications reads a date trigger only as `{ type: 'date', date }`.
+- In `parseTrigger` (`expo-notifications/build/scheduleNotificationAsync.js`), the object matches no trigger type (date, calendar, daily, weekly, monthly, yearly, time interval). It falls through to the default, `Platform.select({ default: null, android: { type: 'channel' } })`. A `null` trigger means deliver now.
+- So on iOS every session-end notification arrived the moment it was scheduled. A focus that started showed "Time for a sweet break"; a break that started showed "Back to your goals", which reads as a focus start. That is the owner's report exactly.
+- Fly's "Landed!" uses the same function, so it arrived at take-off.
+- The `as any` hid the type error that would have caught it. The code dates from v1's notifications commit (`1695dda`), from before the SDK made `type` required, hence "long lasting".
+- The daily reminder already passes `type: DAILY` and was never affected.
+
+**The fix** (`useNotifications.ts`): `{ type: Notifications.SchedulableTriggerInputTypes.DATE, date, channelId: 'timer' }`, without the `as any`, so the type checker now holds the shape. The session engine, its scheduling time and the wording are unchanged.
+
+**The test** (`src/hooks/__tests__/useNotifications.test.tsx`, new) runs the trigger the hook passes through the library's own `parseTrigger`. It must come back as a date trigger at the session's end, never `null`.
+- Against the old trigger it failed: `Received: null`.
+- It also checks that a past end isn't scheduled, and each phase's end wording.
+
+**Guards:** Jest 55 suites, 395 tests, all passing; lint 0 errors; tsc clean; React Compiler 80 compiled, 5 skipped; the emoji check clean.
+
 **Tests:**
 - **`settings.test.tsx`:** a failed schedule says so, is announced, and offers no iOS Settings row; a denial keeps its footer and row (permissions mocked per test). The goal group scrolls into view once laid out, then the request clears.
 - **`stats.test.tsx`:** "Turn on a daily goal" requests the goal group.
@@ -851,7 +872,7 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
      - An emoji typed at the end of a full note never leaves a "�".
      - Judge how long notes read at the largest size (the owner kept the full text).
 - [x] **The owner's copy review** on the copy proof page (§3.14, done: §3.15): every Turkish string (D1's and D2's) and the 21 default notes in both languages, and the two tab-title questions. The marks are read back and applied before build 52.
-- [ ] **The next build's device check:** the eight nits of §3.17. The stickers lift with a soft shadow and no square, in both themes. "Custom" sits level in its pill. Fly's peeked sheet shows its mode line above the bar; its timer is in ink; "From" and "To" align. No empty band on Stats. "Best n" on its own line. Restore adds no near-duplicates. Then D1's six captures for its verdict pass.
+- [ ] **The next build's device check:** §3.18's notifications first. Start a focus and lock the phone: nothing arrives at the start. At its end, "Focus complete 💗 · Time for a sweet break". At the break's end, "Break's over 💘 · Back to your goals". With the app open, the banner comes at the end too. Fly's "Landed!" comes on landing. Then the eight nits of §3.17. The stickers lift with a soft shadow and no square, in both themes. "Custom" sits level in its pill. Fly's peeked sheet shows its mode line above the bar; its timer is in ink; "From" and "To" align. No empty band on Stats. "Best n" on its own line. Restore adds no near-duplicates. Then D1's six captures for its verdict pass.
 - [ ] B2's notes tests stay green: Bengisu's install keeps its notes.
 - [ ] The emoji check (`src/__tests__/noEmojiIcons.test.ts`) passes.
 - [ ] **The device check, build 51** (needs a physical device). It goes with the D1 record's §6 "build 51" list, for D1's finish fixes and the six recaptures.

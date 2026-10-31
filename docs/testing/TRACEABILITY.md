@@ -14,13 +14,12 @@ related: [SRS, TEST-STRATEGY]
 ## Summary
 
 - Requirements: **103** (status: constraint 7 · implemented 38 · planned 58)
-- Implemented **Must** requirements with an automated test: **20 / 22** (91 %; target 100 % by v1.4.0, NFR-MAINT-002)
+- Implemented **Must** requirements with an automated test: **21 / 22** (95 %; target 100 % by v1.4.0, NFR-MAINT-002)
 - Implemented requirements with any verification (test, device check or inspection): **37 / 38**
 
 ## Implemented Must requirements without an automated test
 
 - [FR-TMR-007](../srs/SRS.md#fr-tmr-007): The minutes credited for a session shall be the duration captured when the session started, not the setting at… (verify: D: the [Phase 4 test guide, Test F](../archive/PHASE4_TEST.md))
-- [FR-NTF-001](../srs/SRS.md#fr-ntf-001): When notifications are on, starting or resuming a session shall schedule one local notification for its end, a… (verify: D: [Phase 4 test guide](../archive/PHASE4_TEST.md) Tests A–C)
 
 ## Matrix
 
@@ -43,7 +42,7 @@ related: [SRS, TEST-STRATEGY]
 | [FR-TMR-008](../srs/SRS.md#fr-tmr-008) | A paused Pomodoro session shall be preserved unchanged while a Fly session runs, and the reverse. | Must | v1 | implemented | [useSessionClock.test.ts](../../src/hooks/__tests__/useSessionClock.test.ts) | — |
 | [FR-TMR-009](../srs/SRS.md#fr-tmr-009) | Focus, short-break and long-break lengths and `longBreakEvery` shall be configurable within limits. | Must | v1 | implemented | [presets.test.tsx](../../src/constants/__tests__/presets.test.tsx) | — |
 | [FR-TMR-010](../srs/SRS.md#fr-tmr-010) | The user shall be able to pick a session preset: Classic 25/5, 50/10, 52/17 or 90/20. | Should | Phase 1 (D1) | planned | [presets.test.tsx](../../src/constants/__tests__/presets.test.tsx) | [IMPL-2026-10-30-phase1-d1-classic](../implementations/2026-10-30-phase1-d1-classic.md), [IMPL-2026-10-30-phase1-stage-d](../implementations/2026-10-30-phase1-stage-d.md) |
-| [FR-NTF-001](../srs/SRS.md#fr-ntf-001) | When notifications are on, starting or resuming a session shall schedule one local notification for its end, a… | Must | v1 | implemented | — | [ARCHITECTURE](../architecture/ARCHITECTURE.md) |
+| [FR-NTF-001](../srs/SRS.md#fr-ntf-001) | When notifications are on, starting or resuming a session shall schedule one local notification for its end, a… | Must | v1 | implemented | [useNotifications.test.tsx](../../src/hooks/__tests__/useNotifications.test.tsx) | [ARCHITECTURE](../architecture/ARCHITECTURE.md), [IMPL-2026-10-31-phase1-d2-screens](../implementations/2026-10-31-phase1-d2-screens.md) |
 | [FR-NTF-002](../srs/SRS.md#fr-ntf-002) | The user shall be able to enable a daily reminder at a chosen time with quiet hours. A reminder time inside th… | Should | v1 | implemented | — | [ARCHITECTURE](../architecture/ARCHITECTURE.md), [IMPL-2026-10-30-phase1-b7-deferred-startup](../implementations/2026-10-30-phase1-b7-deferred-startup.md) |
 | [FR-NTF-003](../srs/SRS.md#fr-ntf-003) | Tapping a notification shall open the Timer tab. | Should | v1 | implemented | [router.test.tsx](../../src/__tests__/router.test.tsx) | [IMPL-2026-10-30-phase1-b6-expo-router](../implementations/2026-10-30-phase1-b6-expo-router.md), [TEST-STRATEGY](TEST-STRATEGY.md) |
 | [FR-NTF-004](../srs/SRS.md#fr-ntf-004) | In a shared session, the session-end alert and the partner's pause, resume and skip events shall reach both ph… | Must | Phase 3 | planned | — | [ROADMAP](../roadmap/ROADMAP.md) |

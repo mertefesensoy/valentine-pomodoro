@@ -100,6 +100,8 @@ See the [Stage D plan §1](2026-10-30-phase1-stage-d.md#1-problem--motivation). 
 | `src/utils/easing.ts`, `src/utils/__tests__/easing.test.ts` | Removed in build 49: the welcome was their only user, and its timeline uses closed-form easings (§4.2). |
 | `docs/architecture/adr/0031-lazy-fly-mode.md` | An as-built note: the Modes button replaced `ModeSwitcher`, outside the same boundary. After build 49, a second note: the button moved inside the boundary (F6). |
 | `src/screens/FlyModeScreen.tsx`, `src/screens/TimerScreen.tsx`, `src/screens/__tests__/flyModesButton.test.tsx`, `flyLazyLoad.test.tsx` | After build 49, F6 (§3.18). Fly's Modes button heads Fly's own map-control column at the top right, with the compass under it. New: a test on the real Fly screen that the button comes first in that column and opens the sheet. |
+| `src/components/stickers/Sticker.tsx`, `src/screens/classic/PoseSticker.tsx`, `SpreadPages.tsx`, `TodayStickers.tsx`, `PhaseRing.tsx`, `src/screens/TimerScreen.tsx`, `src/components/modes/ModeSheet.tsx`, `src/i18n/en.json`, `tr.json` | The finish review's eight fixes (§3.20). Stickers lift, through an opt-in shadow drawn inside the Svg. Facing Pages is rebuilt as the C4 sketch draws it, with the partner line on its right page. The Ring gets its paper partner strip and sizes itself to the height left. Today's row gets its label and goal cells. The Modes title is set in the system face, and Fly's tile stays visible. New strings: `today.label`, `today.left`, `spread.you`, `spread.doro`. |
+| `src/screens/classic/__tests__/goalCellsLeft.test.ts`, `src/screens/__tests__/classic.test.tsx`, `src/components/icons/__tests__/Icon.test.tsx` | The finish review's fixes, tested. New: the goal-cell rule against §4.3's examples. Classic: the row's label and goal count; the partner line on Facing Pages' right page, facing and stacked; the Ring sized from its slot down to its floor, on a phone-sized window, since Jest's own window runs at font scale 2. Sticker: the lift drawn inside the Svg, and no lift without a shadow. |
 | `scripts/art/review-welcome-choreography.mjs`, `art/review/d1-welcome-choreography.html` | Build 49, F5. New: the browser preview of that same timeline, sampled at 60 Hz, for the owner. It is deterministic. |
 
 ## 3. Implementation Approach
@@ -672,7 +674,7 @@ The eight material fixes are checked below against the two C4 sketches the owner
 | 3 | Stickers don't lift; in light the white die-cut edge vanishes into the paper | **Accept** | A soft shadow drawn inside the SVG: the art's silhouette in `stickerShadow`, offset 1 × 2 pt and blurred (`FeGaussianBlur`), under the art. It matches the sketch's `1px 3px 5px`. Not a view shadow: on a view with no background, iOS renders the shadow offscreen per sticker, the today row holds up to 16, and the ring repaints every frame during focus. It's opt-in (`lift`) on Pomo & Doro's poses and today's stickers, so the welcome's layered art is unchanged. The edge in light reads against the shadow, as in the sketch; the device check judges it. |
 | 4 | Facing Pages has no partner slot: the pages hold only stickers | **Accept**, worded for brief §5 | "You" over Pomo on the left page, "Doro" over Doro on the right. The pair's line ("Pomo & Doro are studying with you", and its other states) moves to the right page's foot. The separate line under the spread goes. No "partner slot" text, which is the sketch's annotation: brief §5 says the slot "never promises pairing before pairing ships". New keys in English and Turkish, added to the copy table the owner reviews. |
 | 5 | The Ring's partner strip lost the sketch's paper field, so the Ring page has no paper | **Accept** | One paper field (`paper`, an `edge` border, radius 22) holding a row: the pair at 40 pt, overlapping by 8 as in the sketch, then the line. No "partner slot" tag (#4). A single field on the page isn't a card inside a card. |
-| 6 | Today's row has no label and no cells to fill, so "how today is going" doesn't read | **Accept**, with a goal rule | A "Today" label leads the row. Dashed cells stand for the sessions still needed for today's goal (§4.3), and filled stickers replace them as sessions complete. "+n" and the goal mark are unchanged. At 0 the dashed cells show, with the sentence "Finish a focus…" under them. VoiceOver reads the count against the goal. The sketch's "3 of 4" text is not taken: the goal is in minutes, so a sessions count beside it would mislead. |
+| 6 | Today's row has no label and no cells to fill, so "how today is going" doesn't read | **Accept**, with a goal rule | A "Today" label leads the row. Dashed cells stand for the sessions still needed for today's goal (§4.3), and filled stickers replace them as sessions complete. "+n" and the goal mark are unchanged. At 0 the dashed cells show. VoiceOver reads the count against the goal. The sketch's "3 of 4" text is not taken: the goal is in minutes, so a sessions count beside it would mislead. |
 | 7 | Skip almost touches the tab bar, while a dead band sits above the cycle row | **Accept, with the cause corrected** | Measured in the captures, Facing Pages clears the bar by 16 pt (37 px), the page's bottom padding. So `insets.bottom` does include the bar, and B6's and the brief's M-5 claims hold. The Ring is the one that fails: its column is about 15 pt taller than the 852 pt screen, so it scrolls, its padding falls below the fold, and Skip's bottom edge meets the bar. **Fix:** the ring takes the height that is left. Its slot fills the column (`flexGrow: 1`, `flexBasis: 0`, with a floor), reports its height on layout, and the ring is the smaller of its width cap and that height. Before the first layout, and in Jest, the ring uses today's formula. **The band stays.** It is the presets' reserved height while running, the brief's "nothing jumps on Start" (§6). |
 | 8 | Contract tokens and the Fly row | **Accept** a and b; **c in part** | (a) The spine frame uses `edge`, not `edgeStrong` (#2). (b) The Modes sheet title uses the system face; Baloo stays the timer's. (c) Fly's tile stays visible when Fly is selected: paper with an `edge` border on the selected row. No Fly sticker art exists, and the rules bar emoji and SF Symbols where custom art should be, so Fly as a sticker goes to D2 with Fly's re-tokening. |
 
@@ -682,6 +684,35 @@ The eight material fixes are checked below against the two C4 sketches the owner
 - **Evidence:** the owner recaptures the same six viewports.
 - **Verdict:** the same reviewer scores each fix as resolved, partial or unresolved. Two rounds is the budget.
 - **Then:** the documenter writes DESIGN.md, with the welcome exception.
+
+**The fixes, as built** (the owner's OK, 2026-10-31: "Apply them"):
+
+| Fix | Change | Commit |
+|---|---|---|
+| 3 | `Sticker.tsx`: an opt-in `shadow` (the theme's `stickerShadow`). The art's silhouette is drawn first, in the token's colour with its alpha on the group, offset 1 × 2 pt and blurred by `FeGaussianBlur` at a 1.5 pt deviation. The Svg grows by 12 % of the width on each side for the blur and gives that back in negative margins, so layout doesn't move. `PoseSticker` always lifts; today's stickers lift; the welcome's layers and the Modes sheet's mark don't. | `3fd834a` |
+| 1, 2, 4, 8a | `SpreadPages.tsx`, rebuilt. The pages are absolute paper behind three rows (heads, the frame, feet): outer corners 22, spine corners 8, each leaning 1° about its bottom spine-side corner (`transformOrigin`). The heads carry "You" over Pomo and "Doro" over Doro (stickers 34 % of the page, at most 64 pt). The frame is filled in `page`, bordered in `edge`, and seated in a 4 pt `page` halo. The right page's foot holds the pair's line, which `TimerScreen` no longer draws under the spread. Stacked at AX sizes, Doro's page carries the line. | `3fd834a` |
+| 5, 7 | `TimerScreen.tsx`. The Ring's partner strip is one paper field (radius 22, `edge`): the pair at 40 pt, Doro tucked 8 pt behind Pomo, and the line in `ink`. The Ring sits in a slot (`flexGrow: 1`, `flexBasis: 0`, a 200 pt floor) whose height, reported on layout, sizes it: the smaller of its cap (86 % of the column, at most 340 pt) and the slot. Before the first layout, at AX sizes and in landscape, the old rule. **The goal moment doesn't move the ring:** for its 1.4 s under today's row, the slot keeps the ring's height and its reports are ignored. The page scrolls for that moment, as it did before, and the timer doesn't shrink and grow back during the sticker placement. | `3fd834a` |
+| 6 | `TodayStickers.tsx`: the "Today" label leads the row, and `goalCellsLeft` (§4.3) gives the dashed cells, capped at the row's two rows (none once "+n" fills them). Stickers replace dashed cells one for one, so the row keeps its height through the day. With a goal, the cells explain the empty row. With no goal, one dashed cell and the critique's sentence sit beside each other in the row. VoiceOver adds "2 more for today's goal". | `3fd834a` |
+| 8b, 8c | `ModeSheet.tsx`: the title is set in the system face (22 pt, bold). Fly's tile is paper with an `edge` border on the selected row, and stays `primarySoft` otherwise. | `3fd834a` |
+
+**Guards** (after the fixes):
+
+| Guard | Result |
+|---|---|
+| Jest | 48 suites, 361 tests, all passing (+1 suite, +8 tests) |
+| Lint (`npm run lint`) | 0 errors, 31 warnings (unchanged) |
+| TypeScript (`tsc --noEmit`) | Clean |
+| React Compiler (`node scripts/react-compiler-report.js`) | 67 compiled, 6 skipped, no worklet-count change (unchanged) |
+| Reassure (`npx reassure --branch`) | Unchanged: Timer 13, Stats 1, Settings 2, Notes 1, leaf 12, settings-only 1. Jest's window runs at font scale 2, where the Ring keeps its fixed rule, so the slot's one extra render at mount isn't in these counts |
+| `check-docs` | 0 errors after `--write` |
+| iOS bytecode (`npx expo export --platform ios --dump-sourcemap`) | **4,050,408 B**: +6,168 B on build 50 (4,044,240 B). **5.04 % over** NFR-PERF-002's limit of 3,856,208 B (4.88 % at build 50); E3 revisits |
+
+**What only the phone can show:**
+- whether `FeGaussianBlur` blurs on iOS (Jest renders the filter's props, not its pixels);
+- whether the Ring now clears the bar;
+- how the spread reads.
+
+The build 51 checklist is §6. **Jest's window** is the preset's 750 × 1334 at font scale 2 (an AX size), so most Classic tests render the stacked spread and the Ring's fixed rule. The new tests set a 393 × 852 window at font scale 1 for the facing spread and the slot.
 
 **The welcome: captures waived by the owner,** 2026-10-31: "i confirm it no ned for an extra screen rocording all works well". The welcome gets no finish-review captures, so its verdict is the owner's, from the device checks of builds 49 and 50 (§6). The documenter still carries its exception into DESIGN.md (§1).
 
@@ -795,7 +826,7 @@ Notation:
 - F is the current focus length in minutes, `settings.durations.focus`.
 - n is today's focus sessions.
 - C is the row's capacity, two rows of cells, `perRow × 2`.
-- s is the filled cells shown: n, or C − 1 with "+n" once n > C.
+- s is the cells taken: n, or C once n > C (C − 1 stickers and the "+n" cell).
 
 The empty cells are
 
@@ -862,6 +893,14 @@ Examples, with C = 16:
   3. The button opens the Modes sheet, Classic returns from it, and VoiceOver reads "Modes" (Turkish: "Modlar").
   4. Light and dark: the paper chip above the compass reads as intended (the compass keeps v1's look until D2).
   5. During a flight at the largest text size: the timer pill never covers the Modes button.
+- [ ] **The device check, build 51** (after the owner's OK for the build), for the finish review's fixes (§3.20). The owner retakes the six captures, which go to the reviewer for its verdict:
+  1. **The Ring, paused, dark** (`phone-ring-dark-paused`): Skip clears the tab bar by about 16 pt, and the page doesn't scroll. The ring is a little smaller than build 50's. Pomo & Doro and their line sit on one paper strip.
+  2. **Facing Pages, paused, dark and light** (`phone-spread-dark-paused`, `phone-spread-light-paused`): "You" over Pomo and "Doro" over Doro at the top of the pages. The timer's frame sits below them and covers neither. The pair's line is on the right page's foot. The pages lean in from the spine, with round outer corners and tight spine corners, and the frame is seated in a band of the page colour. Nothing scrolls, and Skip clears the bar.
+  3. **The shadow,** both themes: every Pomo, Doro and today's sticker casts a soft shadow, down and to the right. It must be blurred, not a hard copy of the shape (the blur filter's first time on the device). In light, the white edge reads off the paper.
+  4. **Today's row:** "Today", then the stickers, then dashed cells up to the goal, filling as sessions finish. The ring keeps its size when a session completes and through "Goal reached".
+  5. **The Modes sheet over Classic and over Fly** (`phone-modes-sheet-over-spread-dark`, `phone-modes-sheet-over-fly-dark`): the title is set in the system face. With Fly selected, Fly's icon keeps a paper tile.
+  6. **Fly running** (`phone-fly-dark-running`): unchanged; the Modes button stays at the top right.
+  7. Not captured, worth a glance: The Ring while focus runs ("Break at …" inside the ring), and both layouts in landscape (Facing Pages may scroll there now; record it if it does).
 
 ## 7. Related Docs
 
@@ -944,6 +983,15 @@ Every string build 48 carries in Turkish, beside its English (generated from `sr
 | `presets.customKey` | Custom: {{focus}} / {{rest}} min, set in Settings | Özel: {{focus}} / {{rest}} dk, Ayarlar'da belirlenir |
 | `presets.settingsNote` | Custom on the Timer uses these durations. | Zamanlayıcıdaki Özel seçeneği bu süreleri kullanır. |
 | `welcome.replay` | Watch the welcome again | Karşılamayı yeniden izle |
+
+**Added for the finish review (§3.20):**
+
+| Key | English | Turkish (draft) |
+|---|---|---|
+| `today.label` | Today | Bugün |
+| `today.left` | {{count}} more for today's goal | Bugünün hedefi için {{count}} oturum daha |
+| `spread.you` | You | Sen |
+| `spread.doro` | Doro | Doro |
 
 ## Backlinks
 <!-- backlinks:start -->

@@ -510,7 +510,7 @@ Kept current in the same commit as each piece of work, and applied at the merge 
   - The shared-components list: drop `ModeSwitcher`.
   - The sequence diagram's `ModeSwitcher` participant: rename it to the Modes sheet.
 - **The CHANGELOG line above:** "presets (25/5, 50/10, 52/17, 90/20)" becomes "presets (25/5, 50/10, 90/20 and Custom)".
-- **NFR-PERF-002's status note:** "Build 50: 4,044,240 B, 4.88 % over (D1 record §3.18)."
+- **NFR-PERF-002's status note:** "D1 after the finish review's fixes: 4,050,408 B, 5.04 % over (D1 record §3.20)."
 
 **Phase 2 inherits (the owner, Q3, 2026-10-30):** the pages-to-logo morph also plays at the first pairing. It reuses D1's welcome-screen choreography (§3.2.11). For the rehaul plan's Phase 2 section and the ROADMAP's Phase 2 row:
 

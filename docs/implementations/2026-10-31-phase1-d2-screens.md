@@ -406,6 +406,38 @@ The first build with D2's screens. It also carries D1's finish-review fixes, as 
 
 The device check is §6 "build 51", together with the D1 record's list of the same name.
 
+### 3.11 The build 51 device check: three findings, fixed (`8ed1b09`)
+
+**The owner, 2026-10-31,** sent 10 screenshots, saying: "Two important things that needs urgent look is the notes page and in the fly mode the button for view mode change that has the hand icon does not change mode or itself when i press it. the button flicks to another symbol but it goes back to the hand emoji. You may also check the other pages as well."
+
+| # | Finding | Cause | Fix |
+|---|---|---|---|
+| N1 | **Notes:** the rows render as loose lines of text, with no paper and no padding, the red Delete action shows behind every row, and some text runs into it or is clipped | Expo Router's `Link` renders its child inside a `Text` unless it's given `asChild` (`BaseExpoRouterLink`: `asChild ? Slot : Text`). The row's `View` was laid out as inline text, and the swipe's action, drawn behind the row, showed through the transparent line. Jest never saw it: the Notes tests stand the link in, and the real link's native preview view renders nothing under Jest | The note `Link` takes `asChild`, and its trigger is the row as a `Pressable`, which the link hands its press to. **Test:** the Notes tests' link stand-in records its props, so every note link must be `asChild`, and the row must be a paper-backed pressable. The test fails without `asChild` |
+| F1 | **Fly:** during a flight, tapping the camera button flicks to the next mode's icon, then snaps back to the hand (free) | The map's `onRegionChange` entered free mode on every camera move. Fly's own moves, following the plane and fitting the route, fire it too, so the button's change was undone at once. v1 had the same handler. Apple Maps can't tell a gesture from an animation (react-native-maps: `isGesture` is Google Maps only) | Only a move while a finger is on the map enters free mode: `onTouchStart` / `onTouchEnd` mark the touch, plus a 600 ms tail for a flick's deceleration. The button's modes now stay. **Test:** `flyCamera.test.tsx` (new) starts a flight and checks that Fly's own camera moves keep "follow" and "route", that a finger's move enters free mode, and that the button brings the camera back. Against the old handler it fails exactly as on the phone: "Camera mode: free" after Fly's own move. The map's Jest mock now passes its touch and region handlers through |
+| S1 | **Settings:** the goal's "100 min" segment wraps onto two lines and pushes "Custom" out of line | Five segments with a unit each don't fit about 69 pt | Plain numbers (25 · 50 · 75 · 100 · Custom) under one caption, "Minutes a day" ("Günde dakika"), as the Timer layout row has its caption. VoiceOver still reads "50 minutes a day" |
+
+**The other pages,** checked against the screenshots:
+- **Facing Pages:** "You" over Pomo and "Doro" over Doro at the top, the frame below them, the partner line on Doro's page, the pages leaning in from the spine, the stickers lifted. The checklist's items 1 and 2 hold.
+- **The Ring:** the paper partner strip; "Today" with its dashed goal cell; Skip clear of the tab bar.
+- **Stats:**
+  - the summary line, the stack and today's card;
+  - the Minutes view's fills (Friday full at 65, today's dot at 1 of 50);
+  - the strip, the totals;
+  - the banner in its slot above the bar.
+- **Settings:** the grouped list, the time chip, the footers, About's origin line, Reset.
+- **Fly:** the camera control, the compass chip and the globe toggle have icons; the pill shows the fly icon.
+
+**Guards** at `8ed1b09`:
+
+| Guard | Result |
+|---|---|
+| Jest | 52 suites, 358 tests, all passing |
+| Lint | 0 errors, 29 warnings |
+| tsc | Clean |
+| React Compiler | 80 compiled, 5 skipped |
+| The emoji check | Clean |
+| Reassure | Passing |
+
 ## 4. Mathematical / Statistical Details
 
 None yet. The week's sticker capacity and the goal counts will reuse D1's rules (D1 record §4.3) when Stats is built.

@@ -63,6 +63,7 @@ Fresh installs see v1's gift screen, then the welcome: two first-run screens in 
 | `src/screens/SettingsScreen.tsx`, `src/components/settings/SettingsList.tsx` (new), `src/constants/app.ts` (new), `package.json`, `package-lock.json` | Settings rebuilt as a native inset grouped list, with `@react-native-picker/picker` 2.11.4 for its wheels (§3.6). |
 | `src/theme/useTheme.ts` | The theme follows the phone; `themeMode` is no longer read (§3.6). |
 | `src/screens/LoveNotesScreen.tsx`, `src/screens/notes/NoteEditor.tsx` (new), `app/note-editor.tsx` (new), `app/_layout.tsx`, `src/navigation/sheetOptions.ts` | Notes rebuilt as native list rows, with a full-height sheet editor (§3.7). |
+| `src/screens/StatsScreen.tsx`, `src/screens/stats/WeekStack.tsx` (new), `src/screens/__tests__/stats.test.tsx` (new) | Stats rebuilt as the postcard stack, and tested (§3.8). |
 | `src/stores/notesStore.ts`, `src/constants/defaults.ts` | The additive restore, the 280 cap, and 20 name-free defaults per language for fresh installs (§3.7). |
 | `src/screens/__tests__/notes.test.tsx` (new), `src/navigation/__tests__/sheetOptions.test.ts`, `src/__tests__/router.test.tsx`, `jest.setup.ts` | Notes and the editor tested; the editor's sheet options; the router tests' Notes marker; the swipeable's Jest stand-in (§3.7). |
 | `src/App.tsx`, `src/components/GiftModeModal.tsx` (removed), `src/screens/welcome/useWelcomeGate.ts` | v1's gift screen is retired, and the welcome no longer waits for it (§3.6). |
@@ -311,6 +312,39 @@ Each brief now ends with its six-block contract (THESIS, OWN-WORLD, STORY, FIRST
 | Lint | 0 errors, 30 warnings |
 | tsc | Clean |
 | React Compiler | 75 compiled, 5 skipped |
+
+### 3.8 Built: Stats, the postcard stack (`b2db8c1`)
+
+As its contract describes (`StatsScreen.tsx`, `stats/WeekStack.tsx`):
+- **The summary line:** "Last 7 days: 11 sessions · goal reached on 3 days", or minutes in the Minutes view. It's `accessibilityRole="summary"`, read first.
+- **The stack:** six `DayEdge`s, oldest at the top, each a postcard's top edge.
+  - Each is tucked under the next (`marginBottom: -8`) and tilted ±0.6°.
+  - It carries its short weekday and date, up to four 18 pt stickers with "+n", its count in tabular figures, and the goal flag.
+  - An empty day is one dashed cell in `edgeStrong`.
+  - In the Minutes view, the stickers become a fill toward the day's goal (`ringFocus`, or `ringBreak` once past it).
+  - VoiceOver reads one element per day, for example "Tuesday 28, 3 sessions, 75 minutes, goal reached".
+- **`TodayCard`:** the long date, "Today", its stickers at 40 pt with dashed cells to the goal (`goalCellsLeft`, capped at eight cells), and "1 session · 25 min · 25 min to the goal".
+- **The strip:** the goal (flag, `successInk`) and the love streak (streak, `primaryInk`). With the goal off, "Turn on a daily goal" navigates to Settings. An empty week offers "Start a session", which goes to the Timer.
+- **All time:** sessions and minutes in the locale's digits.
+- **Sizes:**
+  - A screen under 700 pt tall tightens the pitch to 30 pt and the card's stickers to 34 pt (the SE render, §3.4).
+  - At AX sizes, a list with today first.
+  - In landscape, today leads and the stack trails.
+  - Centred at 560 pt.
+  - Stickers and icons grow up to 1.3×.
+- **The banner:** its block is unchanged (the first-focus request, `bannerStatus`, the window measurement). It's re-tokened to `paper` and `edge`, with about 12 pt above the tab bar.
+- **No motion on entry.** The Sessions / Minutes switch changes the content in place.
+
+**Tests:** `stats.test.tsx` (new) covers the summary, today, the seven day elements (the goal days, no "missed"), the strip, the Minutes view, goal off, the empty week, and all time. The router tests' Stats marker is now the summary line.
+
+**Guards** at this commit:
+
+| Guard | Result |
+|---|---|
+| Jest | 51 suites, 385 tests, all passing |
+| Lint | 0 errors, 30 warnings |
+| tsc | Clean |
+| React Compiler | 80 compiled, 5 skipped |
 
 ## 4. Mathematical / Statistical Details
 

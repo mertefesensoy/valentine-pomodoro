@@ -427,6 +427,8 @@ The device check is §6 "build 51", together with the D1 record's list of the sa
 - **Settings:** the grouped list, the time chip, the footers, About's origin line, Reset.
 - **Fly:** the camera control, the compass chip and the globe toggle have icons; the pill shows the fly icon.
 
+**No build for these fixes alone** (the owner, 2026-10-31): "let's not build 52 yet. We will check the fixes after the next step because our build rights have a limit due to expo." The fixes ride on the next build, together with what D2's reviews change. That build also carries the D1 record's six recaptures.
+
 **Guards** at `8ed1b09`:
 
 | Guard | Result |

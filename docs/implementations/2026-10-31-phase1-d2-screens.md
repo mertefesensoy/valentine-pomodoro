@@ -62,6 +62,9 @@ Fresh installs see v1's gift screen, then the welcome: two first-run screens in 
 | `art/review/d2-stats-*.html` | New. The three Stats decision sketches: the postcard stack, which is locked, and the two not chosen (§3.3). |
 | `src/screens/SettingsScreen.tsx`, `src/components/settings/SettingsList.tsx` (new), `src/constants/app.ts` (new), `package.json`, `package-lock.json` | Settings rebuilt as a native inset grouped list, with `@react-native-picker/picker` 2.11.4 for its wheels (§3.6). |
 | `src/theme/useTheme.ts` | The theme follows the phone; `themeMode` is no longer read (§3.6). |
+| `src/screens/LoveNotesScreen.tsx`, `src/screens/notes/NoteEditor.tsx` (new), `app/note-editor.tsx` (new), `app/_layout.tsx`, `src/navigation/sheetOptions.ts` | Notes rebuilt as native list rows, with a full-height sheet editor (§3.7). |
+| `src/stores/notesStore.ts`, `src/constants/defaults.ts` | The additive restore, the 280 cap, and 20 name-free defaults per language for fresh installs (§3.7). |
+| `src/screens/__tests__/notes.test.tsx` (new), `src/navigation/__tests__/sheetOptions.test.ts`, `src/__tests__/router.test.tsx`, `jest.setup.ts` | Notes and the editor tested; the editor's sheet options; the router tests' Notes marker; the swipeable's Jest stand-in (§3.7). |
 | `src/App.tsx`, `src/components/GiftModeModal.tsx` (removed), `src/screens/welcome/useWelcomeGate.ts` | v1's gift screen is retired, and the welcome no longer waits for it (§3.6). |
 | `src/screens/__tests__/settings.test.tsx` (new), `settingsKeyboard.test.tsx` (rewritten), `src/screens/welcome/__tests__/welcome.test.tsx`, `src/__tests__/router.test.tsx`, `src/i18n/en.json`, `tr.json` | The new Settings tested; `settingsKeyboard.test.tsx`, which the SRS cites for DEF-008, now proves no number opens a keyboard; the welcome's two audiences; the router tests mark the welcome seen; Settings' strings in English and Turkish (§3.6). |
 | `docs/process/DESIGN-WORKFLOW.md` | Two §3 rows: sentence case against Apple's title-style capitalisation; the appearance switch, settled by retiring it. |
@@ -250,6 +253,64 @@ Each brief now ends with its six-block contract (THESIS, OWN-WORLD, STORY, FIRST
 | Lint | 0 errors, 30 warnings (31 before) |
 | tsc | Clean |
 | React Compiler | 72 compiled, 5 skipped |
+
+### 3.7 Built: Notes (`de3867c`)
+
+**Notes,** as its contract describes:
+- **The rows:** one inset group of paper rows in a `FlatList`, the first and last carrying the group's corners, with hairlines between.
+  - A tap opens the editor through an Expo Router `Link`.
+  - A long press opens the native menu: `Link.Menu`, with Edit, then Delete, last and destructive, and no icons.
+  - A trailing swipe gives Delete (Gesture Handler's `ReanimatedSwipeable`, on the UI thread).
+  - VoiceOver has Edit and Delete as custom actions. Every delete asks first.
+- **Above the list:** the title, with the count beneath it, Add, and "Preview a note". Preview opens D1's love-note sheet with a random note. When that sheet closes, the Timer's subscription marks it seen, which is harmless here.
+- **At the foot,** "Restore default notes": `restoreDefaults()` adds back the defaults that are missing, at the end, and removes nothing. The line under it says how many came back, or that all of them are already there.
+- **Empty:** Pomo & Doro, "Add a note for after your next focus", and Add. An empty stored list still hydrates as the defaults (B3), so the empty state shows only in the session that emptied it.
+
+**The editor** (`/note-editor`, `NoteEditor.tsx`):
+- **The sheet:** a formSheet at the large detent (`sheetOptions.noteEditor`), on the page colour, with its own header: Cancel, the title, Save.
+- **The field:** multi-line, and it follows the keyboard (`automaticallyAdjustKeyboardInsets`).
+- **The cap:** `onChangeText` cuts at max(280, the note's own length). The countdown shows in the last 30 characters, and VoiceOver hears it at 30, 10 and 0. A legacy note over 280 gets a neutral line instead.
+- **Unsaved changes:** the sheet can't be swiped away (`gestureEnabled: false` through `Stack.Screen`), and Cancel asks: "Discard changes" or "Keep editing".
+- **Delete note** sits at the foot of an existing note.
+
+**The defaults** (`defaults.ts`): 20 name-free notes in each language. `notesStore` seeds a fresh install in the app's language, and the empty-list fallback note follows it. v1.3.1's set stays frozen in `legacyLoveNotes.ts` for existing installs, and B2's tests are unchanged and green. **For the owner's copy review:**
+
+| # | English | Turkish (draft) |
+|---|---|---|
+| 1 | Tiny focus, big love 💗 | Minik odak, kocaman sevgi 💗 |
+| 2 | I'm proud of you, truly. | Seninle gerçekten gurur duyuyorum. |
+| 3 | One session closer to your dreams. | Hayallerine bir oturum daha yaklaştın. |
+| 4 | Breathe in, breathe out. You've got this. | Derin bir nefes al, ver. Bunu başarabilirsin. |
+| 5 | Focus now, hugs later 🫶 | Şimdi odak, sarılmalar sonra 🫶 |
+| 6 | Your effort is the cutest thing. | Emeğin dünyanın en tatlı şeyi. |
+| 7 | Gentle focus, strong heart. | Sakin odak, güçlü kalp. |
+| 8 | Small steps still count. This one did. | Küçük adımlar da sayılır. Bu da saydı. |
+| 9 | May your focus be cozy and your breaks sweet. | Odağın sıcacık, molaların tatlı olsun. |
+| 10 | Keep going, you're doing great. | Devam et, harika gidiyorsun. |
+| 11 | I believe in you, always. | Sana her zaman inanıyorum. |
+| 12 | Every session brings you closer. | Her oturum seni biraz daha yaklaştırıyor. |
+| 13 | Look at you, getting it done. | Şuna bak, işini bitiriyorsun. |
+| 14 | Session by session, you're shining. | Oturum oturum parlıyorsun. |
+| 15 | Rest well, you've earned it 💗 | İyi dinlen, bunu hak ettin 💗 |
+| 16 | Your dedication is beautiful. | Kararlılığın çok güzel. |
+| 17 | Be proud of the work you just did. | Az önce yaptığın işle gurur duy. |
+| 18 | You've got this 🌸 | Sen bunu yaparsın 🌸 |
+| 19 | Tiny victories, endless love. | Küçük zaferler, sonsuz sevgi. |
+| 20 | Break time is self-care time. Enjoy it. | Mola, kendine iyi bakma zamanı. Tadını çıkar. |
+
+**Jest:**
+- `ReanimatedSwipeable` is replaced in `jest.setup.ts` by a plain wrapper. Its v3 hooks call a shared value's `removeListener`, which Reanimated's mock lacks, and the timer that calls it crashed the worker.
+- `Link.Menu` renders only on iOS inside a link, so `notes.test.tsx` stands it in, and its actions are tested through the VoiceOver actions they mirror.
+- The router tests render the real screen inside Expo Router, links included.
+
+**Guards** at this commit:
+
+| Guard | Result |
+|---|---|
+| Jest | 50 suites, 379 tests, all passing |
+| Lint | 0 errors, 30 warnings |
+| tsc | Clean |
+| React Compiler | 75 compiled, 5 skipped |
 
 ## 4. Mathematical / Statistical Details
 

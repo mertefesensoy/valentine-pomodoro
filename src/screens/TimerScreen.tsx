@@ -658,7 +658,7 @@ export default function TimerScreen() {
           onScroll={tourHere ? trackScroll : undefined}
           scrollEnabled={!tourHere}
           scrollEventThrottle={tourHere ? 32 : undefined}
-          contentInset={tourHere && fontScale >= STACK_FONT_SCALE ? { bottom: height * 0.5 } : undefined}
+          contentInset={tourHere ? { bottom: height * 0.5 } : undefined}
           testID="classic-page"
         >
           <View style={[styles.column, { width: pageWidth }]}>

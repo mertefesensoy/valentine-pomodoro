@@ -28,7 +28,9 @@
     "stickerEdge": "The die-cut border around every sticker, in both themes. Stickers only, never chrome.",
     "stickerShadow": "The sticker's soft, offset shadow, tinted from the theme. Stickers are the only things that lift.",
     "scrim": "The tour's dim over the page around its opening (Phase 1 D5): the theme's darkest ink at 45 %, never a blur (the No Glass Rule).",
-    "scrimStrong": "The tour's dim under Reduce Transparency or Increase Contrast: the same ink at 60 %."
+    "scrimStrong": "The tour's dim under Reduce Transparency or Increase Contrast: the same ink at 60 %.",
+    "pomoInk": "Pomo's name when Pomo speaks (the tour's bubble): his strawberry as text. The same value as primaryInk, a role of its own.",
+    "doroInk": "Doro's name when Doro speaks: her matcha as text. The same value as successInk, a role of its own."
   },
   "themes": {
     "strawberryMilk": {
@@ -62,7 +64,9 @@
         "stickerEdge": "#FFFFFF",
         "stickerShadow": "#4A2C2929",
         "scrim": "#4A2C2973",
-        "scrimStrong": "#4A2C2999"
+        "scrimStrong": "#4A2C2999",
+        "pomoInk": "#B03158",
+        "doroInk": "#2F7339"
       }
     },
     "midnightPlum": {
@@ -96,7 +100,9 @@
         "stickerEdge": "#FFF6F1",
         "stickerShadow": "#0D070F66",
         "scrim": "#0D070F73",
-        "scrimStrong": "#0D070F99"
+        "scrimStrong": "#0D070F99",
+        "pomoInk": "#FF9EBB",
+        "doroInk": "#8ED493"
       }
     }
   },
@@ -126,7 +132,9 @@
     { "fg": "ringBreak", "bg": "page", "min": 3, "use": "The break ring and break data marks against the page" },
     { "fg": "ringBreak", "bg": "ringTrack", "min": 3, "use": "The break ring against its own track" },
     { "fg": "edgeStrong", "bg": "paper", "min": 3, "use": "An input's boundary on paper" },
-    { "fg": "edgeStrong", "bg": "page", "min": 3, "use": "An input's boundary on the page" }
+    { "fg": "edgeStrong", "bg": "page", "min": 3, "use": "An input's boundary on the page" },
+    { "fg": "pomoInk", "bg": "paper", "min": 4.5, "use": "Pomo's name in the tour's bubble" },
+    { "fg": "doroInk", "bg": "paper", "min": 4.5, "use": "Doro's name in the tour's bubble" }
   ],
   "dimsAbout": "Dims (Phase 1 D5): a translucent token over a lit colour, checked as how far the dimmed colour falls back from the lit one. These are separations, not WCAG text floors: nothing is read on a dim, which only sets the page back from the tour's opening. Each is checked in both themes, by the same gate.",
   "dims": [

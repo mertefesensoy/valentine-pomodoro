@@ -165,6 +165,9 @@ describe('the tour on the Timer', () => {
         expect(currentStep(useTourStore.getState().run!)!.id).toBe('presets');
         await settle(500);
         expect(currentStep(useTourStore.getState().run!)!.id).toBe('today');
+        // The beat holds until its opening is measured; Jest's views report no frame, so it waits out
+        // the 600 ms fallback here (on a device, a frame or two).
+        await settle(400);
         expect(screen.getByLabelText("Doro: Every focus you finish puts a sticker here and fills today's goal.")).toBeOnTheScreen();
         await press(screen.getByText('Next'));
         expect(currentStep(useTourStore.getState().run!)!.id).toBe('modes');
@@ -290,6 +293,7 @@ describe('the tour on the other screens', () => {
         expect(screen.getByLabelText("Doro: Each day you focus becomes a postcard here, with today's in front.")).toBeOnTheScreen();
         await press(screen.getByText('Next'));
         expect(useTourStore.getState().run!.beat).toBe('lead');
+        await settle(100);
         expect(screen.getByLabelText('Pomo: Love notes live in Notes. Tap the tab to see them.')).toBeOnTheScreen();
     });
 
@@ -305,7 +309,10 @@ describe('the tour on the other screens', () => {
         goTo('modes', 'here');
         await settle();
         const sheet = await render(<ModeSheet />);
-        expect(screen.getByTestId('tour-modes-bubble').props.accessibilityLabel).toBe('Pomo: Pick Ring or Facing pages here, then swipe down to go on.');
+        expect(screen.getByTestId('tour-modes-line').props.accessibilityLabel).toBe('Pomo: Pick Ring or Facing pages here, then tap Continue.');
+        // Continue closes the sheet, for VoiceOver too, which has no swipe down.
+        await press(screen.getByText('Continue'));
+        expect(router.back).toHaveBeenCalled();
         await act(async () => sheet.unmount());
         const run = useTourStore.getState().run!;
         expect(currentStep(run)!.id).toBe('stats');

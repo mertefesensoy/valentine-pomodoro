@@ -327,6 +327,7 @@
     "mute": "Sesleri kapat",
     "unmute": "Sesleri aç",
     "replay": "Turu yeniden izle",
+    "continue": "Devam",
     "presetsLabel": "Odak süresi",
     "presets": {
       "fresh": "Merhaba, biz Pomo ile Doro! Önce ne kadar odaklanmak istediğini seç.",
@@ -340,7 +341,7 @@
     "modes": {
       "fly": "Düzeni değiştirmek ya da odaklanırken haritada uçmak için {{modes}} düğmesine dokun.",
       "noFly": "{{ring}} ile {{spread}} arasında geçmek için {{modes}} düğmesine dokun.",
-      "sheet": "Burada {{ring}} ya da {{spread}} seç, sonra devam etmek için aşağı kaydır."
+      "sheet": "Burada {{ring}} ya da {{spread}} seç, sonra {{continue}} düğmesine dokun."
     },
     "stats": {
       "lead": "Haftan {{tab}} sekmesinde. Görmek için sekmeye dokun.",

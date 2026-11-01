@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ComponentRef, type ReactNode, type Ref } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 
 import { Icon } from '../../components/icons/Icon';
 import { sound } from '../../components/icons/art/sound';
@@ -13,7 +13,7 @@ import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
 type Props = {
     tokens: ThemeTokens;
     name: string;
-    /** Who's speaking: the name takes their colour, strawberry for Pomo, leaf for Doro (the owner, F-3). */
+    /** Who's speaking: the name takes their colour, `pomoInk` or `doroInk` (the owner, F-3). */
     speaker: 'pomo' | 'doro';
     reduced: boolean;
     /** The line as characters, and how many show (the write-on). */
@@ -66,7 +66,7 @@ export function Bubble({ tokens, name, speaker, reduced, chars, shown, onTapLine
             >
                 <View style={styles.nameRow}>
                     {panel?.badge}
-                    <Text style={[styles.name, { color: speaker === 'doro' ? tokens.successInk : tokens.primaryInk }]}>{name}</Text>
+                    <Text style={[styles.name, { color: speaker === 'doro' ? tokens.doroInk : tokens.pomoInk }]}>{name}</Text>
                 </View>
                 {panel ? (
                     <ScrollView style={{ maxHeight: panel.maxLineHeight }} showsVerticalScrollIndicator>
@@ -114,7 +114,8 @@ function Tail({ x, reduced, tokens }: { x: number; reduced: boolean; tokens: The
             first.current = false;
             return;
         }
-        tx.set(reduced ? x : withTiming(x, { duration: 420, easing: EASE_SHEET }));
+        // Under Reduce Motion it moves while the dock is dipped out (M-14).
+        tx.set(reduced ? withDelay(150, withTiming(x, { duration: 0 })) : withTiming(x, { duration: 420, easing: EASE_SHEET }));
         // Reduce Motion is read when the speaker changes; turning it on mid-glide changes nothing.
     }, [x, tx]); // eslint-disable-line react-hooks/exhaustive-deps
     const style = useAnimatedStyle(() => ({ transform: [{ translateX: tx.get() - TAIL / 2 }, { rotate: '45deg' }] }));

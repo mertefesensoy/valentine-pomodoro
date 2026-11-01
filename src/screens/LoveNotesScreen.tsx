@@ -137,7 +137,7 @@ export default function LoveNotesScreen() {
     const pickRandomNote = useNotesStore((s) => s.pickRandomNote);
     const { tokens } = useTheme();
     const insets = useSafeAreaInsets();
-    const { width } = useWindowDimensions();
+    const { width, height } = useWindowDimensions();
     const [restored, setRestored] = useState<number | null>(null);
 
     const add = () => router.push('/note-editor');
@@ -248,6 +248,7 @@ export default function LoveNotesScreen() {
             onScroll={tourHere ? trackScroll : undefined}
             // No drag while the tour is here: it would leave the opening behind.
             scrollEnabled={!tourHere}
+            contentInset={tourHere ? { bottom: height * 0.5 } : undefined}
             scrollEventThrottle={tourHere ? 32 : undefined}
             style={{ backgroundColor: tokens.page }}
             contentContainerStyle={[

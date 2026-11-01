@@ -126,6 +126,12 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
     const [hole, setHole] = useState<{ key: string; rect: Rect } | null>(null);
     // The dock didn't fit: the panel from then on.
     const [squeezed, setSqueezed] = useState(false);
+    // Which beat the bubble's height was measured for: a new line's height comes a frame or two after
+    // its beat starts, and placing from the old one would set off and retarget (row 6, second pass).
+    const [bubbleFor, setBubbleFor] = useState('');
+    const [bubbleWaited, setBubbleWaited] = useState('');
+    // The beat whose opening has been waited for long enough (MEASURE_WAIT_MS).
+    const [waited, setWaited] = useState<string | null>(null);
     const rootRef = useRef<ComponentRef<typeof View>>(null);
     const lineRef = useRef<ComponentRef<typeof View>>(null);
     const mouth = useSharedValue(0);
@@ -179,13 +185,15 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
     const names = Object.fromEntries(Object.entries(line?.names ?? {}).map(([k, key]) => [k, t(key)]));
     const text = line ? t(line.key, names) : '';
     const speaker: Speaker = step?.speaker ?? 'pomo';
-    // The line waits until its bubble is seen: after the entrance's landing and the bubble's fade.
+    // The line waits until its bubble is seen: after the entrance's landing and the bubble's fade,
+    // and while a beat is pending (its opening or its bubble not yet measured), with the rest.
+    const pendingNow =
+        (!!opening && !(hole?.key === beatKey) && waited !== beatKey) || (bubbleFor !== beatKey && bubbleWaited !== beatKey);
     const [voiced, setVoiced] = useState(false);
-    const speaking = useSpeaking(text, speaker, { instant: screenReader === true, hold: screenReader === null || !voiced, reduced, mouth, talking });
+    const speaking = useSpeaking(text, speaker, { instant: screenReader === true, hold: screenReader === null || !voiced || pendingNow, reduced, mouth, talking });
 
     // The pair and the bubble arrive once the opening is found, so they never start somewhere
     // else and slide; a control that can't be measured still gets its beat, the whole page dimmed.
-    const [waited, setWaited] = useState<string | null>(null);
     // Once arrived they stay for the layer's life, gliding from beat to beat.
     const [arrived, setArrived] = useState(false);
     // The last settled placement, held while a new opening is measured.
@@ -202,7 +210,12 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
     }, [arrived]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         const id = setTimeout(() => setWaited(beatKey), MEASURE_WAIT_MS);
-        return () => clearTimeout(id);
+        // A line of the same height lays out with no event: after 120 ms the height is taken as known.
+        const known = setTimeout(() => setBubbleWaited(beatKey), 120);
+        return () => {
+            clearTimeout(id);
+            clearTimeout(known);
+        };
     }, [beatKey]);
 
     // Each beat moves VoiceOver's focus to the bubble (iOS has no live regions).
@@ -220,8 +233,8 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
     // Until a new opening is found the pair, the bubble, the ribbon and the dim hold where they are,
     // so nothing sets off towards the last control (review M-6); a control that can't be measured
     // still gets its beat after MEASURE_WAIT_MS, the whole page dimmed.
-    const pending = !!opening && !lit && waited !== beatKey;
-    const ready = arrived || !pending;
+    const pending = pendingNow;
+    const ready = arrived || !(!!opening && !lit && waited !== beatKey);
     if (ready && !arrived) setArrived(true);
 
     const atBottom = insets.bottom >= 44;
@@ -320,8 +333,8 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
             <BubbleDock x={placement.bubble.x} y={placement.bubble.y} w={placement.bubble.w} reduced={reduced} delay={entrance ? BUBBLE_DELAY_MS : 0}>
                 <Bubble
                     tokens={tokens}
-                    name={t(`tour.${speaker}`)}
-                    speaker={speaker}
+                    name={t(`tour.${shown.speaker}`)}
+                    speaker={shown.speaker}
                     chars={Array.from(text)}
                     shown={speaking.shown}
                     onTapLine={speaking.finish}
@@ -331,11 +344,12 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
                     onMute={() => useTourStore.getState().toggleMute()}
                     tailX={asPanel ? null : placement.tailX}
                     reduced={reduced}
-                    panel={asPanel ? { maxLineHeight: H * 0.3, badge: <Sticker art={BADGE[speaker]} width={36} shadow={tokens.stickerShadow} /> } : null}
+                    panel={asPanel ? { maxLineHeight: H * 0.3, badge: <Sticker art={BADGE[shown.speaker]} width={36} shadow={tokens.stickerShadow} /> } : null}
                     lineRef={lineRef}
                     onLayout={(e) => {
                         const h = Math.round(e.nativeEvent.layout.height);
                         if (Math.abs(h - bubbleH) > 1) setBubbleH(h);
+                        if (bubbleFor !== beatKey) setBubbleFor(beatKey);
                     }}
                 />
             </BubbleDock>

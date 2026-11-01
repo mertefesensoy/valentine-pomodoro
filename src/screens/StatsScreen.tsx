@@ -227,7 +227,8 @@ export default function StatsScreen() {
                 // No drag while the tour is here: it would leave the opening behind.
                 scrollEnabled={!tourHere}
                 scrollEventThrottle={tourHere ? 32 : undefined}
-                contentInset={tourHere && fontScale >= LIST_FONT_SCALE ? { bottom: height * 0.5 } : undefined}
+                // Room to scroll the week clear of the bubble's panel, whenever it takes the bottom.
+                contentInset={tourHere ? { bottom: height * 0.5 } : undefined}
             >
                 <View style={[styles.column, { width: columnWidth }]}>
                     <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header" maxFontSizeMultiplier={1.4}>

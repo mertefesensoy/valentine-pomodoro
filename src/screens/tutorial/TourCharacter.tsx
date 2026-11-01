@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
     Easing,
+    FadeOut,
     cancelAnimation,
     useAnimatedStyle,
     useSharedValue,
@@ -46,6 +47,8 @@ const ARRIVE_MS = 360;
 const FADE_MS = 150;
 /** A smaller move than this under Reduce Motion is a jump, not a dip. */
 const REDUCED_JUMP = 24;
+/** When the layer switches to the AX panel, the pair leave (built once, outside render). */
+const PAIR_EXIT = FadeOut.duration(FADE_MS).easing(EASE_OUT);
 
 type Props = {
     who: Speaker;
@@ -103,15 +106,15 @@ export function TourCharacter({ who, role, pose, look, feet, scale, mouth, talki
         reducedRef.current = reduced;
     }, [reduced]);
 
-    // The pose on show. A new pose waits until the current change has settled (M-7). Only a changed
-    // recipe animates: a change of eyes alone (a glance) swaps them quietly, and a look that changes
-    // no layer changes nothing (M-8). `id` counts the animated changes.
+    // The pose on show. A new pose waits until the current change has settled (M-7). A change of
+    // pose always animates; the look alone changing (a glance) swaps the eyes quietly, or changes
+    // nothing when no layer differs (M-8). `id` counts the animated changes.
     const [settled, setSettled] = useState(true);
     const [faces, setFaces] = useState({ cur: pose, prev: pose, look, prevLook: look, id: 0 });
     if ((faces.cur !== pose || faces.look !== look) && settled) {
         const from = recipe(faces.cur, faces.look, outer);
         const to = recipe(pose, look, outer);
-        const glance = from.mouth === to.mouth && from.hand === to.hand && from.rotate === to.rotate && from.sy === to.sy;
+        const glance = faces.cur === pose && from.mouth === to.mouth && from.hand === to.hand && from.rotate === to.rotate && from.sy === to.sy;
         if (glance) {
             setFaces({ cur: pose, prev: pose, look, prevLook: look, id: faces.id });
         } else {
@@ -151,12 +154,16 @@ export function TourCharacter({ who, role, pose, look, feet, scale, mouth, talki
     }, [faces.id, gesture]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Arriving: the run's entrance drops 28 pt and fades on the strong ease-out, then lands with a
-    // squash; under Reduce Motion it fades. A later layer's pair are simply there inside the layer's
-    // own fade, so two fades don't multiply (M-13).
-    const arrive = useSharedValue(entrance ? 0 : 1);
+    // squash; under Reduce Motion it fades. A later layer's pair fade in over 150 ms: they mount once
+    // the opening is found, when the layer's own fade is mostly done, so they neither pop in nor
+    // multiply with it (M-13, second pass).
+    const arrive = useSharedValue(0);
     const land = useSharedValue(CHANGE_MS);
     useEffect(() => {
-        if (!entrance) return;
+        if (!entrance) {
+            arrive.set(withTiming(1, { duration: FADE_MS, easing: EASE_OUT }));
+            return;
+        }
         if (reducedRef.current) {
             arrive.set(withDelay(arriveDelay, withTiming(1, { duration: 200, easing: EASE_OUT })));
             return;
@@ -212,18 +219,29 @@ export function TourCharacter({ who, role, pose, look, feet, scale, mouth, talki
 
     // The role: the speaker at full size, the listener at 140/190, about the feet, on the same
     // curve and time as the move, since the size is their product (M-11).
+    // Under Reduce Motion the size changes while the pair are dipped out, as a move does (M-14).
     const roleScale = useSharedValue(role === 'speaker' ? 1 : LISTEN / SPEAK);
+    const dip = useSharedValue(1);
+    const firstRole = useRef(true);
     useEffect(() => {
         const target = role === 'speaker' ? 1 : LISTEN / SPEAK;
-        roleScale.set(reducedRef.current ? target : withTiming(target, { duration: MOVE_MS, easing: EASE_SHEET }));
-    }, [role, roleScale]);
+        if (firstRole.current) {
+            firstRole.current = false;
+            return;
+        }
+        if (!reducedRef.current) {
+            roleScale.set(withTiming(target, { duration: MOVE_MS, easing: EASE_SHEET }));
+            return;
+        }
+        roleScale.set(withDelay(FADE_MS, withTiming(target, { duration: 0 })));
+        dip.set(withSequence(withTiming(0, { duration: FADE_MS, easing: EASE_OUT }), withTiming(1, { duration: FADE_MS, easing: EASE_OUT })));
+    }, [role, roleScale, dip]);
 
     // Where the feet stand, and the pair's scale: a glide on the sheet curve. Under Reduce Motion a
     // real move dips out and back in on the opening's own 150 + 150 ms, moving while hidden (M-14).
     const x = useSharedValue(feet.x);
     const y = useSharedValue(feet.y);
     const k = useSharedValue(scale);
-    const dip = useSharedValue(1);
     const placed = useRef({ x: feet.x, y: feet.y, k: scale });
     useEffect(() => {
         const was = placed.current;
@@ -296,6 +314,7 @@ export function TourCharacter({ who, role, pose, look, feet, scale, mouth, talki
             pointerEvents="none"
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
+            exiting={PAIR_EXIT}
             style={[styles.box, { transformOrigin: `${(fx / 512) * 100}% ${(fy / 512) * 100}%` }, body]}
             testID={`tour-${who}`}
         >

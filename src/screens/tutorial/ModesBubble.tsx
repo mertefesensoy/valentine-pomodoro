@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
 
 import { Sticker } from '../../components/stickers/Sticker';
+import { PressableScale } from '../../components/ui/PressableScale';
 import { pomoIdle } from '../../components/stickers/art/pomoIdle';
 import { t } from '../../i18n';
 import { useTheme } from '../../theme/useTheme';
-import { edgeWidth, radius, space } from '../../theme/layout';
+import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
 import { currentStep, useTourStore } from './tourStore';
 import { MODES_SHEET_LINE } from './tutorials';
 
@@ -38,23 +40,27 @@ export function ModesBubble() {
     const name = t('tour.pomo');
     const text = t(line.key, names);
     return (
-        <View
-            style={[styles.bubble, { backgroundColor: tokens.paper, borderColor: tokens.edge }]}
-            accessible
-            accessibilityLabel={t('tour.says', { name, line: text })}
-            testID="tour-modes-bubble"
-        >
-            <View style={styles.nameRow}>
-                <Sticker art={pomoIdle} width={32} shadow={tokens.stickerShadow} />
-                <Text style={[styles.name, { color: tokens.primaryInk }]}>{name}</Text>
+        <View style={[styles.bubble, { backgroundColor: tokens.paper, borderColor: tokens.edge }]} testID="tour-modes-bubble">
+            <View accessible accessibilityLabel={t('tour.says', { name, line: text })} testID="tour-modes-line" style={styles.lineBlock}>
+                <View style={styles.nameRow}>
+                    <Sticker art={pomoIdle} width={32} shadow={tokens.stickerShadow} />
+                    <Text style={[styles.name, { color: tokens.pomoInk }]}>{name}</Text>
+                </View>
+                <Text style={[styles.line, { color: tokens.ink }]}>{text}</Text>
             </View>
-            <Text style={[styles.line, { color: tokens.ink }]}>{text}</Text>
+            {/* The sheet closes by its swipe, or here: VoiceOver has no swipe down (HIG second pass). */}
+            <PressableScale onPress={() => router.canGoBack() && router.back()} style={[styles.continue, { backgroundColor: tokens.primarySoft }]}>
+                <Text style={[styles.continueLabel, { color: tokens.primaryInk }]}>{t('tour.continue')}</Text>
+            </PressableScale>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    bubble: { borderRadius: radius.l, borderWidth: edgeWidth, padding: space.l, gap: space.xs },
+    bubble: { borderRadius: radius.l, borderWidth: edgeWidth, padding: space.l, gap: space.m },
+    lineBlock: { gap: space.xs },
+    continue: { alignSelf: 'flex-end', minHeight: minTarget, borderRadius: radius.pill, paddingHorizontal: space.xl, alignItems: 'center', justifyContent: 'center' },
+    continueLabel: { fontSize: 16, fontWeight: '600' },
     nameRow: { flexDirection: 'row', alignItems: 'center', gap: space.s },
     name: { fontSize: 13, fontWeight: '600' },
     line: { fontSize: 17, lineHeight: 23 },

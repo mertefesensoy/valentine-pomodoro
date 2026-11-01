@@ -153,9 +153,9 @@ export const TUTORIALS: readonly Tutorial[] = [GENERAL];
 
 /**
  * The Modes sheet's own bubble at the Modes step (T-4): Pomo, still speaking. One line: Fly isn't
- * offered there, since choosing it ends the tour, and the sheet closes by its swipe (review H-4).
+ * offered there, since choosing it ends the tour, and it names the bubble's own Continue (review H-4).
  */
-export const MODES_SHEET_LINE: Line = { key: 'tour.modes.sheet', names: MODES };
+export const MODES_SHEET_LINE: Line = { key: 'tour.modes.sheet', names: { ...MODES, continue: 'tour.continue' } };
 
 /** -1, 0 or 1 as dotted version a is below, equal to or above b ("1.4" < "1.10"). */
 export function compareVersions(a: string, b: string): number {

@@ -526,7 +526,9 @@ function buildVoice(who, list, group, talk) {
         const gainDb = toCommon[s.id] + voiceGain;
         writeFloatWav(w('.mono.wav'), mono.map((v) => v * 10 ** (gainDb / 20)), 48000);
         encode(w('.mono.wav'), w('.m4a'), group.bitrate);
-        const { decoded: d, numbers } = measure(w('.m4a'));
+        // A syllable is shorter than the meter's 400 ms window, so its momentary and integrated
+        // loudness read −120.7 LUFS and say nothing; its level is syllableLufs, and its voice's is the line's.
+        const { decoded: d, numbers: { momentaryMaxLufs, loudnessLufs, ...numbers } } = measure(w('.m4a'));
         decoded[s.id] = d;
         // Where it sounds: from the first to the last sample within 40 dB of its peak.
         const dp = peakOf(d);
@@ -538,6 +540,14 @@ function buildVoice(who, list, group, talk) {
         const centroid = power.reduce((a, pw, bin) => a + pw * ((bin * 48000) / n), 0) / total;
         const above4k = power.reduce((a, pw, bin) => a + ((bin * 48000) / n > 4000 ? pw : 0), 0) / total;
         const soundingMs = ((off - on + 1) / 48) | 0;
+        // The voiced part, where the note itself sounds: until the 5 ms RMS last comes within 12 dB of
+        // its loudest. After it is the plate's tail, where a pitch reading means nothing.
+        const rmsAt = (i) => { let e = 0; for (let j = i; j < i + 240; j++) e += d[j] * d[j]; return Math.sqrt(e / 240); };
+        let loudest = 0;
+        for (let i = on; i + 240 <= d.length; i += 240) loudest = Math.max(loudest, rmsAt(i));
+        let voicedEnd = on;
+        for (let i = on; i + 240 <= d.length; i += 240) if (rmsAt(i) >= loudest / 10 ** (12 / 20)) voicedEnd = i + 240;
+        const voicedMs = ((voicedEnd - on) / 48) | 0;
         const entry = {
             id: s.id,
             ...(s.role ? { role: s.role } : {}),
@@ -550,9 +560,11 @@ function buildVoice(who, list, group, talk) {
             gainDb: round(gainDb, 2),
             tailDb: round(db(tail / p), 1),
             soundingMs,
-            pitchHz: [pitchAt(d, 48000, on / 48 + 8), pitchAt(d, 48000, Math.max(on / 48 + 8, off / 48 - 60))],
-            // The contour: 10 ms windows every 5 ms, from the onset to 20 ms before the sound ends.
-            pitchTrackHz: Array.from({ length: Math.max(1, Math.floor((off / 48 - 20 - on / 48) / 5)) }, (_, i) => pitchAt(d, 48000, on / 48 + 5 * i, 10)),
+            voicedMs,
+            // The pitch where it starts (20 ms from 8 ms in) and where it ends (the last 20 ms of the voiced part).
+            pitchHz: [pitchAt(d, 48000, on / 48 + 8), pitchAt(d, 48000, Math.max(on / 48 + 8, voicedEnd / 48 - 20))],
+            // The contour: 10 ms windows every 5 ms across the voiced part.
+            pitchTrackHz: Array.from({ length: Math.max(1, Math.floor((voicedEnd / 48 - 10 - on / 48) / 5) + 1) }, (_, i) => pitchAt(d, 48000, on / 48 + 5 * i, 10)),
             centroidHz: Math.round(centroid),
             above4kPercent: round(above4k * 100, 3),
             bitrateTarget: group.bitrate,

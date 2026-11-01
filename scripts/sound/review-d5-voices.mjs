@@ -51,33 +51,33 @@ const LINES = {
 };
 
 const VOICE = {
-    pomo: { name: 'Pomo', note: 'Higher and bouncier. A square-wave voice that springs up into each note, in short syllables.' },
-    doro: { name: 'Doro', note: 'Lower and rounder. A triangle-wave voice that settles gently onto each note, in longer syllables.' },
+    pomo: { name: 'Pomo', note: "Higher and bouncier. The app's own chime voice, a soft sine with a little sparkle an octave up, springing up into each note in short syllables." },
+    doro: { name: 'Doro', note: 'Lower and rounder. A soft sine with a gentle triangle at the same pitch, settling onto each note in longer syllables.' },
 };
 const ROLE = { up: 'the question ending', down: 'the line ending' };
 const NAMES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
 const noteOf = (f) => { const p = Math.round(69 + 12 * Math.log2(f / 440)); return `${NAMES[p % 12]}${Math.floor(p / 12) - 1}`; };
 
 /**
- * A syllable's measured pitch, drawn: the build's pitch track (every 5 ms) across 200 ms, on one
- * log scale for all twelve (400 to 1,200 Hz), with A5 (880 Hz) dashed for reference.
+ * A syllable's measured pitch, drawn: the build's pitch track (every 5 ms, while the note sounds)
+ * across 200 ms, on one log scale for all twelve (300 to 720 Hz), with A4 (440 Hz) dashed for reference.
  */
-const LO = 400;
-const HI = 1200;
+const LO = 300;
+const HI = 720;
 function contour(s) {
     const W = 120, H = 54, P = 8;
     const y = (f) => P + ((Math.log2(HI) - Math.log2(f)) / (Math.log2(HI) - Math.log2(LO))) * (H - 2 * P);
     const x = (ms) => P + (ms / 200) * (W - 2 * P);
     const pts = s.pitchTrackHz.map((f, i) => (f ? `${x(5 * i).toFixed(1)},${y(f).toFixed(1)}` : null)).filter(Boolean).join(' ');
     const [a, b] = s.pitchHz;
-    return `<svg viewBox="0 0 ${W} ${H}" class="contour" role="img" aria-label="${noteOf(a)} to ${noteOf(b)}"><line x1="${P}" x2="${W - P}" y1="${y(880)}" y2="${y(880)}" class="ref"/><polyline points="${pts}" class="pitch"/></svg>`;
+    return `<svg viewBox="0 0 ${W} ${H}" class="contour" role="img" aria-label="${noteOf(a)} to ${noteOf(b)}"><line x1="${P}" x2="${W - P}" y1="${y(440)}" y2="${y(440)}" class="ref"/><polyline points="${pts}" class="pitch"/></svg>`;
 }
 
 const tile = (s) => `
         <button class="syl" type="button" data-id="${s.id}" aria-label="Play ${s.id.split('-')[1]}${s.role ? `, ${ROLE[s.role]}` : ''}">
           <span class="sylname">${s.id.split('-')[1]}${s.role ? ` <small>${ROLE[s.role]}</small>` : ''}</span>
           ${contour(s)}
-          <span class="sylnum">${noteOf(s.pitchHz[0])} → ${noteOf(s.pitchHz[1])} · ${s.soundingMs} ms · ${num(s.bytes / 1024, 1)} KB</span>
+          <span class="sylnum">${noteOf(s.pitchHz[0])} → ${noteOf(s.pitchHz[1])} · ${s.voicedMs} ms · ${num(s.bytes / 1024, 1)} KB</span>
         </button>`;
 
 const voiceCard = (who) => {
@@ -160,6 +160,8 @@ table { border-collapse: collapse; width: 100%; font-size: 14px; }
 th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--edge); font-variant-numeric: tabular-nums; }
 tr:last-child td { border-bottom: 0; }
 th { color: var(--inkSoft); font-size: 13px; font-weight: 600; }
+.changed { background: var(--paper); border: 1.5px solid var(--edge); border-radius: 22px; padding: 20px; }
+.changed p { max-width: 70ch; }
 .ask { background: var(--primarySoft); border-radius: 22px; padding: 20px; display: grid; gap: 10px; }
 .ask ol { margin: 0; padding-left: 22px; display: grid; gap: 10px; max-width: 72ch; }
 footer { color: var(--inkSoft); font-size: 13px; display: grid; gap: 6px; }
@@ -173,6 +175,11 @@ ${tourSymbols(layers)}
     <h1>How Pomo &amp; Doro talk</h1>
     <p class="lede">Phase 1, D5. The babble the pair speak in while their lines write on in the tutorial: a few made-up syllables each, synthesised in SoundCraft from its built-in synths, with no samples, no human voice and no words. Please listen on your phone's speaker as well as on headphones.</p>
   </header>
+
+  <section class="changed" aria-labelledby="h-changed">
+    <h2 id="h-changed">Version 2: softer</h2>
+    <p>You said version 1 was too high-pitched and could hurt if it came out of the blue. So both voices now use the soft chime voice of the app's other sounds instead of a square wave, and sit about an octave lower: the highest note is E5 (659 Hz), where version 1 reached C♯6 (1,109 Hz). Nothing is boosted around 2 to 3 kHz any more, where the ear is most sensitive; the syllables start more gently, carry a touch of the chimes' small reverb, and play 2 LU quieter. Their brightness (spectral centroid) went from 0.5–1.3 kHz to ${num(Math.min(...Object.values(B.voices).flatMap((v) => v.syllables.map((s) => s.centroidHz))) / 1000, 2)}–${num(Math.max(...Object.values(B.voices).flatMap((v) => v.syllables.map((s) => s.centroidHz))) / 1000, 2)} kHz. The bouncy glides stay: they are the cute part.</p>
+  </section>
 
   <div class="bar-top">
     <button class="pill" type="button" id="play-both">Play both lines</button>
@@ -214,7 +221,7 @@ ${tourSymbols(layers)}
   <section class="ask" aria-labelledby="h-ask">
     <h2 id="h-ask">For you to decide</h2>
     <ol>
-      <li><b>The voices.</b> Do they sound like Pomo and Doro: cute, clearly not a person, Pomo higher and bouncier, Doro lower and rounder? Should either be softer, brighter, faster or a different pitch?</li>
+      <li><b>The voices.</b> Are they soft and pleasant now, and still cute: clearly not a person, Pomo higher and bouncier, Doro lower and rounder? Should either be softer still, lower, slower or a different pitch?</li>
       <li><b>The level.</b> Is the babble at the right loudness next to focus start, or should it sit higher or lower?</li>
       <li><b>The pace.</b> Is ${num(1000 / talk.charMs, 1)} characters a second right for the write-on, or should it be faster or slower?</li>
     </ol>

@@ -47,7 +47,7 @@
                   "sequence": {
                     "notes": [
                       {
-                        "pitch": 75,
+                        "pitch": 68,
                         "velocity": 1,
                         "release_velocity": 64,
                         "channel": 0,
@@ -55,12 +55,12 @@
                         "length": 2
                       },
                       {
-                        "pitch": 74,
+                        "pitch": 67,
                         "velocity": 100,
                         "release_velocity": 64,
                         "channel": 0,
                         "start": 2,
-                        "length": 220
+                        "length": 230
                       }
                     ],
                     "ctrls": []
@@ -118,7 +118,7 @@
               "high_shelf_freq": 8000.0,
               "high_shelf_gain": 0.0,
               "high_shelf_q": 0.707,
-              "hpf_freq": 200.0,
+              "hpf_freq": 150.0,
               "hpf_on": 1.0,
               "hpf_slope": 1.0,
               "input_gain": 0.0,
@@ -128,19 +128,34 @@
               "low_shelf_freq": 100.0,
               "low_shelf_gain": 0.0,
               "low_shelf_q": 0.707,
-              "lpf_freq": 4500.0,
+              "lpf_freq": 3500.0,
               "lpf_on": 1.0,
               "lpf_slope": 3.0,
-              "mid_freq": 850.0,
-              "mid_gain": 5.0,
-              "mid_q": 1.5,
+              "mid_freq": 800.0,
+              "mid_gain": 3.0,
+              "mid_q": 1.2,
               "output_gain": 0.0
             },
             "bypass": false,
             "active": true,
             "preset": "<factory default>"
           },
-          null,
+          {
+            "plugin": "plate_reverb",
+            "params": {
+              "damping": 4500.0,
+              "decay": 0.4,
+              "diffusion": 80.0,
+              "low_cut": 250.0,
+              "mix": 10.0,
+              "pre_delay": 8.0,
+              "size": 25.0,
+              "width": 0.0
+            },
+            "bypass": false,
+            "active": true,
+            "preset": "<factory default>"
+          },
           null,
           null,
           null,
@@ -178,24 +193,24 @@
       "instrument": {
         "plugin": "subtractive_synth",
         "params": {
-          "amp_attack": 12.0,
-          "amp_decay": 60.0,
-          "amp_release": 70.0,
+          "amp_attack": 16.0,
+          "amp_decay": 70.0,
+          "amp_release": 90.0,
           "amp_sustain": 80.0,
-          "cutoff": 800.0,
-          "filter_attack": 35.0,
-          "filter_decay": 90.0,
-          "filter_env_amount": 25.0,
-          "filter_release": 80.0,
-          "filter_sustain": 50.0,
-          "glide": 50.0,
+          "cutoff": 1000.0,
+          "filter_attack": 25.0,
+          "filter_decay": 100.0,
+          "filter_env_amount": 12.0,
+          "filter_release": 100.0,
+          "filter_sustain": 60.0,
+          "glide": 60.0,
           "level": -6.0,
-          "osc1_wave": 3.0,
-          "osc2_detune": 4.0,
+          "osc1_wave": 2.0,
+          "osc2_detune": 2.0,
           "osc2_semitones": 0.0,
-          "osc2_wave": 1.0,
-          "osc_mix": 20.0,
-          "resonance": 15.0,
+          "osc2_wave": 3.0,
+          "osc_mix": 35.0,
+          "resonance": 0.0,
           "velocity": 100.0
         },
         "bypass": false,

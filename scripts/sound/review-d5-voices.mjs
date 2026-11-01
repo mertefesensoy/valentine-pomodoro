@@ -51,10 +51,11 @@ const LINES = {
 };
 
 const VOICE = {
-    pomo: { name: 'Pomo', note: "Higher and bouncier. The app's own chime voice, a soft sine with a little sparkle an octave up, springing up into each note in short syllables." },
-    doro: { name: 'Doro', note: 'Lower and rounder. A soft sine with a gentle triangle at the same pitch, settling onto each note in longer syllables.' },
+    pomo: { name: 'Pomo', note: 'Higher and bouncier. Each syllable springs up past its note and settles back ("pyon"), with a quick vowel in it.' },
+    doro: { name: 'Doro', note: 'Lower and rounder. Each syllable rises softly into its note and sighs down a little ("mwo"), with a slower vowel.' },
 };
 const ROLE = { up: 'the question ending', down: 'the line ending' };
+const sylName = (s) => (s.role ? s.role : { a: '"a"', e: '"e", "i"', o: '"o", "u"' }[s.vowel]);
 const NAMES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
 const noteOf = (f) => { const p = Math.round(69 + 12 * Math.log2(f / 440)); return `${NAMES[p % 12]}${Math.floor(p / 12) - 1}`; };
 
@@ -74,20 +75,19 @@ function contour(s) {
 }
 
 const tile = (s) => `
-        <button class="syl" type="button" data-id="${s.id}" aria-label="Play ${s.id.split('-')[1]}${s.role ? `, ${ROLE[s.role]}` : ''}">
-          <span class="sylname">${s.id.split('-')[1]}${s.role ? ` <small>${ROLE[s.role]}</small>` : ''}</span>
+        <button class="syl" type="button" data-id="${s.id}" aria-label="Play ${sylName(s)}${s.role ? `, ${ROLE[s.role]}` : ''}">
+          <span class="sylname">${sylName(s)}${s.role ? ` <small>${ROLE[s.role]}</small>` : ` <small>${s.level}</small>`}</span>
           ${contour(s)}
           <span class="sylnum">${noteOf(s.pitchHz[0])} → ${noteOf(s.pitchHz[1])} · ${s.voicedMs} ms · ${num(s.bytes / 1024, 1)} KB</span>
         </button>`;
 
 const voiceCard = (who) => {
     const v = B.voices[who];
-    const rate = 1000 / (talk.lettersPerSyllable[who] * talk.charMs);
     return `
     <article class="voice" aria-labelledby="h-${who}">
       <div class="voicehead"><h3 id="h-${who}">${VOICE[who].name}</h3><button class="pill" type="button" data-line="${who}">Play ${VOICE[who].name}'s line</button></div>
       <div class="scene"><div class="spk" id="spk-${who}"></div><div class="bubble"><b>${VOICE[who].name}</b><div class="line" id="line-${who}"></div></div></div>
-      <p>${VOICE[who].note} A syllable on every ${talk.lettersPerSyllable[who] === 3 ? '3rd' : `${talk.lettersPerSyllable[who]}th`} letter, about ${num(rate, 1)} a second.</p>
+      <p>${VOICE[who].note} A syllable on each syllable of the line, at least ${talk.minGapMs[who]} ms apart: ${v.line.syllables.length} in the English line, about ${num(v.line.syllables.length / (v.line.syllables[v.line.syllables.length - 1].ms / 1000 + 0.15), 1)} a second.</p>
       <div class="sylls">${v.syllables.map(tile).join('')}
       </div>
       <p class="small">The English line: ${v.line.syllables.length} syllables over ${num(v.line.seconds, 1)} s, at ${minus(num(v.line.momentaryMaxLufs, 1))} LUFS. Syllables ${num(Math.min(...v.syllables.map((s) => s.bytes)) / 1024, 1)}–${num(Math.max(...v.syllables.map((s) => s.bytes)) / 1024, 1)} KB of 25 KB, peaks ${minus(num(Math.max(...v.syllables.map((s) => s.decodedPeakDbfs)), 1))} dBFS at most, brightness (spectral centroid) ${num(Math.min(...v.syllables.map((s) => s.centroidHz)))}–${num(Math.max(...v.syllables.map((s) => s.centroidHz)))} Hz.</p>
@@ -98,7 +98,7 @@ const SOUNDS = {
     ...Object.fromEntries(Object.values(B.voices).flatMap((v) => v.syllables.map((s) => [s.id, uri(s.file)]))),
     'focus-start': uri(report.sounds.find((s) => s.id === 'focus-start').file),
 };
-const VOICES = Object.fromEntries(Object.entries(job.babble.voices).map(([who, list]) => [who, list.map((s) => ({ id: s.id, role: s.role ?? null, mouth: s.mouth }))]));
+const VOICES = Object.fromEntries(Object.entries(job.babble.voices).map(([who, list]) => [who, list.map((s) => ({ id: s.id, role: s.role ?? null, vowel: s.vowel, level: s.level ?? null, mouth: s.mouth }))]));
 const layers = tourLayers(ROOT);
 
 const body = `<title>Pomo &amp; Doro Voices</title>
@@ -161,7 +161,9 @@ th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-botto
 tr:last-child td { border-bottom: 0; }
 th { color: var(--inkSoft); font-size: 13px; font-weight: 600; }
 .changed { background: var(--paper); border: 1.5px solid var(--edge); border-radius: 22px; padding: 20px; }
-.changed p { max-width: 70ch; }
+.changed { display: grid; gap: 10px; }
+.changed p, .changed ul { max-width: 70ch; margin: 0; }
+.changed ul { padding-left: 20px; display: grid; gap: 6px; }
 .ask { background: var(--primarySoft); border-radius: 22px; padding: 20px; display: grid; gap: 10px; }
 .ask ol { margin: 0; padding-left: 22px; display: grid; gap: 10px; max-width: 72ch; }
 footer { color: var(--inkSoft); font-size: 13px; display: grid; gap: 6px; }
@@ -177,8 +179,17 @@ ${tourSymbols(layers)}
   </header>
 
   <section class="changed" aria-labelledby="h-changed">
-    <h2 id="h-changed">Version 2: softer</h2>
-    <p>You said version 1 was too high-pitched and could hurt if it came out of the blue. So both voices now use the soft chime voice of the app's other sounds instead of a square wave, and sit about an octave lower: the highest note is E5 (659 Hz), where version 1 reached C♯6 (1,109 Hz). Nothing is boosted around 2 to 3 kHz any more, where the ear is most sensitive; the syllables start more gently, carry a touch of the chimes' small reverb, and play 2 LU quieter. Their brightness (spectral centroid) went from 0.5–1.3 kHz to ${num(Math.min(...Object.values(B.voices).flatMap((v) => v.syllables.map((s) => s.centroidHz))) / 1000, 2)}–${num(Math.max(...Object.values(B.voices).flatMap((v) => v.syllables.map((s) => s.centroidHz))) / 1000, 2)} kHz. The bouncy glides stay: they are the cute part.</p>
+    <h2 id="h-changed">Version 3: cuter, still soft</h2>
+    <p>You liked version 2 better but found it robotic. Its voice was nearly a pure tone, and a pure tone has no overtones for a vowel to live in; every syllable also landed squarely on a note, at a steady tick, in a fixed order. Version 3 keeps the same low, soft register and changes the rest:</p>
+    <ul>
+      <li><b>A vowel in every syllable.</b> A fuller tone through a gentle filter that opens and closes, like a small "nya" or "mwo". The filter tops out around 1 kHz, still well under the 2–4 kHz band that hurt in version 1.</li>
+      <li><b>A cute pitch shape.</b> Pomo springs up past each note and settles back ("pyon"); Doro rises softly and sighs down a semitone.</li>
+      <li><b>Speech rhythm.</b> A syllable falls on each syllable of the words, not on every 3rd or 4th letter, so the timing breathes like talk.</li>
+      <li><b>It follows the words.</b> Each word's vowel picks the syllable (and the mouth shape: wide for "a", small for "e" and "i", round for "o" and "u"), and the line drifts gently downward with a little randomness, as a voice does. A question still rises at the end.</li>
+    </ul>
+    <p>Version 3's brightness (spectral centroid) is ${num(Math.min(...Object.values(B.voices).flatMap((v) => v.syllables.map((s) => s.centroidHz))) / 1000, 2)}–${num(Math.max(...Object.values(B.voices).flatMap((v) => v.syllables.map((s) => s.centroidHz))) / 1000, 2)} kHz, against version 1's 0.5–1.3 kHz, and its level is version 2's.</p>
+    <p class="small">Version 2, for the record:</p>
+    <p class="small">You said version 1 was too high-pitched and could hurt if it came out of the blue. So both voices now use the soft chime voice of the app's other sounds instead of a square wave, and sit about an octave lower: the highest note is E5 (659 Hz), where version 1 reached C♯6 (1,109 Hz). Nothing is boosted around 2 to 3 kHz any more, where the ear is most sensitive; the syllables start more gently, carry a touch of the chimes' small reverb, and play 2 LU quieter. Their brightness (spectral centroid) went from 0.5–1.3 kHz to 0.34–0.68 kHz.</p>
   </section>
 
   <div class="bar-top">
@@ -212,7 +223,7 @@ ${tourSymbols(layers)}
       <tbody>
         <tr><td>Write-on</td><td>One character every ${talk.charMs} ms: ${num(1000 / talk.charMs, 1)} a second, about adult reading speed, so the line keeps up with the eye</td></tr>
         <tr><td>Pauses</td><td>${talk.pauseMs.comma} ms after a comma; ${talk.pauseMs.stop} ms after a full stop, question or exclamation mark inside the line</td></tr>
-        <tr><td>Syllables</td><td>Pomo on every 3rd letter (about ${num(1000 / (3 * talk.charMs), 1)} a second), Doro on every 4th (about ${num(1000 / (4 * talk.charMs), 1)}); the count starts again after each pause, and the last syllable rises for a question and falls otherwise</td></tr>
+        <tr><td>Syllables</td><td>One on each syllable of the text (each run of consonants and vowels in a word), merged when closer than ${talk.minGapMs.pomo} ms for Pomo or ${talk.minGapMs.doro} ms for Doro; the word's vowel picks the syllable, its height drifts down across the line with a little randomness, and the last one rises for a question and falls otherwise</td></tr>
         <tr><td>A full line</td><td>The longest allowed (90 characters in English, 110 in Turkish) takes about ${num((90 * talk.charMs) / 1000, 1)} s and ${num((110 * talk.charMs) / 1000, 1)} s plus pauses. A tap on the bubble finishes it at once</td></tr>
       </tbody>
     </table></div>
@@ -233,6 +244,7 @@ ${tourSymbols(layers)}
 </div>
 <script>
 const KIT = ${JSON.stringify(KIT)};
+${read('scripts/art/tour-speech.js')}
 ${read('scripts/art/tour-motion.js')}
 </script>
 <script>
@@ -242,9 +254,8 @@ ${read('scripts/art/tour-motion.js')}
   // syllables are scheduled on the context's own clock, so nothing after the tap needs a new gesture.
   const SOUNDS = ${JSON.stringify(SOUNDS)};
   const VOICES = ${JSON.stringify(VOICES)};
-  const ORDER = ${JSON.stringify(job.babble.order)};
   const LINES = ${JSON.stringify(LINES)};
-  const COUNTS = ${JSON.stringify(Object.fromEntries(Object.entries(B.voices).map(([w, v]) => [w, v.line.syllables.length])))};
+  const BUILT = ${JSON.stringify(Object.fromEntries(Object.entries(B.voices).map(([w, v]) => [w, v.line.syllables.map((s) => s.id)])))};
   const T = window.TourMotion;
   let lang = 'en';
   let ctx = null;
@@ -303,18 +314,15 @@ ${read('scripts/art/tour-motion.js')}
   for (const who of ['pomo', 'doro']) showLine(who, LINES.en[who]);
 
   /**
-   * One line, sound and sight together: the write-on's syllable slots (the tutorial's rule, from
-   * tour-motion.js), the body syllables in ORDER and the line-end syllable last, as the build's
-   * level measurement renders it; each starts on the audio clock, and the mouth and the text follow
-   * on the page's clock from the same moment.
+   * One line, sound and sight together, by the tutorial's rule (tour-speech.js): where each
+   * syllable falls and which one plays, exactly as the build's level measurement renders it. Each
+   * starts on the audio clock, and the mouth and the text follow on the page's clock from the same moment.
    */
   async function speak(who, whenAudio) {
     const text = LINES[lang][who];
     const w = T.writeOn(text, who);
-    if (lang === 'en' && w.syllables.length !== COUNTS[who]) console.warn('the page and the build count different syllables', who, w.syllables.length, COUNTS[who]);
-    const list = VOICES[who];
-    const body = list.filter((s) => !s.role);
-    const picks = w.syllables.map((syl, i) => (i === w.syllables.length - 1 ? list.find((s) => s.role === syl.end) : body[ORDER[i % ORDER.length]]));
+    const picks = TourSpeech.pick(w.syllables, VOICES[who], who + '|' + text);
+    if (lang === 'en' && picks.map((p) => p.id).join() !== BUILT[who].join()) console.warn('the page and the build speak the line differently', who);
     await Promise.all(picks.map((p, i) => play(p.id, whenAudio + w.syllables[i].t / 1000)));
     const startPage = performance.now() + (whenAudio - ctx.currentTime) * 1000;
     timers.push(setTimeout(() => {

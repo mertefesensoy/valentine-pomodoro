@@ -1,6 +1,6 @@
 {
   "format_version": 1,
-  "name": "pomo-pe",
+  "name": "doro-e-high",
   "sample_rate": 48000,
   "bit_depth": "Int24",
   "frame_rate": "Fps30",
@@ -47,7 +47,7 @@
                   "sequence": {
                     "notes": [
                       {
-                        "pitch": 65,
+                        "pitch": 70,
                         "velocity": 1,
                         "release_velocity": 64,
                         "channel": 0,
@@ -55,12 +55,20 @@
                         "length": 2
                       },
                       {
-                        "pitch": 69,
+                        "pitch": 72,
                         "velocity": 100,
                         "release_velocity": 64,
                         "channel": 0,
                         "start": 2,
-                        "length": 170
+                        "length": 140
+                      },
+                      {
+                        "pitch": 71,
+                        "velocity": 85,
+                        "release_velocity": 64,
+                        "channel": 0,
+                        "start": 142,
+                        "length": 140
                       }
                     ],
                     "ctrls": []
@@ -128,12 +136,12 @@
               "low_shelf_freq": 100.0,
               "low_shelf_gain": 0.0,
               "low_shelf_q": 0.707,
-              "lpf_freq": 3500.0,
+              "lpf_freq": 3000.0,
               "lpf_on": 1.0,
               "lpf_slope": 3.0,
-              "mid_freq": 1100.0,
-              "mid_gain": 2.5,
-              "mid_q": 1.2,
+              "mid_freq": 1000.0,
+              "mid_gain": 0.0,
+              "mid_q": 1.0,
               "output_gain": 0.0
             },
             "bypass": false,
@@ -193,24 +201,24 @@
       "instrument": {
         "plugin": "subtractive_synth",
         "params": {
-          "amp_attack": 10.0,
-          "amp_decay": 50.0,
+          "amp_attack": 16.0,
+          "amp_decay": 70.0,
           "amp_release": 70.0,
-          "amp_sustain": 70.0,
-          "cutoff": 1600.0,
-          "filter_attack": 14.0,
-          "filter_decay": 70.0,
-          "filter_env_amount": 18.0,
-          "filter_release": 80.0,
-          "filter_sustain": 50.0,
-          "glide": 45.0,
+          "amp_sustain": 80.0,
+          "cutoff": 450.0,
+          "filter_attack": 45.0,
+          "filter_decay": 150.0,
+          "filter_env_amount": 40.0,
+          "filter_release": 100.0,
+          "filter_sustain": 45.0,
+          "glide": 60.0,
           "level": -6.0,
-          "osc1_wave": 2.0,
+          "osc1_wave": 3.0,
           "osc2_detune": 3.0,
-          "osc2_semitones": 12.0,
-          "osc2_wave": 3.0,
-          "osc_mix": 18.0,
-          "resonance": 0.0,
+          "osc2_semitones": 0.0,
+          "osc2_wave": 0.0,
+          "osc_mix": 30.0,
+          "resonance": 22.0,
           "velocity": 100.0
         },
         "bypass": false,

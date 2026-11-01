@@ -47,7 +47,7 @@
                   "sequence": {
                     "notes": [
                       {
-                        "pitch": 71,
+                        "pitch": 69,
                         "velocity": 1,
                         "release_velocity": 64,
                         "channel": 0,
@@ -55,12 +55,20 @@
                         "length": 2
                       },
                       {
-                        "pitch": 64,
+                        "pitch": 71,
                         "velocity": 100,
                         "release_velocity": 64,
                         "channel": 0,
                         "start": 2,
-                        "length": 300
+                        "length": 120
+                      },
+                      {
+                        "pitch": 64,
+                        "velocity": 85,
+                        "release_velocity": 64,
+                        "channel": 0,
+                        "start": 122,
+                        "length": 220
                       }
                     ],
                     "ctrls": []
@@ -128,12 +136,12 @@
               "low_shelf_freq": 100.0,
               "low_shelf_gain": 0.0,
               "low_shelf_q": 0.707,
-              "lpf_freq": 3500.0,
+              "lpf_freq": 3000.0,
               "lpf_on": 1.0,
               "lpf_slope": 3.0,
-              "mid_freq": 750.0,
-              "mid_gain": 3.0,
-              "mid_q": 1.2,
+              "mid_freq": 1000.0,
+              "mid_gain": 0.0,
+              "mid_q": 1.0,
               "output_gain": 0.0
             },
             "bypass": false,
@@ -195,22 +203,22 @@
         "params": {
           "amp_attack": 16.0,
           "amp_decay": 70.0,
-          "amp_release": 90.0,
+          "amp_release": 70.0,
           "amp_sustain": 80.0,
-          "cutoff": 900.0,
-          "filter_attack": 25.0,
-          "filter_decay": 100.0,
-          "filter_env_amount": 10.0,
+          "cutoff": 340.0,
+          "filter_attack": 45.0,
+          "filter_decay": 150.0,
+          "filter_env_amount": 35.0,
           "filter_release": 100.0,
-          "filter_sustain": 60.0,
+          "filter_sustain": 45.0,
           "glide": 100.0,
           "level": -6.0,
-          "osc1_wave": 2.0,
-          "osc2_detune": 2.0,
+          "osc1_wave": 3.0,
+          "osc2_detune": 3.0,
           "osc2_semitones": 0.0,
-          "osc2_wave": 3.0,
-          "osc_mix": 35.0,
-          "resonance": 0.0,
+          "osc2_wave": 0.0,
+          "osc_mix": 30.0,
+          "resonance": 22.0,
           "velocity": 100.0
         },
         "bypass": false,

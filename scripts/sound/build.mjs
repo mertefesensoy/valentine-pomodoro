@@ -189,27 +189,38 @@ function sha256(file) {
 const failures = [];
 const fail = (msg) => failures.push(msg);
 
-/** One UI sound, from its script; returns its report entry. */
-function buildSound(sound) {
-    const w = (ext) => `${WORK}/${sound.id}${ext}`;
-    fs.copyFileSync(path.join(ROOT, sound.script), w('.script'));
+/**
+ * A script's session and its mono bounce: saves <WORK>/<id>.scraft from the script, bounces that
+ * saved session from 0 to `seconds` (in samples at 48 kHz) as 32-bit float, and folds it to mono,
+ * (L + R) / 2. Returns the mono samples, the bounce's end, SoundCraft's own figures, the sample peak
+ * p, the largest L − R difference and the peak of the last 10 ms.
+ */
+function bounceMono(id, scriptRel, seconds) {
+    const w = (ext) => `${WORK}/${id}${ext}`;
+    fs.copyFileSync(path.join(ROOT, scriptRel), w('.script'));
     const made = tool(CLI, ['script', w('.script'), '--save', w('.scraft')]).out;
-    if (/error|failed/i.test(made)) throw new Error(`${sound.id}: ${made}`);
+    if (/error|failed/i.test(made)) throw new Error(`${id}: ${made}`);
 
-    const end = Math.round(sound.seconds * 48000);
+    const end = Math.round(seconds * 48000);
     fs.writeFileSync(w('.bounce.script'), `file.bounce_mix ${JSON.stringify({ path: w('.wav'), format: 'wav', bit_depth: '32f', dither: false, start: 0, end })}\n`);
     const line = tool(CLI, ['script', w('.bounce.script'), '--in', w('.scraft')]).out.split(/\r?\n/).find((l) => l.startsWith('file.bounce_mix:'));
-    const bounce = JSON.parse(line.slice(line.indexOf('{')));
+    const info = JSON.parse(line.slice(line.indexOf('{')));
 
     const wav = readFloatWav(w('.wav'));
-    if (wav.rate !== 48000 || wav.channels.length !== 2) throw new Error(`${sound.id}: expected a 48 kHz stereo bounce`);
+    if (wav.rate !== 48000 || wav.channels.length !== 2) throw new Error(`${id}: expected a 48 kHz stereo bounce`);
     const [l, r] = wav.channels;
     const mono = l.map((v, i) => (v + r[i]) / 2);
     let lr = 0;
     for (let i = 0; i < l.length; i++) lr = Math.max(lr, Math.abs(l[i] - r[i]));
-    const p = peakOf(mono);
     let tail = 0;
     for (let i = mono.length - 480; i < mono.length; i++) tail = Math.max(tail, Math.abs(mono[i]));
+    return { mono, end, info, p: peakOf(mono), lr, tail };
+}
+
+/** One UI sound, from its script; returns its report entry. */
+function buildSound(sound) {
+    const w = (ext) => `${WORK}/${sound.id}${ext}`;
+    const { mono, end, info: bounce, p, lr, tail } = bounceMono(sound.id, sound.script, sound.seconds);
     const level = normalise(mono, 48000, w('.mono.wav'));
     encode(w('.mono.wav'), w('.m4a'), sound.bitrate);
     const { numbers } = measure(w('.m4a'));
@@ -345,6 +356,237 @@ function buildLoop(loop) {
     };
 }
 
+// ── The babble (Phase 1 D5) ──────────────────────────────────────────────────────────────────
+
+/**
+ * BS.1770's K-weighting at 48 kHz: its high shelf (about +4 dB above 2 kHz), then its high-pass
+ * near 38 Hz, each a biquad with the standard's own coefficients. Returns a new array.
+ */
+function kWeight(x) {
+    const stages = [
+        { b: [1.53512485958697, -2.69169618940638, 1.19839281085285], a: [-1.69065929318241, 0.73248077421585] },
+        { b: [1, -2, 1], a: [-1.99004745483398, 0.99007225036621] },
+    ];
+    let y = Float64Array.from(x);
+    for (const { b, a } of stages) {
+        const out = new Float64Array(y.length);
+        let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+        for (let n = 0; n < y.length; n++) {
+            const v = b[0] * y[n] + b[1] * x1 + b[2] * x2 - a[0] * y1 - a[1] * y2;
+            x2 = x1; x1 = y[n]; y2 = y1; y1 = v;
+            out[n] = v;
+        }
+        y = out;
+    }
+    return y;
+}
+
+/**
+ * A syllable's loudness in LUFS: −0.691 + 10·log10 of the K-weighted mean square over its loudest
+ * 200 ms (10 ms steps). A syllable shorter than 200 ms counts as 200 ms with silence after it, so
+ * this is its K-weighted energy over a fixed 200 ms, about the ear's own integration time.
+ */
+function syllableLufs(x, rate) {
+    const k = kWeight(x);
+    const w = Math.round(0.2 * rate);
+    const hop = Math.round(0.01 * rate);
+    let best = 0;
+    for (let s = 0; s === 0 || s + w <= k.length; s += hop) {
+        let e = 0;
+        for (let i = s; i < Math.min(s + w, k.length); i++) e += k[i] * k[i];
+        best = Math.max(best, e / w);
+    }
+    return -0.691 + 10 * Math.log10(best);
+}
+
+/** The EBU R 128 momentary maximum (400 ms) of a WAV, from ffmpeg's meter, as measure() reads it. */
+function momentaryMax(wavFile) {
+    const r128 = tool(FFMPEG, ['-nostdin', '-hide_banner', '-loglevel', 'verbose', '-i', wavFile, '-af', 'ebur128', '-f', 'null', '-']).err;
+    return Math.max(...[...r128.matchAll(/ t: [\d.]+ .* M:\s*(-?[\d.]+)/g)].map((m) => Number(m[1])));
+}
+
+/**
+ * The tutorial's write-on of one line (the same rule as scripts/art/tour-motion.js writeOn): one
+ * character every charMs, a pause after a comma or after a stop inside the line, a syllable on the
+ * 1st letter and every k-th letter after it, the count starting again after each pause. Returns
+ * each syllable's start in ms; the last is the line's end, 'up' for a question, 'down' otherwise.
+ */
+function writeOn(text, talk, k) {
+    const starts = [];
+    let clock = 0;
+    let letters = 0;
+    const chars = [...text];
+    chars.forEach((c, i) => {
+        if (/\p{L}/u.test(c)) {
+            if (letters % k === 0) starts.push(clock);
+            letters++;
+        }
+        clock += talk.charMs;
+        if (/[,;:]/.test(c)) { clock += talk.pauseMs.comma; letters = 0; }
+        else if (/[.!?…]/.test(c) && i < chars.length - 1) { clock += talk.pauseMs.stop; letters = 0; }
+    });
+    return { starts, end: /\?\s*$/.test(text) ? 'up' : 'down', ms: clock };
+}
+
+/**
+ * A voice's sample line as one mono signal: its syllables summed at their write-on starts, the
+ * body syllables taken in `order`, the last slot the line-end syllable. `sounds` maps each
+ * syllable id to its samples; `list` is the voice's entries in sounds.json.
+ */
+function renderLine(text, list, sounds, talk, k, order) {
+    const { starts, end } = writeOn(text, talk, k);
+    const body = list.filter((s) => !s.role);
+    const picks = starts.map((_, i) => (i === starts.length - 1 ? list.find((s) => s.role === end) : body[order[i % order.length]]));
+    const at = starts.map((t) => Math.round((t / 1000) * 48000));
+    const length = Math.max(...at.map((a, i) => a + sounds[picks[i].id].length));
+    const out = new Float32Array(length);
+    at.forEach((a, i) => sounds[picks[i].id].forEach((v, j) => { out[a + j] += v; }));
+    return { samples: out, syllables: picks.map((s, i) => ({ id: s.id, ms: starts[i] })) };
+}
+
+/** A radix-2 FFT of a real signal, Hann-windowed and zero-padded; returns the power per bin. */
+function powerSpectrum(x) {
+    let n = 1;
+    while (n < x.length) n <<= 1;
+    const re = new Float64Array(n);
+    const im = new Float64Array(n);
+    for (let i = 0; i < x.length; i++) re[i] = x[i] * (0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (x.length - 1)));
+    for (let i = 1, j = 0; i < n; i++) {
+        let bit = n >> 1;
+        for (; j & bit; bit >>= 1) j ^= bit;
+        j ^= bit;
+        if (i < j) { [re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]]; }
+    }
+    for (let len = 2; len <= n; len <<= 1) {
+        const ang = (-2 * Math.PI) / len;
+        for (let i = 0; i < n; i += len) {
+            for (let k = 0; k < len / 2; k++) {
+                const wr = Math.cos(ang * k);
+                const wi = Math.sin(ang * k);
+                const ur = re[i + k], ui = im[i + k];
+                const vr = re[i + k + len / 2] * wr - im[i + k + len / 2] * wi;
+                const vi = re[i + k + len / 2] * wi + im[i + k + len / 2] * wr;
+                re[i + k] = ur + vr; im[i + k] = ui + vi;
+                re[i + k + len / 2] = ur - vr; im[i + k + len / 2] = ui - vi;
+            }
+        }
+    }
+    return { n, power: Array.from({ length: n / 2 }, (_, k) => re[k] * re[k] + im[k] * im[k]) };
+}
+
+/**
+ * The pitch (Hz) of `windowMs` of `x` starting at `ms`: the normalised autocorrelation r(L) over lags
+ * for 300–1,600 Hz, the first local peak within 90 % of the highest (so a multiple of the period, an
+ * octave below, never wins), refined between samples by a parabola through it and its neighbours.
+ */
+function pitchAt(x, rate, ms, windowMs = 20) {
+    const s = Math.round((ms / 1000) * rate);
+    const w = Math.round((windowMs / 1000) * rate);
+    const lo = Math.floor(rate / 1600);
+    const hi = Math.ceil(rate / 300);
+    const r = [];
+    for (let L = lo - 1; L <= hi + 1; L++) {
+        let c = 0, e1 = 0, e2 = 0;
+        for (let i = 0; i < w; i++) { c += x[s + i] * x[s + i + L]; e1 += x[s + i] ** 2; e2 += x[s + i + L] ** 2; }
+        r[L] = c / Math.sqrt(e1 * e2 || 1);
+    }
+    let top = -Infinity;
+    for (let L = lo; L <= hi; L++) top = Math.max(top, r[L]);
+    for (let L = lo; L <= hi; L++) {
+        if (r[L] >= 0.9 * top && r[L] >= r[L - 1] && r[L] >= r[L + 1]) {
+            const d = r[L - 1] - 2 * r[L] + r[L + 1];
+            return Math.round(rate / (L + (d ? (0.5 * (r[L - 1] - r[L + 1])) / d : 0)));
+        }
+    }
+    return null;
+}
+
+/**
+ * One voice's syllables: each bounced, brought to one loudness, then scaled together so the
+ * voice's sample line meets the level target; encoded, measured and checked. Returns the voice's
+ * report entry.
+ */
+function buildVoice(who, list, group, talk) {
+    const k = talk.lettersPerSyllable[who];
+    const target = group.level.streamMomentaryLufs;
+    const made = Object.fromEntries(list.map((s) => [s.id, bounceMono(s.id, s.script, s.seconds)]));
+    // Step 3: each syllable to the same loudness (−20 LUFS here; step 4 sets the voice's level).
+    const toCommon = Object.fromEntries(list.map((s) => [s.id, -20 - syllableLufs(made[s.id].mono, 48000)]));
+    const scaled = Object.fromEntries(list.map((s) => [s.id, made[s.id].mono.map((v) => v * 10 ** (toCommon[s.id] / 20))]));
+    // Step 4: the voice's gain, from its line at the common loudness.
+    const before = renderLine(group.lines[who], list, scaled, talk, k, group.order);
+    writeFloatWav(`${WORK}/${who}-line.wav`, before.samples, 48000);
+    const voiceGain = target - momentaryMax(`${WORK}/${who}-line.wav`);
+
+    // Step 5: encode each syllable at its final gain and measure the shipped file.
+    const decoded = {};
+    const syllables = list.map((s) => {
+        const w = (ext) => `${WORK}/${s.id}${ext}`;
+        const { mono, end, info, p, lr, tail } = made[s.id];
+        const gainDb = toCommon[s.id] + voiceGain;
+        writeFloatWav(w('.mono.wav'), mono.map((v) => v * 10 ** (gainDb / 20)), 48000);
+        encode(w('.mono.wav'), w('.m4a'), group.bitrate);
+        const { decoded: d, numbers } = measure(w('.m4a'));
+        decoded[s.id] = d;
+        // Where it sounds: from the first to the last sample within 40 dB of its peak.
+        const dp = peakOf(d);
+        const on = d.findIndex((v) => Math.abs(v) > dp / 100);
+        let off = d.length - 1;
+        while (off > 0 && Math.abs(d[off]) <= dp / 100) off--;
+        const { n, power } = powerSpectrum(d.subarray(on, off + 1));
+        const total = power.reduce((a, b) => a + b, 0);
+        const centroid = power.reduce((a, pw, bin) => a + pw * ((bin * 48000) / n), 0) / total;
+        const above4k = power.reduce((a, pw, bin) => a + ((bin * 48000) / n > 4000 ? pw : 0), 0) / total;
+        const soundingMs = ((off - on + 1) / 48) | 0;
+        const entry = {
+            id: s.id,
+            ...(s.role ? { role: s.role } : {}),
+            mouth: s.mouth,
+            file: `src/assets/sounds/babble/${s.id}.m4a`,
+            session: `art/sound/babble/${s.id}.scraft`,
+            // Dry, on a stereo track: the two channels come out identical, so the fold loses nothing.
+            bounce: { samples: end, seconds: s.seconds, peakDbfs: round(info.peak_db, 2), ...(lr ? { leftRightMaxDiffDb: round(db(lr / p), 1) } : { leftRightIdentical: true }) },
+            syllableLufs: round(-20 - toCommon[s.id] + gainDb, 2),
+            gainDb: round(gainDb, 2),
+            tailDb: round(db(tail / p), 1),
+            soundingMs,
+            pitchHz: [pitchAt(d, 48000, on / 48 + 8), pitchAt(d, 48000, Math.max(on / 48 + 8, off / 48 - 60))],
+            // The contour: 10 ms windows every 5 ms, from the onset to 20 ms before the sound ends.
+            pitchTrackHz: Array.from({ length: Math.max(1, Math.floor((off / 48 - 20 - on / 48) / 5)) }, (_, i) => pitchAt(d, 48000, on / 48 + 5 * i, 10)),
+            centroidHz: Math.round(centroid),
+            above4kPercent: round(above4k * 100, 3),
+            bitrateTarget: group.bitrate,
+            ...numbers,
+            sha256: sha256(w('.m4a')),
+        };
+        const b = group.budget;
+        if (numbers.bytes > b.bytes) fail(`${s.id}: ${numbers.bytes} B is over ${b.bytes} B`);
+        if (!(numbers.decodedPeakDbfs < b.peakCeilingDbfs) || !(numbers.volumedetectMaxDb < b.peakCeilingDbfs)) fail(`${s.id}: the decoded peak ${numbers.decodedPeakDbfs} dBFS is not under ${b.peakCeilingDbfs} dBFS`);
+        if (db(tail / p) > b.tailDb) fail(`${s.id}: the last 10 ms are only ${db(tail / p).toFixed(1)} dB below the peak; the bounce cuts the tail`);
+        if (entry.above4kPercent >= b.above4kPercent) fail(`${s.id}: ${entry.above4kPercent} % of its energy is above 4 kHz`);
+        if (numbers.channels !== 1 || numbers.codec !== 'aac LC') fail(`${s.id}: not mono AAC-LC`);
+        return entry;
+    });
+
+    // The line again, from the decoded files: what the tutorial will play.
+    const after = renderLine(group.lines[who], list, decoded, talk, k, group.order);
+    writeFloatWav(`${WORK}/${who}-line.wav`, after.samples, 48000);
+    const lineLufs = momentaryMax(`${WORK}/${who}-line.wav`);
+    if (Math.abs(lineLufs - target) > group.level.toleranceLu) fail(`${who}: the sample line is at ${lineLufs} LUFS, not ${target} ± ${group.level.toleranceLu}`);
+    return {
+        line: {
+            text: group.lines[who],
+            lettersPerSyllable: k,
+            syllables: after.syllables,
+            seconds: round(after.samples.length / 48000, 3),
+            momentaryMaxLufs: lineLufs,
+            peakDbfs: round(db(peakOf(after.samples)), 2),
+        },
+        voiceGainDb: round(voiceGain, 2),
+        syllables,
+    };
+}
+
 /** Puts a built file in the repo, or in --check compares it with the committed one. */
 let differences = 0;
 function deliver(built, rel) {
@@ -379,6 +621,23 @@ for (const loop of JOB.loops) {
     report.loops.push(entry);
     deliver(`${WORK}/${loop.id}.m4a`, entry.file);
     console.log(`${check ? '✔ checked' : '✔ built'} ${loop.id}: ${entry.seconds} s, ${entry.bytes} B (source ${entry.source.bytes} B), decoded peak ${entry.decodedPeakDbfs} dBFS, join before encoding ${entry.seam.inputJoin.jump} (steps p99.9 ${entry.seam.inputJoin.p999}), edges ${entry.seam.edgeRmsDbfs.join(' / ')} dBFS RMS, lag ${entry.seam.lag}`);
+}
+if (JOB.babble) {
+    const group = JOB.babble;
+    const talk = JSON.parse(fs.readFileSync(path.join(ROOT, group.talk), 'utf8')).motion.talk;
+    const ui = report.sounds.map((s) => s.momentaryMaxLufs);
+    report.babble = { budget: group.budget, level: { ...group.level, uiSoundsMomentaryMaxLufs: ui }, talk, voices: {} };
+    for (const [who, list] of Object.entries(group.voices)) {
+        const voice = buildVoice(who, list, group, talk);
+        voice.line.belowUiSoundsLu = round(ui.reduce((a, b) => a + b, 0) / ui.length - voice.line.momentaryMaxLufs, 2);
+        report.babble.voices[who] = voice;
+        for (const s of voice.syllables) {
+            deliver(`${WORK}/${s.id}.scraft`, s.session);
+            deliver(`${WORK}/${s.id}.m4a`, s.file);
+        }
+        const sizes = voice.syllables.map((s) => s.bytes);
+        console.log(`${check ? '✔ checked' : '✔ built'} ${who}'s babble: ${voice.syllables.length} syllables, ${Math.min(...sizes)}–${Math.max(...sizes)} B, the sample line at ${voice.line.momentaryMaxLufs} LUFS momentary max (${voice.line.belowUiSoundsLu} LU under the UI sounds)`);
+    }
 }
 fs.writeFileSync(`${WORK}/report.json`, JSON.stringify(report, null, 2) + '\n');
 deliver(`${WORK}/report.json`, 'art/sound/report.json');

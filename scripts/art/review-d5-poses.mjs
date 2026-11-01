@@ -14,11 +14,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { tourLayers, tourSymbols } from './tour-symbols.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 const KIT = JSON.parse(read('art/src/tour/expressions.json'));
-const JOB = JSON.parse(read('art/jobs/tour.json'));
 const palette = JSON.parse(read('src/theme/palette.json'));
 const baloo = /@font-face\{font-family:'Baloo 2 C2';font-weight:600;[^}]*\}/.exec(read('art/review/c2-type-specimen.html'))[0];
 const sm = palette.themes.strawberryMilk.tokens;
@@ -34,20 +34,10 @@ const tok = (t) => keys.map((k) => `--${k}:${t[k]}`).join(';') + ';' + lift(t);
 const num = (x, d = 0) => x.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
 const kb = (bytes) => `${num(bytes / 1024, 1)} KB`;
 
-// ── The layers: a <symbol> each, and a currentColor copy of the die-cut edge and the hands for the lift ──
-const layers = JOB.assets.map((a) => {
-    const svg = read(`art/out/illustration/${a.id}.svg`);
-    const inner = svg.slice(svg.indexOf('</title>') + 8, svg.lastIndexOf('</svg>'));
-    const coords = [...inner.matchAll(/ d="([^"]+)"/g)].flatMap((m) => m[1].match(/-?\d+(?:\.\d+)?/g).map(Number));
-    const xs = coords.filter((_, i) => i % 2 === 0);
-    const ys = coords.filter((_, i) => i % 2 === 1);
-    return { id: a.id, inner, bytes: Buffer.byteLength(svg), bounds: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] };
-});
+// ── The layers, as <symbol>s (tour-symbols.mjs) ───────────────────────────────────────────────
+const layers = tourLayers(ROOT);
 const byId = Object.fromEntries(layers.map((l) => [l.id, l]));
-const lifted = (l) => /-tour-(body-cut|hand-)/.test(l.id);
-const SYMBOLS = `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${layers.map((l) =>
-    `<symbol id="${l.id}" viewBox="0 0 512 512" overflow="visible">${l.inner}</symbol>`
-    + (lifted(l) ? `<symbol id="${l.id}-s" viewBox="0 0 512 512" overflow="visible">${l.inner.replace(/ fill="#[0-9a-f]{6}"/gi, ' fill="currentColor"')}</symbol>` : '')).join('')}</defs></svg>`;
+const SYMBOLS = tourSymbols(layers);
 
 /** Every layer one expression draws at once, and with its animation frames (blink, talking mouths). */
 function weight(who, e, side = 'right') {

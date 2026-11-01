@@ -158,5 +158,933 @@
       },
       "sha256": "97adea64dc1f07d5895c429bdf97ea85b150cc58449e0f42b4ee238d46ea3369"
     }
-  ]
+  ],
+  "babble": {
+    "budget": {
+      "bytes": 25600,
+      "peakCeilingDbfs": -1,
+      "tailDb": -60,
+      "above4kPercent": 1
+    },
+    "level": {
+      "streamMomentaryLufs": -18,
+      "toleranceLu": 0.5,
+      "uiSoundsMomentaryMaxLufs": [
+        -14.4,
+        -14,
+        -14.1
+      ]
+    },
+    "talk": {
+      "charMs": 45,
+      "pauseMs": {
+        "comma": 150,
+        "stop": 300
+      },
+      "lettersPerSyllable": {
+        "pomo": 3,
+        "doro": 4
+      },
+      "openShare": 0.6
+    },
+    "voices": {
+      "pomo": {
+        "line": {
+          "text": "Hi! We're Pomo and Doro, and we'll show you around the diary.",
+          "lettersPerSyllable": 3,
+          "syllables": [
+            {
+              "id": "pomo-pa",
+              "ms": 0
+            },
+            {
+              "id": "pomo-po",
+              "ms": 480
+            },
+            {
+              "id": "pomo-pi",
+              "ms": 660
+            },
+            {
+              "id": "pomo-pe",
+              "ms": 840
+            },
+            {
+              "id": "pomo-po",
+              "ms": 1020
+            },
+            {
+              "id": "pomo-pa",
+              "ms": 1200
+            },
+            {
+              "id": "pomo-pe",
+              "ms": 1575
+            },
+            {
+              "id": "pomo-pi",
+              "ms": 1755
+            },
+            {
+              "id": "pomo-pa",
+              "ms": 1935
+            },
+            {
+              "id": "pomo-po",
+              "ms": 2115
+            },
+            {
+              "id": "pomo-pi",
+              "ms": 2295
+            },
+            {
+              "id": "pomo-pe",
+              "ms": 2475
+            },
+            {
+              "id": "pomo-po",
+              "ms": 2610
+            },
+            {
+              "id": "pomo-pa",
+              "ms": 2790
+            },
+            {
+              "id": "pomo-pe",
+              "ms": 2970
+            },
+            {
+              "id": "pomo-down",
+              "ms": 3105
+            }
+          ],
+          "seconds": 3.318,
+          "momentaryMaxLufs": -18,
+          "peakDbfs": -9.82,
+          "belowUiSoundsLu": 3.83
+        },
+        "voiceGainDb": 0.3,
+        "syllables": [
+          {
+            "id": "pomo-pa",
+            "mouth": "talk-wide",
+            "file": "src/assets/sounds/babble/pomo-pa.m4a",
+            "session": "art/sound/babble/pomo-pa.scraft",
+            "bounce": {
+              "samples": 7680,
+              "seconds": 0.16,
+              "peakDbfs": -15.44,
+              "leftRightIdentical": true
+            },
+            "syllableLufs": -19.7,
+            "gainDb": 5.1,
+            "tailDb": -96.3,
+            "soundingMs": 108,
+            "pitchHz": [
+              806,
+              875
+            ],
+            "pitchTrackHz": [
+              744,
+              767,
+              796,
+              817,
+              834,
+              846,
+              855,
+              862,
+              868,
+              871,
+              874,
+              875,
+              877,
+              878,
+              879,
+              878,
+              874
+            ],
+            "centroidHz": 1040,
+            "above4kPercent": 0.741,
+            "bitrateTarget": "96k",
+            "codec": "aac LC",
+            "channels": 1,
+            "sampleRate": 48000,
+            "seconds": 0.16,
+            "samples": 8192,
+            "bytes": 2618,
+            "bitrate": 79941,
+            "decodedPeakDbfs": -10.286,
+            "volumedetectMaxDb": -10.3,
+            "truePeakDbtp": -10.3,
+            "momentaryMaxLufs": -120.7,
+            "loudnessLufs": -70,
+            "sha256": "acf55a2a76d06baa7b78bdbf1dd4f0e049052ff75b7dfc3df0160860cd23834c"
+          },
+          {
+            "id": "pomo-pi",
+            "mouth": "talk-small",
+            "file": "src/assets/sounds/babble/pomo-pi.m4a",
+            "session": "art/sound/babble/pomo-pi.scraft",
+            "bounce": {
+              "samples": 7680,
+              "seconds": 0.16,
+              "peakDbfs": -16.96,
+              "leftRightIdentical": true
+            },
+            "syllableLufs": -19.7,
+            "gainDb": 5.97,
+            "tailDb": -97.2,
+            "soundingMs": 106,
+            "pitchHz": [
+              924,
+              982
+            ],
+            "pitchTrackHz": [
+              868,
+              892,
+              914,
+              932,
+              948,
+              959,
+              966,
+              972,
+              977,
+              980,
+              982,
+              984,
+              985,
+              986,
+              986,
+              985,
+              982
+            ],
+            "centroidHz": 1292,
+            "above4kPercent": 0.544,
+            "bitrateTarget": "96k",
+            "codec": "aac LC",
+            "channels": 1,
+            "sampleRate": 48000,
+            "seconds": 0.16,
+            "samples": 8192,
+            "bytes": 2653,
+            "bitrate": 81485,
+            "decodedPeakDbfs": -10.764,
+            "volumedetectMaxDb": -10.8,
+            "truePeakDbtp": -10.8,
+            "momentaryMaxLufs": -120.7,
+            "loudnessLufs": -70,
+            "sha256": "ce99e97eb258eed1e1d657ee77d9256e60a6b2b5629738663530fb82d0ed0fec"
+          },
+          {
+            "id": "pomo-po",
+            "mouth": "talk-round",
+            "file": "src/assets/sounds/babble/pomo-po.m4a",
+            "session": "art/sound/babble/pomo-po.scraft",
+            "bounce": {
+              "samples": 7680,
+              "seconds": 0.16,
+              "peakDbfs": -14.69,
+              "leftRightIdentical": true
+            },
+            "syllableLufs": -19.7,
+            "gainDb": 4.16,
+            "tailDb": -94.8,
+            "soundingMs": 108,
+            "pitchHz": [
+              693,
+              737
+            ],
+            "pitchTrackHz": [
+              649,
+              669,
+              687,
+              698,
+              709,
+              718,
+              725,
+              728,
+              731,
+              735,
+              736,
+              737,
+              738,
+              739,
+              739,
+              738,
+              735
+            ],
+            "centroidHz": 792,
+            "above4kPercent": 0.036,
+            "bitrateTarget": "96k",
+            "codec": "aac LC",
+            "channels": 1,
+            "sampleRate": 48000,
+            "seconds": 0.16,
+            "samples": 8192,
+            "bytes": 2595,
+            "bitrate": 78926,
+            "decodedPeakDbfs": -10.246,
+            "volumedetectMaxDb": -10.2,
+            "truePeakDbtp": -10.2,
+            "momentaryMaxLufs": -120.7,
+            "loudnessLufs": -70,
+            "sha256": "9c8e4d2a04f81df0fdc31b4dbfa0cec7404faae35c679ae0e6fc9152ee36cd33"
+          },
+          {
+            "id": "pomo-pe",
+            "mouth": "talk-small",
+            "file": "src/assets/sounds/babble/pomo-pe.m4a",
+            "session": "art/sound/babble/pomo-pe.scraft",
+            "bounce": {
+              "samples": 7680,
+              "seconds": 0.16,
+              "peakDbfs": -16.08,
+              "leftRightIdentical": true
+            },
+            "syllableLufs": -19.7,
+            "gainDb": 6.23,
+            "tailDb": -95.3,
+            "soundingMs": 107,
+            "pitchHz": [
+              616,
+              656
+            ],
+            "pitchTrackHz": [
+              580,
+              595,
+              612,
+              622,
+              632,
+              639,
+              646,
+              649,
+              652,
+              654,
+              656,
+              657,
+              657,
+              658,
+              658,
+              657,
+              655
+            ],
+            "centroidHz": 932,
+            "above4kPercent": 0.33,
+            "bitrateTarget": "96k",
+            "codec": "aac LC",
+            "channels": 1,
+            "sampleRate": 48000,
+            "seconds": 0.16,
+            "samples": 8192,
+            "bytes": 2736,
+            "bitrate": 85147,
+            "decodedPeakDbfs": -9.816,
+            "volumedetectMaxDb": -9.8,
+            "truePeakDbtp": -9.8,
+            "momentaryMaxLufs": -120.7,
+            "loudnessLufs": -70,
+            "sha256": "4ba78140d28829c05159070ec0788821a19e0577541965c7e35b8762c0066822"
+          },
+          {
+            "id": "pomo-up",
+            "role": "up",
+            "mouth": "talk-wide",
+            "file": "src/assets/sounds/babble/pomo-up.m4a",
+            "session": "art/sound/babble/pomo-up.scraft",
+            "bounce": {
+              "samples": 9600,
+              "seconds": 0.2,
+              "peakDbfs": -15.06,
+              "leftRightIdentical": true
+            },
+            "syllableLufs": -19.7,
+            "gainDb": 2.89,
+            "tailDb": -179.5,
+            "soundingMs": 136,
+            "pitchHz": [
+              908,
+              1088
+            ],
+            "pitchTrackHz": [
+              825,
+              852,
+              892,
+              921,
+              948,
+              973,
+              993,
+              1011,
+              1026,
+              1040,
+              1050,
+              1059,
+              1067,
+              1073,
+              1079,
+              1083,
+              1087,
+              1090,
+              1094,
+              1096,
+              1097,
+              1097,
+              1094
+            ],
+            "centroidHz": 1148,
+            "above4kPercent": 0.174,
+            "bitrateTarget": "96k",
+            "codec": "aac LC",
+            "channels": 1,
+            "sampleRate": 48000,
+            "seconds": 0.2,
+            "samples": 10240,
+            "bytes": 2927,
+            "bitrate": 76373,
+            "decodedPeakDbfs": -12.003,
+            "volumedetectMaxDb": -12,
+            "truePeakDbtp": -12,
+            "momentaryMaxLufs": -120.7,
+            "loudnessLufs": -70,
+            "sha256": "7831cb5442f8f9a3119834ecd98a41c4b829044e9ed04d0a416ef5d1fa31e07b"
+          },
+          {
+            "id": "pomo-down",
+            "role": "down",
+            "mouth": "talk-round",
+            "file": "src/assets/sounds/babble/pomo-down.m4a",
+            "session": "art/sound/babble/pomo-down.scraft",
+            "bounce": {
+              "samples": 9600,
+              "seconds": 0.2,
+              "peakDbfs": -15.97,
+              "leftRightIdentical": true
+            },
+            "syllableLufs": -19.7,
+            "gainDb": 4.06,
+            "tailDb": -165.3,
+            "soundingMs": 137,
+            "pitchHz": [
+              828,
+              672
+            ],
+            "pitchTrackHz": [
+              919,
+              887,
+              845,
+              810,
+              784,
+              763,
+              745,
+              730,
+              718,
+              708,
+              700,
+              693,
+              688,
+              683,
+              679,
+              675,
+              673,
+              670,
+              668,
+              667,
+              666,
+              664,
+              660
+            ],
+            "centroidHz": 791,
+            "above4kPercent": 0.052,
+            "bitrateTarget": "96k",
+            "codec": "aac LC",
+            "channels": 1,
+            "sampleRate": 48000,
+            "seconds": 0.2,
+            "samples": 10240,
+            "bytes": 2979,
+            "bitrate": 78253,
+            "decodedPeakDbfs": -11.22,
+            "volumedetectMaxDb": -11.2,
+            "truePeakDbtp": -11.2,
+            "momentaryMaxLufs": -120.7,
+            "loudnessLufs": -70,
+            "sha256": "e9175aa0fb82f9260ce29b7acf237fe90bfc69ca6c072264005c72f235e194f8"
+          }
+        ]
+      },
+      "doro": {
+        "line": {
+          "text": "Every focus you finish puts a sticker on today's page. Shall we look?",
+          "lettersPerSyllable": 4,
+          "syllables": [
+            {
+              "id": "doro-mo",
+              "ms": 0
+            },
+            {
+              "id": "doro-ma",
+              "ms": 180
+            },
+            {
+              "id": "doro-mu",
+              "ms": 405
+            },
+            {
+              "id": "doro-me",
+              "ms": 630
+            },
+            {
+              "id": "doro-ma",
+              "ms": 855
+            },
+            {
+              "id": "doro-mo",
+              "ms": 1080
+            },
+            {
+              "id": "doro-me",
+              "ms": 1350
+            },
+            {
+              "id": "doro-mu",
+              "ms": 1530
+            },
+            {
+              "id": "doro-mo",
+              "ms": 1755
+            },
+            {
+              "id": "doro-ma",
+              "ms": 1980
+            },
+            {
+              "id": "doro-mu",
+              "ms": 2250
+            },
+            {
+              "id": "doro-me",
+              "ms": 2775
+            },
+            {
+              "id": "doro-ma",
+              "ms": 2955
+            },
+            {
+              "id": "doro-up",
+              "ms": 3225
+            }
+          ],
+          "seconds": 3.524,
+          "momentaryMaxLufs": -18,
+          "peakDbfs": -9.41,
+          "belowUiSoundsLu": 3.83
+        },
+        "voiceGainDb": 2,
+        "syllables": [
+          {
+            "id": "doro-mo",
+            "mouth": "talk-round",
+            "file": "src/assets/sounds/babble/doro-mo.m4a",
+            "session": "art/sound/babble/doro-mo.scraft",
+            "bounce": {
+              "samples": 11520,
+              "seconds": 0.24,
+              "peakDbfs": -24.08,
+              "leftRightIdentical": true
+            },
+            "syllableLufs": -18,
+            "gainDb": 14.42,
+            "tailDb": -158.4,
+            "soundingMs": 153,
+            "pitchHz": [
+              601,
+              587
+            ],
+            "pitchTrackHz": [
+              611,
+              607,
+              603,
+              599,
+              596,
+              594,
+              591,
+              588,
+              587,
+              587,
+              587,
+              587,
+              587,
+              587,
+              587,
+              587,
+              587,
+              587,
+              587,
+              587,
+              587,
+              586,
+              583,
+              583,
+              585,
+              585
+            ],
+            "centroidHz": 620,
+            "above4kPercent": 0.01,
+            "bitrateTarget": "96k",
+            "codec": "aac LC",
+            "channels": 1,
+            "sampleRate": 48000,
+            "seconds": 0.24,
+            "samples": 12288,
+            "bytes": 3239,
+            "bitrate": 73989,
+            "decodedPeakDbfs": -9.881,
+            "volumedetectMaxDb": -9.9,
+            "truePeakDbtp": -9.9,
+            "momentaryMaxLufs": -120.7,
+            "loudnessLufs": -70,
+            "sha256": "4b99c766677fa739e2e3e334755ed75229f3c048c8ed8e5a2a0eba509f26fc0a"
+          },
+          {
+            "id": "doro-mu",
+            "mouth": "talk-round",
+            "file": "src/assets/sounds/babble/doro-mu.m4a",
+            "session": "art/sound/babble/doro-mu.scraft",
+            "bounce": {
+              "samples": 11520,
+              "seconds": 0.24,
+              "peakDbfs": -24.18,
+              "leftRightIdentical": true
+            },
+            "syllableLufs": -18,
+            "gainDb": 14.89,
+            "tailDb": -155.3,
+            "soundingMs": 151,
+            "pitchHz": [
+              505,
+              493
+            ],
+            "pitchTrackHz": [
+              513,
+              510,
+              507,
+              503,
+              501,
+              499,
+              496,
+              494,
+              493,
+              494,
+              494,
+              493,
+              493,
+              494,
+              494,
+              493,
+              493,
+              493,
+              493,
+              494,
+              493,
+              492,
+              490,
+              492,
+              491,
+              491
+            ],
+            "centroidHz": 516,
+            "above4kPercent": 0.002,
+            "bitrateTarget": "96k",
+            "codec": "aac LC",
+            "channels": 1,
+            "sampleRate": 48000,
+            "seconds": 0.24,
+            "samples": 12288,
+            "bytes": 3181,
+            "bitrate": 72214,
+            "decodedPeakDbfs": -9.41,
+            "volumedetectMaxDb": -9.4,
+            "truePeakDbtp": -9.4,
+            "momentaryMaxLufs": -120.7,
+            "loudnessLufs": -70,
+            "sha256": "9bbe5b9d25e9681c0f5c188068a1eae326739de591a16f780b6e70ffc165f4ec"
+          },
+          {
+            "id": "doro-ma",
+            "mouth": "talk-wide",
+            "file": "src/assets/sounds/babble/doro-ma.m4a",
+            "session": "art/sound/babble/doro-ma.scraft",
+            "bounce": {
+              "samples": 11520,
+              "seconds": 0.24,
+              "peakDbfs": -24.39,
+              "leftRightIdentical": true
+            },
+            "syllableLufs": -18,
+            "gainDb": 14.95,
+            "tailDb": -151.5,
+            "soundingMs": 153,
+            "pitchHz": [
+              648,
+              658
+            ],
+            "pitchTrackHz": [
+              637,
+              643,
+              647,
+              651,
+              653,
+              654,
+              653,
+              654,
+              655,
+              656,
+              657,
+              657,
+              657,
+              658,
+              658,
+              659,
+              659,
+              659,
+              659,
+              659,
+              658,
+              656,
+              654,
+              657,
+              656,
+              657
+            ],
+            "centroidHz": 748,
+            "above4kPercent": 0.037,
+            "bitrateTarget": "96k",
+            "codec": "aac LC",
+            "channels": 1,
+            "sampleRate": 48000,
+            "seconds": 0.24,
+            "samples": 12288,
+            "bytes": 3268,
+            "bitrate": 74877,
+            "decodedPeakDbfs": -9.502,
+            "volumedetectMaxDb": -9.5,
+            "truePeakDbtp": -9.5,
+            "momentaryMaxLufs": -120.7,
+            "loudnessLufs": -70,
+            "sha256": "852aadead2115bba9b3922eee2a280ad89f58f33b4b30b3f7e4eb54dea37f7a5"
+          },
+          {
+            "id": "doro-me",
+            "mouth": "talk-small",
+            "file": "src/assets/sounds/babble/doro-me.m4a",
+            "session": "art/sound/babble/doro-me.scraft",
+            "bounce": {
+              "samples": 11520,
+              "seconds": 0.24,
+              "peakDbfs": -25.68,
+              "leftRightIdentical": true
+            },
+            "syllableLufs": -18,
+            "gainDb": 15.58,
+            "tailDb": -147.4,
+            "soundingMs": 152,
+            "pitchHz": [
+              756,
+              739
+            ],
+            "pitchTrackHz": [
+              765,
+              764,
+              760,
+              753,
+              751,
+              748,
+              744,
+              741,
+              741,
+              740,
+              740,
+              740,
+              740,
+              740,
+              740,
+              740,
+              740,
+              740,
+              739,
+              739,
+              739,
+              738,
+              736,
+              738,
+              738,
+              737
+            ],
+            "centroidHz": 867,
+            "above4kPercent": 0.009,
+            "bitrateTarget": "96k",
+            "codec": "aac LC",
+            "channels": 1,
+            "sampleRate": 48000,
+            "seconds": 0.24,
+            "samples": 12288,
+            "bytes": 3200,
+            "bitrate": 72795,
+            "decodedPeakDbfs": -9.534,
+            "volumedetectMaxDb": -9.5,
+            "truePeakDbtp": -9.5,
+            "momentaryMaxLufs": -120.7,
+            "loudnessLufs": -70,
+            "sha256": "072d37c24863bea3307a3e49445268b59844a6186b876fc229c1ec3e39a135cb"
+          },
+          {
+            "id": "doro-up",
+            "role": "up",
+            "mouth": "talk-round",
+            "file": "src/assets/sounds/babble/doro-up.m4a",
+            "session": "art/sound/babble/doro-up.scraft",
+            "bounce": {
+              "samples": 13440,
+              "seconds": 0.28,
+              "peakDbfs": -23.61,
+              "leftRightIdentical": true
+            },
+            "syllableLufs": -18,
+            "gainDb": 12.04,
+            "tailDb": -149.2,
+            "soundingMs": 196,
+            "pitchHz": [
+              592,
+              734
+            ],
+            "pitchTrackHz": [
+              545,
+              561,
+              580,
+              600,
+              617,
+              633,
+              644,
+              654,
+              665,
+              675,
+              683,
+              690,
+              696,
+              702,
+              707,
+              711,
+              715,
+              718,
+              721,
+              723,
+              725,
+              727,
+              728,
+              730,
+              731,
+              732,
+              733,
+              734,
+              734,
+              734,
+              731,
+              732,
+              734,
+              736,
+              737
+            ],
+            "centroidHz": 741,
+            "above4kPercent": 0.003,
+            "bitrateTarget": "96k",
+            "codec": "aac LC",
+            "channels": 1,
+            "sampleRate": 48000,
+            "seconds": 0.28,
+            "samples": 14336,
+            "bytes": 3671,
+            "bitrate": 75424,
+            "decodedPeakDbfs": -11.686,
+            "volumedetectMaxDb": -11.7,
+            "truePeakDbtp": -11.7,
+            "momentaryMaxLufs": -120.7,
+            "loudnessLufs": -70,
+            "sha256": "22da2a095a65e7e3db5dbc67398b9153bfde71e3beb1d189bdbc57283594a4c3"
+          },
+          {
+            "id": "doro-down",
+            "role": "down",
+            "mouth": "talk-round",
+            "file": "src/assets/sounds/babble/doro-down.m4a",
+            "session": "art/sound/babble/doro-down.scraft",
+            "bounce": {
+              "samples": 13440,
+              "seconds": 0.28,
+              "peakDbfs": -24.57,
+              "leftRightIdentical": true
+            },
+            "syllableLufs": -18,
+            "gainDb": 14.02,
+            "tailDb": -146.1,
+            "soundingMs": 193,
+            "pitchHz": [
+              568,
+              442
+            ],
+            "pitchTrackHz": [
+              614,
+              597,
+              579,
+              559,
+              542,
+              527,
+              514,
+              503,
+              494,
+              487,
+              480,
+              474,
+              470,
+              466,
+              462,
+              459,
+              457,
+              454,
+              452,
+              451,
+              448,
+              448,
+              447,
+              445,
+              445,
+              444,
+              444,
+              443,
+              442,
+              441,
+              439,
+              439,
+              440,
+              440
+            ],
+            "centroidHz": 493,
+            "above4kPercent": 0.002,
+            "bitrateTarget": "96k",
+            "codec": "aac LC",
+            "channels": 1,
+            "sampleRate": 48000,
+            "seconds": 0.28,
+            "samples": 14336,
+            "bytes": 3758,
+            "bitrate": 77734,
+            "decodedPeakDbfs": -10.523,
+            "volumedetectMaxDb": -10.5,
+            "truePeakDbtp": -10.5,
+            "momentaryMaxLufs": -120.7,
+            "loudnessLufs": -70,
+            "sha256": "675caeaf3654239bc9e21de4404e0ce302ad2314496eed797587557ed6e45f7a"
+          }
+        ]
+      }
+    }
+  }
 }

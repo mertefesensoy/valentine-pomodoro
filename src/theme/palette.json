@@ -26,7 +26,9 @@
     "ringFocus": "The ring during focus, and focus data marks in Stats (3:1 on the page and the track).",
     "ringBreak": "The ring during a break, and break data marks.",
     "stickerEdge": "The die-cut border around every sticker, in both themes. Stickers only, never chrome.",
-    "stickerShadow": "The sticker's soft, offset shadow, tinted from the theme. Stickers are the only things that lift."
+    "stickerShadow": "The sticker's soft, offset shadow, tinted from the theme. Stickers are the only things that lift.",
+    "scrim": "The tour's dim over the page around its opening (Phase 1 D5): the theme's darkest ink at 45 %, never a blur (the No Glass Rule).",
+    "scrimStrong": "The tour's dim under Reduce Transparency or Increase Contrast: the same ink at 60 %."
   },
   "themes": {
     "strawberryMilk": {
@@ -58,7 +60,9 @@
         "ringFocus": "#D64B76",
         "ringBreak": "#428C4E",
         "stickerEdge": "#FFFFFF",
-        "stickerShadow": "#4A2C2929"
+        "stickerShadow": "#4A2C2929",
+        "scrim": "#4A2C2973",
+        "scrimStrong": "#4A2C2999"
       }
     },
     "midnightPlum": {
@@ -90,7 +94,9 @@
         "ringFocus": "#FF8FB1",
         "ringBreak": "#8ED493",
         "stickerEdge": "#FFF6F1",
-        "stickerShadow": "#0D070F66"
+        "stickerShadow": "#0D070F66",
+        "scrim": "#0D070F73",
+        "scrimStrong": "#0D070F99"
       }
     }
   },
@@ -121,5 +127,10 @@
     { "fg": "ringBreak", "bg": "ringTrack", "min": 3, "use": "The break ring against its own track" },
     { "fg": "edgeStrong", "bg": "paper", "min": 3, "use": "An input's boundary on paper" },
     { "fg": "edgeStrong", "bg": "page", "min": 3, "use": "An input's boundary on the page" }
+  ],
+  "dimsAbout": "Dims (Phase 1 D5): a translucent token over a lit colour, checked as how far the dimmed colour falls back from the lit one. These are separations, not WCAG text floors: nothing is read on a dim, which only sets the page back from the tour's opening. Each is checked in both themes, by the same gate.",
+  "dims": [
+    { "fg": "scrim", "bg": "primary", "min": 2, "use": "The tour's dim: a control under it (the strawberry pill) reads clearly set back from the lit one" },
+    { "fg": "scrimStrong", "bg": "primary", "min": 2.5, "use": "The raised dim, under Reduce Transparency or Increase Contrast" }
   ]
 }

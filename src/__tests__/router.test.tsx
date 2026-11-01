@@ -174,8 +174,10 @@ beforeEach(async () => {
     await resetStorage();
     // These tests are about tabs and links, not the one-time welcome: with v1's gift screen
     // retired (D2), a fresh install would otherwise get the welcome at start-up idle.
-    // welcome.test.tsx covers the welcome's gate.
+    // welcome.test.tsx covers the welcome's gate. The tour follows the welcome, so it is marked
+    // seen too (D5; the tutorial's tests cover its gate).
     await save(STORAGE_KEYS.WELCOME, { seen: true });
+    await save(STORAGE_KEYS.TUTORIAL, { seen: '1.4' });
     urlListener = null;
     mockNotificationTap = null;
     mockPrerenders.length = 0;

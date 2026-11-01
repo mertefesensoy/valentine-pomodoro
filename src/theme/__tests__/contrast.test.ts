@@ -1,7 +1,7 @@
 // covers: NFR-A11Y-001, FR-SET-002
 import palette from '../palette.json';
 import { checkPairs, composite, contrastRatio, parseHex, relativeLuminance, toHex } from '../contrast';
-import { MidnightPlum, StrawberryMilk, contrastPairs } from '../palette';
+import { MidnightPlum, StrawberryMilk, contrastPairs, dimPairs } from '../palette';
 
 describe('contrast math (Phase 1 plan §4.1)', () => {
     it('gives the WCAG anchors', () => {
@@ -54,5 +54,16 @@ describe('the Sticker Diary themes (C1)', () => {
 
     it('holds every text token to 4.5:1 and every mark to at least 3:1', () => {
         for (const p of contrastPairs) expect([3, 4.5]).toContain(p.min);
+    });
+
+    // covers: NFR-A11Y-001
+    it.each([StrawberryMilk, MidnightPlum])('$name sets the page back under the tour\'s dims (D5)', (theme) => {
+        const misses = checkPairs(theme.tokens, [...dimPairs])
+            .filter((r) => !r.pass)
+            .map((r) => `${r.fg} on ${r.bg}: ${r.ratio.toFixed(2)} < ${r.min}`);
+        expect(misses).toEqual([]);
+        // The scrim is translucent, and its raised form is the stronger of the two.
+        expect(theme.tokens.scrim).toMatch(/^#[0-9A-F]{8}$/i);
+        expect(parseInt(theme.tokens.scrimStrong.slice(7), 16)).toBeGreaterThan(parseInt(theme.tokens.scrim.slice(7), 16));
     });
 });

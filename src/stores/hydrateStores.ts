@@ -3,9 +3,10 @@ import { useSessionStore } from './sessionStore';
 import { useSettingsStore } from './settingsStore';
 import { useStatsStore } from './statsStore';
 import { useUiStore } from './uiStore';
+import { useTourStore } from '../screens/tutorial/tourStore';
 
 /**
- * Hydrates all five stores from MMKV, synchronously (Phase 1 B3).
+ * Hydrates all six stores from MMKV, synchronously (Phase 1 B3; the tour's joined in D5).
  *
  * - Precondition: the B2 migration has finished (isStorageMigrated()). Before
  *   that, loadSync() reads nothing and every store would get its defaults.
@@ -22,4 +23,5 @@ export function hydrateStores(): void {
     useStatsStore.getState().hydrate();
     useSessionStore.getState().hydrate();
     useUiStore.getState().hydrate();
+    useTourStore.getState().hydrate();
 }

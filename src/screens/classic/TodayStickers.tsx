@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ComponentRef, type Ref } from 'react';
 import { Text, View, useWindowDimensions, type LayoutChangeEvent } from 'react-native';
 import Animated, {
     Easing,
@@ -142,6 +142,8 @@ type Props = {
     rowWidth?: number;
     /** The row's layout, for the Ring, which sizes to the height its neighbours leave. */
     onLayout?: (e: LayoutChangeEvent) => void;
+    /** The row's view, for the tour's opening on it (D5). */
+    rowRef?: Ref<ComponentRef<typeof View>>;
 };
 
 /**
@@ -156,7 +158,7 @@ type Props = {
  * "Goal reached" is an inline moment here (brief §6), not a modal: it shows for 1.4 s with the
  * streak, then leaves the goal mark in the row for the rest of the day.
  */
-export function TodayStickers({ tokens, count, goalHit, sessionsToGoal, goalStreak, onGoalMomentDone, animate, rowWidth, onLayout }: Props) {
+export function TodayStickers({ tokens, count, goalHit, sessionsToGoal, goalStreak, onGoalMomentDone, animate, rowWidth, onLayout, rowRef }: Props) {
     const goalMoment = goalStreak !== null;
     const reduced = useReducedMotion();
     const { width } = useWindowDimensions();
@@ -223,7 +225,7 @@ export function TodayStickers({ tokens, count, goalHit, sessionsToGoal, goalStre
     const burstColors = [tokens.primary, tokens.success, tokens.ink, tokens.accent];
 
     return (
-        <View style={styles.wrap} onLayout={onLayout} testID="today-row">
+        <View ref={rowRef} collapsable={false} style={styles.wrap} onLayout={onLayout} testID="today-row">
             <View
                 style={styles.line}
                 accessible

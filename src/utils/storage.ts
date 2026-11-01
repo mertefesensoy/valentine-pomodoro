@@ -119,4 +119,5 @@ export const STORAGE_KEYS = {
     SESSION_CLOCK: 'session_clock',  // unified two-slot clock state (pomodoro + fly)
     FLY_PREFS: 'fly_prefs',         // user camera-mode preference (survives resets)
     WELCOME: 'welcome_v14',         // { seen: true } once the v1.4 welcome has shown (Phase 1 D1); new since v1.3.1
+    TUTORIAL: 'tutorial',           // { seen?: version, resumeAt?: step, resumed?: true } for the tour (Phase 1 D5); new since v1.3.1
 } as const;

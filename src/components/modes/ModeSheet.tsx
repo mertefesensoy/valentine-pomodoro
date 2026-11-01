@@ -16,6 +16,7 @@ import { t } from '../../i18n';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useUiStore } from '../../stores/uiStore';
 import { useTheme } from '../../theme/useTheme';
+import { ModesBubble, useTourAtModes } from '../../screens/tutorial/ModesBubble';
 import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
 
 /**
@@ -32,6 +33,8 @@ export function ModeSheet() {
     const setActiveMode = useUiStore((s) => s.setActiveMode);
     const layout = useSettingsStore((s) => classicLayoutOf(s.settings));
     const updateSettings = useSettingsStore((s) => s.updateSettings);
+    // The tour's Modes step: the sheet hosts the step's bubble, and closing it moves the tour on (D5, T-4).
+    const tourHere = useTourAtModes();
 
     const choose = (mode: 'default' | 'fly') => {
         setActiveMode(mode);
@@ -45,6 +48,7 @@ export function ModeSheet() {
 
     return (
         <ScrollView style={{ backgroundColor: tokens.page }} contentContainerStyle={styles.sheet} bounces={false}>
+            {tourHere && <ModesBubble />}
             <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header">
                 {t('modes.title')}
             </Text>

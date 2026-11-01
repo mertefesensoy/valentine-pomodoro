@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { AccessibilityInfo, Alert, FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Suspense, lazy, useRef, useState, type ComponentRef } from 'react';
+import { AccessibilityInfo, Alert, FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
@@ -17,6 +17,11 @@ import { edgeWidth, minTarget, radius, space } from '../theme/layout';
 import type { ThemeTokens } from '../theme/palette';
 import { useTheme } from '../theme/useTheme';
 import { PoseSticker } from './classic/PoseSticker';
+import { useScreenFocused } from '../hooks/useScreenFocus';
+import { useTourBeatHere, useTourReach } from './tutorial/useTour';
+
+// The tour's layer (Phase 1 D5), evaluated when a tour first reaches Notes (tutorial brief §4).
+const TourLayer = lazy(() => import('./tutorial/TourLayer'));
 
 // Regular width (iPad, wide windows): the list centres at a readable width, as Classic does.
 const READABLE_WIDTH = 560;
@@ -136,6 +141,22 @@ export default function LoveNotesScreen() {
     const [restored, setRestored] = useState<number | null>(null);
 
     const add = () => router.push('/note-editor');
+
+    // The tour (D5): its Notes step shows here, with Add lit; the tab coming to the front moves its
+    // lead on. The list scrolls Add clear of the AX panel.
+    const focused = useScreenFocused();
+    useTourReach('notes', focused);
+    const tourHere = useTourBeatHere('notes') && focused;
+    const addRef = useRef<ComponentRef<typeof View>>(null);
+    const listRef = useRef<FlatList<string>>(null);
+    const scrollY = useRef(0);
+    const trackScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        scrollY.current = e.nativeEvent.contentOffset.y;
+    };
+    const scrollBy = (dy: number) => {
+        scrollY.current = Math.max(0, scrollY.current + dy);
+        listRef.current?.scrollToOffset({ offset: scrollY.current, animated: true });
+    };
     const preview = () => {
         useLoveNoteSheet.getState().open(pickRandomNote(null));
         router.push('/love-note');
@@ -164,15 +185,17 @@ export default function LoveNotesScreen() {
     };
 
     const addButton = (
-        <PressableScale
-            onPress={add}
-            haptic={false}
-            accessibilityLabel={t('notesScreen.addA11y')}
-            style={[styles.add, { backgroundColor: tokens.primary }]}
-        >
-            <Icon glyph={plus} size={20} color={tokens.onPrimary} />
-            <Text style={[styles.addText, { color: tokens.onPrimary }]}>{t('notesScreen.add')}</Text>
-        </PressableScale>
+        <View ref={addRef} collapsable={false}>
+            <PressableScale
+                onPress={add}
+                haptic={false}
+                accessibilityLabel={t('notesScreen.addA11y')}
+                style={[styles.add, { backgroundColor: tokens.primary }]}
+            >
+                <Icon glyph={plus} size={20} color={tokens.onPrimary} />
+                <Text style={[styles.addText, { color: tokens.onPrimary }]}>{t('notesScreen.add')}</Text>
+            </PressableScale>
+        </View>
     );
 
     const header = (
@@ -221,6 +244,9 @@ export default function LoveNotesScreen() {
     return (
         <>
         <FlatList
+            ref={listRef}
+            onScroll={tourHere ? trackScroll : undefined}
+            scrollEventThrottle={tourHere ? 32 : undefined}
             style={{ backgroundColor: tokens.page }}
             contentContainerStyle={[
                 styles.list,
@@ -251,6 +277,17 @@ export default function LoveNotesScreen() {
             ListEmptyComponent={empty}
         />
         <StatusBarScrim />
+        {tourHere && (
+            <Suspense fallback={null}>
+                <TourLayer
+                    screen="notes"
+                    targets={{
+                        add: { ref: addRef, radius: minTarget / 2, a11y: { label: t('notesScreen.addA11y'), role: 'button', onActivate: add } },
+                    }}
+                    scrollBy={scrollBy}
+                />
+            </Suspense>
+        )}
         </>
     );
 }

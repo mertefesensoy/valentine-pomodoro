@@ -1,3 +1,4 @@
+import type { ComponentRef, Ref } from 'react';
 import { Text, View, type LayoutChangeEvent } from 'react-native';
 import Animated, { css, cubicBezier } from 'react-native-reanimated';
 
@@ -27,6 +28,9 @@ type Props = {
     cycleLength: number;
     /** The controls' layout, for the Ring, which sizes to the height its neighbours leave. */
     onLayout?: (e: LayoutChangeEvent) => void;
+    /** The presets' row and the primary pill, for the tour's openings on them (D5). */
+    presetsRef?: Ref<ComponentRef<typeof View>>;
+    primaryRef?: Ref<ComponentRef<typeof View>>;
 };
 
 /** The cycle's sessions as dots (brief §6): done ones filled, the current one outlined. Visual only. */
@@ -60,11 +64,12 @@ function CycleRow({ tokens, done, length }: { tokens: ThemeTokens; done: number;
  *   screen's native alert).
  * Every press: 0.97 over 120 ms with its haptic (PressableScale).
  */
-export function ClassicControls(p: Props) {
+// The refs are taken out of the props first: the compiler treats an object holding a ref as one.
+export function ClassicControls({ presetsRef, primaryRef, ...p }: Props) {
     const { tokens } = p;
     return (
         <View style={styles.wrap} onLayout={p.onLayout} testID="classic-controls">
-            <View style={styles.reserved}>
+            <View ref={presetsRef} collapsable={false} style={styles.reserved}>
                 <Animated.View
                     style={[styles.fade, { opacity: p.idle ? 1 : 0 }]}
                     pointerEvents={p.idle ? 'auto' : 'none'}
@@ -87,11 +92,13 @@ export function ClassicControls(p: Props) {
                 </Animated.View>
             </View>
 
-            <PressableScale onPress={p.onPrimary} style={[styles.primary, { backgroundColor: tokens.primary }]}>
-                <Text style={[styles.primaryLabel, { color: tokens.onPrimary }]} maxFontSizeMultiplier={1.6}>
-                    {p.primaryLabel}
-                </Text>
-            </PressableScale>
+            <View ref={primaryRef} collapsable={false}>
+                <PressableScale onPress={p.onPrimary} style={[styles.primary, { backgroundColor: tokens.primary }]}>
+                    <Text style={[styles.primaryLabel, { color: tokens.onPrimary }]} maxFontSizeMultiplier={1.6}>
+                        {p.primaryLabel}
+                    </Text>
+                </PressableScale>
+            </View>
 
             <View style={styles.secondary}>
                 <PressableScale onPress={p.onSkip} style={[styles.quiet, { backgroundColor: tokens.paper, borderColor: tokens.edge }]}>

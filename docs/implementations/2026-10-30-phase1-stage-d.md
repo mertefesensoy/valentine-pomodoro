@@ -622,6 +622,9 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 
 - **The ROADMAP**, a line every later phase inherits: "Each version that adds features ships a version tutorial for existing users (`FR-ONB-002`); the general tutorial (`FR-ONB-001`) is kept current for first-timers."
 - **The CHANGELOG, v1.4:** add "A tutorial with Pomo & Doro, who take turns showing you around."
+- **ARCHITECTURE, the stores and the tabs:** "The tour (D5) is a sixth store, `src/screens/tutorial/tourStore.ts`, hydrated with the others under one additive key, `tutorial` (the version last seen, and the step to resume at, once). Its layer is lazy-loaded inside the Timer, Stats and Notes tabs, as Fly's screen is, never as a root route, so the native tab bar stays live above it (D5 record §3.2, §3.8)."
+- **ARCHITECTURE, the tokens:** "`palette.json` holds `dims` beside `pairs`: a translucent token over a lit colour and the separation it must make, gated by `check:contrast` (the tour's `scrim` and `scrimStrong`)."
+- **TEST-STRATEGY:** "The tour's model tests run the pose sheet's own `scripts/art/tour-motion.js` in a sandbox and hold the app's write-on to it, line for line. Jest's native views report no frame, so the tour's openings are verified on the device."
 
 **Phase 2 inherits (the owner, Q3, 2026-10-30):** the pages-to-logo morph also plays at the first pairing. It reuses D1's welcome-screen choreography (§3.2.11). For the rehaul plan's Phase 2 section and the ROADMAP's Phase 2 row:
 

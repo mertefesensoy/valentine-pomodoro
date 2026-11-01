@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ScrollView, StyleSheet, Text, View, useWindowDimensions, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -22,6 +22,10 @@ import { edgeWidth, radius, space } from '../theme/layout';
 import { useTheme } from '../theme/useTheme';
 import { goalCellsLeft } from './classic/TodayStickers';
 import { DayEdge, TodayCard, todayCellsPerRow, type Metric } from './stats/WeekStack';
+import { useTourBeatHere, useTourReach } from './tutorial/useTour';
+
+// The tour's layer (Phase 1 D5), evaluated when a tour first reaches Stats (tutorial brief §4).
+const TourLayer = lazy(() => import('./tutorial/TourLayer'));
 
 // AX1 and up (iOS reports a font scale of about 1.65 there): the stack becomes a list, today first.
 const LIST_FONT_SCALE = 1.6;
@@ -73,6 +77,20 @@ export default function StatsScreen() {
     // of the window, so its numbers would mean nothing): on focus, on layout,
     // and when the ad answers, since a failed load changes no layout.
     const focused = useScreenFocused();
+    // The tour (D5): its Stats step shows here, with the week lit; the tab coming to the front moves
+    // its lead on. The page scrolls the week clear of the AX panel.
+    useTourReach('stats', focused);
+    const tourHere = useTourBeatHere('stats') && focused;
+    const weekRef = useRef<React.ComponentRef<typeof View>>(null);
+    const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
+    const scrollY = useRef(0);
+    const trackScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        scrollY.current = e.nativeEvent.contentOffset.y;
+    };
+    const scrollBy = (dy: number) => {
+        scrollY.current = Math.max(0, scrollY.current + dy);
+        scrollRef.current?.scrollTo({ y: scrollY.current, animated: true });
+    };
     const measureBannerBox = useCallback(() => {
         if (!focused) return;
         bannerBoxRef.current?.measureInWindow((_x, y, _w, h) => noteBannerLayout(y + h, height - insets.bottom, h));
@@ -203,7 +221,11 @@ export default function StatsScreen() {
     return (
         <View style={[styles.container, { backgroundColor: tokens.page }]}>
             <ScrollView
+                ref={scrollRef}
                 contentContainerStyle={[styles.page, { paddingTop: insets.top + space.s }]}
+                onScroll={tourHere ? trackScroll : undefined}
+                scrollEventThrottle={tourHere ? 32 : undefined}
+                contentInset={tourHere && fontScale >= LIST_FONT_SCALE ? { bottom: height * 0.5 } : undefined}
             >
                 <View style={[styles.column, { width: columnWidth }]}>
                     <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header" maxFontSizeMultiplier={1.4}>
@@ -221,7 +243,9 @@ export default function StatsScreen() {
                         {summary}
                     </Text>
 
-                    {stack}
+                    <View ref={weekRef} collapsable={false}>
+                        {stack}
+                    </View>
 
                     {week.sessions === 0 && (
                         <ListGroup>
@@ -287,6 +311,11 @@ export default function StatsScreen() {
                 </View>
             </ScrollView>
             <StatusBarScrim />
+            {tourHere && (
+                <Suspense fallback={null}>
+                    <TourLayer screen="stats" targets={{ week: { ref: weekRef, radius: radius.l } }} scrollBy={scrollBy} />
+                </Suspense>
+            )}
             {/* The bottom inset includes the native tab bar (Phase 1 B6); the slot sits above it,
                 with about 12 pt between the ad and the bar (its own padding plus this margin). */}
             <View

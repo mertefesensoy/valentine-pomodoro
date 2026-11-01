@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator, useWindowDimensions, type LayoutChangeEvent } from "react-native";
+import { View, Text, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator, useWindowDimensions, type LayoutChangeEvent, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ComponentRef } from "react";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useTimer } from "../hooks/useTimer";
@@ -33,6 +33,9 @@ import { SpreadPages } from "./classic/SpreadPages";
 import { TodayStickers, goalCellsLeft } from "./classic/TodayStickers";
 import { ClassicControls } from "./classic/ClassicControls";
 import { useWelcomeGate } from "./welcome/useWelcomeGate";
+import { currentStep, useTourStore } from "./tutorial/tourStore";
+import { useTourBeatHere, useTourGate, useTourReach } from "./tutorial/useTour";
+import type { TourTargetSpec } from "./tutorial/TourLayer";
 
 // Fly Mode is split out (Phase 1 task B1): FlyModeScreen and everything only it
 // imports (react-native-maps, FlySheet, Fly's audio) are evaluated the first time
@@ -40,6 +43,10 @@ import { useWelcomeGate } from "./welcome/useWelcomeGate";
 // bundle, so this defers evaluation only. Fly can only open where
 // isFlyModeAvailable() (iOS), so elsewhere the module is never loaded at all.
 const FlyModeScreen = lazy(() => import("./FlyModeScreen"));
+
+// The tour's layer (Phase 1 D5) is split out the same way: its art, its voices and its motion are
+// evaluated when a tour first reaches this screen, never on a cold start (tutorial brief §4).
+const TourLayer = lazy(() => import("./tutorial/TourLayer"));
 
 // Shown while FlyModeScreen loads on the first switch: a plain page in the
 // theme's background colour, so the switch doesn't flash an empty grey map.
@@ -163,6 +170,8 @@ export default function TimerScreen() {
     prevActiveModeRef.current = activeMode;
     if (prev !== 'fly' && activeMode === 'fly') {
       session.switchTo('fly');
+      // Choosing Fly mid-tour ends the tour: it never shows over Fly, and Settings can replay it (D5).
+      useTourStore.getState().finish();
     } else if (prev === 'fly' && activeMode !== 'fly') {
       session.switchTo('pomodoro');
       // Fly's ambience set an audio mode that plays through the silent switch; the UI sounds
@@ -260,6 +269,12 @@ export default function TimerScreen() {
   // The one-time v1.4 welcome, on a calm entry only: Timer in front, idle, in Classic, with
   // nothing pending after a completion (welcome brief §4; HIG W-H1).
   useWelcomeGate(focused && idle && activeMode !== 'fly' && !goalPopup && !showLoveNoteCard);
+  // The tour (D5): it follows the welcome on the same calm entry, and shows here while its beat is
+  // the Timer's, this tab is in front and Classic is up (never over Fly). A tab tour step moves on
+  // when its tab comes to the front.
+  useTourGate(focused && idle && activeMode !== 'fly' && !goalPopup && !showLoveNoteCard);
+  useTourReach('timer', focused);
+  const tourHere = useTourBeatHere('timer') && focused && activeMode !== 'fly';
   const isBreak = phase !== 'focus';
   const phaseLabel = t(`timer.phase.${phase}`);
   const sessionN = completedFocusCountInCycle + 1;
@@ -281,6 +296,9 @@ export default function TimerScreen() {
     } else if (remainingMs !== null && remainingMs < totalMs) {
       resume();
     } else {
+      // The tour's layer closes before a session starts, so the first Start's notification prompt
+      // lands on the Timer (T-3).
+      useTourStore.getState().finish();
       playUiSound(phase === 'focus' ? 'focusStart' : 'breakStart');
       start();
     }
@@ -343,6 +361,15 @@ export default function TimerScreen() {
     : t('presets.key');
   const choosePreset = (choice: PresetChoice) => {
     updateSettings(choosePresetPatch(useSettingsStore.getState().settings, choice));
+    // At the tour's first step, pressing a preset is the step's own way on: a beat later, so the
+    // choice is seen first.
+    const run = useTourStore.getState().run;
+    if (run && currentStep(run)?.id === 'presets') {
+      setTimeout(() => {
+        const now = useTourStore.getState().run;
+        if (now && currentStep(now)?.id === 'presets') useTourStore.getState().next();
+      }, 600);
+    }
   };
 
   // "Break at 10:25": the minute the running phase ends, from its endAt, so it
@@ -419,6 +446,21 @@ export default function TimerScreen() {
   // holds its size through it: today's row isn't re-measured, and the page scrolls for that moment
   // rather than the timer shrinking and growing back.
   const goalMomentShowing = !!goalPopup && focused;
+
+  // The tour's openings and how the page scrolls one clear of the AX panel (D5, T-2).
+  const presetsRef = useRef<ComponentRef<typeof View>>(null);
+  const todayRef = useRef<ComponentRef<typeof View>>(null);
+  const modesRef = useRef<ComponentRef<typeof View>>(null);
+  const startRef = useRef<ComponentRef<typeof View>>(null);
+  const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
+  const scrollY = useRef(0);
+  const trackScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    scrollY.current = e.nativeEvent.contentOffset.y;
+  };
+  const scrollBy = (dy: number) => {
+    scrollY.current = Math.max(0, scrollY.current + dy);
+    scrollRef.current?.scrollTo({ y: scrollY.current, animated: true });
+  };
   const rows = useRef({ visible: 0, top: 0, partner: 0, today: 0, controls: 0 });
   const [ringRoom, setRingRoom] = useState<number | null>(null);
   // Called from the rows' onLayout only, never during render.
@@ -502,6 +544,7 @@ export default function TimerScreen() {
       animate={focused}
       rowWidth={compactHeight ? trailingWidth : undefined}
       onLayout={(e) => measured('today', e)}
+      rowRef={todayRef}
     />
   );
 
@@ -521,8 +564,33 @@ export default function TimerScreen() {
       cycleDone={completedFocusCountInCycle}
       cycleLength={cycleTotal}
       onLayout={(e) => measured('controls', e)}
+      presetsRef={presetsRef}
+      primaryRef={startRef}
     />
   );
+
+  // The tour's four openings here, each acting as its control for VoiceOver (T-1).
+  const presetIndex = presetSegments.findIndex((s) => s.value === preset);
+  const stepPreset = (by: number) => {
+    const next = presetSegments[presetIndex + by];
+    if (next) choosePreset(next.value);
+  };
+  const tourTargets: Partial<Record<'presets' | 'today' | 'modes' | 'start', TourTargetSpec>> = {
+    presets: {
+      ref: presetsRef,
+      radius: radius.m,
+      a11y: {
+        label: t('tour.presetsLabel'),
+        role: 'adjustable',
+        value: presetSegments[presetIndex]?.accessibilityLabel,
+        onIncrement: () => stepPreset(1),
+        onDecrement: () => stepPreset(-1),
+      },
+    },
+    today: { ref: todayRef, radius: radius.m },
+    modes: { ref: modesRef, radius: minTarget / 2, a11y: { label: t('modes.button'), role: 'button', onActivate: () => router.push('/modes') } },
+    start: { ref: startRef, radius: 28, a11y: { label: primaryLabel, role: 'button', onActivate: handlePrimaryAction } },
+  };
 
   const topRow = (
     <View style={styles.topRow} onLayout={(e) => measured('top', e)} testID="classic-top-row">
@@ -533,14 +601,16 @@ export default function TimerScreen() {
           {t('timer.session', { n: sessionN, total: cycleTotal })}
         </Text>
       </Text>
-      <PressableScale
-        onPress={() => router.push('/modes')}
-        haptic={false}
-        accessibilityLabel={t('modes.button')}
-        style={styles.modeButton}
-      >
-        <Icon glyph={modesGlyph} size={24} color={tokens.ink} />
-      </PressableScale>
+      <View ref={modesRef} collapsable={false}>
+        <PressableScale
+          onPress={() => router.push('/modes')}
+          haptic={false}
+          accessibilityLabel={t('modes.button')}
+          style={styles.modeButton}
+        >
+          <Icon glyph={modesGlyph} size={24} color={tokens.ink} />
+        </PressableScale>
+      </View>
     </View>
   );
 
@@ -572,10 +642,15 @@ export default function TimerScreen() {
         // VoiceOver order, both layouts (brief §6): the phase line, the timer,
         // the partner slot, today's row, then the controls.
         <ScrollView
+          ref={scrollRef}
           style={styles.scroll}
           contentContainerStyle={[styles.page, { paddingTop: insets.top + space.s }]}
           showsVerticalScrollIndicator={false}
           onLayout={(e) => measured('visible', e)}
+          // While the tour is here: where the page is, and room to scroll an opening above the AX panel.
+          onScroll={tourHere ? trackScroll : undefined}
+          scrollEventThrottle={tourHere ? 32 : undefined}
+          contentInset={tourHere && fontScale >= STACK_FONT_SCALE ? { bottom: height * 0.5 } : undefined}
           testID="classic-page"
         >
           <View style={[styles.column, { width: pageWidth }]}>
@@ -610,6 +685,11 @@ export default function TimerScreen() {
         </ScrollView>
       )}
       {activeMode !== 'fly' && <StatusBarScrim />}
+      {tourHere && (
+        <Suspense fallback={null}>
+          <TourLayer screen="timer" targets={tourTargets} scrollBy={scrollBy} />
+        </Suspense>
+      )}
     </View>
   );
 }

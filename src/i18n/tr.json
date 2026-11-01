@@ -315,5 +315,48 @@
   },
   "notFound": {
     "home": "Ana sayfaya dön"
+  },
+  "tour": {
+    "pomo": "Pomo",
+    "doro": "Doro",
+    "says": "{{name}}: {{line}}",
+    "next": "İleri",
+    "done": "Bitti",
+    "skip": "Turu atla",
+    "notNow": "Şimdi değil",
+    "mute": "Sesleri kapat",
+    "unmute": "Sesleri aç",
+    "replay": "Turu yeniden izle",
+    "presetsLabel": "Odak süresi",
+    "presets": {
+      "fresh": "Merhaba, biz Pomo ile Doro! Önce ne kadar odaklanmak istediğini seç.",
+      "updated": "Yeniden merhaba! Günlükte pek çok yenilik var. Önce ne kadar odaklanacağını seç.",
+      "replay": "Yeniden merhaba! Ne kadar odaklanacağını buradan seçersin."
+    },
+    "today": {
+      "goal": "Bitirdiğin her odak buraya bir çıkartma yapıştırır ve bugünün hedefini doldurur.",
+      "noGoal": "Bitirdiğin her odak buraya, bugünün sayfasına bir çıkartma yapıştırır."
+    },
+    "modes": {
+      "fly": "Düzeni değiştirmek ya da odaklanırken haritada uçmak için {{modes}} düğmesine dokun.",
+      "noFly": "{{ring}} ile {{spread}} arasında geçmek için {{modes}} düğmesine dokun.",
+      "sheetFly": "Burada {{ring}} ya da {{spread}} seç, istersen {{fly}}. Kapatınca devam ederiz.",
+      "sheet": "Burada {{ring}} ya da {{spread}} seç. Kapatınca devam ederiz."
+    },
+    "stats": {
+      "lead": "Haftan {{tab}} sekmesinde. Görmek için sekmeye dokun.",
+      "week": "Her gün bir kartpostal, bugünkü en önde. Hedefin ve serin hemen altında.",
+      "weekNoGoal": "Her gün bir kartpostal, bugünkü en önde. Aşağıdan günlük hedef açabilirsin.",
+      "empty": "Odaklandığın her gün burada bir kartpostala dönüşür, bugünkü en önde durur."
+    },
+    "notes": {
+      "lead": "Aşk notları {{tab}} sekmesinde. Görmek için sekmeye dokun.",
+      "here": "Her odaktan sonra bir aşk notu çıkar. Kendi notlarını da buradan ekle."
+    },
+    "invite": {
+      "lead": "Tur bu kadar! Geri dönmek için {{tab}} sekmesine dokun.",
+      "first": "İlk odağına hazır mısın? Hazır olunca {{start}} düğmesine bas.",
+      "again": "Bir odağa hazır mısın? Hazır olunca {{start}} düğmesine bas."
+    }
   }
 }

@@ -26,7 +26,10 @@ import { formatNumber, t } from '../i18n';
 import { readLanguageChoice, saveLanguageChoice, type LanguageChoice } from '../i18n/languageChoice';
 import { HiddenStartupDiagnostics } from '../startup/StartupDiagnostics';
 import { useSettingsFocus } from '../stores/settingsFocusStore';
+import { useSessionStore } from '../stores/sessionStore';
 import { useSettingsStore } from '../stores/settingsStore';
+import { useUiStore } from '../stores/uiStore';
+import { useTourStore } from './tutorial/tourStore';
 import { useStatsStore } from '../stores/statsStore';
 import { fonts } from '../theme/type';
 import { space } from '../theme/layout';
@@ -184,6 +187,16 @@ export default function SettingsScreen() {
               })
             : disableDailyReminder().then(() => setNotice(null));
         return change.finally(() => setReminderBusy(false));
+    };
+
+    // The tour again (D5, T-7): it plays on the Timer, so Fly gives way to Classic first. With a
+    // session running or paused it skips the presets and stops before the invitation, on "Done".
+    const replayTour = () => {
+        if (useUiStore.getState().activeMode === 'fly') useUiStore.getState().setActiveMode('default');
+        const slot = useSessionStore.getState().clock.pomodoro;
+        const sessionActive = !!slot && (slot.isRunning || slot.pausedRemainingMs !== null);
+        useTourStore.getState().start({ replay: true, sessionActive });
+        router.navigate('/');
     };
 
     const confirmReset = () => {
@@ -409,6 +422,7 @@ export default function SettingsScreen() {
                     }
                 >
                     <ButtonRow label={t('welcome.replay')} onPress={() => router.push('/welcome')} />
+                    <ButtonRow label={t('tour.replay')} onPress={replayTour} />
                     <ButtonRow label={t('settings.about.updates')} onPress={() => checkForUpdates({ force: true })} />
                     <ButtonRow label={t('settings.about.website')} onPress={() => Linking.openURL(DEVELOPER_URL).catch(() => {})} />
                 </ListGroup>

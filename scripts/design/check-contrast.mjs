@@ -27,7 +27,8 @@ for (const [id, theme] of Object.entries(palette.themes)) {
     for (const r of roleNames) if (!names.includes(r)) errors.push(`${id}: no value for the role "${r}"`);
     for (const n of names) if (!roleNames.includes(n)) errors.push(`${id}: "${n}" has no role in palette.roles`);
     try {
-        results[id] = checkPairs(theme.tokens, palette.pairs);
+        // The WCAG pairs, then the dims (D5): separations, gated the same way.
+        results[id] = checkPairs(theme.tokens, [...palette.pairs, ...(palette.dims ?? [])]);
     } catch (e) {
         errors.push(`${id}: ${e.message}`);
     }

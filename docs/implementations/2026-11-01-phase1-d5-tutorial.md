@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-d1-classic, IMP
 
 # 2026-11-01 — Phase 1 D5: the general tutorial
 
-**Status:** In progress. The brief is confirmed, the direction contract approved, and the assets are done and on this branch (2026-11-01). The build has started from its plan (§3.7).
+**Status:** In progress. The brief is confirmed, the direction contract approved, the assets are on this branch, and the tutorial is built (2026-11-01, §3.8): every guard is green, and nothing is seen on a device yet. The reviews are next (step 6).
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.9, added by the owner on 2026-11-01. This record holds what happens: each step's output, the owner's gates and the measurements.
 
@@ -27,7 +27,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 | 2. `/apple-design` on the brief | **Good**, 2026-11-01: no Critical, 2 High, 5 Medium, 4 Low (§3.3). All accepted, T-4 in part; the contract carries them. Spike done alongside (§3.2): the layer lives inside the tab screens |
 | 3. Composition round, then the direction contract | **The bookmark ribbon**, the owner's pick, 2026-11-01, after two rounds (§3.4). **The contract is approved** by the owner, 2026-11-01 (§3.5) |
 | 4. Assets: the pair's poses **and new expressions with their animations** (VectorCraft) on a pose sheet, their babble (SoundCraft) on a listening page | **Done**, 2026-11-01, in a parallel session; its own [assets record](2026-11-01-phase1-d5-assets.md). Both pages approved by the owner ("Approve, keep nubs"; "version 2 with variation is the way to go"). Fast-forwarded onto this branch on the owner's word (§3.6) |
-| 5. Build (`animate-expo`) | **In progress**, 2026-11-01. The plan is §3.7, committed before any code |
+| 5. Build (`animate-expo`) | **Built**, 2026-11-01, from its plan (§3.7, committed before any code): §3.8. Every guard green, 480 tests; not yet seen on a device |
 | 6. Critique, audit, HIG, `review-animations` | Pending |
 | 7. `break-ui` in Turkish at AX5 | Pending |
 | 8. Polish, then the copy review | Pending |
@@ -49,6 +49,21 @@ The owner, 2026-11-01: "we need an onboarding tutorial featuring pomo and doro �
 |------|--------|
 | `.impeccable/surfaces/app-tutorial-tsx.md` (new) | The tutorial's surface brief (§3.1), written with `impeccable surface-brief write` |
 | This record (new) | D5's record |
+| `src/screens/tutorial/tutorials.ts` (new) | The content, keyed by version: six steps, their leads, faces, openings and lines per state; `dueTutorial()` |
+| `src/screens/tutorial/tourStore.ts` (new) | The run, the mute, and the additive `tutorial` key (seen version, resume once) |
+| `src/screens/tutorial/speech.ts`, `motion.ts`, `placement.ts` (new) | Pure: the write-on and syllables, the pair's motion as worklets, where the dock and ribbon go |
+| `src/screens/tutorial/kit.ts` (new) | The tour kit's 44 layers by name, the expression recipes and the hands' pivots |
+| `src/screens/tutorial/babble.ts`, `useSpeaking.ts` (new) | The 12 players with the approved variation; the line's clock |
+| `src/screens/tutorial/TourCharacter.tsx`, `Ribbon.tsx`, `Bubble.tsx`, `TourLayer.tsx`, `ModesBubble.tsx`, `useTour.ts` (new) | The pair, the ribbon, the bubble, the layer with its scrim and VoiceOver openings, the Modes sheet's bubble, the hosts' hooks |
+| `src/screens/tutorial/__tests__/` (new: 3 files, 45 tests) | The model against the pose sheet's files, the store and placement, the flow through the real screens |
+| `src/screens/TimerScreen.tsx`, `classic/ClassicControls.tsx`, `classic/TodayStickers.tsx` | The gate, the four openings, the lazy layer, Start closing the tour, a preset moving step 1 on, Fly ending it |
+| `src/screens/StatsScreen.tsx`, `LoveNotesScreen.tsx` | The week and Add as openings, the lazy layer, a tab's focus moving its lead on |
+| `src/components/modes/ModeSheet.tsx` | The Modes step's bubble |
+| `src/screens/SettingsScreen.tsx` | "Watch the tutorial again" |
+| `src/stores/hydrateStores.ts`, `src/utils/storage.ts` | The tour store hydrates with the rest; the `tutorial` key |
+| `src/theme/palette.json`, `palette.ts`, `scripts/design/check-contrast.mjs` | The `scrim` and `scrimStrong` tokens, and `dims`, their checks |
+| `src/i18n/en.json`, `tr.json` | `tour.*`: 18 lines and the bubble's words, in both languages |
+| `jest.setup.ts`; `contrast.test.ts`, `v131.test.tsx`, `router.test.tsx` | The audio mock gains `setPlaybackRate`; the dims checked; `tutorial` is new since v1.3.1; the router tests mark the tour seen, as they do the welcome |
 | Everything in the [assets record](2026-11-01-phase1-d5-assets.md) §2 | Fast-forwarded from `phase1/d5-assets` (§3.6): the tour kit's art and modules, the babble and their build steps. Its own table lists each file |
 
 ## 3. Implementation Approach
@@ -309,9 +324,117 @@ Changed:
 
 **Out of this step:** the reviews (step 6), `break-ui` (7), polish and the copy review (8; the tour's lines join a copy proof after v4), the device check (9), and DESIGN.md's row at FINISH.
 
+### 3.8 The build
+
+**Built as planned (§3.7), with five changes found while building:**
+- **Choosing Fly mid-tour ends the tour.** The plan kept the tab steps working under Fly, but a tour that can't show its bubble on the Timer leaves the person guessing. The tour finishes as if skipped, and Settings replays it.
+- **A replay from Fly switches to Classic first.** It's the Modes sheet's own switch, so Fly's slot pauses as it does there.
+- **The scrim's checks are their own list, `dims`.** The contrast test holds every WCAG pair to 4.5 or 3, and a dim is a separation, not a text floor. So `palette.json` gains `dims` beside `pairs`, `check:contrast` gates both, and the test checks dims on their own.
+- **The pair and the bubble wait for the opening.** Before the control is measured they'd stand at a guessed place, then slide. They arrive once the opening is found; a control that can't be measured gets its beat after 600 ms, the whole page dimmed. Once arrived, they glide from beat to beat.
+- **The first line waits for VoiceOver's answer.** The screen-reader check is asynchronous, so the line starts only once it's known, and a VoiceOver user never hears a syllable.
+
+**How it fits together.**
+- **Lazy, as Fly is.** Timer, Stats and Notes import only the store and four small hooks. `TourLayer`, the kit's 44 modules, the voices and the motion load with `lazy()` the first time a tour reaches a screen.
+- **The store** hydrates with the other five in `hydrateStores`; its key, `tutorial`, is additive.
+- **Each tab screen** mounts the layer last in its root view, while the active beat is its own, it's in front, and (on the Timer) Classic is up. Focus moving to a tab moves a lead on (`useTourReach`); Next on a lead calls `router.navigate` to the tab, so both paths end the same way.
+- **The Timer's openings** are refs on the presets row, today's row, the Modes button and the primary pill. `ClassicControls` and `TodayStickers` take them as props, wrapped in plain Views where the control is a `PressableScale`.
+- **Pressing a preset** moves step 1 on 600 ms later, so the choice is seen first. Pressing Start focus calls `finish()` before the session starts (T-3).
+- **The Modes sheet** shows `ModesBubble` while the tour is at the Modes step; its unmount, however the sheet closes, moves the tour on to Stats.
+- **Settings › About** gains "Watch the tutorial again" under "Watch the welcome again".
+
+**The layer, as built.**
+- **The scrim:** four touch-blocking Views around the hole and one untouchable Svg for the rounded corners. Their frames animate on the UI thread: they're childless and absolutely placed, the one exception animate-expo allows. Reduce Motion crossfades through a cover; Reduce Transparency and Increase Contrast switch to `scrimStrong`.
+- **The ribbon:** three animated Svg paths, the band's two strokes and the swallowtail. Their `d` is computed in a worklet from where the curve was, where it's going and how far along. The swallowtail's points end at the tip, and the band stops under it.
+- **The pair:** each character is one 190 pt box scaled about its feet. Its layers stack body-cut (with the lift), hand, body-fill, then two face slots crossing on a change. The talking mouths and the blink are opacity on shared values. The breath, squash, hold, arrival and position are one transform.
+- **The bubble:** the line's rest is laid out in a clear colour, so the bubble never grows as it writes. VoiceOver reads the line, then Next, then Skip tour, then the mute: the tree runs in that order and `row-reverse` draws it the other way round.
+- **The voices:** the line's clock picks each syllable, so the mouth moves whether or not it sounds. The run ending frees the 12 players, wherever it ended.
+
+**Two slips in the assets record, found by the tests** (`tutorialModel.test.ts` runs the pose sheet's own `tour-motion.js` in a sandbox against the app's schedule for every tour line, both languages):
+- **The sample lines are a character shorter than §4.4 says.** Pomo's has 61 characters and writes on in 3,195 ms; Doro's has 69 and takes 3,405 ms. The record says 62 and 3.24 s, 70 and 3.45 s. The rules and the page agree with the app exactly; only the record's count is out. Nothing changes.
+- **The faces cross at about 0.12 opacity each, not 0.5.** §4.4's "both are 0.5 at 77 ms" is a slip: S(a) + S(1 − a) = 1 places the crossing at 77 ms, but there both are S(21/98) ≈ 0.118. For about 40 ms around it the face is faint. That's the motion the owner approved on the pose sheet, so it stays. It's named for the device check and the finish review (§4).
+
+**What the tests can't see.** Jest's native views never report a frame, so no opening is measured there: the openings, the ribbon's curve and the dock's placement are checked as pure functions (`placement.ts`) and on the device. The VoiceOver opening is checked as its own component.
+
+**Measured here, 2026-11-01:**
+
+| Guard | Result |
+|---|---|
+| `npx jest` | 64 suites, 480 tests (+3 suites, +47 tests), all pass |
+| `npx tsc --noEmit` | Clean |
+| `npm run lint` | 0 errors, 29 warnings (unchanged) |
+| `node scripts/react-compiler-report.js` | 98 compiled, 5 skipped (unchanged); no file's worklet count changes |
+| `npx reassure --branch` | Timer 13, Stats 1, Settings 1, Notes 1, leaf 12, settings-only 1 (unchanged) |
+| `npm run check:contrast` | 26 WCAG pairs and 2 dims in each theme: all 56 checks pass |
+| `node scripts/i18n/check-raw-text.mjs`, `node scripts/design/check-emoji.mjs` | Clean |
+| `node scripts/art/build.mjs --check`, `node scripts/sound/build.mjs --check` | Every export and sound rebuilds byte for byte |
+
+**Not measured yet:** the bundle. The kit's modules and the voices are now in the bundle (their evaluation is deferred), so E3's bytecode budget, already 7.34 % over, grows. It's measured at the next build.
+
+**Owed to the device check** (step 9):
+- the openings on every step, in both layouts, portrait and landscape, and on an iPad, whose tab bar may sit at the top;
+- the ribbon's tab x against the real bar;
+- the dark theme's dim (§3.7: the empty page darkens by 1.08:1);
+- the faint face at the crossing;
+- the babble's level against the UI sounds;
+- VoiceOver's order and the acting openings;
+- the AX panel.
+
 ## 4. Mathematical / Statistical Details
 
-None yet. The write-on pace and the babble's syllable rate will be set, with their numbers, in the contract.
+### 4.1 Speaking (`speech.ts`; assets record §3.4)
+
+For a line of characters c₀ … c_{n−1} and a speaker with k letters per syllable (Pomo 3, Doro 4):
+- **Reveal times.** t₀ = 0, and t_{i+1} = t_i + 45 + p_i ms. The pause p_i is 150 after a comma (`,`, `;`, `:`), 300 after a stop (`.`, `!`, `?`, `…`) that isn't the last character, and 0 otherwise. The line is whole at T = t_n.
+- **Syllables.** A letter counter L starts at 0. At each letter (Unicode `\p{L}`, so ç, ğ, ı, İ, ö, ş, ü count), if L mod k = 0 a syllable starts at t_i; then L increases by 1. A pause resets L to 0, so the next letter starts a syllable.
+- **The ending.** The last syllable is replaced by the rising ending if the line ends in "?", and by the falling one otherwise.
+- **The mouth.** It's open for 0.6 × 45k ms per syllable: 81 ms for Pomo, 108 ms for Doro.
+- **Worked example.** Pomo's sample line has 61 characters, one stop inside and one comma, so T = 61 × 45 + 300 + 150 = 3,195 ms, with 16 syllables.
+
+The test runs the pose sheet's own `writeOn` (`scripts/art/tour-motion.js`) on every tour line in both languages and requires identical times and syllables.
+
+### 4.2 The pair's motion (`motion.ts`; assets record §4.4)
+
+S(u) = u²(3 − 2u) on [0, 1], clamped.
+- **Squash and stretch.** The height scale s_y(t) passes the keys (0, 1), (70, 0.92), (168, 1.04), (280, 1) ms, eased by S between keys. The width is s_x = 1/s_y, so s_x·s_y = 1 and the area holds.
+- **The faces.** The old face's opacity is 1 − S(t/98); the new one's is S((t − 56)/98).
+  - Setting them equal gives S(1 − t/98) = S((t − 56)/98), since 1 − S(a) = S(1 − a). So 1 − t/98 = (t − 56)/98, and t = 77 ms.
+  - At 77 ms both are S(21/98) = 0.214² × (3 − 0.429) ≈ 0.118. §4.4 of the assets record says 0.5; the crossing time is right, the opacity isn't.
+  - The face's combined opacity dips to about 0.24 for an instant. The device check judges it.
+- **The hold.** A held tilt θ or stretch σ eases in as θ·S(t/220) from the previous face's value.
+- **The breath.** s_y = 1 + 0.012·f·sin(2πt/P), with P = 3,400 ms (Pomo) or 4,100 ms (Doro) and f = 1, or 0.5 while talking. Only the speaker breathes (T-10).
+- **The wave.** θ(t) = −2° − 14°·sin(2πt/420) for 0 ≤ t ≤ 1,050 ms, so it swings between −16° and +12°. It then eases from θ(1,050) = −2° back to 0 over 160 ms by 1 − S. It is mirrored for a left hand.
+- **The point.** A nudge d(t) = 10·sin(πt/320) units along the nub's unit axis, for 0 ≤ t ≤ 320 ms, converted at 190/512 pt per unit.
+- **The blink.** The wait is uniform on [2,800, 5,200] ms; one blink in five is a double, 110 + 140 + 110 ms.
+
+### 4.3 The babble's variation (`babble.ts`; assets record §3.7)
+
+For uniform draws r₁, r₂ in [0, 1):
+- **Detune.** c = (2r₁ − 1)·10 cents, played as the rate 2^(c/1200), in [0.99424, 1.00579], with pitch correction off.
+- **Gain.** g = (2r₂ − 1)·1.5 − 1.5 dB, so g lies in [−3, 0] dB, played as the volume 10^(g/20), in [0.708, 1].
+- **Why the −1.5 dB base.** expo-audio's volume stops at 1, so the base sits 1.5 dB down and the top of the ±1.5 dB range reaches unity. The mean gain is −1.5 dB, so the voices average about −21.5 LUFS momentary against the measured −20, about 7.3 LU under the UI sounds.
+- **The pick.** A body syllable is ⌊r·(m − 1)⌋ over the m − 1 syllables that aren't the last one, so it never repeats twice running.
+
+### 4.4 Placement (`placement.ts`)
+
+The speaker's box is B = 190 pt, the listener's 140 pt; the visible character stands h = 0.87B above its feet; the gap is 10 pt.
+- **The pair's width** at scale k is (190 + 140 − 36)k = 294k pt.
+- **Above an opening** with top y: the feet stand at y − 10, and the bubble's bottom at y − 10 − hk − 10.
+  - The fit is k ≤ (y − 20 − H_b − inset_top − 8)/h, where H_b is the bubble's measured height.
+  - Below an opening it's the same with the room under it. Left and right (wide screens) take the side's width over 294.
+- **The choice.** The side with the largest fit wins, then k is clamped to [0.5, 1].
+- **The ribbon onto an opening.** A = (W − 30, −12) and P = (x + w − 28, y − 6), with C₁ = (A_x, A_y + 0.45Δy) and C₂ = (P_x, P_y − 0.4Δy). An opening within 70 pt of the top gets a straight drop instead.
+- **The ribbon onto a tab.** P = (tab_x, H − inset_bottom − 4), where tab_x is the tab's even share of the bar less 20 pt at each edge (to be checked on device).
+- **Between beats.** The four points interpolate over 420 ms on the sheet curve (0.32, 0.72, 0, 1).
+
+### 4.5 The scrim (contrast.ts, WCAG 2.x)
+
+The dimmed colour is c = α·scrim + (1 − α)·lit per 8-bit channel; the ratio is (L₁ + 0.05)/(L₂ + 0.05).
+
+| | Strawberry Milk | Midnight Plum |
+|---|---|---|
+| α = 0.45 (`scrim`): the lit Start pill against a dimmed one | 2.13 (floor 2) | 2.82 |
+| α = 0.60 (`scrimStrong`): the same | 2.87 (floor 2.5) | 4.24 |
+| α = 0.45: the lit page against the dimmed page (not gated) | 2.49 | 1.08 |
 
 ## 5. Design Decisions
 
@@ -322,6 +445,12 @@ None yet. The write-on pace and the babble's syllable rate will be set, with the
 | You press, with Next as a backup | The tour navigates for you | The owner's answer. The hands learn the controls, and Next means nobody gets stuck |
 | It ends on the first focus | A goodbye | The owner's answer. The tour's last tap is the app's main action |
 | A list of tutorials keyed by version | A one-off general tutorial | The owner's rule: later versions add a version tutorial as content, not a new engine |
+| The layer lazy-loaded inside each tab screen | One root route; the layer imported up front | The spike (§3.2): the native bar stays live above it. Lazy, the kit and voices never touch a cold start, and Reassure's counts hold |
+| A JavaScript clock for the write-on, one render a character | A TextInput driven from the UI thread | The letters, the syllables and the mouth must stay in step, and the babble is played from JavaScript anyway. Only the bubble's text renders, about 22 times a second; every transform stays on the UI thread |
+| The scrim's checks in their own `dims` list | Lower floors among the WCAG pairs | The contrast test keeps every pair to 4.5 or 3; a dim is a separation, not text |
+| The voices' gain base at −1.5 dB | Variation only downwards; no variation | expo-audio's volume stops at 1; this keeps the approved ±1.5 dB spread, 1.5 dB softer on average, which the owner's "softer" brief welcomes |
+| Choosing Fly ends the tour | Waiting out Fly | The tour never shows over Fly, and a hidden step leaves the person guessing; Settings replays it |
+| The dock waits for the opening, with a 600 ms fallback | Placing it at once | Nothing slides in from a guessed place, and a control that can't be measured never strands the tour |
 
 ## 6. Verification
 
@@ -329,7 +458,9 @@ None yet. The write-on pace and the babble's syllable rate will be set, with the
 - [x] The owner confirms the brief (2026-11-01, "Confirm the brief").
 - [x] The owner approves the direction contract (2026-11-01, "Approve the contract").
 - [x] The assets approved in their record and fast-forwarded here, every guard green (§3.6).
-- [ ] The remaining steps of §0.
+- [x] The build plan committed before any code (§3.7).
+- [x] The build: `npx jest` (64 suites, 480 tests), `npx tsc --noEmit`, `npm run lint`, `node scripts/react-compiler-report.js`, `npx reassure --branch`, `npm run check:contrast`, `node scripts/i18n/check-raw-text.mjs`, `node scripts/design/check-emoji.mjs`, `node scripts/art/build.mjs --check`, `node scripts/sound/build.mjs --check`, all green (§3.8).
+- [ ] The remaining steps of §0, the device check's list in §3.8 among them.
 
 ## 7. Related Docs
 

@@ -30,7 +30,7 @@ const AD_POLICY_KEY = 'ad_policy_v1';
 // Keys the app starts writing after v1.3.1 go here (B2's migration flag, for
 // one). A v1.3.1 install can't hold them, so the fixture must not grow them.
 // Keys v1.4 added; a v1.3.1 install has none of them.
-const NEW_SINCE_V131: string[] = ['welcome_v14'];
+const NEW_SINCE_V131: string[] = ['welcome_v14', 'tutorial'];
 
 const MISSING = Symbol('missing');
 

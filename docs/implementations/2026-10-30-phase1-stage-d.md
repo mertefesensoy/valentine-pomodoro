@@ -50,6 +50,7 @@ Stage C produced an approved design system that no screen uses yet: the tokens, 
 | **D2, Stats, Settings, Notes, Gift** | The v1 styling. 51 emoji glyphs in 16 files, some of them as icons. Default notes that name Bengisu. A gift screen "for Bengisu". | NFR-UX-002, FR-NTE-002, NFR-UX-003 |
 | **D3, EN/TR** | Every string is an English literal. There is no Turkish and no `tr-TR` casing. | FR-SET-005, NFR-I18N-001, NFR-A11Y-003 |
 | **D4, sounds** | Settings has a sound toggle (FR-SET-001) but no sounds (DEF-007's sound half). `fly-ambient.m4a` is 1.2 MB. | FR-SET-004, NFR-PERF-005 |
+| **D5, the onboarding tutorial** (added by the owner, 2026-11-01) | v1.4 adds presets, two layouts, the Modes sheet, stickers and goals, the postcard Stats, a language choice and sounds, and nothing shows a newcomer, or a v1.3.1 user, where they are. The only first-run screen is the one-time welcome morph. Pomo & Doro have idle and celebrating poses only, and no voice. | `FR-ONB-001` and `FR-ONB-002` (proposed, added to the SRS at merge, §9), NFR-PERF-005, NFR-A11Y-003, NFR-A11Y-004, NFR-I18N-001 |
 
 ## 2. What Changed
 
@@ -83,7 +84,7 @@ Stage C produced an approved design system that no screen uses yet: the tokens, 
 
 ### 3.1 Order, gates and one change
 
-**The order is D1 → D2 → D3, as given.** **D4's assets are made in a parallel session in its own worktree** (the owner, Q2), then wired in by this session after D1 lands.
+**The order is D1 → D2 → D3, as given; D5 follows, added by the owner on 2026-11-01 (§3.9).** **D4's assets are made in a parallel session in its own worktree** (the owner, Q2), then wired in by this session after D1 lands.
 
 **Changed by the owner (Q1): D3's plumbing moves to the start of D1.** That plumbing is `expo-localization`, `i18next`, the `tr-TR` casing helper and the `en`/`tr` resource files. D1 and D2 write each new string once, as a key with its English and draft Turkish text.
 - **Why.** Otherwise D3 re-edits every screen D1 and D2 have just rebuilt, to swap English literals for keys. And D1's `break-ui` step needs real Turkish at the largest Dynamic Type size, which the app can only show once that plumbing exists.
@@ -351,6 +352,47 @@ The device checks run one task at a time, never batched. The bytecode is measure
 - **New ADRs, if a decision is structural,** start at ADR-0048. Likely candidate: the i18n stack.
 - **At the end:** the project memory is updated.
 
+### 3.9 D5, the onboarding tutorial (added by the owner, 2026-11-01)
+
+**The owner, 2026-11-01:** "Since we did a lot of new stuff we need an onboarding tutorial featuring pomo and doro which that means they need more animation, gestures and sound effect when they talk with text bubbles and a tuttorial that they will guide for the Valentine pomodoro."
+
+**What it is:**
+- **A guided tutorial in which Pomo & Doro take turns** explaining Valentine Pomodoro in speech bubbles, pointing the person through the app.
+- **New gestures and animations for the pair,** drawn in VectorCraft: talking, pointing, waving and the like, beyond today's idle and celebrating poses. They move with Reanimated.
+- **Their voices are a cute, kawaii babble,** made in SoundCraft: a talking-like mimicry, never a real human voice. Each speaks in their own, while their bubble writes on.
+
+**Who sees it, and when** (the owner's rule for every version from now on):
+- **The general tutorial** is for first-timers: a new install's first launch.
+- **A version tutorial** shows each later version's new features to existing users, on their first launch after updating to that version. Every version that adds features gets its own.
+- **v1.4 has only the general tutorial.** There was no onboarding before, so new installs and people updating from v1.3.1 both get it.
+
+**Kept as for every screen:**
+- **Skippable** at any step.
+- **Accessibility:** the bubbles are text, so VoiceOver reads them and they grow with Dynamic Type. Reduce Motion gets a calm version.
+- **Sound:** the babble follows Settings › Sound and the silent switch, as D4's sounds do.
+- **Languages and budgets:** every line in English and Turkish, through the copy review. The sounds and poses keep NFR-PERF-005's budgets.
+
+**Its steps,** as for every new surface (DESIGN-WORKFLOW §2):
+1. Shape the brief, with the owner's answers.
+2. `/apple-design` on the brief.
+3. A composition round and the direction contract, for the owner's approval.
+4. The assets: the pair's new poses (VectorCraft) on a pose sheet, and their voices (SoundCraft) on a listening page, each approved by the owner. They may be made in a parallel session, as D4's were.
+5. The build (`animate-expo`).
+6. Critique, audit, HIG and `review-animations`.
+7. `break-ui` in Turkish at AX5.
+8. Polish.
+9. The device check.
+10. The finish review.
+
+**Open for the brief:**
+- how the tutorial sits beside the one-time welcome morph (after it, or folded into it);
+- what it covers, and in how many steps;
+- whether it points at live screens or is a page of its own;
+- where it can be replayed (Settings › About has "Watch the welcome again");
+- how a seen tutorial is stored: additively, under its own key, so the storage migration stays untouched.
+
+D5's record is created when its brief starts (§3.8).
+
 ## 4. Mathematical / Statistical Details
 
 ### 4.1 Contrast
@@ -427,6 +469,7 @@ From D1: `python -P art/type/build-fonts.py --check`. From D4: `node scripts/sou
 - [ ] D1: every step of DESIGN-WORKFLOW §2. Critique and audit ≥ 16/20, no Critical HIG finding, `review-animations` clean. Guards green. The device checks on builds 48, 49 and 50 (need a physical device).
 - [ ] D2: the four briefs confirmed. The emoji check green. B2's notes tests green. The device check on D2's own build (needs a physical device).
 - [ ] D3: every string extracted, and the raw-text check green. The in-app language choice works (the owner, 2026-10-31). The device check in TR at the largest size on D3's own build (needs a physical device).
+- [ ] D5: the general tutorial on a new install's first launch and on the first launch after updating from v1.3.1, skippable, in both languages, with the pair's new poses and voices approved by the owner; the device check (needs a physical device).
 - [ ] D4: three sounds, each ≤ 1.5 s and ≤ 25 KB, rebuilt byte for byte (**done**: the D4 record; merged in `362b930` and wired, the D4 wiring record). The silent switch and the toggle respected on the device (needs a physical device).
 
 ## 7. Questions for the owner, answered 2026-10-30
@@ -562,6 +605,23 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 - **SRS FR-SET-004** → `implemented` once the wiring's device check passes (Verify: T, `src/audio/__tests__/uiSounds.test.ts` and `classic.test.tsx`'s "Classic's sounds"; D, the device check: the silent switch, the music mix and the toggle).
 - **SRS FR-SET-001's note on DEF-007:** "the Sound switch plays and silences the three UI sounds (D4)".
 - **`docs/README.md`**, beside D4's row: the D3 record and the D4 wiring record.
+
+**From D5 (§3.9; the owner, 2026-11-01), to apply when D5 ships:**
+
+- **SRS, two new requirements** under a new onboarding group (FR-ONB), with D5's record as their source:
+
+```markdown
+#### FR-ONB-001
+**Statement:** On a new install's first launch, the app shall offer a guided tutorial in which Pomo & Doro take turns explaining the app in speech bubbles, with their own non-human babble voices; it can be skipped at any step and replayed later.
+**Pri:** Must · **Target:** Phase 1 (D5) · **Status:** planned · **Source:** the owner, 2026-11-01
+
+#### FR-ONB-002
+**Statement:** On the first launch after an update, the app shall show existing users a short tutorial of that version's new features, once; a new install sees the general tutorial (FR-ONB-001) instead. v1.4, the first version with any onboarding, shows its updaters the general tutorial.
+**Pri:** Must · **Target:** every version that adds features, from Phase 1 (D5) · **Status:** planned · **Source:** the owner, 2026-11-01
+```
+
+- **The ROADMAP**, a line every later phase inherits: "Each version that adds features ships a version tutorial for existing users (`FR-ONB-002`); the general tutorial (`FR-ONB-001`) is kept current for first-timers."
+- **The CHANGELOG, v1.4:** add "A tutorial with Pomo & Doro, who take turns showing you around."
 
 **Phase 2 inherits (the owner, Q3, 2026-10-30):** the pages-to-logo morph also plays at the first pairing. It reuses D1's welcome-screen choreography (§3.2.11). For the rehaul plan's Phase 2 section and the ROADMAP's Phase 2 row:
 

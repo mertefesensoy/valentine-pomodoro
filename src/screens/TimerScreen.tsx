@@ -4,6 +4,8 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useTimer } from "../hooks/useTimer";
+import { applyUiAudioMode, loadUiSounds, playUiSound } from "../audio/uiSounds";
+import { runAfterFirstFrame } from "../startup/deferredStartup";
 import TimerText from "../components/TimerText";
 import { Icon } from "../components/icons/Icon";
 import { modes as modesGlyph } from "../components/icons/art/modes";
@@ -163,8 +165,23 @@ export default function TimerScreen() {
       session.switchTo('fly');
     } else if (prev === 'fly' && activeMode !== 'fly') {
       session.switchTo('pomodoro');
+      // Fly's ambience set an audio mode that plays through the silent switch; the UI sounds
+      // respect it (D4).
+      applyUiAudioMode();
     }
   }, [activeMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The UI sounds (D4, FR-SET-004): loaded after the first frame, never on the cold-start path
+  // (NFR-PERF-001), with the audio session they need. A launch straight into Fly leaves Fly's own
+  // mode in place; coming back sets this one (above).
+  useEffect(
+    () =>
+      runAfterFirstFrame('sounds.load', () => {
+        if (useUiStore.getState().activeMode !== 'fly') applyUiAudioMode();
+        loadUiSounds();
+      }),
+    [],
+  );
 
   // The moments after a completed focus, in order: the goal moment (inline on
   // today's row), then the love note (a native sheet), then the interstitial
@@ -207,14 +224,17 @@ export default function TimerScreen() {
     });
   }, [adRequests, goalPopup, showLoveNoteCard, focused]);
 
-  // The sticker placement's success haptic, on the frame its sticker lands: a
-  // completion while Timer is in front (HIG D1-L1: once per completion, and it
-  // follows Settings › Haptics).
+  // The sticker placement's success haptic and its completion sound, on the frame its sticker
+  // lands: a completion while Timer is in front (HIG D1-L1: once per completion; each follows its
+  // Settings switch). The sound opens with its pop, the sticker pressed on, so it starts with the
+  // placement spring, not after it (D4 record §8).
   const prevCountRef = useRef(todayCount);
   useEffect(() => {
     const grew = todayCount > prevCountRef.current;
     prevCountRef.current = todayCount;
-    if (grew && focused && useSettingsStore.getState().settings.haptics) {
+    if (!grew || !focused) return;
+    playUiSound('complete');
+    if (useSettingsStore.getState().settings.haptics) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     }
   }, [todayCount, focused]);
@@ -253,13 +273,15 @@ export default function TimerScreen() {
         ? t('controls.startFocus')
         : t('controls.startBreak');
 
-  // The haptic is the pill's own, on press-in (PressableScale).
+  // The haptic is the pill's own, on press-in (PressableScale). Starting a phase plays its sound
+  // (D4): focus start rises, break start steps back down. Pause and Resume play none.
   const handlePrimaryAction = () => {
     if (isRunning) {
       pause();
     } else if (remainingMs !== null && remainingMs < totalMs) {
       resume();
     } else {
+      playUiSound(phase === 'focus' ? 'focusStart' : 'breakStart');
       start();
     }
   };

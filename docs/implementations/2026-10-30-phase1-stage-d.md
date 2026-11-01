@@ -76,6 +76,8 @@ Stage C produced an approved design system that no screen uses yet: the tokens, 
 | `src/i18n/*` | D1 (plumbing), D3 | i18next setup, the `en` and `tr` resources, and the `tr-TR` casing helper. The owner moved the plumbing into D1 (Q1). |
 | `app/welcome.tsx`, `src/screens/welcome/*`, `.impeccable/surfaces/app-welcome-tsx.md` | D1 | The one-time v1.4 welcome screen with the pages-to-logo morph (Q3, §3.2.11). |
 | `art/sound/*`, `scripts/sound/build.mjs`, `src/assets/sounds/*`, `src/audio/uiSounds.ts` | D4 | The SoundCraft sources, the build and check, the shipped `.m4a` files and the player. |
+| `art/review/d4-*`, `docs/implementations/2026-10-30-phase1-d4-sounds.md` | D4 | The listening page and the D4 record ([D4 record](2026-10-30-phase1-d4-sounds.md)), from `phase1/d4-sounds`, merged in `362b930`. |
+| `docs/implementations/2026-11-01-phase1-d4-wiring.md` | D4 | The wiring: Classic plays the three sounds ([D4 wiring record](2026-11-01-phase1-d4-wiring.md)). |
 
 ## 3. Implementation Approach
 
@@ -425,7 +427,7 @@ From D1: `python -P art/type/build-fonts.py --check`. From D4: `node scripts/sou
 - [ ] D1: every step of DESIGN-WORKFLOW §2. Critique and audit ≥ 16/20, no Critical HIG finding, `review-animations` clean. Guards green. The device checks on builds 48, 49 and 50 (need a physical device).
 - [ ] D2: the four briefs confirmed. The emoji check green. B2's notes tests green. The device check on D2's own build (needs a physical device).
 - [ ] D3: every string extracted, and the raw-text check green. The in-app language choice works (the owner, 2026-10-31). The device check in TR at the largest size on D3's own build (needs a physical device).
-- [ ] D4: three sounds, each ≤ 1.5 s and ≤ 25 KB, rebuilt byte for byte. The silent switch and the toggle respected on the device (needs a physical device).
+- [ ] D4: three sounds, each ≤ 1.5 s and ≤ 25 KB, rebuilt byte for byte (**done**: the D4 record; merged in `362b930` and wired, the D4 wiring record). The silent switch and the toggle respected on the device (needs a physical device).
 
 ## 7. Questions for the owner, answered 2026-10-30
 
@@ -554,6 +556,13 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 - **ADR-0048's consequences:** add "The in-app language choice (D3) is read once, when the translator loads, so the language stays fixed for a process."
 - **The CHANGELOG, v1.4:** add "Every screen, notification and alert in English and Turkish, and a Language choice in Settings."
 
+**From D4 ([D4 record](2026-10-30-phase1-d4-sounds.md) §10 and the [D4 wiring record](2026-11-01-phase1-d4-wiring.md)), to apply when D4 ships:**
+
+- **The D4 record's §10**, ready to paste: `docs/README.md`'s row, the ROADMAP's D4 row, SRS NFR-PERF-005's status, ADR-0027's status note, `DECISIONS.md` Q1's status and the CHANGELOG line.
+- **SRS FR-SET-004** → `implemented` once the wiring's device check passes (Verify: T, `src/audio/__tests__/uiSounds.test.ts` and `classic.test.tsx`'s "Classic's sounds"; D, the device check: the silent switch, the music mix and the toggle).
+- **SRS FR-SET-001's note on DEF-007:** "the Sound switch plays and silences the three UI sounds (D4)".
+- **`docs/README.md`**, beside D4's row: the D3 record and the D4 wiring record.
+
 **Phase 2 inherits (the owner, Q3, 2026-10-30):** the pages-to-logo morph also plays at the first pairing. It reuses D1's welcome-screen choreography (§3.2.11). For the rehaul plan's Phase 2 section and the ROADMAP's Phase 2 row:
 
 ```markdown
@@ -567,5 +576,6 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 - ["Phase 1 D4: the SoundCraft sound set, and Fly's loop re-encoded"](2026-10-30-phase1-d4-sounds.md)
 - ["Phase 1 D2: Stats, Settings and Notes rebuilt in the Sticker Diary design, the gift screen retired"](2026-10-31-phase1-d2-screens.md)
 - ["Phase 1 D3: every string in English and Turkish, a raw-text check, and the in-app language choice"](2026-11-01-phase1-d3-en-tr.md)
+- ["Phase 1 D4, wired in: D4's sounds merged into Stage D and played by Classic"](2026-11-01-phase1-d4-wiring.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

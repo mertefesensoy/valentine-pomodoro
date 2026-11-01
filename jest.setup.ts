@@ -70,9 +70,10 @@ jest.mock('react-native-maps', () => {
 
 // expo-audio builds a class on its native module at import (via FlyModeScreen,
 // whenever a test opens Fly).
-// Only what useFlyModeAudio touches is stubbed.
+// Only what useFlyModeAudio and the UI sounds (src/audio/uiSounds.ts, D4) touch is stubbed.
 jest.mock('expo-audio', () => ({
     useAudioPlayer: () => ({ play: jest.fn(), pause: jest.fn(), remove: jest.fn(), loop: false, volume: 1 }),
+    createAudioPlayer: jest.fn(() => ({ play: jest.fn(), pause: jest.fn(), seekTo: jest.fn(async () => {}), remove: jest.fn(), volume: 1 })),
     setAudioModeAsync: jest.fn(async () => {}),
 }));
 

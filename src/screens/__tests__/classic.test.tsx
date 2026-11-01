@@ -9,6 +9,7 @@ import { useSettingsStore } from '../../stores/settingsStore';
 import { useStatsStore } from '../../stores/statsStore';
 import { useUiStore } from '../../stores/uiStore';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
+import * as uiSounds from '../../audio/uiSounds';
 import { getTodayKey } from '../../utils/time';
 import TimerScreen from '../TimerScreen';
 
@@ -333,5 +334,59 @@ describe('Classic in landscape', () => {
             // (390 − 34 − 68) / 34 → 8 a row; planned from the window it was 12 (24 cells).
             expect(dashed).toHaveLength(16);
         });
+    });
+});
+
+// covers: FR-SET-004
+// D4's sounds, wired in (D4 wiring record): Start plays the phase's sound, a completion plays with
+// the sticker placement, and coming back from Fly sets the audio mode back to one that respects
+// the silent switch.
+describe("Classic's sounds", () => {
+    let play: jest.SpyInstance;
+    let mode: jest.SpyInstance;
+    beforeEach(() => {
+        play = jest.spyOn(uiSounds, 'playUiSound').mockImplementation(() => {});
+        mode = jest.spyOn(uiSounds, 'applyUiAudioMode').mockImplementation(() => {});
+    });
+    afterEach(() => {
+        play.mockRestore();
+        mode.mockRestore();
+    });
+
+    it('plays focus start on Start focus, and nothing on Pause or Resume', async () => {
+        await show(<TimerScreen />);
+        await press(screen.getByText('Start focus'));
+        expect(play.mock.calls).toEqual([['focusStart']]);
+        await act(() => jest.advanceTimersByTime(3_000));
+        await press(screen.getByText('Pause'));
+        await press(screen.getByText('Resume'));
+        expect(play).toHaveBeenCalledTimes(1);
+    });
+
+    it('plays break start on Start break', async () => {
+        await show(<TimerScreen />);
+        // A fresh focus skips at once, to the break.
+        await press(screen.getByText('Start focus'));
+        await press(screen.getByText('Skip'));
+        play.mockClear();
+        await press(screen.getByText('Start break'));
+        expect(play.mock.calls).toEqual([['breakStart']]);
+    });
+
+    it('plays the completion sound as a sticker lands', async () => {
+        await show(<TimerScreen />);
+        await act(async () =>
+            useStatsStore.setState((s) => ({ days: { ...s.days, [getTodayKey()]: { focusSessions: 1, focusMinutes: 25 } } })),
+        );
+        expect(play.mock.calls).toEqual([['complete']]);
+    });
+
+    it('sets the silent-switch audio mode back when Classic returns from Fly', async () => {
+        await show(<TimerScreen />);
+        mode.mockClear();
+        await act(async () => useUiStore.getState().setActiveMode('fly'));
+        expect(mode).not.toHaveBeenCalled();
+        await act(async () => useUiStore.getState().setActiveMode('default'));
+        expect(mode).toHaveBeenCalledTimes(1);
     });
 });

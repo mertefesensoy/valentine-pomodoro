@@ -47,4 +47,5 @@ The sound *content* (Q1) is settled separately: [ADR-0027](0027-vectorcraft-art-
 ## Backlinks
 <!-- backlinks:start -->
 - [Architecture decision records](README.md)
+- ["Phase 1 D4: the SoundCraft sound set, and Fly's loop re-encoded"](../../implementations/2026-10-30-phase1-d4-sounds.md)
 <!-- backlinks:end -->

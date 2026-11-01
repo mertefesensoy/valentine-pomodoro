@@ -1,0 +1,26 @@
+# Break start (FR-SET-004): the exhale.
+# The same chime stepping down G5, E5, C5 and coming to rest on the tonic that focus start left
+# open. Each note is quieter than the one before (a diminuendo), 200 ms apart and shorter-lived
+# than in the other two sounds, so the phrase thins out instead of ringing. That also keeps its
+# loudness level with theirs once all three are scaled to the same peak (the record, §4).
+#
+# soundcraft-cli 0.14 script: one `COMMAND JSON` per line. scripts/sound/build.mjs runs it, saves
+# art/sound/break-start.scraft, then bounces that session with file.bounce_mix.
+# 125 bpm at 960 ticks per quarter makes one tick 0.5 ms, so 400 ticks is 200 ms.
+
+session.new {"name": "break-start", "sample_rate": 48000, "bit_depth": 24}
+event.tempo {"bpm": 125}
+
+# The diary chime (as in focus-start.script) with a shorter decay. Stereo track: SoundCraft 0.14
+# pans a mono track 6 dB right at centre.
+track.new {"kind": "instrument", "format": "stereo", "name": "Chime", "instrument": "subtractive_synth"}
+mix.instrument {"track": "Chime", "plugin": "subtractive_synth", "params": {"osc1_wave": 2, "osc2_wave": 3, "osc2_semitones": 12, "osc2_detune": 3, "osc_mix": 22, "cutoff": 2400, "resonance": 0, "filter_env_amount": 25, "filter_attack": 0.5, "filter_decay": 120, "filter_sustain": 0, "filter_release": 200, "amp_attack": 4, "amp_decay": 380, "amp_sustain": 0, "amp_release": 300, "glide": 0, "velocity": 60, "level": -6}}
+
+# The same small plate, a touch wetter. Width 0 keeps left and right within -40 dB of each other;
+# the build folds them to mono by averaging.
+mix.insert {"track": "Chime", "slot": 0, "plugin": "plate_reverb", "params": {"mix": 15, "pre_delay": 12, "decay": 0.7, "size": 35, "damping": 4500, "diffusion": 85, "width": 0, "low_cut": 250}}
+
+midi.new_clip {"track": "Chime", "start": 0, "length": 72000}
+midi.note_add {"clip": 2, "pitch": 79, "start_ticks": 0, "length_ticks": 800, "velocity": 100}
+midi.note_add {"clip": 2, "pitch": 76, "start_ticks": 400, "length_ticks": 800, "velocity": 64}
+midi.note_add {"clip": 2, "pitch": 72, "start_ticks": 800, "length_ticks": 1400, "velocity": 52}

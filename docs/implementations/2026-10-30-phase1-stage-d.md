@@ -564,6 +564,7 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 <!-- backlinks:start -->
 - [An in-house translator over i18next, for English and Turkish](../architecture/adr/0048-in-house-translator.md)
 - ["Phase 1 D1: Classic rebuilt in the Sticker Diary design, with the v1.4 welcome screen"](2026-10-30-phase1-d1-classic.md)
+- ["Phase 1 D4: the SoundCraft sound set, and Fly's loop re-encoded"](2026-10-30-phase1-d4-sounds.md)
 - ["Phase 1 D2: Stats, Settings and Notes rebuilt in the Sticker Diary design, the gift screen retired"](2026-10-31-phase1-d2-screens.md)
 - ["Phase 1 D3: every string in English and Turkish, a raw-text check, and the in-app language choice"](2026-11-01-phase1-d3-en-tr.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)

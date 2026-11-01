@@ -1,0 +1,49 @@
+{
+  "about": "The app's sounds (Phase 1 D4; FR-SET-004, NFR-PERF-005; ADR-0027). scripts/sound/build.mjs builds every entry: a UI sound from its soundcraft-cli script (saved as <id>.scraft, bounced with file.bounce_mix from 0 to `seconds`), a loop from its source file. Each is folded to mono, scaled to a -1 dBFS sample peak and encoded as mono AAC with ffmpeg. `tools` names the builds the committed files came from: --check compares bytes, which only holds on the same SoundCraft and ffmpeg.",
+  "tools": {
+    "soundcraft": "soundcraft-cli 0.14.0 (windows x86_64)",
+    "ffmpeg": "ffmpeg version 8.1.1-full_build-www.gyan.dev"
+  },
+  "budget": {
+    "seconds": 1.5,
+    "bytes": 25600,
+    "peakDbfs": -1,
+    "tailDb": -60
+  },
+  "sounds": [
+    {
+      "id": "focus-start",
+      "use": "A focus session starts.",
+      "script": "art/sound/focus-start.script",
+      "seconds": 0.85,
+      "bitrate": "96k"
+    },
+    {
+      "id": "break-start",
+      "use": "A break (short or long) starts.",
+      "script": "art/sound/break-start.script",
+      "seconds": 1.1,
+      "bitrate": "96k"
+    },
+    {
+      "id": "complete",
+      "use": "A focus session completes: plays with the sticker placement.",
+      "script": "art/sound/complete.script",
+      "seconds": 1.1,
+      "bitrate": "96k"
+    }
+  ],
+  "loops": [
+    {
+      "id": "fly-ambient",
+      "use": "Fly Mode's ambient loop (useFlyModeAudio, loaded lazily with Fly). The source's leading silence and fade-in are trimmed and its tail is crossfaded into its head, so it wraps without a gap (the owner chose this over a faithful re-encode, 2026-10-30). Both lengths are whole AAC frames (1024 samples), which keeps the loop frame-aligned.",
+      "source": "art/sound/source/fly-ambient.m4a",
+      "file": "src/assets/sounds/fly-ambient.m4a",
+      "bitrate": "64k",
+      "seamless": {
+        "trimStartSamples": 17408,
+        "crossfadeSamples": 66560
+      }
+    }
+  ]
+}

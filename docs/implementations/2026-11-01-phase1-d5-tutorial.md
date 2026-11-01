@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-d1-classic, IMP
 
 # 2026-11-01 — Phase 1 D5: the general tutorial
 
-**Status:** In progress. The brief is confirmed, the direction contract approved, and the assets are done and on this branch (2026-11-01). The build is next.
+**Status:** In progress. The brief is confirmed, the direction contract approved, and the assets are done and on this branch (2026-11-01). The build has started from its plan (§3.7).
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.9, added by the owner on 2026-11-01. This record holds what happens: each step's output, the owner's gates and the measurements.
 
@@ -27,7 +27,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 | 2. `/apple-design` on the brief | **Good**, 2026-11-01: no Critical, 2 High, 5 Medium, 4 Low (§3.3). All accepted, T-4 in part; the contract carries them. Spike done alongside (§3.2): the layer lives inside the tab screens |
 | 3. Composition round, then the direction contract | **The bookmark ribbon**, the owner's pick, 2026-11-01, after two rounds (§3.4). **The contract is approved** by the owner, 2026-11-01 (§3.5) |
 | 4. Assets: the pair's poses **and new expressions with their animations** (VectorCraft) on a pose sheet, their babble (SoundCraft) on a listening page | **Done**, 2026-11-01, in a parallel session; its own [assets record](2026-11-01-phase1-d5-assets.md). Both pages approved by the owner ("Approve, keep nubs"; "version 2 with variation is the way to go"). Fast-forwarded onto this branch on the owner's word (§3.6) |
-| 5. Build (`animate-expo`) | Pending |
+| 5. Build (`animate-expo`) | **In progress**, 2026-11-01. The plan is §3.7, committed before any code |
 | 6. Critique, audit, HIG, `review-animations` | Pending |
 | 7. `break-ui` in Turkish at AX5 | Pending |
 | 8. Polish, then the copy review | Pending |
@@ -220,6 +220,94 @@ Two lend a discipline to whichever structure wins: one message per bubble, its p
 | `node scripts/react-compiler-report.js` | 81 compiled, 5 skipped (unchanged) |
 
 - **Still open from the assets, by the owner's choice:** the trial of more variation in the babble's pitch (±20 or ±30 cents beside the approved ±10), which they called "experimental" (assets record §3.7). The build uses the approved ±10 cents and ±1.5 dB until they pick.
+
+### 3.7 The build plan (written before any code)
+
+**The owner, 2026-11-01: "Start the build".** `/animate-expo` resolved from this worktree, and impeccable's craft floor was read before the first UI edit. The plan follows the approved contract (`.impeccable/surfaces/app-tutorial-tsx.md`), the HIG dispositions (§3.3) and the assets record's numbers (§3.2–3.4, §4.4). The hand-over notes the assets session named (`d5-assets.md`) aren't on disk; its record carries the same content.
+
+**The gate (`animate-expo` §1–2).** The tour is the rare, first-time tier: shown once, replayed by choice. The purpose is **explanation**, and the pair's entrance is its one **delight**. Tab changes stay the bar's own, with no animation.
+
+**Files.** New, under `src/screens/tutorial/`:
+
+| File | What |
+|---|---|
+| `tutorials.ts` | The content, a list keyed by version (the owner's per-version rule): each step's beats, speaker, face, target and line key per state. `dueTutorial()` picks the one to show. v1.4 has only the general tutorial, for everyone |
+| `tourStore.ts` | The tour's state: the active step and beat, first run or replay, the mute. It persists one additive key, `tutorial`: the version last seen, and the step to resume at, once (T-9) |
+| `speech.ts` | Pure. A line's write-on and syllable schedule (assets record §3.4) |
+| `motion.ts` | Pure worklets. The squash and stretch, the faces crossing, the breath, the wave and the point, from `expressions.json`'s numbers (assets record §4.4) |
+| `placement.ts` | Pure. Where the pair and bubble stand, and the ribbon's curve, from the opening and the screen |
+| `babble.ts` | The 12 syllable players, created when the tour starts and released when it ends, with the approved variation |
+| `TourCharacter.tsx` | Pomo or Doro from the tour kit's layers: the expression, blink, talking mouth, breath, squash, the hand |
+| `Ribbon.tsx` | The bookmark ribbon: a band in `primary` with a `ringFocus` edge and a swallowtail tip, its curve animated on the UI thread |
+| `Bubble.tsx` | The paper bubble: the speaker's name, the line writing on, the mute, Skip tour and Next |
+| `TourLayer.tsx` | One screen's layer: the scrim with its opening, the ribbon, the bubble and the pair; VoiceOver's openings; the AX panel. Lazy-loaded |
+| `useTour.ts` | The hosts' hooks: the gate after the welcome, which beat a screen shows, and a tab's focus moving a tab step on |
+| `ModesBubble.tsx` | The short bubble the Modes sheet shows at the Modes step (T-4) |
+
+Changed:
+
+| File | Change |
+|---|---|
+| `src/theme/palette.json` | New roles `scrim` and `scrimStrong` (raised under Reduce Transparency and Increase Contrast), in both themes, and their contrast pairs |
+| `src/utils/storage.ts` | One additive key, `tutorial`. No existing key or the B2 migration changes |
+| `TimerScreen.tsx`, `ClassicControls.tsx`, `TodayStickers.tsx` | The gate, refs on the four openings (the presets, today's row, Modes, Start focus), the layer, and the tour closing before a session starts |
+| `StatsScreen.tsx`, `LoveNotesScreen.tsx` | Refs on their openings (the week, Add) and the layer |
+| `ModeSheet.tsx` | The Modes step's bubble; closing the sheet moves the tour on |
+| `SettingsScreen.tsx` | "Watch the tutorial again" beside "Watch the welcome again" |
+| `en.json`, `tr.json` | Every line, under `tour.*`. A line that names a control interpolates the control's own key |
+| `jest.setup.ts` | The `expo-audio` mock gains `setPlaybackRate` |
+
+**The steps.** Six (T-11). Odd steps are Pomo's, even ones Doro's. A tab step has two beats: a lead on the screen before, with the ribbon at the tab, then the step itself once the tab is in front.
+
+| # | Lead | The step | Opening | Moves on |
+|---|---|---|---|---|
+| 1 | | Timer: hello, then pick a length | The presets and their key | A preset pressed, or Next |
+| 2 | | Timer: a sticker per focus, filling today's goal | Today's row | Next |
+| 3 | | Timer: the Modes button | Modes | The sheet closed, or Next |
+| 4 | Timer: Stats is below | Stats: the week as postcards, the goal and streak | The week | The tab pressed, or Next; then Next |
+| 5 | Stats: Notes is below | Notes: a love note after each focus; write your own | Add | The same |
+| 6 | Notes: back to the Timer | Timer: the invitation | Start focus | Start focus, or Not now |
+
+**The lines per state (T-6).** Step 1 for a new install, an updater, and a replay. Step 2 with the goal on or off. Step 3 with or without Fly. Step 4 for an empty week. Step 6 with "your first" only for a new install.
+
+**The layer.**
+- **Where it lives (the spike):** inside Timer, Stats and Notes, last in the screen's root view, like `StatusBarScrim`. It shows only when the active beat belongs to that screen, the screen is in front, and Classic is up (never over Fly).
+- **The scrim:** four touch-blocking panels around the opening, with nothing over the hole, and its rounded corners drawn by one untouchable Svg. Between steps the opening glides on the sheet curve; under Reduce Motion it crossfades: a cover closes the old opening and another opens the new one.
+- **The ribbon:** hangs from the top edge, the band as two strokes (a `ringFocus` edge under `primary`) and the swallowtail as one filled path. Its curve's four points interpolate between steps on the UI thread. It drops in at the start, and fades under Reduce Motion.
+- **The pair:** the speaker in a 190 pt box, the listener scaled to 140 pt, both about their feet. The listener holds one pose, watching the opening, and only blinks (T-10). The tour kit stacks body-cut (with the lift), hand, body-fill, eyes, mouth.
+- **The bubble:** `paper`, radius 22, the `edge` stroke, no shadow, 17 pt in the system face, with a tail to the speaker. One element for VoiceOver, "Pomo: …", then Next and Skip tour.
+- **Placement:** the dock (the bubble over the pair) takes whichever side of the opening fits it best: above or below on a phone in portrait, left or right in landscape and on iPad. The pair shrink, never under half size, to fit.
+- **Tab steps:** the whole page dims, and the ribbon drapes to just above the tab it names. The bar's own position decides top or bottom (iPadOS puts it at the top), and a tab's x is an even share of the bar, to be checked on device.
+
+**Speaking.** A JavaScript clock reveals the line a character at a time, plays each syllable and opens the mouth, all from one schedule. Only the bubble's line re-renders, about 22 times a second; every transform stays on the UI thread. A tap finishes the line.
+- **With VoiceOver on:** the whole line at once, no babble, and focus moves to the bubble at each beat.
+- **Under Reduce Motion:** the line still writes on, but the mouth stays still, faces swap with no squash, breath, blink or gesture, and the bubble fades in.
+
+**The babble.** Settings › Sound, the silent switch (D4's ambient session) and the tour's mute all silence it.
+- **The variation:** a rate of 2^(c/1200), c uniform in ±10 cents, with pitch correction off, and a gain uniform in ±1.5 dB.
+- **The gain's base:** expo-audio's volume stops at 1.0, so the gain's base is −1.5 dB, letting +1.5 dB reach unity. The voices then sit 1.5 dB under the measured −20 LUFS on average, about 7.3 LU under the UI sounds. It is a device-check item.
+
+**The scrim's numbers** (contrast.ts, the contract's 45 %; `scrimStrong` at 60 %):
+
+| | Strawberry Milk | Midnight Plum |
+|---|---|---|
+| The lit page against the dimmed page | 2.49 | 1.08 |
+| A lit Start pill against a dimmed one (`primary`) | 2.13 (60 %: 2.87) | 2.82 (60 %: 4.24) |
+| The bubble's paper against the dimmed page | 2.62 | 1.21 |
+
+- **In Midnight Plum the empty page hardly darkens.** The dim shows on the content: the pink pill falls back 2.82:1, and text 3.13:1.
+- **The bubble keeps the theme's own relation.** Paper fields already sit about 1.15:1 from that page, separated by tone and edge.
+- **`check:contrast` gates the pill pair:** `scrim` on `primary` ≥ 2 and `scrimStrong` on `primary` ≥ 2.5.
+- **The dark dim is a device-check item.** The 45 % stays as the contract set it.
+
+**Shown and remembered.**
+- **The gate:** after the welcome's Start, on a calm Timer (the welcome's own conditions), never when opened from a notification.
+- **Replay:** from Settings › About, it starts on the Timer. With a session running or paused, it plays steps 2–5 and ends on "Done" at Notes, leaving the session alone (T-7). Step 1 is skipped there because the presets hide while a session runs.
+- **Before a session:** Start focus closes the layer before the session starts, so the first Start's notification prompt lands on the Timer (T-3).
+- **Fly:** choosing it in the Modes sheet hides the layer while Fly is up. The tab steps still work, and the invitation is dropped, finishing the tour.
+- **On another tab:** the tour waits until its screen is back in front.
+
+**Out of this step:** the reviews (step 6), `break-ui` (7), polish and the copy review (8; the tour's lines join a copy proof after v4), the device check (9), and DESIGN.md's row at FINISH.
 
 ## 4. Mathematical / Statistical Details
 

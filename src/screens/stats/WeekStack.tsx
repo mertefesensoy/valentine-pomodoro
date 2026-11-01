@@ -59,7 +59,22 @@ function Stickers({ count, size, max, tokens }: { count: number; size: number; m
 
 /** A dashed cell: an empty day, or a session still owed to the goal. `edgeStrong`, 3:1 or more on paper. */
 export function DashedCell({ size, tokens }: { size: number; tokens: ThemeTokens }) {
-    return <View style={{ width: size - 2, height: size - 2, borderRadius: size, borderWidth: 1.5, borderStyle: 'dashed', borderColor: tokens.edgeStrong }} />;
+    return (
+        <View
+            style={{ width: size - 2, height: size - 2, borderRadius: size, borderWidth: 1.5, borderStyle: 'dashed', borderColor: tokens.edgeStrong }}
+            testID="dashed-cell"
+        />
+    );
+}
+
+/**
+ * How many whole cells fit on one row of today's card, `cardWidth` wide: its padding and edge
+ * off, and each cell planned at the sticker's size (a dashed cell is 2 pt narrower), so any mix
+ * of stickers and dashed cells fits.
+ */
+export function todayCellsPerRow(cardWidth: number, cell: number): number {
+    const inner = cardWidth - space.l * 2 - edgeWidth * 2;
+    return Math.max(1, Math.floor((inner + space.s) / (cell + space.s)));
 }
 
 /** The minutes view's fill toward the goal; full past it. Without a goal, no fill. */
@@ -137,16 +152,25 @@ export function DayEdge({ day, metric, goal, height, sticker, flag, dayWidth, co
 }
 
 /** Today's postcard, in front of the stack: its stickers with dashed cells to the goal, and its line. */
-export function TodayCard({ day, metric, goal, cellsLeft, sticker, compact, tokens }: {
+export function TodayCard({ day, metric, goal, owed, perRow, sticker, compact, tokens }: {
     day: Day;
     metric: Metric;
     goal: number;
-    cellsLeft: number;
+    /** Sessions still owed to today's goal (D1 record §4.3). */
+    owed: number;
+    /** Whole cells on the card's one row (`todayCellsPerRow`). */
+    perRow: number;
     sticker: number;
     compact: boolean;
     tokens: ThemeTokens;
 }) {
     const { focusSessions, focusMinutes, goalHit } = day.stats;
+    // One row of whole cells, as the comp draws today's postcard: the stickers, with "+n" in the
+    // last cell once they pass the row, then dashed cells for what's still owed, never wrapping a
+    // lone cell (finish review round 2, D2 record §3.25). At 0 with nothing owed, one dashed cell.
+    const over = focusSessions > perRow;
+    const shown = over ? perRow - 1 : focusSessions;
+    const dashed = Math.max(0, Math.min(owed, perRow - (over ? perRow : shown))) || (focusSessions === 0 ? 1 : 0);
     const date = dateOfKey(day.key).toLocaleDateString(LOCALE, { weekday: 'long', day: 'numeric', month: 'long' });
     const minutesText = t('stats.minutesShort', { count: Math.round(focusMinutes), n: formatNumber(focusMinutes) });
     const left = Math.max(goal - focusMinutes, 0);
@@ -163,12 +187,11 @@ export function TodayCard({ day, metric, goal, cellsLeft, sticker, compact, toke
                 {t('stats.today')}
             </Text>
             {metric === 'sessions' ? (
-                <View style={styles.todayRow}>
-                    <Stickers count={focusSessions} size={sticker} max={8} tokens={tokens} />
-                    {Array.from({ length: cellsLeft }, (_, i) => (
+                <View style={styles.todayRow} testID="today-cells">
+                    <Stickers count={focusSessions} size={sticker} max={shown} tokens={tokens} />
+                    {Array.from({ length: dashed }, (_, i) => (
                         <DashedCell key={i} size={sticker} tokens={tokens} />
                     ))}
-                    {focusSessions === 0 && cellsLeft === 0 && <DashedCell size={sticker} tokens={tokens} />}
                 </View>
             ) : (
                 <View style={styles.todayFill}>

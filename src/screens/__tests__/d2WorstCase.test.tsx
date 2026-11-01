@@ -99,9 +99,10 @@ describe('D2 worst case, in Turkish at AX5 on an iPhone SE', () => {
     it('Stats: the longest week, as a list with today first', async () => {
         await show(<StatsScreen />);
         await act(async () => useStatsStore.setState(WORST_WEEK));
-        // Today: 8 stickers, then "+24"; no dashed cells left in its two rows (D1 record §4.3).
+        // Today: one row of whole cells (D2 record §3.25). The SE's 343 pt card holds six of its
+        // 44.2 pt stickers (34 pt grown 1.3×) inside its padding: 5 stickers, then "+27".
         expect(screen.getByLabelText(/^Bugün, 32 oturum, 800 dakika$/)).toBeOnTheScreen();
-        expect(screen.getByText('+24')).toBeOnTheScreen();
+        expect(screen.getByText('+27')).toBeOnTheScreen();
         // A 34-session day: 4 stickers, then "+30"; empty days are "oturum yok", never "missed".
         expect(screen.getByText('+30')).toBeOnTheScreen();
         expect(screen.getAllByLabelText(/oturum yok$/)).toHaveLength(2);

@@ -1,11 +1,12 @@
 import React, { type ReactNode } from 'react';
 import { Dimensions, View } from 'react-native';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
 import { StoreGate } from '../../stores/StoreGate';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import { useSettingsFocus } from '../../stores/settingsFocusStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 import { useStatsStore } from '../../stores/statsStore';
 import { StrawberryMilk } from '../../theme/palette';
 import type { DayStats } from '../../types';
@@ -232,6 +233,46 @@ describe('Stats after the finish review', () => {
             const counts = screen.getAllByText(/^\d+$/);
             expect(counts.length).toBeGreaterThan(2);
             for (const count of counts) expect(count).toHaveStyle({ minWidth: 36 });
+        });
+    });
+});
+
+// covers: FR-STA-003
+// The finish review, round 2 (D2 record §3.25): today's card showed a fixed eight cells, which a
+// 393 pt phone wrapped seven and one. It now holds one row of whole cells, planned from its width.
+describe("today's card after the finish review's round 2", () => {
+    // 1-minute focus sessions against the 50-minute goal, so far more cells are owed than fit.
+    async function showToday(focusSessions: number) {
+        await render(<StatsScreen />, { wrapper: Providers });
+        await act(async () => {
+            useSettingsStore.setState((s) => ({ settings: { ...s.settings, durations: { ...s.settings.durations, focus: 1 } } }));
+            useStatsStore.setState({ days: { [keyOf(0)]: { focusSessions, focusMinutes: focusSessions } }, goalMinutes: 50 });
+        });
+    }
+    const dashedCells = () => within(screen.getByTestId('today-cells')).queryAllByTestId('dashed-cell');
+
+    it('fills one row on a 393 pt phone: two stickers and four dashed cells, nothing wrapped', async () => {
+        await inWindow({ width: 393, height: 852 }, async () => {
+            await showToday(2);
+            // 361 pt of card, 326 inside its padding and edge: six 40 pt cells with their 8 pt gaps.
+            expect(dashedCells()).toHaveLength(4);
+        });
+    });
+
+    it('counts the stickers past the row in its last cell', async () => {
+        await inWindow({ width: 393, height: 852 }, async () => {
+            await showToday(9);
+            // Five stickers and "+4" fill the six cells; nothing is owed a dashed cell's room.
+            expect(within(screen.getByTestId('today-cells')).getByText('+4')).toBeOnTheScreen();
+            expect(dashedCells()).toHaveLength(0);
+        });
+    });
+
+    it('plans for its half of the row in landscape, at the short screen\'s 34 pt cells', async () => {
+        await inWindow({ width: 852, height: 393 }, async () => {
+            await showToday(2);
+            // A 402 pt card beside the stack (Jest's insets are 0): eight cells, six of them dashed.
+            expect(dashedCells()).toHaveLength(6);
         });
     });
 });

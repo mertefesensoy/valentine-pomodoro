@@ -1,4 +1,4 @@
-import { Text, View } from 'react-native';
+import { Text, View, type LayoutChangeEvent } from 'react-native';
 import Animated, { css, cubicBezier } from 'react-native-reanimated';
 
 import { PressableScale } from '../../components/ui/PressableScale';
@@ -25,6 +25,8 @@ type Props = {
     /** Focus sessions done in this cycle, and the cycle's length. */
     cycleDone: number;
     cycleLength: number;
+    /** The controls' layout, for the Ring, which sizes to the height its neighbours leave. */
+    onLayout?: (e: LayoutChangeEvent) => void;
 };
 
 /** The cycle's sessions as dots (brief §6): done ones filled, the current one outlined. Visual only. */
@@ -61,7 +63,7 @@ function CycleRow({ tokens, done, length }: { tokens: ThemeTokens; done: number;
 export function ClassicControls(p: Props) {
     const { tokens } = p;
     return (
-        <View style={styles.wrap}>
+        <View style={styles.wrap} onLayout={p.onLayout} testID="classic-controls">
             <View style={styles.reserved}>
                 <Animated.View
                     style={[styles.fade, { opacity: p.idle ? 1 : 0 }]}

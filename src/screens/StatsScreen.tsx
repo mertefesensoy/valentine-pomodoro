@@ -21,7 +21,7 @@ import { fonts } from '../theme/type';
 import { edgeWidth, radius, space } from '../theme/layout';
 import { useTheme } from '../theme/useTheme';
 import { goalCellsLeft } from './classic/TodayStickers';
-import { DayEdge, TodayCard, type Metric } from './stats/WeekStack';
+import { DayEdge, TodayCard, todayCellsPerRow, type Metric } from './stats/WeekStack';
 
 // AX1 and up (iOS reports a font scale of about 1.65 there): the stack becomes a list, today first.
 const LIST_FONT_SCALE = 1.6;
@@ -32,8 +32,6 @@ const READABLE_WIDTH = 560;
 // A short screen (an iPhone SE, 667 pt) tightens the stack's pitch, so the week, the goal and the
 // streak fit above the banner (D2 record §3.4: checked with a 375 × 667 render).
 const SHORT_HEIGHT = 700;
-// The most today's card shows before "+n": two rows of cells on a phone.
-const TODAY_CELLS = 8;
 // An edge's day column at the default text size: "Wed 29" in 13 pt semibold, with room to spare.
 const DAY_COLUMN = 56;
 // An edge's count column at the default text size: "1,440" (a day's most minutes) in 13 pt
@@ -121,13 +119,15 @@ export default function StatsScreen() {
     const dayWidth = DAY_COLUMN * Math.max(fontScale, 1);
     const countWidth = COUNT_COLUMN * Math.max(fontScale, 1);
     const todayGoal = today.goalMinutes ?? goalMinutes;
-    const cellsLeft = Math.max(
-        0,
-        Math.min(
-            goalCellsLeft({ goalMinutes: todayGoal, minutesToday: today.focusMinutes, focusMinutes, goalHit: !!today.goalHit }),
-            TODAY_CELLS - Math.min(today.focusSessions, TODAY_CELLS),
-        ),
-    );
+    // In landscape the week spans the width between the side insets (the brief; finish review fix
+    // 1); the readable cap is for portrait and iPad.
+    const columnWidth = compact ? width - insets.left - insets.right - space.l * 2 : Math.min(width, READABLE_WIDTH) - space.l * 2;
+    const sticker = (short ? 34 : 40) * grow;
+    // Today's card holds one row of whole cells, planned from its own width: a fixed eight wrapped
+    // seven and one on a 393 pt phone (finish review round 2, D2 record §3.25). In landscape the
+    // card shares the row with the stack.
+    const todayPerRow = todayCellsPerRow(compact && !list ? (columnWidth - space.l) / 2 : columnWidth, sticker);
+    const owed = goalCellsLeft({ goalMinutes: todayGoal, minutesToday: today.focusMinutes, focusMinutes, goalHit: !!today.goalHit });
 
     // Counts of 1,000 or more are grouped as the language writes them, in every line, so one
     // number never shows two ways on one screen (D2 record §3.13, break-ui #6).
@@ -156,8 +156,9 @@ export default function StatsScreen() {
             day={week.today}
             metric={metric}
             goal={todayGoal}
-            cellsLeft={cellsLeft}
-            sticker={(short ? 34 : 40) * grow}
+            owed={owed}
+            perRow={todayPerRow}
+            sticker={sticker}
             compact={compact}
             tokens={tokens}
         />
@@ -204,18 +205,7 @@ export default function StatsScreen() {
             <ScrollView
                 contentContainerStyle={[styles.page, { paddingTop: insets.top + space.s }]}
             >
-                {/* In landscape the week spans the width between the side insets (the brief; finish
-                    review fix 1); the readable cap is for portrait and iPad. */}
-                <View
-                    style={[
-                        styles.column,
-                        {
-                            width: compact
-                                ? width - insets.left - insets.right - space.l * 2
-                                : Math.min(width, READABLE_WIDTH) - space.l * 2,
-                        },
-                    ]}
-                >
+                <View style={[styles.column, { width: columnWidth }]}>
                     <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header" maxFontSizeMultiplier={1.4}>
                         {t('stats.title')}
                     </Text>

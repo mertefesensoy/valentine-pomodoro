@@ -29,7 +29,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 | 7. Device check, build 48 | Build 48 on EAS from `61fd06e` (§3.15). The owner's check, 2026-10-30: four findings (F1–F4, §3.16), fixed for build 49 | The same build. The owner asked for a livelier morph (F5, §3.16), rebuilt for build 49 |
 | 7. Device check, build 49 | Build 49 on EAS from `9f0de71`, submitted to TestFlight, tag `v1.4.0-tf.49` pushed (§3.17). The owner's check, 2026-10-31: "All well" except one finding (F6, §3.18): Fly's Modes button belongs at the top right, where the compass was. Fixed in build 50 | The same build: "All well" |
 | 7. Device check, build 50 | Build 50 on EAS from `98f6a1f`, submitted to TestFlight, tag `v1.4.0-tf.50` pushed (§3.19). The owner's check, 2026-10-31: every check passed, "all well" (§6) | The same build; no welcome change since build 49 |
-| FINISH (both contracts): the finish review, its verdict, DESIGN.md | **In progress** (§3.20–3.21). Round 1: recapture (no iPad capture; the owner has no iPad and accepted the gap). Round 2: fix; the eight fixes built (`3fd834a`). The verdict pass, 2026-11-01, on captures from builds 52–55: **fix**. Seven fixes resolved; fix 7 partial: the Ring overflows an 852 pt iPhone at the default text size, so Skip is behind the bar while a session runs (§3.21). DESIGN.md follows that fix | **Captures waived by the owner** (§3.20). The verdict is the owner's device checks. DESIGN.md's welcome exception is still to be written |
+| FINISH (both contracts): the finish review, its verdict, DESIGN.md | **In progress** (§3.20–3.21). Round 1: recapture (no iPad capture; the owner has no iPad and accepted the gap). Round 2: fix; the eight fixes built (`3fd834a`). The verdict pass, 2026-11-01, on captures from builds 52–55: **fix**. Seven fixes resolved; fix 7 partial: the Ring overflows an 852 pt iPhone at the default text size, so Skip is behind the bar while a session runs (§3.21). The Ring's height is rebuilt (§3.22) and waits for its device check; DESIGN.md follows | **Captures waived by the owner** (§3.20). The verdict is the owner's device checks. DESIGN.md's welcome exception is still to be written |
 
 **FINISH is not yet discharged.** Each direction contract ends with "this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance". That waits for evidence this machine can't make:
 - After the device check, a fresh `impeccable-finish-reviewer` gets both contracts and the owner's screenshots, labelled as hardware evidence.
@@ -807,6 +807,51 @@ The reviewer suggested measuring each sibling instead. That comes to the same nu
 - Two rounds was the budget, and this pass is the third look.
 - iPad's regular width stays unreviewed by capture (the owner: "No iPad").
 
+### 3.22 The Ring's height, rebuilt
+
+**The owner, 2026-11-01:** "Do the both fixes and we will also move to the next step".
+
+| File | Change |
+|---|---|
+| `TimerScreen.tsx` | **The ring sizes from its neighbours, not its slot.** Five elements report their heights on layout into a ref: the ScrollView (`classic-page`), the phase line's row, the partner strip, today's row and the controls. Once all five are in, on the Ring, the room is computed (§4.4) and kept in state. The slot keeps `flexGrow: 1` only to centre the ring once it reaches its cap; its `flexBasis: 0`, `minHeight` and `onLayout` are gone. Before the first measurements, an estimate from build 53's captures stands in |
+| `TodayStickers.tsx`, `ClassicControls.tsx` | An `onLayout` prop on the root, and the test IDs `today-row` and `classic-controls` |
+| `classic.test.tsx` | Three tests replace the slot test: (1) the room from the neighbours, in any order of arrival (232 pt, then 266 when today's row drops to one row); (2) the floor (200) and the cap; (3) the goal moment holding the ring, which then gives up the row that wrapped (232) |
+
+**Built: the reviewer's variant, not §3.21's proposal.**
+- The proposal took the slot's height less the overflow. Those two numbers arrive as separate layout events, so one new and one stale gives a wrong room. A new slot height with the old overflow would halve the ring for a frame.
+- The four rows around the ring don't depend on its size: their widths are the column's. So their sum settles in one pass, whatever order the events arrive in.
+- Measuring the ring's own slot was the circular part (§3.21).
+
+**What stays as it was:**
+- **No jump on Start or Pause.** The controls already keep one height across idle, running and paused: the presets and the cycle row share a reserved row, and Skip and End sit side by side.
+- **The partner strip's 72 pt minimum** holds both its one-line and two-line text at the default text size.
+- **The goal moment (1.4 s):** today's row isn't re-measured, so the ring holds and the page scrolls for that moment, as before.
+- **AX sizes and landscape** keep their own rules.
+
+**One new behaviour:** when today's row first wraps onto its second row (the eighth cell on a 393 pt phone), the ring gives up that row's 34 pt at the completion that wraps it. The comment in `TodayStickers.tsx` now says so.
+
+**Measurements and renders:**
+- The rows are measured in every Classic layout, so switching from Facing Pages to the Ring finds them already measured.
+- The ring's state changes only on the Ring, and only when the room changes by a whole point.
+- The handlers are inline `onLayout` arrows. A curried `measure(row)` called during render tripped `react-hooks/refs`: the compiler took its ref access for render-time access.
+
+**Guards:**
+
+| Guard | Result |
+|---|---|
+| Jest | 56 suites, 410 tests, all passing (+5: Classic +2 net, Stats +3) |
+| Lint | 0 errors, 29 warnings (unchanged) |
+| tsc | Clean |
+| React Compiler | 81 compiled, 5 skipped (unchanged) |
+| The emoji check | Clean |
+| Reassure | Unchanged: Timer 13, Stats 1, Settings 1, Notes 1, leaf 12, settings-only 1. Jest fires no layout events, so the measurements add no render there |
+
+**What only the phone can show:**
+- **Whether the ScrollView's layout height ends at the tab bar.** The device says it does: Facing Pages clears the bar by exactly the page's 16 pt bottom padding, and the screen pads its foot by `insets.bottom`, which includes the bar.
+- **The first frame at launch,** where the estimate stands in for the measured room.
+
+The device check is §6 "The Ring's height".
+
 ## 4. Mathematical / Statistical Details
 
 The numeric rules D1 implements are in the [Stage D plan §4](2026-10-30-phase1-stage-d.md#4-mathematical--statistical-details): contrast, tabular digits, the font build, the sticker spring, "Break at" and bytecode.
@@ -932,6 +977,34 @@ Examples, with C = 16:
 - G = 50, F = 1, M = 1, n = 1: e = min(49, 15) = 15.
 - The goal reached: e = 0, and the goal mark follows the stickers.
 
+### 4.4 The Ring's height (§3.21, §3.22)
+
+Portrait, below the AX sizes, the Ring's diameter is the height its neighbours leave.
+
+Notation:
+- V: the ScrollView's visible height, its layout height. The screen pads its foot by `insets.bottom`, which includes the tab bar.
+- t: the status-bar inset, `insets.top`.
+- P: the page's fixed spacing, 88 pt: 8 under the status bar, 16 at the foot, and four 16 pt gaps (two in the column, two in the centre).
+- h_top, h_partner, h_today, h_controls: the four rows' measured heights.
+- R_cap: 0.86 × the column's width, at most 340 pt; 297 pt on a 393 pt phone.
+- R_min: 200 pt.
+
+The room and the diameter:
+
+  r = ⌊V − t − P − h_top − h_partner − h_today − h_controls⌋
+  D = max(R_min, min(R_cap, r))
+
+When r ≥ R_min, the page's height t + P + (the rows) + D is at most V, so nothing scrolls, and Skip ends 16 pt above the bar. When r < R_min, the page scrolls by R_min − r (an iPhone SE).
+
+**Before the rows are measured,** r is estimated as H − t − b − P − 346, where H is the window's height and b is `insets.bottom`.
+- 346 pt is the rows' sum at the default text size with the default goal (one row of cells).
+- **It comes from build 53's captures:** the Ring there was 297 pt and overflowed by 54 pt (Skip's 44 pt, the 12 pt gap and the 16 pt padding, less Pause's 18 pt clearance), so its room was 243 pt.
+- With V = 770 and t = 59, the rows summed to 770 − 59 − 88 − 243 = 380 pt with two rows of cells, which is 346 pt with one.
+
+**Example,** build 53's iPhone (393 × 852, t = 59, V = 770):
+- one row of cells: r = 770 − 59 − 88 − 346 = 277, so D = 277;
+- two rows (the owner's 1-minute Custom): r = 243, so D = 243.
+
 ## 5. Design Decisions
 
 | Decision | Alternatives considered | Why this one |
@@ -992,7 +1065,7 @@ Examples, with C = 16:
   5. **The Modes sheet over Classic and over Fly** (`phone-modes-sheet-over-spread-dark`, `phone-modes-sheet-over-fly-dark`): the title is set in the system face. With Fly selected, Fly's icon keeps a paper tile.
   6. **Fly running** (`phone-fly-dark-running`): unchanged; the Modes button stays at the top right.
   7. Not captured, worth a glance: The Ring while focus runs ("Break at …" inside the ring), and both layouts in landscape (Facing Pages may scroll there now; record it if it does).
-- [ ] **The Ring's height** (§3.21's proposed fix), on the next build: the Ring idle with the presets, running and paused, dark, at the default text size. Skip clears the bar by about 16 pt, the phase line sits at its normal height, and nothing scrolls.
+- [ ] **The Ring's height** (§3.21; rebuilt in §3.22), on the next build: the Ring idle with the presets, running and paused, dark, at the default text size. Skip clears the bar by about 16 pt, the phase line sits at its normal height, and nothing scrolls.
 
 ## 7. Related Docs
 

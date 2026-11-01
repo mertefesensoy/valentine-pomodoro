@@ -31,7 +31,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | 5. `break-ui` (TR at AX5) | 2 Ugly (the zero-goal summary, the strip at AX5) and the shared number formats: **fixed**; a streak of 0 softened (§3.13) | The number formats: **fixed**; Turkish words wider than a row: accepted (the owner) | 2 Broken (an emoji cut at the cap, the editor header at AX5) and 1 Ugly (line breaks lost): **fixed** | Retired: none |
 | 6. `polish`, `harden`, `clarify` | Done: "Turn on a daily goal" opens Settings at the goal row; Turkish "kaldı" (§3.14). The Turkish copy and the default notes: **reviewed** by the owner, six note changes applied (§3.15) | Done: a failed reminder told from a refusal; "Check for updates" offline; link rejections; "Sound and haptics" (§3.14) | Done (§3.13–3.14) | Retired: none |
 | 7. Device check (the next build, with D1's finish-review fixes) | Builds 51–53 checked and fixed (§3.11, §3.17, §3.20). **Build 54: passed** (the owner, 2026-11-01, §3.22) | **Build 54: passed** | **Build 54: passed** | Retired: none |
-| FINISH: the finish review, its verdict, DESIGN.md | Round 1: **fix** (§3.23). Round 2, on build 55: **ship**; fix 2 verified by code; the lone cell in today's card is open (§3.25). DESIGN.md waits for D1's open fix | Round 1: faithful | Round 1: faithful; fix 4 resolved by code (§3.25) | Retired: none |
+| FINISH: the finish review, its verdict, DESIGN.md | Round 1: **fix** (§3.23). Round 2, on build 55: **ship**; fix 2 verified by code; today's card now holds one row of whole cells (§3.26). DESIGN.md waits for D1's open fix | Round 1: faithful | Round 1: faithful; fix 4 resolved by code (§3.25) | Retired: none |
 
 **Alongside the screens** (Stage D plan §3.3), D2 also does:
 - the emoji check;
@@ -1049,9 +1049,67 @@ The other four are D1's (the D1 record §3.21).
 - the documenter's DESIGN.md, shared with D1, after D1's open fix (D1 record §3.21);
 - optionally, a landscape capture scrolled to the stack's foot, to see fix 2 on the device.
 
+### 3.26 Today's card: one row of whole cells
+
+**The owner, 2026-11-01:** "Do the both fixes and we will also move to the next step". The other fix is D1's Ring (D1 record §3.22).
+
+| File | Change |
+|---|---|
+| `WeekStack.tsx` | `todayCellsPerRow(cardWidth, cell)` (§4.1). `TodayCard` takes `owed` and `perRow` and lays out one row: the stickers, "+n" in the last cell once they pass the row, then dashed cells for what's still owed. At 0 with nothing owed, one dashed cell. Test IDs: `dashed-cell` on `DashedCell`, `today-cells` on the row |
+| `StatsScreen.tsx` | `TODAY_CELLS` (8) is gone. The card's width is the column, or in landscape its half of the row less the 16 pt gap. The column's width is now one const, shared with the column's style. `owed` is `goalCellsLeft`, uncapped; the card caps it |
+| `stats.test.tsx` | Three tests: (1) 393 pt portrait, 2 one-minute sessions against 50: two stickers and four dashed cells; (2) 9 sessions: five stickers and "+4"; (3) landscape 852 × 393: eight cells, six of them dashed |
+| `d2WorstCase.test.tsx` | Turkish at AX5 on an SE: today's 32 sessions now show 5 stickers and "+27" (six 44.2 pt cells), not 8 and "+24" |
+
+**Why one row:**
+- The approved comp draws today's postcard with one row: a sticker and a dashed cell (`art/review/d2-stats-postcard-stack.html`). The reviewer offered one row or two.
+- One row keeps the postcard short above the strip, and the line under it already says how far the goal is ("48 min to the goal").
+
+**Why the cells are planned at the sticker's size:**
+- A dashed cell is 2 pt narrower than a sticker.
+- Seven fit on a 393 pt phone only while most of them are dashed: 2 × 40 + 5 × 38 + 6 × 8 = 318 pt. Seven stickers need 328 pt, and the card has 326, so a day of seven sessions would have wrapped six and one.
+- Planning at 40 pt gives six whole cells on any mix.
+
+**What changes on screen:**
+- **393 pt portrait:** up to 6 cells (was 8, wrapped 7 and 1).
+- **Landscape on an 852 pt iPhone:** 7 cells beside the stack (was 8 on one row).
+- **The defaults** (25-minute focus, 50-minute goal) still show their 2 cells.
+
+**Guards:**
+
+| Guard | Result |
+|---|---|
+| Jest | 56 suites, 410 tests, all passing (+5: Classic +2 net, Stats +3) |
+| Lint | 0 errors, 29 warnings (unchanged) |
+| tsc | Clean |
+| React Compiler | 81 compiled, 5 skipped (unchanged) |
+| The emoji check | Clean |
+| Reassure | Unchanged: Timer 13, Stats 1, Settings 1, Notes 1, leaf 12, settings-only 1. Jest fires no layout events, so the measurements add no render there |
+
+The device check is §6 "The next build's captures".
+
 ## 4. Mathematical / Statistical Details
 
-None yet. The week's sticker capacity and the goal counts will reuse D1's rules (D1 record §4.3) when Stats is built.
+### 4.1 Today's card cells (§3.26)
+
+Today's card shows one row of whole cells. The sessions still owed come from D1's rule (D1 record §4.3), uncapped; the card caps them.
+
+Notation:
+- W: the card's width. It's the column (portrait, iPad, the AX list), or (column − 16) / 2 beside the stack in landscape. The column is min(width, 560) − 32, or in landscape width − insets.left − insets.right − 32.
+- c: the cell's size, which is the sticker's: 40 pt, or 34 pt on a short screen (height < 700), grown by min(fontScale, 1.3).
+- g = 8 pt, the row's gap; p = 16 pt, the card's padding; e = 1.5 pt, its edge.
+- k: whole cells per row, k = max(1, ⌊(W − 2p − 2e + g) / (c + g)⌋).
+- n: today's sessions; o: the sessions still owed.
+
+The row:
+- if n > k: k − 1 stickers and "+(n − k + 1)", and no dashed cells;
+- otherwise: n stickers and min(o, k − n) dashed cells;
+- at n = 0 and o = 0: one dashed cell.
+
+Examples:
+- **393 × 852:** W = 361, so k = ⌊(361 − 35 + 8) / 48⌋ = ⌊334 / 48⌋ = 6. With n = 2 and o = 48: 2 stickers and 4 dashed cells.
+- **n = 9:** 5 stickers and "+4".
+- **852 × 393 in Jest** (insets 0): W = (820 − 16) / 2 = 402 and c = 34, so k = ⌊375 / 42⌋ = 8: 2 stickers and 6 dashed cells.
+- **An SE at AX5** (the list): W = 343 and c = 44.2, so k = ⌊316 / 52.2⌋ = 6. With n = 32: 5 stickers and "+27".
 
 ## 5. Design Decisions
 
@@ -1100,7 +1158,7 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
 - [x] **The device check, build 53** (the owner, 2026-11-01: the fixes hold; two new problems fixed in §3.20). Its list was: §3.18's notifications first. Start a focus and lock the phone: nothing arrives at the start. At its end, "Focus complete 💗 · Time for a sweet break". At the break's end, "Break's over 💘 · Back to your goals". With the app open, the banner comes at the end too. Fly's "Landed!" comes on landing. Then the eight nits of §3.17. The stickers lift with a soft shadow and no square, in both themes. "Custom" sits level in its pill. Fly's peeked sheet shows its mode line above the bar; its timer is in ink; "From" and "To" align. No empty band on Stats. "Best n" on its own line. Restore adds no near-duplicates. Then D1's six captures for its verdict pass.
 - [x] **The device check, build 54** (the owner, 2026-11-01: "nice everything passes the checks good job"; §3.22): §3.20. Classic in landscape, both layouts: the face fills the left half at full height with no empty area; the phase line and Modes button head the right column; the partner line shows; today's cells sit in two rows; nothing runs under the tab bar. Scrolled tabs (Classic, Stats, Settings, Notes) never run under the clock. Then D1's remaining captures: Facing Pages in light, the shadows in light, the Modes sheet over Classic and over Fly.
 - [x] **Build 55's captures for the finish reviews' second rounds (§3.24)** (the owner, 2026-11-01): Stats in landscape (Sessions and Minutes) and in portrait (Minutes), for D2: **ship** (§3.25). Facing Pages in light, the shadows in light, and the Modes sheet over Classic and over Fly, for D1: **fix**, the Ring's height (D1 record §3.21).
-- [ ] **The next build's captures:** the Ring idle, running and paused, dark, at the default text size, for D1's open fix (D1 record §3.21). Stats in landscape scrolled to the stack's foot, for fix 2 (§3.25). Today's card in portrait Sessions, if the owner takes the lone-cell fix.
+- [ ] **The next build's captures:** the Ring idle, running and paused, dark, at the default text size, for D1's open fix (D1 record §3.21). Stats in landscape scrolled to the stack's foot, for fix 2 (§3.25). Today's card in portrait Sessions: one row of whole cells, no lone cell (§3.26).
 - [ ] B2's notes tests stay green: Bengisu's install keeps its notes.
 - [ ] The emoji check (`src/__tests__/noEmojiIcons.test.ts`) passes.
 - [ ] **The device check, build 51** (needs a physical device). It goes with the D1 record's §6 "build 51" list, for D1's finish fixes and the six recaptures.

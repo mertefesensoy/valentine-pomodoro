@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator, useWindowDimensions } from "react-native";
+import { View, Text, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator, useWindowDimensions, type LayoutChangeEvent } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { router } from "expo-router";
@@ -62,6 +62,13 @@ const READABLE_WIDTH = 560;
 // The Ring's floor when it sizes to the height left (finish review fix 7): below it the page
 // scrolls rather than shrink the timer further (an iPhone SE at default text size).
 const MIN_RING = 200;
+// The Ring page's fixed spacing around its rows: the page's padding under the status bar (8) and
+// at its foot (16), the column's two gaps and the centre's two (16 each).
+const RING_PAGE_CHROME = space.s + space.l + space.l * 4;
+// Before the rows are first measured: their heights at the default text size with the default
+// goal (the phase line, the partner strip, one row of today's cells, the controls), from build
+// 53's captures, so the first frame lands within a few points of the measured one.
+const RING_ROWS_ESTIMATE = 346;
 
 /** The wall-clock minute a running phase ends in, seconds dropped (Stage D plan §4.6). */
 function clockMinute(epochMs: number): string {
@@ -377,21 +384,38 @@ export default function TimerScreen() {
     />
   );
 
-  // Portrait, below the AX sizes, the Ring takes the height left once everything else is laid
-  // out: its slot fills the column and reports its height (finish review fix 7; build 50's Ring
-  // overflowed an 852 pt screen by about 15 pt, so Skip met the tab bar). Before that first
-  // layout, at AX sizes (where the page scrolls by design) and in landscape, the fixed rule.
-  const [ringSlot, setRingSlot] = useState<number | null>(null);
+  // Portrait, below the AX sizes, the Ring takes the height its neighbours leave: the ScrollView's
+  // visible height, less the page's spacing and the four rows around the ring (finish review fix
+  // 7). Those rows never depend on the ring, so the sum settles in one pass whatever order their
+  // layouts arrive in. Build 51's slot measured its own height instead: inside the ScrollView flex
+  // could hand it only spare height, there was none, and it reported the ring back to itself, so
+  // the ring stayed at its cap and pushed Skip behind the tab bar (D1 record §3.21). The rows are
+  // measured in every layout, so switching to the Ring finds them; only the Ring uses them. At AX
+  // sizes (where the page scrolls by design) and in landscape, the fixed rules.
   const ringFits = layout === 'ring' && !compactHeight && fontScale < STACK_FONT_SCALE;
   // The goal moment shows for 1.4 s under today's row, during the sticker placement. The ring
-  // holds its size through it: the slot keeps the ring's height and its reports are ignored, so
-  // the page scrolls for that moment rather than the timer shrinking and growing back.
+  // holds its size through it: today's row isn't re-measured, and the page scrolls for that moment
+  // rather than the timer shrinking and growing back.
   const goalMomentShowing = !!goalPopup && focused;
+  const rows = useRef({ visible: 0, top: 0, partner: 0, today: 0, controls: 0 });
+  const [ringRoom, setRingRoom] = useState<number | null>(null);
+  // Called from the rows' onLayout only, never during render.
+  const measured = (row: keyof typeof rows.current, e: LayoutChangeEvent) => {
+    if (row === 'today' && goalMomentShowing) return;
+    rows.current[row] = e.nativeEvent.layout.height;
+    const { visible, top, partner, today, controls } = rows.current;
+    if (ringFits && visible && top && partner && today && controls) {
+      setRingRoom(Math.floor(visible - insets.top - RING_PAGE_CHROME - top - partner - today - controls));
+    }
+  };
   const ringCap = Math.min(pageWidth * (fontScale >= STACK_FONT_SCALE ? 0.66 : 0.86), 340);
   const ringSize = compactHeight
     ? Math.min(compactFace.height, compactFace.width)
-    : ringFits && ringSlot !== null
-      ? Math.max(MIN_RING, Math.min(ringCap, ringSlot))
+    : ringFits
+      ? Math.max(
+          MIN_RING,
+          Math.min(ringCap, ringRoom ?? height - insets.top - insets.bottom - RING_PAGE_CHROME - RING_ROWS_ESTIMATE),
+        )
       : Math.min(ringCap, height * 0.36);
 
   const face =
@@ -425,7 +449,11 @@ export default function TimerScreen() {
   // The partner slot: on the Ring, one paper field with the pair and their line, as the C4
   // sketch draws it (finish review fix 5); Facing Pages carries it on its right page (fix 4).
   const partner = layout === 'ring' ? (
-    <View style={[styles.partner, { backgroundColor: tokens.paper, borderColor: tokens.edge }]}>
+    <View
+      style={[styles.partner, { backgroundColor: tokens.paper, borderColor: tokens.edge }]}
+      onLayout={(e) => measured('partner', e)}
+      testID="partner-strip"
+    >
       <View style={styles.pair} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         <PoseSticker who="pomo" pose={pose} width={40} shadow={tokens.stickerShadow} />
         <View style={styles.pairOverlap}>
@@ -451,6 +479,7 @@ export default function TimerScreen() {
       onGoalMomentDone={clearGoalHitPulse}
       animate={focused}
       rowWidth={compactHeight ? trailingWidth : undefined}
+      onLayout={(e) => measured('today', e)}
     />
   );
 
@@ -469,11 +498,12 @@ export default function TimerScreen() {
       onPreset={choosePreset}
       cycleDone={completedFocusCountInCycle}
       cycleLength={cycleTotal}
+      onLayout={(e) => measured('controls', e)}
     />
   );
 
   const topRow = (
-    <View style={styles.topRow}>
+    <View style={styles.topRow} onLayout={(e) => measured('top', e)} testID="classic-top-row">
       <Text style={styles.phaseLine} maxFontSizeMultiplier={1.6} accessibilityRole="header">
         <Text style={{ color: tokens.ink }}>{phaseLabel}</Text>
         <Text style={{ color: tokens.inkSoft }}>
@@ -523,6 +553,8 @@ export default function TimerScreen() {
           style={styles.scroll}
           contentContainerStyle={[styles.page, { paddingTop: insets.top + space.s }]}
           showsVerticalScrollIndicator={false}
+          onLayout={(e) => measured('visible', e)}
+          testID="classic-page"
         >
           <View style={[styles.column, { width: pageWidth }]}>
             {/* Landscape: the face leads at the full height, centred in it, and the phase line
@@ -542,13 +574,7 @@ export default function TimerScreen() {
                 {topRow}
                 <View style={styles.centre}>
                   {ringFits ? (
-                    <View
-                      style={[styles.ringSlot, goalMomentShowing && { minHeight: ringSize }]}
-                      testID="ring-slot"
-                      onLayout={(e) => {
-                        if (!goalMomentShowing) setRingSlot(Math.floor(e.nativeEvent.layout.height));
-                      }}
-                    >
+                    <View style={styles.ringSlot} testID="ring-slot">
                       {face}
                     </View>
                   ) : face}
@@ -655,12 +681,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
-  // The Ring's slot takes the column's spare height, never its own content's (flexBasis 0),
-  // so its measured height is the room the ring may fill.
+  // The Ring's slot centres the ring in any height left once the ring has reached its cap. It is
+  // never measured: its height is the ring's own whenever the page is full (D1 record §3.21).
   ringSlot: {
     flexGrow: 1,
-    flexBasis: 0,
-    minHeight: MIN_RING,
     alignSelf: 'stretch',
     alignItems: 'center',
     justifyContent: 'center',

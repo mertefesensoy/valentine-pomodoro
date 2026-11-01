@@ -9,6 +9,7 @@ import { useSettingsStore } from '../../stores/settingsStore';
 import { useStatsStore } from '../../stores/statsStore';
 import { useUiStore } from '../../stores/uiStore';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
+import { getTodayKey } from '../../utils/time';
 import TimerScreen from '../TimerScreen';
 
 // Classic rebuilt (Phase 1 D1, brief .impeccable/surfaces/app-tabs-index-tsx.md).
@@ -220,20 +221,65 @@ describe('Classic after its first reviews (critique, HIG, review-animations)', (
         await onPhone(check); // facing pages
     });
 
-    it('sizes the Ring to the height its slot leaves, down to a floor', async () => {
-        await onPhone(async () => {
-            await show(<TimerScreen />);
-            // Finish review fix 7: the slot reports the column's spare height, and the ring fills it.
-            const slot = screen.getByTestId('ring-slot');
-            const ringWidth = () => StyleSheet.flatten(screen.getByTestId('phase-ring').props.style).width;
-            const layout = (height: number) => ({ nativeEvent: { layout: { x: 0, y: 0, width: 345, height } } });
-            await act(async () => fireEvent(slot, 'layout', layout(250)));
-            expect(ringWidth()).toBe(250);
-            await act(async () => fireEvent(slot, 'layout', layout(120)));
-            expect(ringWidth()).toBe(200);
-            // Never wider than its cap: 86 % of the 345 pt column.
-            await act(async () => fireEvent(slot, 'layout', layout(600)));
-            expect(ringWidth()).toBeCloseTo(345 * 0.86);
+    // Finish review fix 7, rebuilt after the verdict pass (D1 record §3.21): the slot measured only
+    // the ring itself, so the ring stayed at its cap and Skip went behind the tab bar. The ring now
+    // takes the visible height less the page's spacing (88 pt) and the four rows around it.
+    describe("the Ring's height", () => {
+        const ringWidth = () => StyleSheet.flatten(screen.getByTestId('phase-ring').props.style).width;
+        const lay = (testID: string, height: number) =>
+            act(async () => fireEvent(screen.getByTestId(testID), 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 345, height } } }));
+        // The cap: 86 % of the 345 pt column.
+        const cap = 345 * 0.86;
+
+        it('takes the height its neighbours leave, whatever order their layouts arrive in', async () => {
+            await onPhone(async () => {
+                await show(<TimerScreen />);
+                // Before the rows are measured, the estimate (here, the cap: Jest's insets are 0).
+                expect(ringWidth()).toBeCloseTo(cap);
+                await lay('classic-controls', 196);
+                await lay('today-row', 68);
+                await lay('classic-page', 700);
+                await lay('partner-strip', 72);
+                // Four of the five: still the estimate.
+                expect(ringWidth()).toBeCloseTo(cap);
+                await lay('classic-top-row', 44);
+                // 700 − 88 − (44 + 72 + 68 + 196) = 232.
+                expect(ringWidth()).toBe(232);
+                // Today's row back to one row of cells gives the ring that row's 34 pt.
+                await lay('today-row', 34);
+                expect(ringWidth()).toBe(266);
+            });
+        });
+
+        it('stops at its floor, where the page scrolls, and at its cap', async () => {
+            await onPhone(async () => {
+                await show(<TimerScreen />);
+                for (const [id, h] of [['classic-top-row', 44], ['partner-strip', 72], ['today-row', 34], ['classic-controls', 196]] as const) {
+                    await lay(id, h);
+                }
+                await lay('classic-page', 500);
+                expect(ringWidth()).toBe(200);
+                await lay('classic-page', 900);
+                expect(ringWidth()).toBeCloseTo(cap);
+            });
+        });
+
+        it('holds its size through the goal moment, then takes the row as it is after', async () => {
+            await onPhone(async () => {
+                await show(<TimerScreen />);
+                for (const [id, h] of [['classic-top-row', 44], ['partner-strip', 72], ['today-row', 34], ['classic-controls', 196], ['classic-page', 700]] as const) {
+                    await lay(id, h);
+                }
+                expect(ringWidth()).toBe(266);
+                await act(async () => useStatsStore.setState({ goalHitPulse: { dayKey: getTodayKey(), newStreak: 1 } as never }));
+                // "Goal reached" under the row: the page scrolls for that moment; the ring keeps its size.
+                await lay('today-row', 34 + 40);
+                expect(ringWidth()).toBe(266);
+                await act(async () => useStatsStore.setState({ goalHitPulse: null }));
+                // After it, the row has wrapped onto its second row: the ring gives that row up.
+                await lay('today-row', 68);
+                expect(ringWidth()).toBe(232);
+            });
         });
     });
 });

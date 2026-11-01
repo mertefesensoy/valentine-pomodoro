@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Text, View, useWindowDimensions } from 'react-native';
+import { Text, View, useWindowDimensions, type LayoutChangeEvent } from 'react-native';
 import Animated, {
     Easing,
     FadeIn,
@@ -140,6 +140,8 @@ type Props = {
      * cell a line (build 53 device check, D2 record §3.20).
      */
     rowWidth?: number;
+    /** The row's layout, for the Ring, which sizes to the height its neighbours leave. */
+    onLayout?: (e: LayoutChangeEvent) => void;
 };
 
 /**
@@ -154,7 +156,7 @@ type Props = {
  * "Goal reached" is an inline moment here (brief §6), not a modal: it shows for 1.4 s with the
  * streak, then leaves the goal mark in the row for the rest of the day.
  */
-export function TodayStickers({ tokens, count, goalHit, sessionsToGoal, goalStreak, onGoalMomentDone, animate, rowWidth }: Props) {
+export function TodayStickers({ tokens, count, goalHit, sessionsToGoal, goalStreak, onGoalMomentDone, animate, rowWidth, onLayout }: Props) {
     const goalMoment = goalStreak !== null;
     const reduced = useReducedMotion();
     const { width } = useWindowDimensions();
@@ -168,7 +170,8 @@ export function TodayStickers({ tokens, count, goalHit, sessionsToGoal, goalStre
     // At 0 with no goal, one dashed cell still shows where the first sticker lands.
     const empty = Math.max(0, Math.min(sessionsToGoal, capacity - taken)) || (count === 0 ? 1 : 0);
     // The row's cells keep one height through the day: the stickers replace dashed cells one for
-    // one, so the Ring, which sizes to the height left, doesn't jump at a completion.
+    // one, so the Ring, which sizes to the height left, doesn't jump at a completion. It gives a
+    // row's height up once, at the completion that first wraps the row onto its second row.
     const spoken = count === 0 ? t('today.a11y_zero') : t('today.a11y', { count });
 
     // NFR-PERF-004's readout: for one second after a placement, the UI thread records each frame's
@@ -220,7 +223,7 @@ export function TodayStickers({ tokens, count, goalHit, sessionsToGoal, goalStre
     const burstColors = [tokens.primary, tokens.success, tokens.ink, tokens.accent];
 
     return (
-        <View style={styles.wrap}>
+        <View style={styles.wrap} onLayout={onLayout} testID="today-row">
             <View
                 style={styles.line}
                 accessible

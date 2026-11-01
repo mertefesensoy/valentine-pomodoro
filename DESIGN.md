@@ -29,6 +29,10 @@ colors:
   ringBreak: "#428C4E"
   stickerEdge: "#FFFFFF"
   stickerShadow: "#4A2C2929"
+  scrim: "#4A2C2973"
+  scrimStrong: "#4A2C2999"
+  pomoInk: "#B03158"
+  doroInk: "#2F7339"
 typography:
   timer:
     # The Ring sets it at 25 % of the ring's size; Facing Pages at 56 pt. Fit to one line, down to 0.5.
@@ -164,13 +168,28 @@ components:
   modes-button:
     textColor: "{colors.ink}"
     size: "44pt"
+  tour-bubble:
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body}"
+    rounded: "{rounded.l}"
+    padding: "12pt 16pt 8pt"
+    width: "360pt"
+  tour-next:
+    backgroundColor: "{colors.primarySoft}"
+    textColor: "{colors.primaryInk}"
+    rounded: "{rounded.pill}"
+    padding: "0pt 24pt"
+    height: "44pt"
+  tour-scrim:
+    backgroundColor: "{colors.scrim}"
 ---
 
 # Design System: Valentine Pomodoro (working name)
 
 > **PINNED DIRECTION — the brief wins.** The kawaii couple direction (rehaul plan §5.2–5.3, approved 2026-10-29; no tomato anywhere, owner 2026-10-30, ADR-0047) and the North Star "The Sticker Diary" (chosen 2026-10-29) are pinned by the owner. Refinement passes (`critique`, `audit`, `polish`, `quieter`, `distill`, `harden`) tune execution *inside* this direction. They must not flatten it into a generic minimal look, and they must not swap the North Star for a calmer one. Changing the direction needs the owner's explicit words.
 
-> **Recorded from the build (2026-11-01).** This file was the pre-implementation seed. It now records what shipped in Phase 1 D1 (Classic: the Ring, Facing Pages, the Modes sheet, today's row, the sticker placement; the one-time v1.4 welcome) and D2 (Stats, Settings, Notes), both given **ship** by the finish reviews on 2026-11-01 (D1 record §3.21–3.23, D2 record §3.23–3.25), at `phase1/stage-d` a21939b. Every value below is read from the code: `src/theme/palette.json`, `layout.ts`, `type.ts`, the sticker, icon and UI components, and the screens. Where the build differs from the seed's wording, the build wins and the difference is said.
+> **Recorded from the build (2026-11-01; brought up to date 2026-11-02).** This file was the pre-implementation seed. It now records what shipped in Phase 1 D1 (Classic: the Ring, Facing Pages, the Modes sheet, today's row, the sticker placement; the one-time v1.4 welcome) and D2 (Stats, Settings, Notes), both given **ship** by the finish reviews on 2026-11-01 (D1 record §3.21–3.23, D2 record §3.23–3.25), first recorded at `phase1/stage-d` a21939b. At `phase1/stage-d` aabc4e1 it adds the rest of Stage D: D3 (English and Turkish: Settings › Language and the raw-text check), D4 (the three UI sounds) and D5 (the first-run tour, given **ship** on the owner's device check of TestFlight build 58, D5 record §3.13). Every value below is read from the code: `src/theme/palette.json`, `layout.ts`, `type.ts`, the sticker, icon and UI components, the screens, `src/screens/tutorial/` and `src/audio/uiSounds.ts`. Where the build differs from the seed's wording, the build wins and the difference is said.
 
 ## Overview
 
@@ -182,7 +201,7 @@ It is an Operate product first. A student opens it to start a focus session in s
 
 The tone is soft, not sugary. It is cute enough to be loved and grown-up enough that a university student is happy to open it in a lecture hall. There is one delightful moment per screen, never ten. Nothing in the visual language ever scolds.
 
-**Signature move: the sticker placement.** When a session completes, its sticker is pressed onto today's page: a playful spring, a few paper particles, and a success haptic. It is the only bouncy motion in the everyday product (the one-time welcome is the owner's single exception, below). Stats, streaks and the weekly recap read as diary pages filling with stickers. Mode rewards (passport stamps, garden produce, room decor, pet tricks) arrive the same way.
+**Signature move: the sticker placement.** When a session completes, its sticker is pressed onto today's page: a playful spring, a few paper particles, and a success haptic. It is the only bouncy motion in the everyday product (the one-time welcome and the first-run tour are the owner's two exceptions, below; each plays once and is replayed only by choice). Stats, streaks and the weekly recap read as diary pages filling with stickers. Mode rewards (passport stamps, garden produce, room decor, pet tricks) arrive the same way.
 
 **Motion grammar** (from plan §5.3, the Emil Kowalski `animate-expo` rules; values as built):
 
@@ -194,15 +213,16 @@ The tone is soft, not sugary. It is cute enough to be loved and grown-up enough 
 | Phase change (focus ↔ break) | The ring's (or spine bar's) colour and the mascot pose crossfade over 250 ms, ease-out. A pose change, not a bounce. |
 | Presets ↔ cycle row (on Start) | 200 ms opacity crossfade in one reserved height, so nothing jumps. |
 | Segmented control selection | The indicator slides 200 ms, `cubic-bezier(0.77, 0, 0.175, 1)` (it moves across, it doesn't enter). |
-| Sticker placement (completion and rewards) | **The one bounce.** The sticker drops from 16 pt up, scale 1.35 and −10°, to rest on a spring (450 ms, damping ratio 0.75, about 2.8 % overshoot), opacity in over 120 ms; a burst of 12 paper bits (the cap is 24), 600 ms ease-out, transform and opacity only; success haptic. Stickers already on the page never replay. |
+| Sticker placement (completion and rewards) | **The one bounce.** The sticker drops from 16 pt up, scale 1.35 and −10°, to rest on a spring (450 ms, damping ratio 0.75, about 2.8 % overshoot), opacity in over 120 ms; a burst of 12 paper bits (the cap is 24), 600 ms ease-out, transform and opacity only; success haptic and the completion sound, which opens with the spring (below). Stickers already on the page never replay. |
 | Goal reached (inline moment) | A leaf pill fades in over 250 ms under today's row, holds 1.4 s, then leaves the goal mark in the row. |
 | **Welcome (once)** | **The owner-approved exception** (build 49, F5). The v1.4 welcome plays once, 4.2 s, on the UI thread from one shared value: staging, anticipation (crouch, the diary squashes), a parabolic leap as the cover swings open, an exaggerated squash on landing with its own rebound, a hop, the dive into the Same Page mark's faces, and one burst of sparkles (10 shipped; at most 12). One soft haptic on the landing frame. Start is live from the first frame. Under Reduce Motion, the settled mark fades in over 300 ms: opacity only. |
+| **Tutorial (first run)** | **The owner-approved exception** (D5, the direction contract's FINISH; build 58). **The entrance, once a run:** the layer fades in over 200 ms; the run's first opening grows from its own centre over 300 ms, ease-out; the ribbon drops from the top of the page over 520 ms, ease-out; the pair drop 28 pt and fade in over 360 ms, ease-out (the speaker at 160 ms, the listener at 260 ms), then land with a pose change's squash; the bubble arrives last, a 220 ms fade rising 6 pt, 420 ms in. A later layer (the next tab, a sheet closed) only fades in: the ribbon already hanging (300 ms), the opening already open, the pair over 150 ms. **Between beats** everything glides 420 ms on the sheet curve `cubic-bezier(0.32, 0.72, 0, 1)`: the opening, the ribbon's drape (the signature interaction), the pair's feet, the speaker's and listener's sizes, the bubble and its tail. **The pair** (`motion.ts`, the approved pose sheet's numbers, on the UI thread): a change of pose is 280 ms of squash and stretch about the feet (height 0.92 at 70 ms, 1.04 at 168 ms, home at 280 ms, the width its reciprocal), the old face fading out over 0–98 ms as the new one fades in over 56–154 ms (they cross at 77 ms), and a held tilt or stretch easing in over 220 ms. The speaker breathes ±1.2 % (3.4 s for Pomo, 4.1 s for Doro, half while talking); open eyes blink for 110 ms every 2.8–5.2 s, one blink in five a double 140 ms later; a wave swings 2.5 times at 420 ms (−16° to +12°) and goes home over 160 ms; a point nudges 10 artboard units along the nub over 320 ms. The listener holds one pose and only blinks. **The line** writes on one character every 45 ms, pausing 150 ms after a comma and 300 ms after a stop, the mouth open for the first 60 % of each syllable; a tap finishes it. No haptic per line or beat. |
 | Partner presence change | The avatar fades in and scales from 0.95, never from 0. *(Not yet built: the partner arrives in Phase 3.)* |
 | List entrance | Stagger 30–60 ms, never on virtualized rows. *(Not used in v1.4: Stats, Settings and Notes open with no entrance animation, by the frequency gate.)* |
 
-A **"Tutorial (first run)"** row will follow when D5's tutorial is built.
+With Reduce Motion on, opacity and colour stay; translate, scale, particles and overshoot drop, and screen transitions become fades. As built: the press dims to 0.85 opacity instead of scaling, the sticker placement becomes a 200 ms fade, the segmented indicator moves without sliding, and the welcome fades. The tour keeps opacity only: the opening crossfades (a cover closes the old one over 150 ms and opens the new one over 150 ms), the ribbon fades out and back in at its new place, the pair and the bubble dip out and back in on the same 150 + 150 ms when they really move (under 24 pt they jump), faces swap with no squash, breath, blink, talking mouth or gesture, the pair arrive as a 200 ms fade, and the line still writes on.
 
-With Reduce Motion on, opacity and colour stay; translate, scale, particles and overshoot drop, and screen transitions become fades. As built: the press dims to 0.85 opacity instead of scaling, the sticker placement becomes a 200 ms fade, the segmented indicator moves without sliding, and the welcome fades.
+**Sound** (D4, `src/audio/uiSounds.ts`): Classic plays three UI sounds, level with one another: focus start or break start as Start is pressed, and completion as a sticker is pressed on. They follow Settings › Sound, respect the silent switch and mix with other apps' audio (iOS's ambient session); Fly keeps its own ambience and plays none. The tour's babble sits under them, one syllable every 3 letters for Pomo and every 4 for Doro, each a random ±10 cents and ±1.5 dB; Settings › Sound, the silent switch and the tour's mute silence it, and with VoiceOver on the whole line shows at once with no babble.
 
 **Key Characteristics:**
 
@@ -216,13 +236,14 @@ With Reduce Motion on, opacity and colour stay; translate, scale, particles and 
 
 Warm pastel fields, never gradients. Each theme is a complete token set plus one VectorCraft illustration pack, and the stationery world (washi tape, highlighters, sticker sheets) is where new theme colours come from.
 
-**The tokens are normative in the frontmatter (Strawberry Milk) and in `src/theme/palette.json` (both themes).** `npm run check:contrast` proves every declared pair in each theme in CI (ADR-0045). Both themes carry the same 25 role names; the roles below name them.
+**The tokens are normative in the frontmatter (Strawberry Milk) and in `src/theme/palette.json` (both themes).** `npm run check:contrast` proves every declared pair in each theme in CI (ADR-0045), and the `dims` list beside them: how far a translucent token sets a lit colour back, a separation rather than a text floor (`scrim` over `primary` at least 2:1, `scrimStrong` at least 2.5:1). Both themes carry the same 29 role names; the roles below name them.
 
 ### Primary
 
-- **Strawberry Pink** (`primary`): the primary action's fill, a soft fill carrying a cocoa label (`onPrimary`). The same strawberry in both themes. Also the Settings switch's track and the done cycle dots.
+- **Strawberry Pink** (`primary`): the primary action's fill, a soft fill carrying a cocoa label (`onPrimary`). The same strawberry in both themes. Also the Settings switch's track, the done cycle dots and the tour's ribbon band.
 - **Strawberry Ink** (`primaryInk`): strawberry as text or an icon: the selected tab, links, action rows, the current cycle dot, the Paused stamp, an open value row's value.
-- **Strawberry Blush** (`primarySoft`): a selected chip or row, and the "+n" overflow chip.
+- **Strawberry Blush** (`primarySoft`): a selected chip or row, the "+n" overflow chip, and the tour's quieter Next and Continue.
+- **Pomo's Ink** (`pomoInk`): Pomo's name when Pomo speaks in the tour's bubble. The same value as `primaryInk`, a role of its own.
 
 ### Secondary
 
@@ -231,6 +252,7 @@ Warm pastel fields, never gradients. Each theme is a complete token set plus one
 ### Tertiary
 
 - **Leaf Green** (`success`, `successInk`, `ringBreak`): success, goal reached, the break ring, garden growth. The goal flag is `successInk`; the goal moment is a `success` pill with a cocoa label.
+- **Doro's Ink** (`doroInk`): Doro's name when Doro speaks: Doro's matcha as text. The same value as `successInk`, a role of its own.
 
 ### Neutral
 
@@ -239,8 +261,9 @@ Warm pastel fields, never gradients. Each theme is a complete token set plus one
 - **Well** (`field`): segmented-control tracks, input wells, and a pressed list row.
 - **Paper Edge** (`edge`) and **Control Edge** (`edgeStrong`): `edge` is decoration and never the only cue for a control; `edgeStrong` (3:1) marks a boundary that identifies one (the segmented indicator, dashed cells, the cycle row's future dots, the Minutes track's outline).
 - **Cocoa** (`ink`) and **Soft Cocoa** (`inkSoft`): body text, headings, the timer and icons; secondary text is `inkSoft`, tinted from cocoa, never grey.
-- **Ring Track** (`ringTrack`), **Ring Focus** (`ringFocus`): the timer ring's track and focus arc, also the Minutes track and focus data marks.
+- **Ring Track** (`ringTrack`), **Ring Focus** (`ringFocus`): the timer ring's track and focus arc, also the Minutes track and focus data marks. `ringFocus` also edges the tour's ribbon and outlines its opening.
 - **Sticker Edge** (`stickerEdge`) and **Sticker Shadow** (`stickerShadow`): stickers only, never chrome. The edge is white in Strawberry Milk and milk in Midnight Plum.
+- **Scrim** (`scrim`) and **Raised Scrim** (`scrimStrong`): the tour's dim around its opening, the theme's darkest ink (cocoa in Strawberry Milk, deep plum in Midnight Plum) at 45 %, raised to 60 % under Reduce Transparency or Increase Contrast. Flat, never a blur. In Midnight Plum the empty page hardly darkens (1.08:1), so the opening's `ringFocus` outline marks the lit control.
 
 ### Themes
 
@@ -277,10 +300,10 @@ Light and dark follow the system appearance, because the use scene covers both: 
 - **Timer** (Baloo 2 SemiBold, tabular figures; on the Ring 25 % of the ring's size, so 69 pt in a 275 pt ring; 56 pt on Facing Pages; fit to one line, shrinking to half at most): the largest text on its screen.
 - **Title** (Baloo 2 SemiBold, 34 / 42 pt): the tab titles drawn in the content on Stats, Settings and Notes, in place of a navigation bar's large title. Capped at 1.4× text size.
 - **Headline** (Baloo 2 SemiBold, 28 / 36 pt): the welcome's one line. **Headline small** (22 / 28 pt): today's postcard title in Stats.
-- **Body** (system, 17 pt regular, 23–24 pt line): list rows, notes, values, the note editor. **Body strong** (17 pt semibold): Classic's phase line, the Add pill, the editor's title.
-- **Button** (system, 18 pt semibold) on the primary pill; 16 pt semibold on the quiet pill.
-- **Label** (system, 15 pt, 500 or 600): the partner line, the next-change line, segment labels, the summary line, the strip's titles.
-- **Caption** (system, 13 pt semibold): list-group headers, page labels ("You"), today's "Today", postcard day names and counts. **Footnote** (13 / 18 pt regular): list-group footers.
+- **Body** (system, 17 pt regular, 23–24 pt line): list rows, notes, values, the note editor, the tour's line. **Body strong** (17 pt semibold): Classic's phase line, the Add pill, the editor's title.
+- **Button** (system, 18 pt semibold) on the primary pill; 16 pt semibold on the quiet pill and the tour's Next and Continue.
+- **Label** (system, 15 pt, 500 or 600): the partner line, the next-change line, segment labels, the summary line, the strip's titles, the tour's Skip tour.
+- **Caption** (system, 13 pt semibold): list-group headers, page labels ("You"), today's "Today", postcard day names and counts, the speaker's name in the tour's bubble. **Footnote** (13 / 18 pt regular): list-group footers.
 - Every figure that counts or compares uses tabular figures (`tnum`): the timer, segment labels, counts, minutes, the summary.
 - System text follows Dynamic Type; small labels in tight places cap their growth (1.3–1.6×) rather than truncating, and layouts switch to their accessibility forms at a font scale of 1.6 (AX1).
 
@@ -288,9 +311,9 @@ Light and dark follow the system appearance, because the use scene covers both: 
 
 **The Steady Digits Rule.** Timer numerals use tabular figures in every theme and locale. A digit that changes width is a bug.
 
-**The One Large Number Rule.** On Classic the timer is the only display-scale type: the phase line, the partner line and every control are in the system face, and no title competes. Sheet titles (Modes) are in the system face. Baloo 2 appears only as the timer, a tab's title, the welcome line and today's postcard title.
+**The One Large Number Rule.** On Classic the timer is the only display-scale type: the phase line, the partner line and every control are in the system face, and no title competes. Sheet titles (Modes) and the tour's bubbles are in the system face. Baloo 2 appears only as the timer, a tab's title, the welcome line and today's postcard title.
 
-**The Locale Casing Rule.** Text is never cased by a style (`textTransform`); casing goes through the locale's own `toLocaleUpperCase`, so a Turkish i becomes İ, not I.
+**The Locale Casing Rule.** Text is never cased by a style (`textTransform`); casing goes through the locale's own `toLocaleUpperCase`, so a Turkish i becomes İ, not I. `scripts/i18n/check-raw-text.mjs` fails on either style, and on any text a person reads written into the source instead of `en.json` and `tr.json`.
 
 ## Layout
 
@@ -305,30 +328,32 @@ Light and dark follow the system appearance, because the use scene covers both: 
 - **The Modes button** is at the same place in Classic and in Fly: the top trailing corner, the same glyph, the same 44 pt target, so the way in is the way back.
 - **No nested cards.** A page holds paper fields and lists; it never stacks cards inside cards.
 - **Overlays become sheets and inline moments.** Today's stacked modals (love note card, goal popup, ad queue) become bottom sheets or moments on the page. A modal is reserved for a decision that must interrupt (a destructive confirmation is the native alert).
+- **The tour's layer** lives inside the Timer, Stats and Notes, last in the screen's root view; the native tab bar stays above it, lit and tappable. The dock (the bubble over the pair) takes the side of the opening that fits it best: above or below in portrait, the side away from the control in landscape and on iPad. The bubble is at most 360 pt wide; the speaker stands in a 190 pt box and the listener at 140 pt, and the pair shrink to fit, never under half size. At AX sizes (font scale 1.6), or when even half size doesn't fit, the bubble becomes a bottom panel, the pair a 36 pt badge in it and the ribbon a short tab; in compact height the panel stands at the side away from the opening. The page holds still while the tour is on it, scrolls only to bring the opening clear of the panel, and scrolls back when the tour leaves. Stats' ad banner is the layer's bottom reserve: nothing is placed under it.
 - **Touch targets:** at least 44 × 44 pt on iOS (`minTarget`) and 48 × 48 dp on Android, using `hitSlop` (8 pt on pressables) when the drawn control is smaller.
 - **Turkish strings** run 20–30 % longer than English. Every layout is checked with real TR copy, including Turkish at AX5 on an iPhone SE.
 
 ## Elevation & Depth
 
-Depth comes from **paper layering**: pages and fields sit flat, separated by tone and a crisp edge, not by shadow. **Stickers are the only things that lift.** A sticker casts a small, soft, offset shadow in `stickerShadow`, tinted from the theme's own colours, never grey and never a hard zero-blur block. Sheets use the platform's own sheet presentation.
+Depth comes from **paper layering**: pages and fields sit flat, separated by tone and a crisp edge, not by shadow. **Stickers are the only things that lift.** A sticker casts a small, soft, offset shadow in `stickerShadow`, tinted from the theme's own colours, never grey and never a hard zero-blur block. Sheets use the platform's own sheet presentation. The tour's dim is a flat `scrim`, and its bubbles and ribbon lie flat.
 
 ### Shadow Vocabulary
 
-- **Sticker lift** (`stickerShadow`, offset 1 pt right and 2 pt down, about 2 pt of soft edge): the art's own silhouette drawn three times inside the sticker's SVG, at 0, 1 and 2 pt of outward stroke, each layer at a third of the token's alpha compounded (1 − (1 − α)^⅓), so where all three overlap the shadow reaches the token's alpha (about 16 % cocoa in Strawberry Milk, 40 % deep plum in Midnight Plum) and it falls off in one-point steps. It is never an SVG blur filter (on iOS that painted a dark square behind every sticker) and never a view shadow (rendered offscreen, per sticker, while the ring repaints). The welcome's layered art lies flat.
+- **Sticker lift** (`stickerShadow`, offset 1 pt right and 2 pt down, about 2 pt of soft edge): the art's own silhouette drawn three times inside the sticker's SVG, at 0, 1 and 2 pt of outward stroke, each layer at a third of the token's alpha compounded (1 − (1 − α)^⅓), so where all three overlap the shadow reaches the token's alpha (about 16 % cocoa in Strawberry Milk, 40 % deep plum in Midnight Plum) and it falls off in one-point steps. It is never an SVG blur filter (on iOS that painted a dark square behind every sticker) and never a view shadow (rendered offscreen, per sticker, while the ring repaints). The welcome's layered art lies flat; the tour's pair lift through their body-cut layer, stickers like any other.
 
 ### Named Rules
 
-**The Only Stickers Lift Rule.** Chrome is flat at rest. If a control or card needs a shadow to be found, its tone or edge is wrong. Stickers lift wherever they appear: the pose stickers, today's row, the postcards.
+**The Only Stickers Lift Rule.** Chrome is flat at rest. If a control or card needs a shadow to be found, its tone or edge is wrong. Stickers lift wherever they appear: the pose stickers, today's row, the postcards, the tour's pair.
 
 **The No Glass Rule.** No decorative blur or glassmorphism, including the tab bar. Blur intensity and Android `elevation` are never animated. *Known deviation, stated honestly:* the iOS tab bar is NativeTabs' system bar, which iOS 26 draws as Liquid Glass. It is the platform's own chrome, not a surface the app draws; the app tints only the selected item (`primaryInk`) and leaves the unselected items in the system's adaptive monochrome. Every surface the app draws itself stays glass-free.
 
 ## Shapes
 
-- **Radius scale:** 8 / 14 / 22 / pill. 8 is for small controls and chips (the "+n" chip, the Paused stamp, the spine corners, wrapped segments), 14 for fields and list groups (Settings' groups, Notes' list, the Stats strip, postcard edges), 22 for sheets and large paper fields (the partner strip, Facing Pages' outer corners, the timer's frame, today's postcard), and pill for primary actions, quiet actions, the segmented track and the goal moment.
+- **Radius scale:** 8 / 14 / 22 / pill. 8 is for small controls and chips (the "+n" chip, the Paused stamp, the spine corners, wrapped segments), 14 for fields and list groups (Settings' groups, Notes' list, the Stats strip, postcard edges), 22 for sheets and large paper fields (the partner strip, Facing Pages' outer corners, the timer's frame, today's postcard, the tour's bubbles), and pill for primary actions, quiet actions, the segmented track and the goal moment.
 - **Paper edge:** fields and cards are paper, with a crisp edge in `edge`, **1.5 pt** everywhere (`edgeWidth`). Rows inside a group are split by hairlines inset 16 pt from the leading edge. Dashed cells and the Paused stamp's outline use the same 1.5 pt.
+- **The tour's shapes:** the dim's opening takes the control's own radius plus 6 pt of room and a 2 pt `ringFocus` outline (the owner's answer to Midnight Plum's faint dim). The bookmark ribbon is an 11 pt `primary` band inside a 1.5 pt `ringFocus` edge, ending in a 16 pt swallowtail with a 6 pt notch whose points reach the control. The bubble's tail is a 16 pt paper square turned 45°, edged on its two outer sides.
 - **Sticker edge:** stickers (mascots, rewards, stamps, badges) carry a die-cut light border (`stickerEdge`) around their silhouette, which makes a sticker read as a sticker. Stickers keep their own fills in both themes. The sticker edge belongs to stickers only, never to buttons or chrome.
 - **Icons:** a custom VectorCraft set (50 glyphs in v1.4) on a 24 pt grid, drawn with 2 pt rounded strokes that are outlined into filled paths at build time, so every icon is one ink in `currentColor` and takes its colour from the caller's token. It is the brand's set (pinned), so it replaces SF Symbols and Material Symbols in the UI. The four tab icons ship as filled variants, 25 pt template images tinted by the system. Icons follow platform sizing (24 pt in controls, 20–22 pt inline) and align to the text baseline.
-- **Mascots and illustration:** original VectorCraft vector art; each illustration ≤ 30 KB, mode scene ≤ 120 KB, icon ≤ 2 KB.
+- **Mascots and illustration:** original VectorCraft vector art; each illustration ≤ 30 KB, mode scene ≤ 120 KB, icon ≤ 2 KB. The tour's pair are built from the tour kit: 44 VectorCraft layers (body, nubs, eyes, mouths), stacked per character.
 
 ## Components
 
@@ -340,6 +365,7 @@ Tactile, soft and few: one strawberry pill per screen, everything else quiet.
 - **Quiet pill:** `paper` with a 1.5 pt `edge`, `ink` label at 16 pt semibold, pill, at least 44 pt tall and 112 pt wide (Skip). **End session** is the same pill with a `dangerInk` label, shown only while paused, and its confirmation is the native alert.
 - **Press:** every pill scales to 0.97 (motion table) with the selection haptic, following Settings › Haptics.
 - **The Modes button:** the `modes` glyph, 24 pt in `ink`, in a 44 pt target at the top trailing corner. On Classic's page it is the bare glyph; over Fly's map it sits on a 44 pt `paper` disc with a 1.5 pt `edge` and no shadow, because a map is not paper. Either way it opens the same Modes sheet.
+- **The tour's buttons:** Next (Done on a replay's last beat; Continue in the Modes sheet's bubble) is quieter than the strawberry pill: `primarySoft` with a `primaryInk` label, 16 pt semibold, pill, 44 pt tall, 24 pt side padding. Skip tour (Not now on the invitation) is bare text, 15 pt semibold `ink`; the mute is the `sound` or `soundOff` glyph, 22 pt `inkSoft`, in a 44 pt target, 16 pt from Skip tour so their slops never overlap. Their labels stop growing at 1.6×, as every button's does, and wrap.
 
 ### Segmented control
 
@@ -385,6 +411,7 @@ iOS Settings, drawn in the diary's stationery.
 - **Rows:** at least 44 pt, 8 / 16 pt padding, label 17 pt `ink`. Native controls only: the system switch (`primary` track), the system wheel under a value row (one open at a time; the value turns `primaryInk` while open), the compact time picker tinted `primaryInk`. An action row is `primaryInk`, a destructive one `dangerInk`; a pressed row takes `field`. No bounded number is ever typed.
 - At AX sizes a row wraps, its value or control dropping under its label rather than truncating.
 - Stats and Notes reuse the same group and action row for their few actions (Start a session, Turn on the goal, Preview, Restore).
+- **Language** (D3) is a group holding the segmented control (System, English, Türkçe), stored at once and applied at the next launch. About carries "Watch the welcome again" and "Watch the tour again".
 
 ### Notes
 
@@ -398,6 +425,17 @@ The title (Baloo 2 34 / 42) with its count, the strawberry Add pill, and the not
 ### The welcome (once)
 
 The diary itself, opened once at v1.4: Pomo & Doro on a closed diary leap as it opens and become the two faces of the Same Page mark (choreography in the motion table). One line in Baloo 2 28 / 36, then the primary pill. The art gives up 40 % of its size at AX sizes so the line keeps its room. It is one VoiceOver element, then the line, then Start.
+
+### The tour (first run)
+
+Pomo & Doro show you around in six steps over the real Timer, Stats and Notes, marking your place with the diary's strawberry ribbon (choreography in the motion table).
+
+- **The dim:** `scrim` over everything but one opening, which stays lit and live: four touch-blocking panels and four corner masks, with nothing over the hole, so a tap there is the real control's. On a tab step the whole page dims.
+- **The bookmark ribbon:** hangs from beyond the top edge and drapes to the control, its swallowtail pointing at it; on a tab step, to just above the tab. Decoration: no touches, hidden from VoiceOver.
+- **The pair:** the speaker at 190 pt and the listener at 140 pt beside the ribbon's tip, never over the opening; stickers with the die-cut edge and the lift.
+- **The bubble:** `paper`, radius 22, the 1.5 pt `edge`, no shadow, 12 / 16 / 8 pt padding, with a tail to the speaker. The speaker's name (13 pt semibold, `pomoInk` or `doroInk`), the line (17 / 23 pt, never capped, laid out whole in a clear colour so the bubble never grows as it writes), then Next at the trailing side and Skip tour and the mute at the leading side. VoiceOver reads one element, "Pomo: …", then Next, Skip tour and the mute.
+- **The AX panel:** at font scale 1.6 the bubble becomes a bottom panel (a side panel in landscape), the pair a 36 pt badge beside the name, the line scrolling inside it, the buttons pinned.
+- **The Modes sheet's bubble:** the sheet covers the layer, so it carries its own: the same paper, radius 22 and edge, 16 pt padding, a 32 pt Pomo sticker beside Pomo's name, the whole line at once (no write-on, no babble), and Continue to close the sheet.
 
 ## Do's and Don'ts
 

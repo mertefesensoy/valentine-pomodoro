@@ -1,7 +1,7 @@
 ---
 id: IMPL-2026-10-30-phase1-stage-d
 title: "Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"
-status: in-progress
+status: done
 date: 2026-10-30
 owner: Mert Efe Şensoy
 related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-stage-c-design, DESIGN-WORKFLOW, ADR-0042, ADR-0045, ADR-0046, ADR-0047, ADR-0027, SRS]
@@ -9,7 +9,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-stage-c-design, DE
 
 # 2026-10-30 — Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design
 
-**Status:** Plan, committed before any other file on the branch. Each task gets its own record when it starts (§3.8). This document holds the stage plan, the order, the gates, the guards and the shared-doc text.
+**Status:** Done, 2026-11-02. D1–D5 shipped, each on its finish verdict and the owner's device check through TestFlight build 58; the owner closed the stage ("we can close it") and it merged into `rehaul/v2` the same day (`96ce9dd`; [Stage E](2026-11-01-phase1-stage-e.md) M1). This document was the plan, committed before any other file on the branch. Each task gets its own record when it starts (§3.8). This document holds the stage plan, the order, the gates, the guards and the shared-doc text.
 **Branch:** `phase1/stage-d`, worktree `C:\vp\stage-d`, cut from `rehaul/v2` at `ed8ab00` (pushed; Stage C is merged into it, `2a7be02` is an ancestor). Commits use `git commit -- <paths>`; new files get a `git add` first. Merging into `rehaul/v2`, pushing (by explicit commit ID), EAS builds and TestFlight submissions each need the owner's explicit OK, every time.
 **Plan:** [Phase 1 plan](2026-10-29-phase1-plan.md) Stage D (D1–D4) and Stage E; [Stage C record](2026-10-30-phase1-stage-c-design.md) §2.4–2.6 and §10.
 
@@ -469,7 +469,7 @@ From D1: `python -P art/type/build-fonts.py --check`. From D4: `node scripts/sou
 - [x] D1: every step of DESIGN-WORKFLOW §2. Critique and audit ≥ 16/20, no Critical HIG finding, `review-animations` clean. Guards green. The device checks on builds 48, 49 and 50 (need a physical device).
 - [x] D2: the four briefs confirmed. The emoji check green. B2's notes tests green. The device check on D2's own build (needs a physical device).
 - [x] D3: every string extracted, and the raw-text check green. The in-app language choice works (the owner, 2026-10-31). The device check in TR at the largest size on D3's own build (needs a physical device).
-- [ ] D5: the general tutorial on a new install's first launch and on the first launch after updating from v1.3.1, skippable, in both languages, with the pair's new poses and voices approved by the owner; the device check (needs a physical device).
+- [x] D5: the general tutorial on a new install's first launch and on the first launch after updating from v1.3.1, skippable, in both languages, with the pair's new poses and voices approved by the owner; the device check (needs a physical device).
 - [x] D4: three sounds, each ≤ 1.5 s and ≤ 25 KB, rebuilt byte for byte (**done**: the D4 record; merged in `362b930` and wired, the D4 wiring record). The silent switch and the toggle respected on the device (needs a physical device).
 
 ## 7. Questions for the owner, answered 2026-10-30

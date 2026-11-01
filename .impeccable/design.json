@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-01T09:51:21.706Z",
+  "generatedAt": "2026-11-01T21:18:58.787Z",
   "title": "Design System: Valentine Pomodoro (working name)",
   "extensions": {
     "themes": {
@@ -490,6 +490,82 @@
           "#D9CAC8",
           "#F3EDEC"
         ]
+      },
+      "scrim": {
+        "role": "neutral",
+        "displayName": "Scrim",
+        "canonical": "#4A2C2973",
+        "oklch": "oklch(33.0% 0.045 26.0)",
+        "dark": "#0D070F73",
+        "darkOklch": "oklch(14.2% 0.020 317.9)",
+        "purpose": "The tour's dim over the page around its opening (Phase 1 D5): the theme's darkest ink at 45 %, never a blur (the No Glass Rule).",
+        "tonalRamp": [
+          "#0E0A0A",
+          "#2C211F",
+          "#523C3A",
+          "#7B5A56",
+          "#9F7D79",
+          "#BDA4A1",
+          "#D9CAC8",
+          "#F3EDEC"
+        ]
+      },
+      "scrimStrong": {
+        "role": "neutral",
+        "displayName": "Raised Scrim",
+        "canonical": "#4A2C2999",
+        "oklch": "oklch(33.0% 0.045 26.0)",
+        "dark": "#0D070F99",
+        "darkOklch": "oklch(14.2% 0.020 317.9)",
+        "purpose": "The tour's dim under Reduce Transparency or Increase Contrast: the same ink at 60 %.",
+        "tonalRamp": [
+          "#0E0A0A",
+          "#2C211F",
+          "#523C3A",
+          "#7B5A56",
+          "#9F7D79",
+          "#BDA4A1",
+          "#D9CAC8",
+          "#F3EDEC"
+        ]
+      },
+      "pomoInk": {
+        "role": "primary",
+        "displayName": "Pomo's Ink",
+        "canonical": "#B03158",
+        "oklch": "oklch(51.6% 0.165 6.7)",
+        "dark": "#FF9EBB",
+        "darkOklch": "oklch(80.5% 0.120 0.8)",
+        "purpose": "Pomo's name when Pomo speaks (the tour's bubble): his strawberry as text. The same value as primaryInk, a role of its own.",
+        "tonalRamp": [
+          "#140709",
+          "#3D141F",
+          "#722038",
+          "#AA2B53",
+          "#D15776",
+          "#E48EA0",
+          "#F2BEC7",
+          "#FEE8EC"
+        ]
+      },
+      "doroInk": {
+        "role": "tertiary",
+        "displayName": "Doro's Ink",
+        "canonical": "#2F7339",
+        "oklch": "oklch(49.7% 0.113 146.5)",
+        "dark": "#8ED493",
+        "darkOklch": "oklch(80.7% 0.115 146.1)",
+        "purpose": "Doro's name when Doro speaks: her matcha as text. The same value as successInk, a role of its own.",
+        "tonalRamp": [
+          "#070D07",
+          "#142A17",
+          "#224D28",
+          "#30743A",
+          "#58975E",
+          "#8DB890",
+          "#BDD6BE",
+          "#E8F2E8"
+        ]
       }
     },
     "typographyMeta": {
@@ -553,6 +629,11 @@
         "purpose": "The segmented indicator, which moves across rather than entering."
       },
       {
+        "name": "ease-sheet",
+        "value": "cubic-bezier(0.32, 0.72, 0, 1)",
+        "purpose": "The tour's glides between beats: the opening, the ribbon's drape, the pair, the bubble and its tail."
+      },
+      {
         "name": "press",
         "value": "scale 0.97, 100ms in / 180ms out, ease-out-strong; Reduce Motion: opacity 0.85",
         "purpose": "Every pill and button, with the selection haptic on press-in."
@@ -574,7 +655,7 @@
       },
       {
         "name": "sticker-placement",
-        "value": "spring 450ms, dampingRatio 0.75 (bounce ~0.25); from translateY -16, scale 1.35, rotate -10deg; opacity 120ms; 12 particles, 600ms ease-out; Reduce Motion: 200ms fade",
+        "value": "spring 450ms, dampingRatio 0.75 (bounce ~0.25); from translateY -16, scale 1.35, rotate -10deg; opacity 120ms; 12 particles, 600ms ease-out; Reduce Motion: 200ms fade; success haptic and the completion sound",
         "purpose": "The one bounce: a completed session's sticker pressed onto today's row."
       },
       {
@@ -586,6 +667,41 @@
         "name": "welcome-once",
         "value": "4200ms timeline: staging, anticipation, parabolic leap, squash on landing (1650ms) with rebound, hop, dive into the mark, 10 sparkles (cap 12); Reduce Motion: 300ms fade",
         "purpose": "The owner-approved exception (build 49, F5): the one-time v1.4 welcome."
+      },
+      {
+        "name": "tutorial-entrance-once",
+        "value": "Once a run: layer fade 200ms; first opening grows from its centre 300ms ease-out-strong; ribbon drops 520ms ease-out-strong; pair drop 28pt and fade 360ms ease-out-strong (speaker at 160ms, listener at 260ms), then the 280ms landing squash; bubble 220ms fade rising 6pt, 420ms in. Later layers: ribbon 300ms fade, pair 150ms fade",
+        "purpose": "The owner-approved exception (D5, build 58): the first-run tour's one delight."
+      },
+      {
+        "name": "tutorial-glide",
+        "value": "420ms, ease-sheet",
+        "purpose": "Between beats: the opening, the ribbon's drape (the signature interaction), the pair's feet and sizes (190pt / 140pt), the bubble and its tail."
+      },
+      {
+        "name": "tutorial-pose-change",
+        "value": "height keys 1 / 0.92 @70ms / 1.04 @168ms / 1 @280ms about the feet (width reciprocal); old face out 0-98ms, new in 56-154ms, crossing at 77ms; hold eases in 220ms",
+        "purpose": "A change of the pair's expression (motion.ts)."
+      },
+      {
+        "name": "tutorial-idle",
+        "value": "breath ±1.2% (3400ms Pomo, 4100ms Doro, half while talking); blink 110ms every 2800-5200ms, 1 in 5 double after 140ms; wave 2.5 swings at 420ms (-16deg to +12deg), home 160ms; point 10 artboard units over 320ms",
+        "purpose": "The speaker breathes, blinks and gestures; the listener only blinks."
+      },
+      {
+        "name": "tutorial-write-on",
+        "value": "45ms a character; 150ms after a comma, 300ms after a stop; mouth open 60% of each syllable; no haptic per line",
+        "purpose": "The line writing on with the babble (speech.ts, useSpeaking.ts); a tap finishes it."
+      },
+      {
+        "name": "tutorial-reduce-motion",
+        "value": "opening crossfades through a cover 150ms + 150ms; ribbon fades out and in; pair and bubble dip 150ms + 150ms on a real move (under 24pt a jump); faces swap only; arrival a 200ms fade; the line still writes on",
+        "purpose": "The tour under Reduce Motion: opacity only."
+      },
+      {
+        "name": "ui-sounds",
+        "value": "focus start, break start (on Start), completion (with the sticker placement); Settings › Sound, silent switch, ambient session mixing with others; Fly plays none",
+        "purpose": "D4's three UI sounds, level with one another; the tour's babble sits under them."
       },
       {
         "name": "sheet",
@@ -623,6 +739,21 @@
         "name": "ring",
         "value": "clamp(room, 200pt, min(0.86 x column, 340pt)); stroke 5.5%",
         "purpose": "The Ring sizes from the height its neighbours leave."
+      },
+      {
+        "name": "tour-dock",
+        "value": "bubble ≤ 360pt; speaker 190pt, listener 140pt; pair scale ≥ 0.5",
+        "purpose": "The tour's bubble over the pair, on the side of the opening that fits best (the side away from it in landscape and on iPad)."
+      },
+      {
+        "name": "tour-panel",
+        "value": "font scale >= 1.6, or no dock fits",
+        "purpose": "The bubble as a bottom panel (a side panel in compact height), the pair a 36pt badge, the ribbon a short tab."
+      },
+      {
+        "name": "tour-opening",
+        "value": "control radius + 6pt; 2pt ringFocus outline",
+        "purpose": "The lit, live hole in the tour's dim."
       }
     ]
   },
@@ -647,7 +778,7 @@
       "name": "Segmented Control",
       "kind": "chip",
       "refersTo": "segmented-track",
-      "description": "The presets and Stats' metric: a field track, a paper indicator with a control edge.",
+      "description": "The presets, Stats' metric and Settings' language: a field track, a paper indicator with a control edge.",
       "html": "<div class=\"ds-seg\" role=\"group\"><button class=\"ds-seg-item ds-seg-on\">25/5</button><button class=\"ds-seg-item\">50/10</button><button class=\"ds-seg-item\">90/15</button><button class=\"ds-seg-item\">Custom</button></div>",
       "css": ".ds-seg { display: flex; width: 340px; padding: 3px; background: #FBEAE4; border: 1.5px solid #F0DAD3; border-radius: 999px; } .ds-seg-item { font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; flex: 1; min-height: 44px; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; color: #7D5A54; background: transparent; border: 1.5px solid transparent; border-radius: 999px; transition: background 200ms cubic-bezier(0.77, 0, 0.175, 1), border-color 200ms cubic-bezier(0.77, 0, 0.175, 1); } .ds-seg-item:hover { color: #4A2C29; } .ds-seg-on { color: #4A2C29; background: #FFFDFB; border-color: #A07A72; } .ds-seg-item:focus-visible { outline: 2px solid #B03158; outline-offset: 1px; }"
     },
@@ -690,6 +821,22 @@
       "description": "The inline \"Goal reached\" pill under today's row, 1.4 s.",
       "html": "<div class=\"ds-goal\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"#4A2C29\" aria-hidden=\"true\"><path d=\"M4.5 4 C4.5 3.45 4.95 3 5.5 3 C6.05 3 6.5 3.45 6.5 4 L6.5 21 C6.5 21.55 6.05 22 5.5 22 C4.95 22 4.5 21.55 4.5 21 Z\"/><path d=\"M5.5 3.5 L16.7 3.5 C18.01 3.5 18.76 5 17.99 6.05 L16.23 8.5 L17.99 10.95 C18.76 12 18.01 13.5 16.7 13.5 L5.5 13.5 C4.95 13.5 4.5 13.05 4.5 12.5 C4.5 11.95 4.95 11.5 5.5 11.5 L15.92 11.5 L14.19 9.08 C13.94 8.73 13.94 8.27 14.19 7.92 L15.92 5.5 L5.5 5.5 C4.95 5.5 4.5 5.05 4.5 4.5 C4.5 3.95 4.95 3.5 5.5 3.5 Z\"/></svg><span class=\"ds-goal-t\">Goal reached</span><span class=\"ds-goal-s\">3-day streak</span></div>",
       "css": ".ds-goal { font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: #BFE5B5; color: #4A2C29; border-radius: 999px; animation: ds-fade 250ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-goal-t { font-size: 16px; font-weight: 700; } .ds-goal-s { font-size: 15px; font-weight: 500; } @keyframes ds-fade { from { opacity: 0; } to { opacity: 1; } }"
+    },
+    {
+      "name": "Tour Bubble",
+      "kind": "card",
+      "refersTo": "tour-bubble",
+      "description": "The speaker's paper bubble in the first-run tour: name in pomoInk or doroInk, the line, a quieter Next, Skip tour and the mute; a tail to the speaker. No shadow.",
+      "html": "<div class=\"ds-tour-bubble\"><div class=\"ds-tour-name\">Pomo</div><p class=\"ds-tour-line\">Hi! Pick how long you want to focus. 25 minutes is a good start.</p><div class=\"ds-tour-actions\"><button class=\"ds-tour-mute\" aria-label=\"Mute\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#7D5A54\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 9.5h3.5L12 5.5v13l-4.5-4H4z\"/><path d=\"M15.5 9a4 4 0 0 1 0 6\"/><path d=\"M18 6.5a7.5 7.5 0 0 1 0 11\"/></svg></button><button class=\"ds-tour-skip\">Skip tour</button><span class=\"ds-tour-spacer\"></span><button class=\"ds-tour-next\">Next</button></div><span class=\"ds-tour-tail\"></span></div>",
+      "css": ".ds-tour-bubble { font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; position: relative; width: 340px; display: flex; flex-direction: column; gap: 4px; padding: 12px 16px 8px; background: #FFFDFB; border: 1.5px solid #F0DAD3; border-radius: 22px; } .ds-tour-name { font-size: 13px; font-weight: 600; color: #B03158; } .ds-tour-line { margin: 0; font-size: 17px; line-height: 23px; color: #4A2C29; } .ds-tour-actions { display: flex; align-items: center; gap: 16px; min-height: 44px; } .ds-tour-spacer { flex: 1; } .ds-tour-mute { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: none; border: none; border-radius: 999px; } .ds-tour-skip { min-height: 44px; padding: 0 8px; background: none; border: none; font-size: 15px; font-weight: 600; color: #4A2C29; } .ds-tour-next { min-height: 44px; padding: 0 24px; background: #FDE4EB; color: #B03158; font-size: 16px; font-weight: 600; border: none; border-radius: 999px; transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-tour-next:active, .ds-tour-skip:active, .ds-tour-mute:active { transform: scale(0.97); transition-duration: 100ms; } .ds-tour-next:focus-visible, .ds-tour-skip:focus-visible, .ds-tour-mute:focus-visible { outline: 2px solid #B03158; outline-offset: 3px; } .ds-tour-tail { position: absolute; left: 60px; bottom: -9px; width: 16px; height: 16px; background: #FFFDFB; border-right: 1.5px solid #F0DAD3; border-bottom: 1.5px solid #F0DAD3; transform: rotate(45deg); }"
+    },
+    {
+      "name": "Tour Opening and Ribbon",
+      "kind": "custom",
+      "refersTo": "tour-scrim",
+      "description": "The tour's flat scrim with one lit opening outlined in 2pt ringFocus, and the bookmark ribbon (an 11pt primary band in a 1.5pt ringFocus edge, a 16pt swallowtail) pointing at it.",
+      "html": "<div class=\"ds-tour-stage\"><div class=\"ds-tour-control\">25/5 · 50/10 · 90/15</div><div class=\"ds-tour-scrim\"></div><div class=\"ds-tour-hole\"></div><svg class=\"ds-tour-ribbon\" width=\"360\" height=\"120\" viewBox=\"0 0 360 120\" aria-hidden=\"true\"><path d=\"M 330 -12 C 338 30 200 30 186 58\" fill=\"none\" stroke=\"#D64B76\" stroke-width=\"14\"/><path d=\"M 330 -12 C 338 30 200 30 186 58\" fill=\"none\" stroke=\"#F7A9BE\" stroke-width=\"11\"/><path d=\"M 178.6 50.6 L 191.4 56.4 L 184.4 72 L 182.7 66 L 178 69 Z\" fill=\"#F7A9BE\" stroke=\"#D64B76\" stroke-width=\"1.5\" stroke-linejoin=\"round\"/></svg></div>",
+      "css": ".ds-tour-stage { font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; position: relative; width: 360px; height: 160px; background: #FFF6F1; overflow: hidden; } .ds-tour-control { position: absolute; left: 40px; top: 90px; width: 280px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; color: #4A2C29; background: #FBEAE4; border: 1.5px solid #F0DAD3; border-radius: 999px; box-sizing: border-box; } .ds-tour-scrim { position: absolute; inset: 0; background: #4A2C2973; -webkit-mask: linear-gradient(#000 0 0) exclude, linear-gradient(#000 0 0) 34px 84px / 292px 56px no-repeat; mask: linear-gradient(#000 0 0) exclude, linear-gradient(#000 0 0) 34px 84px / 292px 56px no-repeat; } .ds-tour-hole { position: absolute; left: 34px; top: 84px; width: 292px; height: 56px; border: 2px solid #D64B76; border-radius: 28px; box-sizing: border-box; transition: all 420ms cubic-bezier(0.32, 0.72, 0, 1); } .ds-tour-ribbon { position: absolute; left: 0; top: 0; }"
     }
   ],
   "narrative": {
@@ -730,17 +877,17 @@
       },
       {
         "name": "The One Large Number Rule",
-        "body": "On Classic the timer is the only display-scale type: the phase line, the partner line and every control are in the system face, and no title competes. Sheet titles (Modes) are in the system face. Baloo 2 appears only as the timer, a tab's title, the welcome line and today's postcard title.",
+        "body": "On Classic the timer is the only display-scale type: the phase line, the partner line and every control are in the system face, and no title competes. Sheet titles (Modes) and the tour's bubbles are in the system face. Baloo 2 appears only as the timer, a tab's title, the welcome line and today's postcard title.",
         "section": "typography"
       },
       {
         "name": "The Locale Casing Rule",
-        "body": "Text is never cased by a style (`textTransform`); casing goes through the locale's own `toLocaleUpperCase`, so a Turkish i becomes İ, not I.",
+        "body": "Text is never cased by a style (`textTransform`); casing goes through the locale's own `toLocaleUpperCase`, so a Turkish i becomes İ, not I. `scripts/i18n/check-raw-text.mjs` fails on either style, and on any text a person reads written into the source instead of `en.json` and `tr.json`.",
         "section": "typography"
       },
       {
         "name": "The Only Stickers Lift Rule",
-        "body": "Chrome is flat at rest. If a control or card needs a shadow to be found, its tone or edge is wrong. Stickers lift wherever they appear: the pose stickers, today's row, the postcards.",
+        "body": "Chrome is flat at rest. If a control or card needs a shadow to be found, its tone or edge is wrong. Stickers lift wherever they appear: the pose stickers, today's row, the postcards, the tour's pair.",
         "section": "elevation"
       },
       {

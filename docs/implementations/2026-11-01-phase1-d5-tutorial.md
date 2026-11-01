@@ -1,7 +1,7 @@
 ---
 id: IMPL-2026-11-01-phase1-d5-tutorial
 title: "Phase 1 D5: the general tutorial, Pomo & Doro show you around"
-status: in-progress
+status: done
 date: 2026-11-01
 owner: Mert Efe Şensoy
 related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-d1-classic, IMPL-2026-10-30-phase1-d4-sounds, IMPL-2026-11-01-phase1-d4-wiring, DESIGN-WORKFLOW, SRS]
@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-d1-classic, IMP
 
 # 2026-11-01 — Phase 1 D5: the general tutorial
 
-**Status:** In progress. The brief is confirmed, the direction contract approved, the assets are on this branch, the tutorial is built (§3.8) and its four reviews pass (§3.9) `break-ui`'s breaks are fixed (§3.10), and polish and the copy review are done (§3.11), all 2026-11-01. The device check passed on build 58, sounds included (§3.12). FINISH is next, in [Stage E](2026-11-01-phase1-stage-e.md) S2.
+**Status:** Done, 2026-11-02. The verdict is ship (§3.13), and DESIGN.md records the tour: the "Tutorial (first run)" motion row, the tokens `scrim`, `scrimStrong`, `pomoInk` and `doroInk`, and a section of its own ([Stage E](2026-11-01-phase1-stage-e.md) S2). The owner closed Stage D on 2026-11-02 ("we can close it"). The brief is confirmed, the direction contract approved, the assets are on this branch, the tutorial is built (§3.8) and its four reviews pass (§3.9) `break-ui`'s breaks are fixed (§3.10), and polish and the copy review are done (§3.11), all 2026-11-01. The device check passed on build 58, sounds included (§3.12).
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.9, added by the owner on 2026-11-01. This record holds what happens: each step's output, the owner's gates and the measurements.
 
@@ -32,7 +32,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 | 7. `break-ui` in Turkish at AX5 | **Done**, 2026-11-01 (§3.10): 3 Broken and 1 Ugly, all fixed with the owner's two choices (a break line; the Turkish rephrased). The worst case is a Jest fixture, `tourWorstCase.test.tsx` |
 | 8. Polish, then the copy review | **Done**, 2026-11-01 (§3.11): polish found nothing to change; the copy review passed 76 of 77, with the owner's one change applied |
 | 9. Device check | **Passed on build 58**, 2026-11-01, the owner: "All visual tests are passed" and "Yes, sounds passed" (§3.12). Build 57 had stuck on the Stats step, under the ad banner (fixed in `03e86ea`) |
-| FINISH: the finish review, its verdict, DESIGN.md's "Tutorial (first run)" row | **Verdict: ship**, 2026-11-01 (§3.13). Round 1 asked for captures; the owner waived them ("Skip, as in D2"), so the verdict is their device check on build 58. DESIGN.md's row follows |
+| FINISH: the finish review, its verdict, DESIGN.md's "Tutorial (first run)" row | **Verdict: ship**, 2026-11-01 (§3.13). Round 1 asked for captures; the owner waived them ("Skip, as in D2"), so the verdict is their device check on build 58. DESIGN.md records the tour (2026-11-02) |
 
 ## 1. Problem / Motivation
 

@@ -59,5 +59,9 @@ Both are owner decisions from 2026-10-29.
 - [expo-audio for sound, not expo-av](0003-expo-audio.md)
 - [The Same Page mark, Pomo & Doro as The Colon's two round characters, and no tomato anywhere](0047-same-page-mark-and-the-colon-characters.md)
 - [Architecture decision records](README.md)
+- ["Phase 1 D4: the SoundCraft sound set, and Fly's loop re-encoded"](../../implementations/2026-10-30-phase1-d4-sounds.md)
 - ["Phase 1 Stage C (C1–C4): the Sticker Diary design system, display face, Classic brief and art"](../../implementations/2026-10-30-phase1-stage-c-design.md)
+- ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](../../implementations/2026-10-30-phase1-stage-d.md)
+- ["Phase 1 D4, wired in: D4's sounds merged into Stage D and played by Classic"](../../implementations/2026-11-01-phase1-d4-wiring.md)
+- ["Phase 1 D5, the assets: Pomo & Doro's tour expressions and their babble"](../../implementations/2026-11-01-phase1-d5-assets.md)
 <!-- backlinks:end -->

@@ -1,0 +1,24 @@
+[
+ {
+  "command": "select.all",
+  "params": {}
+ },
+ {
+  "command": "document.save",
+  "params": {
+   "path": "C:/vp-art/art/vc/pomo-tour-mouth-grin.vectorcraft"
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/illustration/pomo-tour-mouth-grin.svg",
+   "format": "svg",
+   "decimals": 2,
+   "outlineText": true,
+   "minify": true,
+   "objectIds": "minimal",
+   "metadata": false
+  }
+ }
+]

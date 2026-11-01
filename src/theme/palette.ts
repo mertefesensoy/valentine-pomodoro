@@ -27,3 +27,6 @@ export const MidnightPlum = theme('midnightPlum');
 
 /** Every foreground/background pair the UI draws, with its floor; checked in both themes. */
 export const contrastPairs: readonly ContrastPair[] = palette.pairs;
+
+/** The dims (D5): a translucent token over a lit colour, and how far it must set it back. Not WCAG floors. */
+export const dimPairs: readonly ContrastPair[] = palette.dims;

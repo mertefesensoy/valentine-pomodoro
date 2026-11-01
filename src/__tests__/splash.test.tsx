@@ -52,11 +52,11 @@ describe('the splash', () => {
 
         await renderRouter('./app', { initialUrl: '/' });
         await act(async () => {});
-        expect(screen.queryByText('Start')).toBeNull();
+        expect(screen.queryByText('Start focus')).toBeNull();
         expect(SplashScreen.hideAsync).not.toHaveBeenCalled();
 
         await act(async () => finishRead([]));
-        expect(screen.getByText('Start')).toBeOnTheScreen();
+        expect(screen.getByText('Start focus')).toBeOnTheScreen();
         expect(SplashScreen.hideAsync).toHaveBeenCalledTimes(1);
     });
 
@@ -64,7 +64,7 @@ describe('the splash', () => {
         await ensureMigrated();
 
         await renderRouter('./app', { initialUrl: '/' });
-        expect(screen.getByText('Start')).toBeOnTheScreen();
+        expect(screen.getByText('Start focus')).toBeOnTheScreen();
         expect(SplashScreen.hideAsync).toHaveBeenCalledTimes(1);
     });
 });

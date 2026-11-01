@@ -1,26 +1,41 @@
-import { View, Text, Pressable, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator, useWindowDimensions, type LayoutChangeEvent } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { useTimer } from "../hooks/useTimer";
-import LoveNoteCard from "../components/LoveNoteCard";
-import GoalReachedPopup from "../components/GoalReachedPopup";
-import { CircularProgress } from "../components/CircularProgress";
-import TimerText from "../components/TimerText";
-import CalmBackground from "../components/CalmBackground";
-import ModeSwitcher from "../components/ModeSwitcher";
-import { isFlyModeAvailable } from "../constants/features";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ComponentRef } from "react";
+import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
+import { useTimer } from "../hooks/useTimer";
+import { applyUiAudioMode, loadUiSounds, playUiSound } from "../audio/uiSounds";
+import { runAfterFirstFrame } from "../startup/deferredStartup";
+import TimerText from "../components/TimerText";
+import { Icon } from "../components/icons/Icon";
+import { modes as modesGlyph } from "../components/icons/art/modes";
+import { PressableScale } from "../components/ui/PressableScale";
+import { StatusBarScrim } from "../components/ui/StatusBarScrim";
 import { useSessionState } from "../hooks/useSessionClock";
 import { useSlotProgress } from "../hooks/useSlotClock";
 import { useNotesStore } from "../stores/notesStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useStatsStore } from "../stores/statsStore";
 import { useUiStore } from "../stores/uiStore";
+import { useLoveNoteSheet } from "../stores/loveNoteSheetStore";
 import { useTheme } from "../theme/useTheme";
-import { useResponsive } from "../hooks/useResponsive";
+import { type } from "../theme/type";
+import { edgeWidth, minTarget, radius, space } from "../theme/layout";
 import { useScreenFocused } from "../hooks/useScreenFocus";
 import { AdManager } from "../ads/AdManager";
 import { AdPolicy } from "../ads/AdPolicy";
+import { PRESETS, choosePresetPatch, classicLayoutOf, customDurationsOf, presetChoiceOf, type PresetChoice } from "../constants/presets";
+import { language, t } from "../i18n";
+import { getTodayKey } from "../utils/time";
+import { PhaseRing } from "./classic/PhaseRing";
+import { PoseSticker, poseFor } from "./classic/PoseSticker";
+import { SpreadPages } from "./classic/SpreadPages";
+import { TodayStickers, goalCellsLeft, todayLabel } from "./classic/TodayStickers";
+import { ClassicControls } from "./classic/ClassicControls";
+import { useWelcomeGate } from "./welcome/useWelcomeGate";
+import { currentStep, useTourStore } from "./tutorial/tourStore";
+import { useTourBeatHere, useTourGate, useTourReach, useTourScroll } from "./tutorial/useTour";
+import type { TourTargetSpec } from "./tutorial/TourLayer";
 
 // Fly Mode is split out (Phase 1 task B1): FlyModeScreen and everything only it
 // imports (react-native-maps, FlySheet, Fly's audio) are evaluated the first time
@@ -29,39 +44,81 @@ import { AdPolicy } from "../ads/AdPolicy";
 // isFlyModeAvailable() (iOS), so elsewhere the module is never loaded at all.
 const FlyModeScreen = lazy(() => import("./FlyModeScreen"));
 
+// The tour's layer (Phase 1 D5) is split out the same way: its art, its voices and its motion are
+// evaluated when a tour first reaches this screen, never on a cold start (tutorial brief §4).
+const TourLayer = lazy(() => import("./tutorial/TourLayer"));
+
 // Shown while FlyModeScreen loads on the first switch: a plain page in the
 // theme's background colour, so the switch doesn't flash an empty grey map.
 function FlyModePlaceholder() {
-  const { colors } = useTheme();
+  const { tokens } = useTheme();
   return (
     <View
-      style={[styles.flyPlaceholder, { backgroundColor: colors.bg }]}
-      accessibilityLabel="Loading Fly Mode"
+      style={[styles.flyPlaceholder, { backgroundColor: tokens.page }]}
+      accessibilityLabel={t('fly.loading')}
     >
-      <ActivityIndicator color={colors.accent} />
+      <ActivityIndicator color={tokens.primaryInk} />
     </View>
   );
 }
 
+// AX1 and up (iOS reports a font scale of about 1.65 there): Facing Pages stacks its pages.
+const STACK_FONT_SCALE = 1.6;
+// Compact height (an iPhone in landscape): the timer leads and a column trails (brief §6, HIG M-1).
+const COMPACT_HEIGHT = 500;
+// Regular width (iPad, wide windows): both layouts centre at a readable width.
+const READABLE_WIDTH = 560;
+// The Ring's floor when it sizes to the height left (finish review fix 7): below it the page
+// scrolls rather than shrink the timer further (an iPhone SE at default text size).
+const MIN_RING = 200;
+// The Ring page's fixed spacing around its rows: the page's padding under the status bar (8) and
+// at its foot (16), the column's two gaps and the centre's two (16 each).
+const RING_PAGE_CHROME = space.s + space.l + space.l * 4;
+// Before the rows are first measured: their heights at the default text size with the default
+// goal (the phase line, the partner strip, one row of today's cells, the controls), from build
+// 53's captures, so the first frame lands within a few points of the measured one.
+const RING_ROWS_ESTIMATE = 346;
+
+/** The wall-clock minute a running phase ends in, seconds dropped (Stage D plan §4.6). */
+function clockMinute(epochMs: number): string {
+  return new Date(epochMs).toLocaleTimeString(language === "tr" ? "tr-TR" : "en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+/**
+ * Classic, the focus page (Phase 1 D1; brief `.impeccable/surfaces/app-tabs-index-tsx.md`).
+ * Two layouts on one component set: The Ring (default) and Facing Pages, chosen by the
+ * additive `classicLayout` setting. The timer is the only large type; Pomo & Doro sit in the
+ * partner slot; completions press stickers onto today's row (the one delight). Fly is its own
+ * screen (Phase 4b) and keeps its switcher.
+ *
+ * Render budget (Reassure, NFR-PERF-003): this screen renders on session events only. The time
+ * is <TimerText>'s, the ring's and the spine bar's progress run on the UI thread, and every new
+ * piece reads a value that changes on an event (a phase change, a completion, a setting).
+ */
 export default function TimerScreen() {
-  const { height, isLandscape, isTablet, isShortViewport } = useResponsive();
+  const { width, height, fontScale } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const settings = useSettingsStore((s) => s.settings);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
   const incrementFocus = useStatsStore((s) => s.incrementFocus);
   const goalHitPulse = useStatsStore((s) => s.goalHitPulse);
   const clearGoalHitPulse = useStatsStore((s) => s.clearGoalHitPulse);
+  // Today's stickers and goal: both change only when a focus completes.
+  const todayCount = useStatsStore((s) => s.days[getTodayKey()]?.focusSessions ?? 0);
+  const goalHitToday = useStatsStore((s) => Boolean(s.days[getTodayKey()]?.goalHit));
+  // Today's goal and minutes, for the dashed cells still to fill (D1 record §4.3).
+  const goalToday = useStatsStore((s) => s.days[getTodayKey()]?.goalMinutes ?? s.goalMinutes);
+  const minutesToday = useStatsStore((s) => s.days[getTodayKey()]?.focusMinutes ?? 0);
   const pickRandomNote = useNotesStore((s) => s.pickRandomNote);
   const activeMode = useUiStore((s) => s.activeMode);
-  const setActiveMode = useUiStore((s) => s.setActiveMode);
   // Session state and actions: re-renders on session changes, not each second.
   // The time is <TimerText>'s and the ring's (Phase 1 B4).
   const session = useSessionState();
   // The tab is never hidden or frozen (B6 fix, record §9), so what must happen
-  // in front of the user waits until Timer is focused: the celebration, the
-  // love note (both start auto-dismiss timers) and the interstitial. Before,
-  // the frozen tab held them (B4 record §3.5). Always true outside a navigator.
+  // in front of the user waits until Timer is focused: the goal moment, the
+  // love note and the interstitial. Always true outside a navigator.
   const focused = useScreenFocused();
-  const { colors, isDark } = useTheme();
+  const { tokens, isDark } = useTheme();
 
   // Interstitials the ad policy has allowed, one per completion it said yes
   // to. The effect further down shows one when none is showing yet and no
@@ -113,21 +170,52 @@ export default function TimerScreen() {
     prevActiveModeRef.current = activeMode;
     if (prev !== 'fly' && activeMode === 'fly') {
       session.switchTo('fly');
+      // Choosing Fly mid-tour ends the tour: it never shows over Fly, and Settings can replay it (D5).
+      useTourStore.getState().finish();
     } else if (prev === 'fly' && activeMode !== 'fly') {
       session.switchTo('pomodoro');
+      // Fly's ambience set an audio mode that plays through the silent switch; the UI sounds
+      // respect it (D4).
+      applyUiAudioMode();
     }
   }, [activeMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // The overlays after a completed focus, in order: the goal celebration, then
-  // the love note, then the interstitial (FR-ADS-001, FR-NTE-001). Derived from
-  // state, not synchronised by effects (Phase 1 B5, react-hooks/set-state-in-effect).
-  // - The celebration is the stats store's pulse itself: set only when a
+  // The UI sounds (D4, FR-SET-004): loaded after the first frame, never on the cold-start path
+  // (NFR-PERF-001), with the audio session they need. A launch straight into Fly leaves Fly's own
+  // mode in place; coming back sets this one (above).
+  useEffect(
+    () =>
+      runAfterFirstFrame('sounds.load', () => {
+        if (useUiStore.getState().activeMode !== 'fly') applyUiAudioMode();
+        loadUiSounds();
+      }),
+    [],
+  );
+
+  // The moments after a completed focus, in order: the goal moment (inline on
+  // today's row), then the love note (a native sheet), then the interstitial
+  // (FR-ADS-001, FR-NTE-001). Derived from state, not synchronised by effects
+  // (Phase 1 B5, react-hooks/set-state-in-effect).
+  // - The goal moment is the stats store's pulse itself: set only when a
   //   completion first reaches a day's goal (goalHit is sticky, so never twice
-  //   for one day), cleared when the popup closes.
-  // - A love note waits while it shows: the overlays below render the note
-  //   only when no celebration is up, so the card mounts, and starts its own
-  //   8 s timer, after the celebration closes.
+  //   for one day), cleared when the moment has played (1.4 s).
+  // - The love note waits for the goal moment, then goes to the /love-note
+  //   sheet; the sheet reports back when it closes, however it closes.
   const goalPopup = goalHitPulse;
+
+  const loveNoteDue = focused && !goalPopup && showLoveNoteCard && !!lastLoveNote;
+  useEffect(() => {
+    if (!loveNoteDue || useLoveNoteSheet.getState().note !== null) return;
+    useLoveNoteSheet.getState().open(lastLoveNote!);
+    router.push("/love-note");
+  }, [loveNoteDue, lastLoveNote]);
+  useEffect(
+    () =>
+      useLoveNoteSheet.subscribe((s, prev) => {
+        if (prev.note !== null && s.note === null) dismissLoveNote();
+      }),
+    [dismissLoveNote],
+  );
 
   // The interstitial: shown once no overlay is up, for requests not yet
   // served. Marking the requests served before showing means a re-run of the
@@ -145,19 +233,20 @@ export default function TimerScreen() {
     });
   }, [adRequests, goalPopup, showLoveNoteCard, focused]);
 
-  // Compact spacing flag — reduce margins on small landscape viewports
-  const tightSpacing = isLandscape || isShortViewport;
-
-  // Dynamic progress ring size
-  const ringSize = useMemo(() => {
-    if (isLandscape) {
-      return isTablet ? 320 : Math.min(height * 0.7, 280);
+  // The sticker placement's success haptic and its completion sound, on the frame its sticker
+  // lands: a completion while Timer is in front (HIG D1-L1: once per completion; each follows its
+  // Settings switch). The sound opens with its pop, the sticker pressed on, so it starts with the
+  // placement spring, not after it (D4 record §8).
+  const prevCountRef = useRef(todayCount);
+  useEffect(() => {
+    const grew = todayCount > prevCountRef.current;
+    prevCountRef.current = todayCount;
+    if (!grew || !focused) return;
+    playUiSound('complete');
+    if (useSettingsStore.getState().settings.haptics) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     }
-    if (isTablet) {
-      return 300;
-    }
-    return 260;
-  }, [isLandscape, isTablet, height]);
+  }, [todayCount, focused]);
 
   // Calculate progress for current phase
   const totalMs = useMemo(() => {
@@ -174,244 +263,433 @@ export default function TimerScreen() {
   // (Phase 1 B4): it moves every frame with no render of this screen.
   const ringProgress = useSlotProgress('pomodoro', totalMs);
 
-  // Phase label
-  const getPhaseLabel = () => {
-    switch (phase) {
-      case 'focus':
-        return 'Focus';
-      case 'shortBreak':
-        return 'Short Break';
-      case 'longBreak':
-        return 'Long Break';
-    }
-  };
+  const paused = !isRunning && remainingMs !== null && remainingMs < totalMs;
+  const idle = !isRunning && !paused;
 
-  // Primary button label
-  const getPrimaryButtonLabel = () => {
-    if (isRunning) return 'Pause';
-    if (remainingMs < (phase === 'focus' ? settings.durations.focus * 60 * 1000 : settings.durations.shortBreak * 60 * 1000)) {
-      return 'Resume';
-    }
-    return 'Start';
-  };
+  // The one-time v1.4 welcome, on a calm entry only: Timer in front, idle, in Classic, with
+  // nothing pending after a completion (welcome brief §4; HIG W-H1).
+  useWelcomeGate(focused && idle && activeMode !== 'fly' && !goalPopup && !showLoveNoteCard);
+  // The tour (D5): it follows the welcome on the same calm entry, and shows here while its beat is
+  // the Timer's, this tab is in front and Classic is up (never over Fly). A tab tour step moves on
+  // when its tab comes to the front.
+  useTourGate(focused && idle && activeMode !== 'fly' && !goalPopup && !showLoveNoteCard);
+  useTourReach('timer', focused);
+  const tourHere = useTourBeatHere('timer') && focused && activeMode !== 'fly';
+  const isBreak = phase !== 'focus';
+  const phaseLabel = t(`timer.phase.${phase}`);
+  const sessionN = completedFocusCountInCycle + 1;
+  const cycleTotal = settings.longBreakEvery;
 
-  // Primary button action
+  const primaryLabel = isRunning
+    ? t('controls.pause')
+    : paused
+      ? t('controls.resume')
+      : phase === 'focus'
+        ? t('controls.startFocus')
+        : t('controls.startBreak');
+
+  // The haptic is the pill's own, on press-in (PressableScale). Starting a phase plays its sound
+  // (D4): focus start rises, break start steps back down. Pause and Resume play none.
   const handlePrimaryAction = () => {
-    // Light haptic on button press
-    if (settings.haptics) {
-      Haptics.selectionAsync().catch(() => { }); // Catch failures (e.g. web)
-    }
-
     if (isRunning) {
       pause();
     } else if (remainingMs !== null && remainingMs < totalMs) {
       resume();
     } else {
+      // The tour's layer closes before a session starts, so the first Start's notification prompt
+      // lands on the Timer (T-3).
+      useTourStore.getState().finish();
+      playUiSound(phase === 'focus' ? 'focusStart' : 'breakStart');
       start();
     }
   };
 
-  // Reset with confirmation
-  const handleReset = () => {
-    if (Platform.OS === 'web') {
-      const confirmed = window.confirm('Are you sure you want to reset the timer?');
-      if (confirmed) {
-        reset();
-      }
-    } else {
-      Alert.alert(
-        'Reset Timer',
-        'Are you sure you want to reset the timer?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Reset', style: 'destructive', onPress: () => reset() },
-        ]
-      );
+  // Skip: a break skips at once; a focus running past its first minute asks
+  // first, because the rest of it is lost (critique P1, HIG B-M1; PRODUCT
+  // principle 2, never punish). The elapsed time is read from the slot's endAt
+  // at press time, since this screen doesn't re-render each second.
+  const handleSkip = () => {
+    const running = session.state.pomodoro;
+    const elapsedMs = running?.isRunning && running.endAt ? totalMs - (running.endAt - Date.now()) : 0;
+    if (phase !== 'focus' || !isRunning || elapsedMs < 60_000) {
+      skip();
+      return;
     }
+    if (Platform.OS === 'web') {
+      if (window.confirm(t('controls.skipConfirm.title'))) skip();
+      return;
+    }
+    Alert.alert(t('controls.skipConfirm.title'), t('controls.skipConfirm.message'), [
+      { text: t('controls.skipConfirm.cancel'), style: 'cancel' },
+      { text: t('controls.skipConfirm.skip'), style: 'destructive', onPress: () => skip() },
+    ]);
   };
 
-  // Content components
-  const timerContent = (
-    <>
-      {/* Header */}
-      <Text style={[
-        styles.header,
-        isTablet && styles.headerTablet,
-        tightSpacing && styles.headerTight,
-        { color: colors.text }
-      ]}>
-        Valentine Pomodoro 💗
+  // Ending a session early: only while paused, behind a native alert with a
+  // destructive button (brief §2).
+  const handleEnd = () => {
+    if (Platform.OS === 'web') {
+      if (window.confirm(t('controls.endConfirm.title'))) reset();
+      return;
+    }
+    Alert.alert(t('controls.endConfirm.title'), t('controls.endConfirm.message'), [
+      { text: t('controls.endConfirm.cancel'), style: 'cancel' },
+      { text: t('controls.endConfirm.end'), style: 'destructive', onPress: () => reset() },
+    ]);
+  };
+
+  // 25/5, 50/10, 90/20 and Custom, the durations typed in Settings (build 48, F4).
+  const preset = presetChoiceOf(settings);
+  const custom = customDurationsOf(settings);
+  const presetSegments = useMemo(
+    () => [
+      ...PRESETS.map((p) => ({
+        value: p.id as PresetChoice,
+        label: `${p.focus}/${p.shortBreak}`,
+        accessibilityLabel: t('presets.label', { focus: p.focus, rest: p.shortBreak }),
+      })),
+      {
+        value: 'custom' as const,
+        label: t('presets.custom'),
+        accessibilityLabel: t('presets.customLabel', { focus: custom.focus, rest: custom.shortBreak }),
+      },
+    ],
+    [custom.focus, custom.shortBreak],
+  );
+  const presetKey = preset === 'custom'
+    ? t('presets.customKey', { focus: custom.focus, rest: custom.shortBreak })
+    : t('presets.key');
+  // At the tour's first step, pressing a preset is the step's own way on, 900 ms after the last
+  // press, so a comparison isn't cut short (D5 review C-2). VoiceOver's adjusting never moves it on;
+  // Next does (H-3).
+  const presetMoveOn = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (presetMoveOn.current) clearTimeout(presetMoveOn.current);
+  }, []);
+  const choosePreset = (choice: PresetChoice, moveOn = true) => {
+    updateSettings(choosePresetPatch(useSettingsStore.getState().settings, choice));
+    const run = useTourStore.getState().run;
+    if (!moveOn || !run || currentStep(run)?.id !== 'presets') return;
+    if (presetMoveOn.current) clearTimeout(presetMoveOn.current);
+    presetMoveOn.current = setTimeout(() => {
+      const now = useTourStore.getState().run;
+      if (now && currentStep(now)?.id === 'presets') useTourStore.getState().next();
+    }, 900);
+  };
+
+  // "Break at 10:25": the minute the running phase ends, from its endAt, so it
+  // changes on a session event, never each second. Paused, a quiet stamp instead.
+  const endAt = session.state.pomodoro?.endAt ?? null;
+  const nextLine = isRunning && endAt
+    ? t(phase === 'focus' ? 'timer.nextChange.break' : 'timer.nextChange.focus', { time: clockMinute(endAt) })
+    : null;
+
+  const timerLabel = (seconds: number | null) => {
+    const s = seconds ?? Math.round(totalMs / 1000);
+    return t('timer.a11y.remaining', {
+      minutes: t('timer.a11y.minutes', { count: Math.floor(s / 60) }),
+      seconds: t('timer.a11y.seconds', { count: s % 60 }),
+      phase: phaseLabel,
+      n: sessionN,
+      total: cycleTotal,
+    });
+  };
+
+  const layout = classicLayoutOf(settings);
+  const compactHeight = height < COMPACT_HEIGHT;
+  // Landscape (compact height) uses the width between the side insets; the readable cap is for a
+  // portrait column. Capped, the face took most of 512 pt and the trailing column got about 80 pt:
+  // the partner line vanished, today's cells stacked one a line, and the column grew so tall the
+  // face, centred against it, began below the screen (build 53 device check, D2 record §3.20).
+  const pageWidth = compactHeight
+    ? width - insets.left - insets.right - space.xl * 2
+    : Math.min(width, READABLE_WIDTH) - space.xl * 2;
+  // Landscape: the face takes half the page and the whole height between the insets and the page's
+  // padding; the phase line moves into the trailing column, so nothing sits above the face.
+  const compactFace = {
+    width: (pageWidth - space.xl) / 2,
+    height: height - insets.top - insets.bottom - space.s - space.l,
+  };
+  const trailingWidth = pageWidth - compactFace.width - space.xl;
+  const pose = poseFor(phase, isRunning);
+  // The partner line says what the pair is doing now (critique P3, HIG B-L1).
+  const partnerLine = isRunning ? (isBreak ? 'partner.break' : 'partner.studying') : paused ? 'partner.paused' : 'partner.ready';
+
+  const subLine = paused ? (
+    <View style={[styles.stamp, { borderColor: tokens.primaryInk }]}>
+      <Text style={[styles.stampText, { color: tokens.primaryInk }]} maxFontSizeMultiplier={1.4}>
+        {t('timer.paused')}
       </Text>
+    </View>
+  ) : nextLine ? (
+    <Text style={[styles.nextLine, { color: tokens.inkSoft }]} maxFontSizeMultiplier={1.4}>
+      {nextLine}
+    </Text>
+  ) : null;
 
-      {/* Status chip */}
-      <View style={[
-        styles.statusChip,
-        tightSpacing && styles.statusChipTight,
-        { backgroundColor: colors.surfaceTint }
-      ]}>
-        <Text style={[styles.statusText, isTablet && styles.statusTextTablet, { color: colors.accent }]}>
-          {getPhaseLabel()}
-        </Text>
-      </View>
-
-      {/* Progress ring + timer display */}
-      <View style={[styles.progressContainer, tightSpacing && styles.progressContainerTight]}>
-        <CircularProgress
-          size={ringSize}
-          progress={ringProgress}
-          trackColor={colors.surfaceTint}
-          progressColor={colors.accent}
-        />
-        <View style={styles.timerOverlay}>
-          {/* The only part of this screen that re-renders each second (Phase 1 B4) */}
-          <TimerText
-            kind="pomodoro"
-            idleMs={totalMs}
-            style={[
-              styles.timer,
-              isTablet && styles.timerTablet,
-              isLandscape && styles.timerLandscape,
-              { color: colors.text }
-            ]}
-          />
-        </View>
-      </View>
-
-      {/* Cycle indicator */}
-      <Text style={[
-        styles.cycleText,
-        isTablet && styles.cycleTextTablet,
-        tightSpacing && styles.cycleTextTight,
-        { color: colors.textMuted }
-      ]}>
-        Session {completedFocusCountInCycle + 1} of {settings.longBreakEvery}
-      </Text>
-    </>
+  const timer = (fontSize: number) => (
+    // The only part of this screen that re-renders each second (Phase 1 B4)
+    <TimerText
+      kind="pomodoro"
+      idleMs={totalMs}
+      fitWidth
+      accessibilityLabelFor={timerLabel}
+      style={[type.timer, styles.timer, { fontSize, color: tokens.ink }]}
+    />
   );
 
-  const controlsContent = (
-    <>
-      {/* Primary action button */}
-      <Pressable
-        style={({ pressed }) => [
-          styles.primaryButton,
-          { backgroundColor: colors.accent },
-          isTablet && styles.primaryButtonTablet,
-          pressed && { transform: [{ scale: 0.98 }] },
-        ]}
-        onPress={handlePrimaryAction}
-      >
-        <Text style={[styles.primaryButtonText, isTablet && styles.primaryButtonTextTablet]}>
-          {getPrimaryButtonLabel()}
-        </Text>
-      </Pressable>
+  // Portrait, below the AX sizes, the Ring takes the height its neighbours leave: the ScrollView's
+  // visible height, less the page's spacing and the four rows around the ring (finish review fix
+  // 7). Those rows never depend on the ring, so the sum settles in one pass whatever order their
+  // layouts arrive in. Build 51's slot measured its own height instead: inside the ScrollView flex
+  // could hand it only spare height, there was none, and it reported the ring back to itself, so
+  // the ring stayed at its cap and pushed Skip behind the tab bar (D1 record §3.21). The rows are
+  // measured in every layout, so switching to the Ring finds them; only the Ring uses them. At AX
+  // sizes (where the page scrolls by design) and in landscape, the fixed rules.
+  const ringFits = layout === 'ring' && !compactHeight && fontScale < STACK_FONT_SCALE;
+  // The goal moment shows for 1.4 s under today's row, during the sticker placement. The ring
+  // holds its size through it: today's row isn't re-measured, and the page scrolls for that moment
+  // rather than the timer shrinking and growing back.
+  const goalMomentShowing = !!goalPopup && focused;
 
-      {/* Secondary actions */}
-      <View style={styles.secondaryActions}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.secondaryButton,
-            { borderColor: colors.accentPurple },
-            isTablet && styles.secondaryButtonTablet,
-            pressed && { transform: [{ scale: 0.98 }] },
-          ]}
-          onPress={skip}
-        >
-          <Text style={[styles.secondaryButtonText, isTablet && styles.secondaryButtonTextTablet, { color: colors.accentPurple }]}>
-            Skip
-          </Text>
-        </Pressable>
-        <Pressable
-          style={({ pressed }) => [
-            styles.secondaryButton,
-            { borderColor: colors.accentPurple },
-            isTablet && styles.secondaryButtonTablet,
-            pressed && { transform: [{ scale: 0.98 }] },
-          ]}
-          onPress={handleReset}
-        >
-          <Text style={[styles.secondaryButtonText, isTablet && styles.secondaryButtonTextTablet, { color: colors.accentPurple }]}>
-            Reset
-          </Text>
-        </Pressable>
+  // The tour's openings and how the page scrolls one clear of the AX panel (D5, T-2).
+  const presetsRef = useRef<ComponentRef<typeof View>>(null);
+  const todayRef = useRef<ComponentRef<typeof View>>(null);
+  const modesRef = useRef<ComponentRef<typeof View>>(null);
+  const startRef = useRef<ComponentRef<typeof View>>(null);
+  const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
+  const { track: trackScroll, scrollBy } = useTourScroll(tourHere, (y) => scrollRef.current?.scrollTo({ y, animated: true }));
+  const rows = useRef({ visible: 0, top: 0, partner: 0, today: 0, controls: 0 });
+  const [ringRoom, setRingRoom] = useState<number | null>(null);
+  // Called from the rows' onLayout only, never during render.
+  const measured = (row: keyof typeof rows.current, e: LayoutChangeEvent) => {
+    if (row === 'today' && goalMomentShowing) return;
+    rows.current[row] = e.nativeEvent.layout.height;
+    const { visible, top, partner, today, controls } = rows.current;
+    if (ringFits && visible && top && partner && today && controls) {
+      setRingRoom(Math.floor(visible - insets.top - RING_PAGE_CHROME - top - partner - today - controls));
+    }
+  };
+  const ringCap = Math.min(pageWidth * (fontScale >= STACK_FONT_SCALE ? 0.66 : 0.86), 340);
+  const ringSize = compactHeight
+    ? Math.min(compactFace.height, compactFace.width)
+    : ringFits
+      ? Math.max(
+          MIN_RING,
+          Math.min(ringCap, ringRoom ?? height - insets.top - insets.bottom - RING_PAGE_CHROME - RING_ROWS_ESTIMATE),
+        )
+      : Math.min(ringCap, height * 0.36);
+
+  const face =
+    layout === 'spread' ? (
+      <SpreadPages
+        tokens={tokens}
+        width={compactHeight ? compactFace.width : pageWidth}
+        stacked={fontScale >= STACK_FONT_SCALE}
+        pose={pose}
+        progress={ringProgress}
+        isBreak={isBreak}
+        line={t(partnerLine)}
+      >
+        {timer(56)}
+        {subLine}
+      </SpreadPages>
+    ) : (
+      <PhaseRing
+        size={ringSize}
+        progress={ringProgress}
+        isBreak={isBreak}
+        trackColor={tokens.ringTrack}
+        focusColor={tokens.ringFocus}
+        breakColor={tokens.ringBreak}
+      >
+        {timer(Math.round(ringSize * 0.25))}
+        {subLine}
+      </PhaseRing>
+    );
+
+  // The partner slot: on the Ring, one paper field with the pair and their line, as the C4
+  // sketch draws it (finish review fix 5); Facing Pages carries it on its right page (fix 4).
+  const partner = layout === 'ring' ? (
+    <View
+      style={[styles.partner, { backgroundColor: tokens.paper, borderColor: tokens.edge }]}
+      onLayout={(e) => measured('partner', e)}
+      testID="partner-strip"
+    >
+      <View style={styles.pair} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <PoseSticker who="pomo" pose={pose} width={40} shadow={tokens.stickerShadow} />
+        <View style={styles.pairOverlap}>
+          <PoseSticker who="doro" pose={pose} width={40} shadow={tokens.stickerShadow} />
+        </View>
       </View>
-    </>
+      <Text style={[styles.partnerLine, { color: tokens.ink }]}>{t(partnerLine)}</Text>
+    </View>
+  ) : null;
+
+  const sessionsToGoal = goalCellsLeft({
+    goalMinutes: goalToday,
+    minutesToday,
+    focusMinutes: settings.durations.focus,
+    goalHit: goalHitToday,
+  });
+  const today = (
+    <TodayStickers
+      tokens={tokens}
+      count={todayCount}
+      goalHit={goalHitToday}
+      sessionsToGoal={sessionsToGoal}
+      goalStreak={goalPopup && focused ? goalPopup.newStreak : null}
+      onGoalMomentDone={clearGoalHitPulse}
+      animate={focused}
+      rowWidth={compactHeight ? trailingWidth : undefined}
+      onLayout={(e) => measured('today', e)}
+      rowRef={todayRef}
+    />
+  );
+
+  const controls = (
+    <ClassicControls
+      tokens={tokens}
+      idle={idle}
+      paused={paused}
+      primaryLabel={primaryLabel}
+      onPrimary={handlePrimaryAction}
+      onSkip={handleSkip}
+      onEnd={handleEnd}
+      presets={presetSegments}
+      preset={preset}
+      presetKey={presetKey}
+      onPreset={choosePreset}
+      cycleDone={completedFocusCountInCycle}
+      cycleLength={cycleTotal}
+      onLayout={(e) => measured('controls', e)}
+      presetsRef={presetsRef}
+      primaryRef={startRef}
+    />
+  );
+
+  // The tour's four openings here, each acting as its control for VoiceOver (T-1).
+  const presetIndex = presetSegments.findIndex((s) => s.value === preset);
+  const stepPreset = (by: number) => {
+    const next = presetSegments[presetIndex + by];
+    if (next) choosePreset(next.value, false);
+  };
+  const tourTargets: Partial<Record<'presets' | 'today' | 'modes' | 'start', TourTargetSpec>> = {
+    presets: {
+      ref: presetsRef,
+      radius: radius.m,
+      a11y: {
+        label: t('tour.presetsLabel'),
+        role: 'adjustable',
+        value: presetSegments[presetIndex]?.accessibilityLabel,
+        onIncrement: () => stepPreset(1),
+        onDecrement: () => stepPreset(-1),
+      },
+    },
+    today: { ref: todayRef, radius: radius.m, a11y: { label: todayLabel(todayCount, sessionsToGoal), role: 'text' } },
+    modes: { ref: modesRef, radius: minTarget / 2, a11y: { label: t('modes.button'), role: 'button', onActivate: () => router.push('/modes') } },
+    start: { ref: startRef, radius: 28, a11y: { label: primaryLabel, role: 'button', onActivate: handlePrimaryAction } },
+  };
+
+  const topRow = (
+    <View style={styles.topRow} onLayout={(e) => measured('top', e)} testID="classic-top-row">
+      <Text style={styles.phaseLine} maxFontSizeMultiplier={1.6} accessibilityRole="header">
+        <Text style={{ color: tokens.ink }}>{phaseLabel}</Text>
+        <Text style={{ color: tokens.inkSoft }}>
+          {' · '}
+          {t('timer.session', { n: sessionN, total: cycleTotal })}
+        </Text>
+      </Text>
+      <View ref={modesRef} collapsable={false}>
+        <PressableScale
+          onPress={() => router.push('/modes')}
+          haptic={false}
+          accessibilityLabel={t('modes.button')}
+          style={styles.modeButton}
+        >
+          <Icon glyph={modesGlyph} size={24} color={tokens.ink} />
+        </PressableScale>
+      </View>
+    </View>
   );
 
   return (
     <View style={[
       styles.container,
-      activeMode === 'fly' ? styles.containerFly : { backgroundColor: colors.bg },
-      // Inside a native tab the bottom inset includes the tab bar (Phase 1 B6).
+      activeMode === 'fly' ? styles.containerFly : { backgroundColor: tokens.page },
+      // Inside a native tab the bottom inset includes the tab bar (Phase 1 B6),
+      // so the controls clear the floating bar with nothing added (HIG M-5).
       { paddingBottom: insets.bottom },
     ]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {activeMode === 'fly' ? (
         // ── Fly Mode ─────────────────────────────────────────────────────────
-        // FlyModeScreen fills all space; ModeSwitcher floats over the map. The
-        // switcher sits outside Suspense, so Classic stays reachable while Fly loads.
+        // FlyModeScreen fills all space. Its map controls start with Classic's
+        // Modes button, at the top trailing corner where Classic has it, so the
+        // way in is the way back (build 48 F3, moved there after build 49). It
+        // lives in Fly's control column, which slides clear of the landscape
+        // sheet, so it is inside Suspense: the split second while Fly's module
+        // evaluates has no button (ADR-0031).
         <View style={styles.flyContainer}>
           <Suspense fallback={<FlyModePlaceholder />}>
             <FlyModeScreen />
           </Suspense>
-          <View style={[styles.flyModeSwitcherBar, { top: insets.top + 8 }]}>
-            <ModeSwitcher activeMode={activeMode} onModeChange={setActiveMode} />
-          </View>
         </View>
       ) : (
-        // ── Default Mode ──────────────────────────────────────────────────────
-        // Wrapper holds both the scrollable content and absolute overlays.
-        <View style={styles.defaultModeWrapper}>
-          <CalmBackground enabled={settings.animationsEnabled} />
-
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={[
-              styles.contentWrapper,
-              isTablet && styles.contentWrapperTablet,
-              isLandscape && styles.contentWrapperLandscape,
-              { paddingTop: insets.top + 20 },
-            ]}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Mode switcher — sits above the header; hidden where Fly can't open */}
-            {isFlyModeAvailable() && (
-              <ModeSwitcher activeMode={activeMode} onModeChange={setActiveMode} />
-            )}
-
-            {isLandscape ? (
-              // Landscape: two-column layout
-              <>
-                <View style={styles.leftPane}>
-                  {timerContent}
+        // ── Classic ──────────────────────────────────────────────────────────
+        // VoiceOver order, both layouts (brief §6): the phase line, the timer,
+        // the partner slot, today's row, then the controls.
+        <ScrollView
+          ref={scrollRef}
+          style={styles.scroll}
+          contentContainerStyle={[styles.page, { paddingTop: insets.top + space.s }]}
+          showsVerticalScrollIndicator={false}
+          onLayout={(e) => measured('visible', e)}
+          // While the tour is here: where the page is, room to scroll an opening above the AX panel, and
+          // no drag, which would leave the opening behind (the tour's own scrollTo still moves it).
+          onScroll={tourHere ? trackScroll : undefined}
+          scrollEnabled={!tourHere}
+          scrollEventThrottle={tourHere ? 32 : undefined}
+          contentInset={tourHere ? { bottom: height * 0.5 } : undefined}
+          testID="classic-page"
+        >
+          <View style={[styles.column, { width: pageWidth }]}>
+            {/* Landscape: the face leads at the full height, centred in it, and the phase line
+                heads the trailing column (so VoiceOver reads the timer first there). */}
+            {compactHeight ? (
+              <View style={styles.compact}>
+                <View style={[styles.compactFace, { width: compactFace.width, minHeight: compactFace.height }]}>{face}</View>
+                <View style={styles.trailing}>
+                  {topRow}
+                  {partner}
+                  {today}
+                  {controls}
                 </View>
-                <View style={styles.rightPane}>
-                  {controlsContent}
-                </View>
-              </>
+              </View>
             ) : (
-              // Portrait: stacked layout
               <>
-                {timerContent}
-                {controlsContent}
+                {topRow}
+                <View style={styles.centre}>
+                  {ringFits ? (
+                    <View style={styles.ringSlot} testID="ring-slot">
+                      {face}
+                    </View>
+                  ) : face}
+                  {partner}
+                  {today}
+                </View>
+                {controls}
               </>
             )}
-          </ScrollView>
-
-          {/* Overlays — rendered outside the scroll so they always fill the screen */}
-          <GoalReachedPopup
-            visible={!!goalPopup && focused}
-            newStreak={goalPopup?.newStreak ?? 0}
-            animationsEnabled={settings.animationsEnabled}
-            autoDismissMs={1400}
-            onClose={clearGoalHitPulse}
-          />
-          {focused && !goalPopup && showLoveNoteCard && lastLoveNote && (
-            <LoveNoteCard note={lastLoveNote} onDismiss={dismissLoveNote} />
-          )}
-        </View>
+          </View>
+        </ScrollView>
+      )}
+      {activeMode !== 'fly' && <StatusBarScrim />}
+      {tourHere && (
+        <Suspense fallback={null}>
+          <TourLayer screen="timer" targets={tourTargets} scrollBy={scrollBy} />
+        </Suspense>
       )}
     </View>
   );
@@ -427,7 +705,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'stretch',
   },
-  // Fly mode: map + overlaid mode switcher
+  // Fly mode: the map, its controls (Modes among them) its own
   flyContainer: {
     flex: 1,
   },
@@ -436,161 +714,105 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  flyModeSwitcherBar: {
-    position: 'absolute',
-    // top is inset-aware and set inline
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 100,
-  },
-  // Default mode: fills available space, hosts scrollable content + absolute overlays
-  defaultModeWrapper: {
+  scroll: {
     flex: 1,
-    width: '100%',
   },
-  scrollView: {
-    flex: 1,
-    width: '100%',
-  },
-  contentWrapper: {
-    width: '100%',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+  page: {
     flexGrow: 1,
-    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: space.l,
   },
-  contentWrapperTablet: {
-    maxWidth: 900,
+  column: {
+    flexGrow: 1,
+    gap: space.l,
   },
-  contentWrapperLandscape: {
+  topRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    maxWidth: 1200,
-    gap: 40,
+    minHeight: minTarget,
   },
-  leftPane: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  rightPane: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  progressContainer: {
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  progressContainerTight: {
-    marginVertical: 8,
-  },
-  timerOverlay: {
-    position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  header: {
-    fontSize: 24,
+  phaseLine: {
+    fontSize: 17,
     fontWeight: '600',
-    // color removed - now inline
-    marginBottom: 32,
+    flexShrink: 1,
   },
-  headerTablet: {
-    fontSize: 28,
+  modeButton: {
+    width: minTarget,
+    height: minTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  headerTight: {
-    marginBottom: 10,
+  centre: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space.l,
   },
-  statusChip: {
-    // backgroundColor removed - now inline
-    paddingHorizontal: 24,
-    paddingVertical: 8,
-    borderRadius: 999,
-    marginBottom: 24,
+  compact: {
+    flexGrow: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: space.xl,
   },
-  statusChipTight: {
-    marginBottom: 10,
+  // Landscape's face column: half the page, at least the visible height, the face centred in it.
+  compactFace: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  statusText: {
-    fontSize: 16,
-    fontWeight: '600',
-    // color removed - now inline
-  },
-  statusTextTablet: {
-    fontSize: 18,
+  trailing: {
+    flex: 1,
+    gap: space.l,
   },
   timer: {
-    fontSize: 72,
-    fontWeight: '700',
-    // color removed - now inline
-    marginBottom: 16,
+    textAlign: 'center',
+    alignSelf: 'stretch',
+  },
+  nextLine: {
+    fontSize: 15,
+    fontWeight: '500',
     fontVariant: ['tabular-nums'],
   },
-  timerTablet: {
-    fontSize: 84,
+  stamp: {
+    borderWidth: 1.5,
+    borderRadius: 8,
+    paddingHorizontal: space.s,
+    paddingVertical: 2,
+    transform: [{ rotate: '-3deg' }],
   },
-  timerLandscape: {
-    fontSize: 56,
-    marginBottom: 8,
-  },
-  cycleText: {
+  stampText: {
     fontSize: 14,
-    // color removed - now inline
-    marginBottom: 48,
+    fontWeight: '700',
   },
-  cycleTextTablet: {
-    fontSize: 16,
-  },
-  cycleTextTight: {
-    marginBottom: 16,
-  },
-  primaryButton: {
-    // backgroundColor removed - now inline
-    paddingHorizontal: 64,
-    paddingVertical: 16,
-    borderRadius: 999,
-    marginBottom: 24,
-    minWidth: 200,
+  // The Ring's slot centres the ring in any height left once the ring has reached its cap. It is
+  // never measured: its height is the ring's own whenever the page is full (D1 record §3.21).
+  ringSlot: {
+    flexGrow: 1,
+    alignSelf: 'stretch',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  primaryButtonTablet: {
-    paddingHorizontal: 80,
-    paddingVertical: 20,
-    minWidth: 240,
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  primaryButtonTextTablet: {
-    fontSize: 22,
-  },
-  secondaryActions: {
+  partner: {
+    alignSelf: 'stretch',
     flexDirection: 'row',
-    gap: 16,
+    alignItems: 'center',
+    gap: space.m,
+    minHeight: 72,
+    paddingVertical: space.m,
+    paddingHorizontal: space.l,
+    borderRadius: radius.l,
+    borderWidth: edgeWidth,
   },
-  secondaryButton: {
-    borderWidth: 2,
-    // borderColor removed - now inline
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 999,
+  pair: {
+    flexDirection: 'row',
   },
-  secondaryButtonTablet: {
-    paddingHorizontal: 32,
-    paddingVertical: 14,
+  // Doro tucks in behind Pomo by 8 pt, as the sketch overlaps them.
+  pairOverlap: {
+    marginLeft: -space.s,
   },
-  secondaryButtonText: {
-    // color removed - now inline
-    fontSize: 16,
+  partnerLine: {
+    flex: 1,
+    fontSize: 15,
     fontWeight: '500',
-  },
-  secondaryButtonTextTablet: {
-    fontSize: 18,
   },
 });

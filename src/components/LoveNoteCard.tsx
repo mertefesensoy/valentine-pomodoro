@@ -1,6 +1,9 @@
 import { View, Text, StyleSheet, TouchableOpacity, Animated, useAnimatedValue } from 'react-native';
 import { useEffect } from 'react';
 import { useTheme } from '../theme/useTheme';
+import { Icon } from './icons/Icon';
+import { heart } from './icons/art/heart';
+import { t } from '../i18n';
 
 interface LoveNoteCardProps {
     note: string;
@@ -8,7 +11,7 @@ interface LoveNoteCardProps {
 }
 
 export default function LoveNoteCard({ note, onDismiss }: LoveNoteCardProps) {
-    const { colors } = useTheme();
+    const { tokens } = useTheme();
     // Created once, without reading a ref during render (Phase 1 B5).
     const fadeAnim = useAnimatedValue(0);
     const scaleAnim = useAnimatedValue(0.8);
@@ -51,14 +54,17 @@ export default function LoveNoteCard({ note, onDismiss }: LoveNoteCardProps) {
                     styles.card,
                     {
                         transform: [{ scale: scaleAnim }],
-                        backgroundColor: colors.card,
+                        backgroundColor: tokens.paper,
                     },
                 ]}
             >
-                <Text style={styles.heartIcon}>💗</Text>
-                <Text style={[styles.noteText, { color: colors.text }]}>{note}</Text>
+                {/* The custom heart icon, not an emoji (NFR-UX-002; D2). */}
+                <View style={styles.heartIcon}>
+                    <Icon glyph={heart} size={48} color={tokens.primaryInk} />
+                </View>
+                <Text style={[styles.noteText, { color: tokens.ink }]}>{note}</Text>
                 <TouchableOpacity style={styles.closeButton} onPress={onDismiss}>
-                    <Text style={styles.closeButtonText}>Close</Text>
+                    <Text style={styles.closeButtonText}>{t('loveNote.close')}</Text>
                 </TouchableOpacity>
             </Animated.View>
         </Animated.View>
@@ -90,7 +96,6 @@ const styles = StyleSheet.create({
         elevation: 12,
     },
     heartIcon: {
-        fontSize: 48,
         marginBottom: 16,
     },
     // color supplied inline (dark mode adaptive)

@@ -1,0 +1,165 @@
+{
+  "about": "The app's sounds (Phase 1 D4; FR-SET-004, NFR-PERF-005; ADR-0027). scripts/sound/build.mjs builds every entry: a UI sound from its soundcraft-cli script (saved as <id>.scraft, bounced with file.bounce_mix from 0 to `seconds`), a loop from its source file. Each is folded to mono, scaled to a -1 dBFS sample peak and encoded as mono AAC with ffmpeg. `tools` names the builds the committed files came from: --check compares bytes, which only holds on the same SoundCraft and ffmpeg.",
+  "tools": {
+    "soundcraft": "soundcraft-cli 0.14.0 (windows x86_64)",
+    "ffmpeg": "ffmpeg version 8.1.1-full_build-www.gyan.dev"
+  },
+  "budget": {
+    "seconds": 1.5,
+    "bytes": 25600,
+    "peakDbfs": -1,
+    "tailDb": -60
+  },
+  "sounds": [
+    {
+      "id": "focus-start",
+      "use": "A focus session starts.",
+      "script": "art/sound/focus-start.script",
+      "seconds": 0.85,
+      "bitrate": "96k"
+    },
+    {
+      "id": "break-start",
+      "use": "A break (short or long) starts.",
+      "script": "art/sound/break-start.script",
+      "seconds": 1.1,
+      "bitrate": "96k"
+    },
+    {
+      "id": "complete",
+      "use": "A focus session completes: plays with the sticker placement.",
+      "script": "art/sound/complete.script",
+      "seconds": 1.1,
+      "bitrate": "96k"
+    }
+  ],
+  "loops": [
+    {
+      "id": "fly-ambient",
+      "use": "Fly Mode's ambient loop (useFlyModeAudio, loaded lazily with Fly). The source's leading silence and fade-in are trimmed and its tail is crossfaded into its head, so it wraps without a gap (the owner chose this over a faithful re-encode, 2026-10-30). Both lengths are whole AAC frames (1024 samples), which keeps the loop frame-aligned.",
+      "source": "art/sound/source/fly-ambient.m4a",
+      "file": "src/assets/sounds/fly-ambient.m4a",
+      "bitrate": "64k",
+      "seamless": {
+        "trimStartSamples": 17408,
+        "crossfadeSamples": 66560
+      }
+    }
+  ],
+  "babble": {
+    "about": "Pomo & Doro's babble for the tutorial (Phase 1 D5; FR-ONB-001, FR-SET-004, NFR-PERF-005; ADR-0027): a few syllables per character, each synthesised from its script in art/sound/babble/ (written by scripts/sound/babble-scripts.mjs), bounced, folded to mono and encoded like the UI sounds. Unlike them, they are level-matched by loudness, not peak: each syllable to one loudness, then each voice so that a sample line written on at the tutorial's pace (art/src/tour/expressions.json, motion.talk) reaches `level.streamMomentaryLufs` on the same EBU R 128 momentary meter as the UI sounds, a little below them (version 2, after the owner asked for softer voices: −20 LUFS, about 6 LU under them). A `role` of up or down marks the line-end syllable for a question or a statement; `mouth` is the tour kit's mouth layer that shows while the syllable sounds.",
+    "talk": "art/src/tour/expressions.json",
+    "bitrate": "96k",
+    "budget": {
+      "bytes": 25600,
+      "peakCeilingDbfs": -1,
+      "tailDb": -60,
+      "above4kPercent": 1
+    },
+    "level": {
+      "streamMomentaryLufs": -20,
+      "toleranceLu": 0.5
+    },
+    "playback": {
+      "detuneCents": 10,
+      "gainDb": 1.5,
+      "about": "Applied when each syllable plays, never baked into the files (the owner's sound-design notes, 2026-11-01): a random pitch shift uniform in ±detuneCents and a random gain uniform in ±gainDb, drawn afresh for every syllable, so a line never sounds like a loop. The files stay exactly as built."
+    },
+    "order": [
+      0,
+      2,
+      1,
+      3,
+      2,
+      0,
+      3,
+      1
+    ],
+    "lines": {
+      "pomo": "Hi! We're Pomo and Doro, and we'll show you around the diary.",
+      "doro": "Every focus you finish puts a sticker on today's page. Shall we look?"
+    },
+    "voices": {
+      "pomo": [
+        {
+          "id": "pomo-pa",
+          "script": "art/sound/babble/pomo-pa.script",
+          "mouth": "talk-wide",
+          "seconds": 0.5
+        },
+        {
+          "id": "pomo-pi",
+          "script": "art/sound/babble/pomo-pi.script",
+          "mouth": "talk-small",
+          "seconds": 0.5
+        },
+        {
+          "id": "pomo-po",
+          "script": "art/sound/babble/pomo-po.script",
+          "mouth": "talk-round",
+          "seconds": 0.5
+        },
+        {
+          "id": "pomo-pe",
+          "script": "art/sound/babble/pomo-pe.script",
+          "mouth": "talk-small",
+          "seconds": 0.5
+        },
+        {
+          "id": "pomo-up",
+          "script": "art/sound/babble/pomo-up.script",
+          "role": "up",
+          "mouth": "talk-wide",
+          "seconds": 0.55
+        },
+        {
+          "id": "pomo-down",
+          "script": "art/sound/babble/pomo-down.script",
+          "role": "down",
+          "mouth": "talk-round",
+          "seconds": 0.55
+        }
+      ],
+      "doro": [
+        {
+          "id": "doro-mo",
+          "script": "art/sound/babble/doro-mo.script",
+          "mouth": "talk-round",
+          "seconds": 0.55
+        },
+        {
+          "id": "doro-mu",
+          "script": "art/sound/babble/doro-mu.script",
+          "mouth": "talk-round",
+          "seconds": 0.55
+        },
+        {
+          "id": "doro-ma",
+          "script": "art/sound/babble/doro-ma.script",
+          "mouth": "talk-wide",
+          "seconds": 0.55
+        },
+        {
+          "id": "doro-me",
+          "script": "art/sound/babble/doro-me.script",
+          "mouth": "talk-small",
+          "seconds": 0.55
+        },
+        {
+          "id": "doro-up",
+          "script": "art/sound/babble/doro-up.script",
+          "role": "up",
+          "mouth": "talk-round",
+          "seconds": 0.6
+        },
+        {
+          "id": "doro-down",
+          "script": "art/sound/babble/doro-down.script",
+          "role": "down",
+          "mouth": "talk-round",
+          "seconds": 0.6
+        }
+      ]
+    }
+  }
+}

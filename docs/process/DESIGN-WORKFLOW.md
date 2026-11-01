@@ -61,6 +61,8 @@ They will. Impeccable bans things the HIG recommends, the HIG prefers system def
 | HIG sheets and modals vs. the plan's "no stacked modals" | Bottom sheets and inline moments, presented the native way (`formSheet` / page sheet) | Phase 1 D1 |
 | Paywall look (brief) vs. Apple's in-app purchase rules | Apple's rules win on content and placement (price, terms, restore); the brief wins on styling | Phase 5 |
 | Launch screen: Apple's "don't include logos" vs. the brief's splash built from the mark | The owner kept the mark (C3 gate 2): static, small, on the page colour; the pages-to-logo animation never plays at launch (HIG review H-2) | Phase 1 C3 |
+| Capitalisation: Apple's title-style buttons and titles vs. the owner's sentence case | Sentence case for every label in English, matching how Turkish is written (the owner, C4 gate). An allowed brand choice, not an App Review rule | Phase 1 C4; D2 HIG review |
+| Appearance: v1's in-app System / Light / Dark switch vs. `dark-mode.md`'s "avoid offering an app-specific appearance setting" | Settled, no exception: the switch is retired and the app follows the phone (the owner, 2026-10-31). `themeMode` stays in storage, read as System | Phase 1 D2 |
 
 A new tension gets a row here, or an ADR if it is structural.
 
@@ -85,7 +87,10 @@ A new tension gets a row here, or an ADR if it is structural.
 - [Native tabs, frozen by a route wrapper, laid out by safe-area insets](../architecture/adr/0043-native-tabs-frozen-by-a-wrapper.md)
 - [Design skills — Apple HIG skill and the full Emil Kowalski pack](../implementations/2026-10-30-design-skills.md)
 - ["Phase 1 B6: Expo Router with native tabs"](../implementations/2026-10-30-phase1-b6-expo-router.md)
+- ["Phase 1 D1: Classic rebuilt in the Sticker Diary design, with the v1.4 welcome screen"](../implementations/2026-10-30-phase1-d1-classic.md)
 - ["Phase 1 Stage C (C1–C4): the Sticker Diary design system, display face, Classic brief and art"](../implementations/2026-10-30-phase1-stage-c-design.md)
+- ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](../implementations/2026-10-30-phase1-stage-d.md)
 - ["Settings: the number pad can be dismissed (DEF-008)"](../implementations/2026-10-30-settings-keyboard-dismiss.md)
+- ["Phase 1 D2: Stats, Settings and Notes rebuilt in the Sticker Diary design, the gift screen retired"](../implementations/2026-10-31-phase1-d2-screens.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

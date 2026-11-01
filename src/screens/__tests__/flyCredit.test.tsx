@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StoreGate } from '../../stores/StoreGate';
+import { useUiStore } from '../../stores/uiStore';
 import TimerScreen from '../TimerScreen';
 import { load, STORAGE_KEYS } from '../../utils/storage';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
@@ -34,7 +35,8 @@ async function press(element: Parameters<typeof fireEvent.press>[0]) {
 
 // The same steps as the A1 Fly guard: open the picker, search, tap the row.
 async function pickAirport(label: 'From' | 'To', city: string, iata: string) {
-    await press(screen.getByLabelText(`Select ${label} airport`));
+    // Each picker is named in full for VoiceOver (D3 record §3.3).
+    await press(screen.getByLabelText(label === 'From' ? 'Departure airport' : 'Arrival airport'));
     await act(async () => {
         await fireEvent.changeText(screen.getByPlaceholderText('Search airports…'), city);
     });
@@ -57,10 +59,11 @@ describe('a Fly session that lands after midnight (DEF-001)', () => {
         );
         await act(async () => {});
 
-        await press(screen.getByLabelText('Switch to fly mode'));
+        // Classic's Modes button opens the /modes sheet (Phase 1 D1); its Fly row calls this store action.
+        await act(async () => useUiStore.getState().setActiveMode('fly'));
         await pickAirport('From', 'istanbul', 'IST');
         await pickAirport('To', 'lublin', 'LUZ');
-        await press(screen.getByText('✈️  Start Flight'));
+        await press(screen.getByText('Start flight'));
 
         await act(() => jest.advanceTimersByTime(25 * 60_000 + 1_000));
         await act(async () => {});

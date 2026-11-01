@@ -1,5 +1,6 @@
 import { Profiler } from 'react';
 import { act, render, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { StoreGate } from '../../stores/StoreGate';
 import { useSessionStore } from '../../stores/sessionStore';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
@@ -69,5 +70,27 @@ describe('TimerText', () => {
         await act(() => useSessionStore.getState().start({ kind: 'pomodoro', durationMs: 5 * 60_000 }));
         await act(() => jest.advanceTimersByTime(61_000));
         expect(screen.getByText('03:59')).toBeOnTheScreen();
+    });
+});
+
+// covers: NFR-I18N-001
+// The Steady Digits Rule (DESIGN.md, ADR-0046): Baloo 2's default digits are proportional, so
+// the timer's style must carry tabular figures, whatever its caller passes.
+describe('TimerText digits', () => {
+    it("carries tabular-nums, applied after the caller's style", async () => {
+        await render(
+            <StoreGate>
+                <TimerText
+                    kind="pomodoro"
+                    idleMs={25 * 60_000}
+                    style={{ fontFamily: 'Baloo2-SemiBold', fontVariant: ['lining-nums'], fontSize: 72 }}
+                />
+            </StoreGate>,
+        );
+        await act(async () => {});
+        const style = StyleSheet.flatten(screen.getByText('25:00').props.style);
+        expect(style.fontVariant).toEqual(['tabular-nums']);
+        expect(style.fontFamily).toBe('Baloo2-SemiBold');
+        expect(style.fontSize).toBe(72);
     });
 });

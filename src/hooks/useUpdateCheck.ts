@@ -16,6 +16,7 @@ import * as Application from 'expo-application';
 import Constants from 'expo-constants';
 import { compareSemver } from '../utils/semver';
 import { runAfterFirstFrame } from '../startup/deferredStartup';
+import { t } from '../i18n';
 
 // Module-level session guard: resets on process restart (cold launch),
 // so the check fires exactly once per app open — never twice in one session.
@@ -81,32 +82,33 @@ export function useUpdateCheck(updateJsonUrl: string) {
                     ? await fetchLatestIos()
                     : await fetchLatestAndroid(updateJsonUrl);
             } catch {
-                // Offline or timed out — never block the user
-                return;
+                // Offline or timed out: never block the user. Only a check someone asked for
+                // ("Check for updates") says so, instead of doing nothing (D2 record §3.14).
+                latest = null;
             }
 
-            if (!latest) return;
+            if (!latest) {
+                if (force) Alert.alert(t('updates.failedTitle'), t('updates.failedMessage'));
+                return;
+            }
 
             const current = getCurrentVersion();
             const isNewer = compareSemver(latest.version, current) === 1;
 
             if (!isNewer) {
                 if (force) {
-                    Alert.alert(
-                        "You're up to date",
-                        `You have the latest version (${current}).`
-                    );
+                    Alert.alert(t('updates.upToDateTitle'), t('updates.upToDateMessage', { version: current }));
                 }
                 return;
             }
 
             Alert.alert(
-                '✨ Update available',
-                `Version ${latest.version} is available on the App Store with the latest improvements and fixes.`,
+                t('updates.availableTitle'),
+                t('updates.availableMessage', { version: latest.version }),
                 [
-                    { text: 'Not now', style: 'cancel' },
+                    { text: t('updates.notNow'), style: 'cancel' },
                     {
-                        text: 'Update',
+                        text: t('updates.update'),
                         onPress: () => void Linking.openURL(latest!.storeUrl),
                     },
                 ],

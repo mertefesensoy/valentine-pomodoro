@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import Animated, {
     interpolate,
     SharedValue,
@@ -9,6 +9,8 @@ import Animated, {
 import { ValentineSpec } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 import TimerText from './TimerText';
+import { Icon } from './icons/Icon';
+import { fly } from './icons/art/fly';
 
 interface FlyTimerPillProps {
     sheetProgress: SharedValue<number>; // 0 = peek, 1 = full
@@ -28,7 +30,7 @@ export default function FlyTimerPill({
     isLandscape,
     isDark,
 }: FlyTimerPillProps) {
-    const { colors } = useTheme();
+    const { tokens } = useTheme();
 
     const pillStyle = useAnimatedStyle(() => {
         // Fully visible at peek (progress=0) and through mid-drag (≤0.5).
@@ -67,11 +69,12 @@ export default function FlyTimerPill({
             pointerEvents="box-none"
         >
             <Pressable style={styles.pressable} onPress={onTap}>
-                <Text style={styles.icon}>✈️</Text>
+                {/* The custom fly icon, not an emoji (NFR-UX-002; D2). */}
+                <Icon glyph={fly} size={16} color={tokens.primaryInk} />
                 <TimerText
                     kind="fly"
                     idleMs={idleMs}
-                    style={[styles.digits, { color: isDark ? colors.text : ValentineSpec.textPrimary }]}
+                    style={[styles.digits, { color: isDark ? tokens.ink : ValentineSpec.textPrimary }]}
                 />
             </Pressable>
         </Animated.View>
@@ -96,9 +99,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         paddingVertical: 8,
         gap: 6,
-    },
-    icon: {
-        fontSize: 16,
     },
     digits: {
         fontSize: 18,

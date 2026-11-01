@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
+import { t } from "../i18n";
 
 export function useNotifications() {
     const ensurePermissions = useCallback(async (): Promise<boolean> => {
@@ -29,13 +30,25 @@ export function useNotifications() {
             // Don't schedule if it's already in the past
             if (endAtMs <= Date.now() + 250) return null;
 
+            // A date trigger must say so: expo-notifications (SDK 52 and later) reads one only from
+            // `{ type: 'date', date }`. The old `{ date, channelId }` matched no trigger type and fell
+            // through to null on iOS, "deliver now": each phase's end message arrived as it started
+            // ("Time for a sweet break" when a focus began, the owner's long-standing bug, D2 record
+            // §3.18).
             const id = await Notifications.scheduleNotificationAsync({
                 content: {
                     title,
                     body,
-                    sound: false, // We handle sound separately via expo-audio
+                    // The system's own sound, so a locked phone hears a phase end (the owner, D4
+                    // wiring). With the app open the handler (App.tsx) plays none: Classic's own
+                    // sounds do (src/audio/uiSounds.ts).
+                    sound: 'default',
                 },
-                trigger: { date: new Date(endAtMs), channelId: "timer" } as any,
+                trigger: {
+                    type: Notifications.SchedulableTriggerInputTypes.DATE,
+                    date: new Date(endAtMs),
+                    channelId: "timer",
+                },
             });
 
             return id;
@@ -56,18 +69,28 @@ export function useNotifications() {
 }
 
 /**
+ * Fly's landing notification (moved here from FlyModeScreen in D2). Push-notification copy is
+ * the one place emoji belong besides people's own notes (DESIGN.md), and this file holds it, so
+ * the emoji check (`scripts/design/check-emoji.mjs`) allows this file.
+ */
+export const flightLandedContent = {
+    title: `✈️ ${t('notifications.landed.title')}`,
+    body: `${t('notifications.landed.body')} 💗`,
+} as const;
+
+/**
  * Get notification content for phase
  */
 export function getNotificationContent(phase: 'focus' | 'shortBreak' | 'longBreak'): { title: string; body: string } {
     if (phase === 'focus') {
         return {
-            title: 'Focus complete 💗',
-            body: 'Time for a sweet break',
+            title: `${t('notifications.focusDone.title')} 💗`,
+            body: t('notifications.focusDone.body'),
         };
     } else {
         return {
-            title: "Break's over 💘",
-            body: 'Back to your goals',
+            title: `${t('notifications.breakOver.title')} 💘`,
+            body: t('notifications.breakOver.body'),
         };
     }
 }

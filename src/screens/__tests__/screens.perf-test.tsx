@@ -26,6 +26,24 @@ jest.mock('../../hooks/useUpdateCheck', () => ({
     useUpdateCheck: () => ({ checkForUpdates: jest.fn() }),
 }));
 
+// Notes' rows are Expo Router links with a native menu (D2), which need the provider the router's
+// root supplies; the screen renders alone here, so a link is just its trigger (as in notes.test).
+jest.mock('expo-router', () => {
+    const Link = function MockLink({ children }: { children: ReactNode }) {
+        return children;
+    };
+    Link.Trigger = function MockLinkTrigger({ children }: { children: ReactNode }) {
+        return children;
+    };
+    Link.Menu = function MockLinkMenu() {
+        return null;
+    };
+    Link.MenuAction = function MockLinkMenuAction() {
+        return null;
+    };
+    return { ...jest.requireActual('expo-router'), Link };
+});
+
 // The scenario drives the session through the store's actions (Phase 1 B3;
 // before, a SessionHandle component outside the Profiler captured them from
 // useApp()). Nothing outside the measured element renders for it.

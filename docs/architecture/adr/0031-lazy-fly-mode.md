@@ -19,6 +19,8 @@ The rehaul plan put the fix in Phase 1, step 6 ("Fly Mode stays functional but i
 
 - **Lazy import.** `FlyModeScreen` is `React.lazy(() => import('./FlyModeScreen'))`, rendered inside a `Suspense` whose fallback is a plain themed `FlyModePlaceholder`.
 - **The switcher stays outside.** The ModeSwitcher sits outside the boundary, so the user can switch back while Fly loads.
+  - *As built, 2026-10-30 (Phase 1 D1, build 49):* Classic's Modes button replaced `ModeSwitcher` in Fly. It opens the `/modes` sheet and sits outside the same boundary, for the same reason ([D1 record §3.16](../../implementations/2026-10-30-phase1-d1-classic.md)).
+  - *As built, 2026-10-31 (Phase 1 D1, after build 49):* The owner moved the button to Fly's top trailing corner, where the compass was and where Classic has its own. It now heads `FlyModeScreen`'s map-control column, so it slides clear of the landscape sheet with the compass. That puts it **inside** the boundary. While Fly's module evaluates on the first switch, there is no way back for that moment. The module already ships in the bundle, so the wait is short, and the owner's placement outranks it ([D1 record §3.18](../../implementations/2026-10-30-phase1-d1-classic.md)).
 - **Test-only Babel plugin.** Jest runs `import()` through `@babel/plugin-transform-dynamic-import`, enabled only under `env.test`. Metro builds get Expo's default config unchanged.
 
 **Measured** (iOS, by a static walk of the export's module graph with `scripts/startup-modules.js`):

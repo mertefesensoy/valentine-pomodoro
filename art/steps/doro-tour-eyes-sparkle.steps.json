@@ -1,0 +1,24 @@
+[
+ {
+  "command": "select.all",
+  "params": {}
+ },
+ {
+  "command": "document.save",
+  "params": {
+   "path": "C:/vp-art/art/vc/doro-tour-eyes-sparkle.vectorcraft"
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/illustration/doro-tour-eyes-sparkle.svg",
+   "format": "svg",
+   "decimals": 2,
+   "outlineText": true,
+   "minify": true,
+   "objectIds": "minimal",
+   "metadata": false
+  }
+ }
+]

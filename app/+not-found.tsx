@@ -1,16 +1,17 @@
 import { Link } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { t } from '../src/i18n';
 import { useTheme } from '../src/theme/useTheme';
 
 // Any path that matches no route (Phase 1 B6; was src/navigation/screens/NotFound.tsx).
 export default function NotFound() {
-  const { colors } = useTheme();
+  const { tokens } = useTheme();
   return (
-    <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      <Text style={{ color: colors.text }}>404</Text>
-      <Link href="/" style={{ color: colors.accent }}>
-        Go to Home
+    <View style={[styles.container, { backgroundColor: tokens.page }]}>
+      <Text style={{ color: tokens.ink }}>404</Text>
+      <Link href="/" style={{ color: tokens.primaryInk }}>
+        {t('notFound.home')}
       </Link>
     </View>
   );

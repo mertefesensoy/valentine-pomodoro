@@ -31,6 +31,19 @@ jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock
 
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);
 
+// Gesture Handler's ReanimatedSwipeable (the Notes rows' swipe, D2) runs on its v3 hooks, which
+// call a shared value's removeListener; Reanimated's mock has none, and the timer that calls it
+// crashes the Jest worker after the test. A swipe can't be exercised here anyway: the row renders
+// as itself, and its Delete is tested through the VoiceOver action it mirrors.
+jest.mock('react-native-gesture-handler/ReanimatedSwipeable', () => {
+    const React = require('react');
+    const MockSwipeable = React.forwardRef(function MockSwipeable(props: { children?: unknown }, ref: unknown) {
+        React.useImperativeHandle(ref, () => ({ close: jest.fn(), openLeft: jest.fn(), openRight: jest.fn(), reset: jest.fn() }));
+        return props.children;
+    });
+    return { __esModule: true, default: MockSwipeable };
+});
+
 // react-native-maps resolves its TurboModule at import time. TimerScreen loads
 // FlyModeScreen lazily (Phase 1 B1), but every test that opens Fly (the A1 guard)
 // still evaluates it, so keep this mock. The map becomes plain Views; the camera
@@ -38,7 +51,7 @@ jest.mock('react-native-safe-area-context', () => require('react-native-safe-are
 jest.mock('react-native-maps', () => {
     const React = require('react');
     const { View } = require('react-native');
-    const MapView = React.forwardRef(function MockMapView(props: { children?: unknown }, ref: unknown) {
+    const MapView = React.forwardRef(function MockMapView(props: Record<string, unknown> & { children?: unknown }, ref: unknown) {
         React.useImperativeHandle(ref, () => ({
             animateCamera: jest.fn(),
             animateToRegion: jest.fn(),
@@ -46,7 +59,10 @@ jest.mock('react-native-maps', () => {
             setCamera: jest.fn(),
             getCamera: jest.fn(async () => ({ center: { latitude: 0, longitude: 0 }, heading: 0, pitch: 0, zoom: 1, altitude: 0 })),
         }));
-        return React.createElement(View, { testID: 'map-view' }, props.children);
+        // The touch and region handlers ride on the View, so a test can drive them: Fly enters free
+        // mode only while a finger moves the map (flyCamera.test.tsx).
+        const { onTouchStart, onTouchEnd, onTouchCancel, onRegionChange } = props;
+        return React.createElement(View, { testID: 'map-view', onTouchStart, onTouchEnd, onTouchCancel, onRegionChange }, props.children);
     });
     const Plain = (props: { children?: unknown }) => React.createElement(View, null, props.children);
     return { __esModule: true, default: MapView, Marker: Plain, Polyline: Plain };
@@ -54,9 +70,11 @@ jest.mock('react-native-maps', () => {
 
 // expo-audio builds a class on its native module at import (via FlyModeScreen,
 // whenever a test opens Fly).
-// Only what useFlyModeAudio touches is stubbed.
+// Only what useFlyModeAudio, the UI sounds (src/audio/uiSounds.ts, D4) and the tour's babble
+// (src/screens/tutorial/babble.ts, D5: a rate per syllable) touch is stubbed.
 jest.mock('expo-audio', () => ({
     useAudioPlayer: () => ({ play: jest.fn(), pause: jest.fn(), remove: jest.fn(), loop: false, volume: 1 }),
+    createAudioPlayer: jest.fn(() => ({ play: jest.fn(), pause: jest.fn(), seekTo: jest.fn(async () => {}), remove: jest.fn(), setPlaybackRate: jest.fn(), volume: 1, shouldCorrectPitch: true })),
     setAudioModeAsync: jest.fn(async () => {}),
 }));
 

@@ -1,5 +1,5 @@
 import { useContext, useEffect } from 'react';
-import { Text } from 'react-native';
+import { ActionSheetIOS, Text } from 'react-native';
 // The router's testing library installs its own mocks when imported (expo-linking
 // among them), so it comes before the modules it mocks.
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
@@ -10,8 +10,11 @@ import { AdManager } from '../ads/AdManager';
 import { useHasBeenFocused, useScreenFocused } from '../hooks/useScreenFocus';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useStatsStore } from '../stores/statsStore';
+import { useNotesStore } from '../stores/notesStore';
 import { useUiStore } from '../stores/uiStore';
+import { StrawberryMilk } from '../theme/palette';
 import { resetStorage } from '../__fixtures__/storage/resetStorage';
+import { save, STORAGE_KEYS } from '../utils/storage';
 
 // The real app/ routes (Phase 1 B6): the root layout with src/App.tsx, the
 // native tabs, the four screens and the 404. Rendering them takes several
@@ -93,10 +96,10 @@ jest.mock('../startup/deferredStartup', () => ({
 
 // What each tab shows, and nothing else does.
 const TABS = [
-    { path: '/', url: 'valentinepomodoro://', text: 'Start' },
-    { path: '/stats', url: 'valentinepomodoro://stats', text: 'Today Sessions' },
-    { path: '/settings', url: 'valentinepomodoro://settings', text: 'Settings ⚙️' },
-    { path: '/notes', url: 'valentinepomodoro://notes', text: /^Love Notes/ },
+    { path: '/', url: 'valentinepomodoro://', text: 'Start focus' },
+    { path: '/stats', url: 'valentinepomodoro://stats', text: /^Last 7 days/ },
+    { path: '/settings', url: 'valentinepomodoro://settings', text: 'Light or dark follows your iPhone.' },
+    { path: '/notes', url: 'valentinepomodoro://notes', text: 'Preview a note' },
 ];
 
 // How iOS hands URLs to the router: expo-linking's synchronous getLinkingURL()
@@ -169,6 +172,12 @@ function tabScreens() {
 
 beforeEach(async () => {
     await resetStorage();
+    // These tests are about tabs and links, not the one-time welcome: with v1's gift screen
+    // retired (D2), a fresh install would otherwise get the welcome at start-up idle.
+    // welcome.test.tsx covers the welcome's gate. The tour follows the welcome, so it is marked
+    // seen too (D5; the tutorial's tests cover its gate).
+    await save(STORAGE_KEYS.WELCOME, { seen: true });
+    await save(STORAGE_KEYS.TUTORIAL, { seen: '1.4' });
     urlListener = null;
     mockNotificationTap = null;
     mockPrerenders.length = 0;
@@ -207,19 +216,37 @@ describe('deep links', () => {
 
         await act(async () => fireEvent.press(screen.getByText('Go to Home')));
         expect(result.getPathname()).toBe('/');
-        expect(screen.getByText('Start')).toBeOnTheScreen();
+        expect(screen.getByText('Start focus')).toBeOnTheScreen();
     });
 });
 
 describe('the tab bar', () => {
-    it('is Timer, Stats, Settings and Notes, with their SF Symbols', async () => {
+    // covers: FR-SET-002
+    // Phase 1 D1: the four filled icons of the C3 set as template images (HIG M-4), and only
+    // the selected tab in primaryInk (H-1); the unselected items keep the system's monochrome,
+    // which adapts on Liquid Glass (D1 HIG D1-M1).
+    it('is Timer, Stats, Settings and Notes, with their template icons and the strawberry selection', async () => {
         await launch(null);
-        expect(tabScreens().map((s) => [s.props.screenKey, s.props.title, s.props.iconResourceName])).toEqual([
-            ['index', 'Timer', 'heart.fill'],
-            ['stats', 'Stats', 'chart.bar.fill'],
-            ['settings', 'Settings', 'gearshape.fill'],
-            ['notes', 'Notes', 'heart.text.square.fill'],
+        expect(
+            tabScreens().map((s) => [
+                s.props.screenKey,
+                s.props.title,
+                s.props.iconType,
+                s.props.iconImageRenderingMode,
+                String(s.props.iconImageSource?.testUri).split('/').pop(),
+            ]),
+        ).toEqual([
+            ['index', 'Timer', 'image', 'template', 'tab-timer.png'],
+            ['stats', 'Stats', 'image', 'template', 'tab-stats.png'],
+            ['settings', 'Settings', 'image', 'template', 'tab-settings.png'],
+            ['notes', 'Notes', 'image', 'template', 'tab-notes.png'],
         ]);
+        const primaryInk = StrawberryMilk.tokens.primaryInk;
+        for (const s of tabScreens()) {
+            expect(s.props.selectedIconColor).toBe(primaryInk);
+            expect(s.props.selectedLabelStyle).toEqual({ color: primaryInk });
+            expect(s.props.standardAppearance.stacked.normal).toEqual({});
+        }
     });
 
     // covers: FR-SET-001
@@ -253,13 +280,13 @@ describe('tabs render late, then never hide', () => {
 
     it('the other tabs render at start-up idle; Stats requests no banner until it is opened', async () => {
         await launch(null);
-        expect(screen.queryByText('Today Sessions')).toBeNull();
+        expect(screen.queryByText(/^Last 7 days/)).toBeNull();
         expect(mockPrerenders).toHaveLength(3);
 
         await startupIdle();
-        expect(screen.getByText('Today Sessions')).toBeOnTheScreen();
-        expect(screen.getByText('Settings ⚙️')).toBeOnTheScreen();
-        expect(screen.getByText(/^Love Notes/)).toBeOnTheScreen();
+        expect(screen.getByText(/^Last 7 days/)).toBeOnTheScreen();
+        expect(screen.getByText('Light or dark follows your iPhone.')).toBeOnTheScreen();
+        expect(screen.getByText('Preview a note')).toBeOnTheScreen();
         expect(bannerHosts()).toHaveLength(0);
 
         await act(() => router.navigate('/stats'));
@@ -273,7 +300,7 @@ describe('tabs render late, then never hide', () => {
         const result = await launch(null);
         await act(() => router.navigate('/notes'));
         expect(result.getPathname()).toBe('/notes');
-        expect(screen.getByText(/^Love Notes/)).toBeOnTheScreen();
+        expect(screen.getByText('Preview a note')).toBeOnTheScreen();
     });
 
     it('a hidden tab stays visible to queries: nothing hides its content', async () => {
@@ -281,26 +308,24 @@ describe('tabs render late, then never hide', () => {
         await launch(null);
         await startupIdle();
         await act(() => router.navigate('/stats'));
-        expect(screen.getByText('Start')).toBeOnTheScreen();
+        expect(screen.getByText('Start focus')).toBeOnTheScreen();
         await act(() => router.navigate('/'));
-        expect(screen.getByText('Today Sessions')).toBeOnTheScreen();
+        expect(screen.getByText(/^Last 7 days/)).toBeOnTheScreen();
     });
 
     // covers: FR-ADS-001, FR-NTE-001
     it('a focus that ends while Stats shows holds its celebration, love note and ad until Timer is shown', async () => {
-        const CELEBRATION = 'daily goal reached';
+        const CELEBRATION = 'Goal reached';
         const LOVE_NOTE_CLOSE = 'Close';
         const result = await launch(null);
         await act(() => {
             useSettingsStore.getState().updateSettings({
                 durations: { ...useSettingsStore.getState().settings.durations, focus: 1 },
                 showLoveNotes: true,
-                // GoalReachedPopup then closes without its exit animation.
-                animationsEnabled: false,
             });
             useStatsStore.getState().setGoalMinutes(1);
         });
-        await act(async () => fireEvent.press(screen.getByText('Start')));
+        await act(async () => fireEvent.press(screen.getByText('Start focus')));
         await act(() => router.navigate('/stats'));
 
         // It ends on Stats: credited at once, nothing shown, nothing timing out.
@@ -382,13 +407,54 @@ describe('the root', () => {
 
         await act(async () => mockNotificationTap!({ notification: { request: { content: {} } } }));
         expect(result.getPathname()).toBe('/');
-        expect(screen.getByText('Start')).toBeOnTheScreen();
+        expect(screen.getByText('Start focus')).toBeOnTheScreen();
     });
 
-    it('shows Gift Mode on the first launch only', async () => {
+    // D2 retired v1's first-launch gift screen (the owner, 2026-10-31): the welcome is the only
+    // first-run screen, and the app's origin is a line in Settings › About.
+    it('opens a fresh install on the Timer, with no gift screen over it', async () => {
         await launch(null);
-        expect(screen.getByText("Let's start")).toBeOnTheScreen();
-        await act(async () => useUiStore.getState().dismissGiftMode());
+        expect(screen.getByText('Start focus')).toBeOnTheScreen();
         expect(screen.queryByText("Let's start")).toBeNull();
+        expect(screen.queryByText('for Bengisu')).toBeNull();
+    });
+});
+
+// covers: FR-NTE-001
+// D2 review round (§3.12): the editor's guard runs on the real navigator here, since the Notes
+// suite stands usePreventRemove in. A blocked removal comes back as an event after a render, and
+// Save's own removal must go straight through rather than ask or loop.
+describe('the note editor on the real navigator', () => {
+    let sheet: jest.SpyInstance;
+    beforeEach(() => {
+        sheet = jest.spyOn(ActionSheetIOS, 'showActionSheetWithOptions').mockImplementation(() => {});
+    });
+    afterEach(() => sheet.mockRestore());
+
+    async function openNewNote(text: string) {
+        const result = await launch('valentinepomodoro://notes');
+        await act(() => router.push('/note-editor'));
+        expect(result.getPathname()).toBe('/note-editor');
+        await act(async () => fireEvent.changeText(screen.getByLabelText('New note'), text));
+        return result;
+    }
+
+    it('Save closes the sheet without asking', async () => {
+        const result = await openNewNote('For after the exam');
+        await act(async () => fireEvent.press(screen.getByRole('button', { name: 'Save' })));
+        expect(result.getPathname()).toBe('/notes');
+        expect(useNotesStore.getState().notes[0]).toBe('For after the exam');
+        expect(sheet).not.toHaveBeenCalled();
+    });
+
+    it('a blocked way out (what a swipe sends) asks first, and leaves on Discard', async () => {
+        const result = await openNewNote('half a thought');
+        await act(() => router.back());
+        expect(result.getPathname()).toBe('/note-editor');
+        expect(sheet).toHaveBeenCalledTimes(1);
+        const [options, pick] = sheet.mock.calls[0] as [{ options: string[] }, (i: number) => void];
+        await act(async () => pick(options.options.indexOf('Discard changes')));
+        expect(result.getPathname()).toBe('/notes');
+        expect(useNotesStore.getState().notes).not.toContain('half a thought');
     });
 });

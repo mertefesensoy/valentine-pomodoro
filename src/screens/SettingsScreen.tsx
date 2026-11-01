@@ -1,40 +1,74 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import {
+    AccessibilityInfo,
     Alert,
-    InputAccessoryView,
-    Keyboard,
-    KeyboardAvoidingView,
+    LayoutAnimation,
     Linking,
-    Platform,
-    Pressable,
-    SafeAreaView,
     ScrollView,
     StyleSheet,
-    Switch,
     Text,
-    TextInput,
     View,
+    useWindowDimensions,
+    type LayoutAnimationConfig,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { useSettingsStore } from '../stores/settingsStore';
-import { useStatsStore, useStreak } from '../stores/statsStore';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Notifications from 'expo-notifications';
+import { useReducedMotion } from 'react-native-reanimated';
+import { router } from 'expo-router';
+
+import { ButtonRow, ListGroup, NumberWheel, SwitchRow, TimeRow, ValueRow } from '../components/settings/SettingsList';
+import { SegmentedControl } from '../components/ui/SegmentedControl';
+import { StatusBarScrim } from '../components/ui/StatusBarScrim';
+import { APP_NAME } from '../constants/app';
+import { DURATION_LIMITS, classicLayoutOf, customDurationsOf, editCustomPatch, type ClassicLayout } from '../constants/presets';
 import { useUpdateCheck } from '../hooks/useUpdateCheck';
+import { formatNumber, t } from '../i18n';
+import { readLanguageChoice, saveLanguageChoice, type LanguageChoice } from '../i18n/languageChoice';
 import { HiddenStartupDiagnostics } from '../startup/StartupDiagnostics';
+import { useSettingsFocus } from '../stores/settingsFocusStore';
+import { useSessionStore } from '../stores/sessionStore';
+import { useSettingsStore } from '../stores/settingsStore';
+import { useUiStore } from '../stores/uiStore';
+import { useTourStore } from './tutorial/tourStore';
+import { useStatsStore } from '../stores/statsStore';
+import { fonts } from '../theme/type';
+import { space } from '../theme/layout';
 import { useTheme } from '../theme/useTheme';
-import { useResponsive } from '../hooks/useResponsive';
-import type { ThemeMode } from '../types';
 
 const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
-const GOAL_PRESETS = [25, 50, 75, 100];
+const DEVELOPER_URL = 'https://valentine-pomodoro-developer-websit.vercel.app/';
+// FR-STA-004: the presets, or any custom goal from 1 to 1,440 minutes; 0 is off (the switch).
+const GOAL_PRESETS = ['25', '50', '75', '100'] as const;
+type GoalSegment = (typeof GOAL_PRESETS)[number] | 'custom';
+const GOAL_MAX = 1440;
+const LONG_BREAK_EVERY = { min: 2, max: 10 } as const;
+// Regular width (iPad, wide windows): the list centres at a readable width, as Classic does.
+const READABLE_WIDTH = 560;
 
-// iOS's number pad has no return key, so every number field shares one "Done"
-// bar above the keyboard (DEF-008). Dismissing blurs the field, which applies it.
-export const NUMBER_DONE_ID = 'settings-number-done';
+type Wheel = 'focus' | 'shortBreak' | 'longBreak' | 'longBreakEvery' | 'goal';
 
-function isValidHHMM(s: string) {
-    return /^\d{2}:\d{2}$/.test(s);
-}
+// A wheel opening or closing (D2 record §3.12, motion review): it enters and leaves, so it fades
+// with ease-out; the rows below move, so they ease in and out. Under Reduce Motion the fade stays
+// and the movement goes: no `update`, so the rows below settle at once (PRODUCT.md, DESIGN.md).
+const WHEEL_FADE = { type: LayoutAnimation.Types.easeOut, property: LayoutAnimation.Properties.opacity };
+const WHEEL_MOTION: LayoutAnimationConfig = {
+    duration: 200,
+    create: WHEEL_FADE,
+    update: { type: LayoutAnimation.Types.easeInEaseOut },
+    delete: WHEEL_FADE,
+};
+const WHEEL_MOTION_REDUCED: LayoutAnimationConfig = { duration: 200, create: WHEEL_FADE, delete: WHEEL_FADE };
 
+/**
+ * Settings (D2 Settings contract): iOS Settings drawn in the diary's stationery. One scroll of
+ * inset groups, every row a native control, and no bounded number typed: a value row opens the
+ * system wheel under it, one at a time. The keypad, its Done bars and the deprecated
+ * `InputAccessoryView` are gone (D1 record F1 and its "Fragile, for D2" note).
+ *
+ * The groups: Timer (Custom's durations, build 48 F4), Daily goal, Notifications, Sound and
+ * feel, Love notes, Appearance, Fly, About (its footer carries the app's origin, where v1's
+ * gift screen used to, and the 1.5 s long-press to the start-up probe, Phase 1 B7), and Reset.
+ */
 export default function SettingsScreen() {
     const settings = useSettingsStore((s) => s.settings);
     const updateSettings = useSettingsStore((s) => s.updateSettings);
@@ -46,809 +80,371 @@ export default function SettingsScreen() {
     const setQuietHours = useSettingsStore((s) => s.setQuietHours);
     const goalMinutes = useStatsStore((s) => s.goalMinutes);
     const setGoalMinutes = useStatsStore((s) => s.setGoalMinutes);
-    const streak = useStreak();
     const { checkForUpdates } = useUpdateCheck(UPDATE_JSON_URL);
-    const { colors } = useTheme();
-    const { isTablet } = useResponsive();
+    const { tokens } = useTheme();
+    const insets = useSafeAreaInsets();
+    const { width } = useWindowDimensions();
+    // Rows open with the platform's layout animation; with Reduce Motion, a fade in place.
+    const reduced = useReducedMotion();
 
-    // Local draft state for number inputs
-    const [focusDraft, setFocusDraft] = useState(settings.durations.focus.toString());
-    const [shortBreakDraft, setShortBreakDraft] = useState(settings.durations.shortBreak.toString());
-    const [longBreakDraft, setLongBreakDraft] = useState(settings.durations.longBreak.toString());
-    const [longBreakEveryDraft, setLongBreakEveryDraft] = useState(settings.longBreakEvery.toString());
-    const [goalDraft, setGoalDraft] = useState(goalMinutes.toString());
-    const [statusText, setStatusText] = useState('');
-
-    // Phase 7: Native time picker state
-    const [showReminderTimePicker, setShowReminderTimePicker] = useState(false);
-    const [showQuietStartPicker, setShowQuietStartPicker] = useState(false);
-    const [showQuietEndPicker, setShowQuietEndPicker] = useState(false);
-    const [reminderBusy, setReminderBusy] = useState(false); // Fix 1: busy flag
-
-    const handleFocusBlur = () => {
-        const val = parseInt(focusDraft, 10);
-        if (!isNaN(val) && val > 0 && val <= 180) {
-            updateSettings({ durations: { ...settings.durations, focus: val } });
-        } else {
-            setFocusDraft(settings.durations.focus.toString());
-        }
+    const [open, setOpen] = useState<Wheel | null>(null);
+    const [customGoal, setCustomGoal] = useState(false);
+    const [lastGoal, setLastGoal] = useState(goalMinutes > 0 ? goalMinutes : 50);
+    const [reminderBusy, setReminderBusy] = useState(false);
+    // Why the reminder is off after asking for it: iOS denied notifications, or scheduling failed.
+    const [notice, setNotice] = useState<'denied' | 'failed' | null>(null);
+    // The in-app language (D3): stored at once, applied at the next launch, when the translator
+    // reads it (ADR-0048: one language a process). The row shows the choice, not the running language.
+    const [languageChoice, setLanguageChoice] = useState<LanguageChoice>(readLanguageChoice);
+    const chooseLanguage = (choice: LanguageChoice) => {
+        saveLanguageChoice(choice);
+        setLanguageChoice(choice);
     };
 
-    const handleShortBreakBlur = () => {
-        const val = parseInt(shortBreakDraft, 10);
-        if (!isNaN(val) && val > 0 && val <= 60) {
-            updateSettings({ durations: { ...settings.durations, shortBreak: val } });
-        } else {
-            setShortBreakDraft(settings.durations.shortBreak.toString());
-        }
+    // Another screen can ask for a group (Stats' "Turn on a daily goal"): once the goal group has
+    // laid out, it scrolls into view and the request is cleared (the Stats contract).
+    const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
+    const [columnY, setColumnY] = useState<number | null>(null);
+    const [goalY, setGoalY] = useState<number | null>(null);
+    const focusSection = useSettingsFocus((s) => s.section);
+    useEffect(() => {
+        if (focusSection !== 'goal' || columnY === null || goalY === null) return;
+        scroll.current?.scrollTo({ y: Math.max(0, columnY + goalY - space.s), animated: !reduced });
+        useSettingsFocus.getState().clear();
+    }, [focusSection, columnY, goalY, reduced]);
+
+    const animateWheels = () => LayoutAnimation.configureNext(reduced ? WHEEL_MOTION_REDUCED : WHEEL_MOTION);
+    const toggle = (wheel: Wheel) => {
+        animateWheels();
+        setOpen((current) => (current === wheel ? null : wheel));
+    };
+    // Every other way a wheel closes (a goal preset, the goal switch, Reset) animates the same way
+    // as closing it from its own row.
+    const closeWheels = () => {
+        if (open === null) return;
+        animateWheels();
+        setOpen(null);
     };
 
-    const handleLongBreakBlur = () => {
-        const val = parseInt(longBreakDraft, 10);
-        if (!isNaN(val) && val > 0 && val <= 120) {
-            updateSettings({ durations: { ...settings.durations, longBreak: val } });
-        } else {
-            setLongBreakDraft(settings.durations.longBreak.toString());
-        }
+    // "1.440 dk" in Turkish, as Stats writes it (break-ui #6).
+    const minutes = (n: number) => t('settings.minutes', { count: n, n: formatNumber(n) });
+    const custom = customDurationsOf(settings);
+    // A new duration becomes Custom's and selects it (presets.ts); the store is read at the
+    // moment of the change, so a wheel never writes over a newer value.
+    const setDuration = (field: keyof typeof DURATION_LIMITS, value: number) => {
+        const current = useSettingsStore.getState().settings;
+        if (value !== customDurationsOf(current)[field]) updateSettings(editCustomPatch(current, field, value));
     };
 
-    const handleLongBreakEveryBlur = () => {
-        const val = parseInt(longBreakEveryDraft, 10);
-        if (!isNaN(val) && val >= 2 && val <= 10) {
-            updateSettings({ longBreakEvery: val });
-        } else {
-            setLongBreakEveryDraft(settings.longBreakEvery.toString());
+    const durationRow = (field: keyof typeof DURATION_LIMITS, label: string) => (
+        <ValueRow key={field} label={label} value={minutes(custom[field])} expanded={open === field} onPress={() => toggle(field)}>
+            <NumberWheel
+                value={custom[field]}
+                min={DURATION_LIMITS[field].min}
+                max={DURATION_LIMITS[field].max}
+                format={minutes}
+                label={label}
+                onChange={(n) => setDuration(field, n)}
+            />
+        </ValueRow>
+    );
+
+    const goalSegment: GoalSegment =
+        customGoal || !(GOAL_PRESETS as readonly string[]).includes(String(goalMinutes))
+            ? 'custom'
+            : (String(goalMinutes) as GoalSegment);
+    const chooseGoal = (segment: GoalSegment) => {
+        if (segment === 'custom') {
+            setCustomGoal(true);
+            if (open !== 'goal') toggle('goal');
+            return;
         }
+        setCustomGoal(false);
+        closeWheels();
+        setGoalMinutes(Number(segment));
+        setLastGoal(Number(segment));
+    };
+    const setGoal = (n: number) => {
+        setGoalMinutes(n);
+        setLastGoal(n);
+    };
+
+    // A promise chain, not try/finally: the React Compiler can't lower a try without a catch,
+    // and would skip the whole screen.
+    const toggleReminder = (on: boolean) => {
+        setReminderBusy(true);
+        // The store says only whether it worked, so a refusal is told from a failure by asking
+        // iOS: "Notifications are off" for a failed schedule would send people to the wrong place
+        // (D2 record §3.14).
+        const change = on
+            ? enableDailyReminder().then(async (ok) => {
+                  if (ok) return setNotice(null);
+                  const { granted } = await Notifications.getPermissionsAsync().catch(() => ({ granted: false }));
+                  const why = granted ? 'failed' : 'denied';
+                  setNotice(why);
+                  // accessibilityLiveRegion is Android-only; iOS hears why from an announcement.
+                  AccessibilityInfo.announceForAccessibility(t(`settings.notifications.${why}`));
+              })
+            : disableDailyReminder().then(() => setNotice(null));
+        return change.finally(() => setReminderBusy(false));
+    };
+
+    // The tour again (D5, T-7): it plays on the Timer, so Fly gives way to Classic first. With a
+    // session running or paused it skips the presets and stops before the invitation, on "Done".
+    const replayTour = () => {
+        if (useUiStore.getState().activeMode === 'fly') useUiStore.getState().setActiveMode('default');
+        const slot = useSessionStore.getState().clock.pomodoro;
+        const sessionActive = !!slot && (slot.isRunning || slot.pausedRemainingMs !== null);
+        // A first run still waiting on another tab is finished, so the replay starts at once.
+        useTourStore.getState().finish();
+        useTourStore.getState().start({ replay: true, sessionActive });
+        router.navigate('/');
     };
 
     const confirmReset = () => {
-        Alert.alert(
-            'Reset Settings?',
-            'This will restore all settings to their default values.',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Reset',
-                    style: 'destructive',
-                    onPress: () => {
-                        updateSettings({
-                            durations: { focus: 25, shortBreak: 5, longBreak: 15 },
-                            longBreakEvery: 4,
-                            notifications: true,
-                            sound: true,
-                            haptics: true,
-                            showLoveNotes: true,
-                            themeMode: 'system',
-                        });
-                        setFocusDraft('25');
-                        setShortBreakDraft('5');
-                        setLongBreakDraft('15');
-                        setLongBreakEveryDraft('4');
-                    },
+        Alert.alert(t('settings.reset.title'), t('settings.reset.message'), [
+            { text: t('settings.reset.cancel'), style: 'cancel' },
+            {
+                text: t('settings.reset.confirm'),
+                style: 'destructive',
+                onPress: () => {
+                    closeWheels();
+                    updateSettings({
+                        durations: { focus: 25, shortBreak: 5, longBreak: 15 },
+                        presetChoice: '25-5',
+                        customDurations: { focus: 25, shortBreak: 5, longBreak: 15 },
+                        longBreakEvery: 4,
+                        notifications: true,
+                        sound: true,
+                        haptics: true,
+                        showLoveNotes: true,
+                        themeMode: 'system',
+                    });
                 },
-            ]
-        );
+            },
+        ]);
     };
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-            <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-            {/* The SafeAreaView's bottom inset includes the native tab bar (Phase 1 B6). */}
-            <ScrollView
-                contentContainerStyle={[
-                    styles.scrollContent,
-                    isTablet && styles.scrollContentTablet,
-                ]}
-                keyboardShouldPersistTaps="handled"
-                keyboardDismissMode="on-drag"
+        <>
+        <ScrollView
+            ref={scroll}
+            style={{ backgroundColor: tokens.page }}
+            contentContainerStyle={[
+                styles.page,
+                { paddingTop: insets.top + space.s, paddingBottom: insets.bottom + space.xl },
+            ]}
+        >
+            <View
+                style={[styles.column, { width: Math.min(width, READABLE_WIDTH) - space.l * 2 }]}
+                onLayout={(e) => setColumnY(e.nativeEvent.layout.y)}
             >
-                <Text style={[styles.header, { color: colors.text }]}>Settings ⚙️</Text>
+                <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header" maxFontSizeMultiplier={1.4}>
+                    {t('settings.title')}
+                </Text>
 
-                {/* Durations Section */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                        Timer Durations (minutes)
-                    </Text>
-
-                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
-                        <Text style={[styles.label, { color: colors.text }]}>Focus</Text>
-                        <TextInput
-                            style={[
-                                styles.input,
-                                {
-                                    backgroundColor: colors.inputBg,
-                                    borderColor: colors.accentPurple,
-                                    color: colors.text,
-                                },
-                            ]}
-                            value={focusDraft}
-                            onChangeText={setFocusDraft}
-                            onBlur={handleFocusBlur}
-                            keyboardType="number-pad"
-                            inputAccessoryViewID={NUMBER_DONE_ID}
-                            maxLength={3}
+                <ListGroup header={t('settings.timer.header')} footer={t('settings.timer.footer')}>
+                    {durationRow('focus', t('settings.timer.focus'))}
+                    {durationRow('shortBreak', t('settings.timer.shortBreak'))}
+                    {durationRow('longBreak', t('settings.timer.longBreak'))}
+                    <ValueRow
+                        label={t('settings.timer.longBreakEvery')}
+                        value={t('settings.everySessions', { count: settings.longBreakEvery })}
+                        expanded={open === 'longBreakEvery'}
+                        onPress={() => toggle('longBreakEvery')}
+                    >
+                        <NumberWheel
+                            value={settings.longBreakEvery}
+                            min={LONG_BREAK_EVERY.min}
+                            max={LONG_BREAK_EVERY.max}
+                            format={(n) => t('settings.everySessions', { count: n })}
+                            label={t('settings.timer.longBreakEvery')}
+                            onChange={(n) => updateSettings({ longBreakEvery: n })}
                         />
-                    </View>
+                    </ValueRow>
+                </ListGroup>
 
-                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
-                        <Text style={[styles.label, { color: colors.text }]}>Short Break</Text>
-                        <TextInput
-                            style={[
-                                styles.input,
-                                {
-                                    backgroundColor: colors.inputBg,
-                                    borderColor: colors.accentPurple,
-                                    color: colors.text,
-                                },
-                            ]}
-                            value={shortBreakDraft}
-                            onChangeText={setShortBreakDraft}
-                            onBlur={handleShortBreakBlur}
-                            keyboardType="number-pad"
-                            inputAccessoryViewID={NUMBER_DONE_ID}
-                            maxLength={2}
-                        />
-                    </View>
-
-                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
-                        <Text style={[styles.label, { color: colors.text }]}>Long Break</Text>
-                        <TextInput
-                            style={[
-                                styles.input,
-                                {
-                                    backgroundColor: colors.inputBg,
-                                    borderColor: colors.accentPurple,
-                                    color: colors.text,
-                                },
-                            ]}
-                            value={longBreakDraft}
-                            onChangeText={setLongBreakDraft}
-                            onBlur={handleLongBreakBlur}
-                            keyboardType="number-pad"
-                            inputAccessoryViewID={NUMBER_DONE_ID}
-                            maxLength={3}
-                        />
-                    </View>
-
-                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
-                        <Text style={[styles.label, { color: colors.text }]}>
-                            Long break every N sessions
-                        </Text>
-                        <TextInput
-                            style={[
-                                styles.input,
-                                {
-                                    backgroundColor: colors.inputBg,
-                                    borderColor: colors.accentPurple,
-                                    color: colors.text,
-                                },
-                            ]}
-                            value={longBreakEveryDraft}
-                            onChangeText={setLongBreakEveryDraft}
-                            onBlur={handleLongBreakEveryBlur}
-                            keyboardType="number-pad"
-                            inputAccessoryViewID={NUMBER_DONE_ID}
-                            maxLength={2}
-                        />
-                    </View>
-                </View>
-
-                {/* Appearance Section - Theme Selector */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Appearance</Text>
-
-                    <View style={styles.themeSelector}>
-                        {(['system', 'light', 'dark'] as const).map((mode) => {
-                            const active = settings.themeMode === mode;
-
-                            return (
-                                <Pressable
-                                    key={mode}
-                                    onPress={() => updateSettings({ themeMode: mode as ThemeMode })}
-                                    style={[
-                                        styles.themeOption,
-                                        {
-                                            borderColor: colors.border,
-                                            backgroundColor: active ? colors.accent : 'transparent',
-                                        },
-                                    ]}
-                                >
-                                    <Text
-                                        style={[
-                                            styles.themeOptionText,
-                                            { color: active ? '#FFFFFF' : colors.text },
-                                        ]}
-                                    >
-                                        {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                                    </Text>
-                                </Pressable>
-                            );
-                        })}
-                    </View>
-                </View>
-
-                {/* Preferences Section */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferences</Text>
-
-                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
-                        <Text style={[styles.label, { color: colors.text }]}>Notifications</Text>
-                        <Switch
-                            value={settings.notifications}
-                            onValueChange={(val) => updateSettings({ notifications: val })}
-                            trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (settings.notifications ? colors.accent : '#9e9e9e')}
-                        />
-                    </View>
-
-                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
-                        <Text style={[styles.label, { color: colors.text }]}>Sound</Text>
-                        <Switch
-                            value={settings.sound}
-                            onValueChange={(val) => updateSettings({ sound: val })}
-                            trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (settings.sound ? colors.accent : '#9e9e9e')}
-                        />
-                    </View>
-
-                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
-                        <Text style={[styles.label, { color: colors.text }]}>Haptics</Text>
-                        <Switch
-                            value={settings.haptics}
-                            onValueChange={(val) => updateSettings({ haptics: val })}
-                            trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (settings.haptics ? colors.accent : '#9e9e9e')}
-                        />
-                    </View>
-
-                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
-                        <Text style={[styles.label, { color: colors.text }]}>Show Love Notes</Text>
-                        <Switch
-                            value={settings.showLoveNotes}
-                            onValueChange={(val) => updateSettings({ showLoveNotes: val })}
-                            trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (settings.showLoveNotes ? colors.accent : '#9e9e9e')}
-                        />
-                    </View>
-                </View>
-
-                {/* Experience Section - Animations */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Experience</Text>
-
-                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
-                        <Text style={[styles.label, { color: colors.text }]}>
-                            Background Animations
-                        </Text>
-                        <Switch
-                            value={settings.animationsEnabled}
-                            onValueChange={(val) => updateSettings({ animationsEnabled: val })}
-                            trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (settings.animationsEnabled ? colors.accent : '#9e9e9e')}
-                        />
-                    </View>
-                </View>
-
-                {/* Fly Mode Section */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Fly Mode ✈️</Text>
-
-                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
-                        <Text style={[styles.label, { color: colors.text }]}>Ambient Sounds</Text>
-                        <Switch
-                            value={settings.flyModeSound}
-                            onValueChange={(val) => updateSettings({ flyModeSound: val })}
-                            trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (settings.flyModeSound ? colors.accent : '#9e9e9e')}
-                        />
-                    </View>
-                </View>
-
-                {/* Goals & Streaks Section */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Goals & Streaks</Text>
-
-                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
-                        <Text style={[styles.label, { color: colors.text }]}>Enable Daily Goal</Text>
-                        <Switch
+                <View onLayout={(e) => setGoalY(e.nativeEvent.layout.y)}>
+                    <ListGroup header={t('settings.goal.header')} footer={goalMinutes > 0 ? t('settings.goal.footer') : undefined}>
+                        <SwitchRow
+                            label={t('settings.goal.toggle')}
                             value={goalMinutes > 0}
                             onValueChange={(on) => {
-                                if (on) {
-                                    const n = parseInt(goalDraft, 10);
-                                    setGoalMinutes(Number.isFinite(n) && n > 0 ? n : 50);
-                                } else {
-                                    setGoalMinutes(0);
-                                }
+                                closeWheels();
+                                setGoalMinutes(on ? lastGoal : 0);
                             }}
-                            trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (goalMinutes > 0 ? colors.accent : '#9e9e9e')}
                         />
-                    </View>
-
-                    {goalMinutes > 0 && (
-                        <>
-                            <View style={styles.presetRow}>
-                                {GOAL_PRESETS.map((preset) => (
-                                    <Pressable
-                                        key={preset}
-                                        onPress={() => {
-                                            setGoalDraft(preset.toString());
-                                            setGoalMinutes(preset);
-                                        }}
-                                        style={[
-                                            styles.presetButton,
-                                            {
-                                                backgroundColor:
-                                                    goalMinutes === preset
-                                                        ? colors.accent
-                                                        : colors.surfaceTint,
-                                            },
-                                        ]}
-                                    >
-                                        <Text
-                                            style={{
-                                                color: goalMinutes === preset ? '#fff' : colors.text,
-                                                fontWeight: '600',
-                                            }}
-                                        >
-                                            {preset}m
-                                        </Text>
-                                    </Pressable>
-                                ))}
-                            </View>
-
-                            <View style={[styles.row, { borderBottomColor: colors.border }]}>
-                                <Text style={[styles.label, { color: colors.text }]}>Custom Goal (minutes)</Text>
-                                <TextInput
-                                    style={[
-                                        styles.input,
-                                        {
-                                            backgroundColor: colors.inputBg,
-                                            borderColor: colors.accentPurple,
-                                            color: colors.text,
-                                        },
+                        {goalMinutes > 0 && (
+                            <View style={styles.segmentRow}>
+                                {/* Plain numbers under one caption: "100 min" wrapped onto two lines
+                                    and pushed Custom out of line (build 51 device check). */}
+                                <Text style={[styles.caption, { color: tokens.inkSoft }]}>{t('settings.goal.caption')}</Text>
+                                <SegmentedControl<GoalSegment>
+                                    segments={[
+                                        ...GOAL_PRESETS.map((p) => ({
+                                            value: p,
+                                            label: p,
+                                            accessibilityLabel: t('settings.goal.presetA11y', { count: Number(p) }),
+                                        })),
+                                        { value: 'custom' as const, label: t('presets.custom'), accessibilityLabel: t('presets.custom') },
                                     ]}
-                                    value={goalDraft}
-                                    onChangeText={setGoalDraft}
-                                    onBlur={() => {
-                                        const n = parseInt(goalDraft, 10);
-                                        if (Number.isFinite(n) && n >= 0 && n <= 1440) {
-                                            setGoalMinutes(n);
-                                        } else {
-                                            setGoalDraft(goalMinutes.toString());
-                                        }
-                                    }}
-                                    keyboardType="number-pad"
-                                    inputAccessoryViewID={NUMBER_DONE_ID}
-                                    maxLength={4}
+                                    value={goalSegment}
+                                    onChange={chooseGoal}
                                 />
                             </View>
-                        </>
-                    )}
-
-                    <Text style={[styles.infoText, { color: colors.textMuted }]}>
-                        Current streak: {streak.current} days (best: {streak.best})
-                    </Text>
+                        )}
+                        {goalMinutes > 0 && goalSegment === 'custom' && (
+                            <ValueRow
+                                label={t('settings.goal.customRow')}
+                                value={minutes(goalMinutes)}
+                                expanded={open === 'goal'}
+                                onPress={() => toggle('goal')}
+                            >
+                                <NumberWheel
+                                    value={goalMinutes}
+                                    min={1}
+                                    max={GOAL_MAX}
+                                    format={minutes}
+                                    label={t('settings.goal.customRow')}
+                                    onChange={setGoal}
+                                />
+                            </ValueRow>
+                        )}
+                    </ListGroup>
                 </View>
 
-                {/* Daily Reminders Section */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Daily Reminders</Text>
-
-                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
-                        <Text style={[styles.label, { color: colors.text }]}>Enable Reminders</Text>
-                        <Switch
-                            value={reminder.enabled}
-                            disabled={!reminderReady || reminderBusy}
-                            onValueChange={async (on) => {
-                                setStatusText('');
-                                setReminderBusy(true);
-                                try {
-                                    if (on) {
-                                        const ok = await enableDailyReminder();
-                                        if (!ok) {
-                                            setStatusText('Permission denied. Please enable notifications in settings.');
-                                        }
-                                    } else {
-                                        await disableDailyReminder();
-                                    }
-                                } finally {
-                                    setReminderBusy(false);
-                                }
-                            }}
-                            trackColor={{ false: '#ddd', true: colors.accentLight }}
-                            thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (reminder.enabled ? colors.accent : '#9e9e9e')}
-                        />
-                    </View>
-
+                {/* Why the reminder is off is a plain footer, in `inkSoft`: `dangerInk` means a destructive
+                    action (HIG T-4). When iOS denied it, the "Open iOS Settings" row carries what to do. */}
+                <ListGroup
+                    header={t('settings.notifications.header')}
+                    footer={notice ? t(`settings.notifications.${notice}`) : t('settings.notifications.footer')}
+                >
+                    <SwitchRow
+                        label={t('settings.notifications.sessionAlerts')}
+                        value={settings.notifications}
+                        onValueChange={(on) => updateSettings({ notifications: on })}
+                    />
+                    <SwitchRow
+                        label={t('settings.notifications.reminder')}
+                        value={reminder.enabled}
+                        disabled={!reminderReady || reminderBusy}
+                        onValueChange={toggleReminder}
+                    />
                     {reminder.enabled && (
-                        <>
-                            <View style={[styles.row, { borderBottomColor: colors.border }]}>
-                                <Text style={[styles.label, { color: colors.text }]}>Time</Text>
-                                <Pressable
-                                    style={[
-                                        styles.input,
-                                        {
-                                            backgroundColor: colors.inputBg,
-                                            borderColor: colors.accentPurple,
-                                            justifyContent: 'center',
-                                        },
-                                    ]}
-                                    onPress={() => setShowReminderTimePicker(true)}
-                                >
-                                    <Text style={{ color: colors.text, fontSize: 16 }}>
-                                        {reminder.timeHHMM}
-                                    </Text>
-                                </Pressable>
-                            </View>
-                            {showReminderTimePicker && (
-                                <>
-                                    <DateTimePicker
-                                        value={(() => {
-                                            const [h, m] = reminder.timeHHMM.split(':').map(Number);
-                                            const date = new Date();
-                                            date.setHours(h, m, 0, 0);
-                                            return date;
-                                        })()}
-                                        mode="time"
-                                        is24Hour={true}
-                                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                        onChange={(event, selectedDate) => {
-                                            if (Platform.OS !== 'ios') {
-                                                setShowReminderTimePicker(false);
-                                            }
-                                            if (event.type === 'set' && selectedDate) {
-                                                const hh = selectedDate.getHours().toString().padStart(2, '0');
-                                                const mm = selectedDate.getMinutes().toString().padStart(2, '0');
-                                                setReminderTimeHHMM(`${hh}:${mm}`);
-                                            }
-                                        }}
-                                    />
-                                    {Platform.OS === 'ios' && (
-                                        <Pressable
-                                            onPress={() => setShowReminderTimePicker(false)}
-                                            style={{ alignSelf: 'flex-end', paddingHorizontal: 16, paddingVertical: 8 }}
-                                        >
-                                            <Text style={{ color: colors.accent, fontWeight: '600', fontSize: 16 }}>Done</Text>
-                                        </Pressable>
-                                    )}
-                                </>
-                            )}
-
-                            <View style={[styles.row, { borderBottomColor: colors.border }]}>
-                                <Text style={[styles.label, { color: colors.text }]}>Quiet Hours</Text>
-                                <Switch
-                                    value={reminder.quietHours.enabled}
-                                    onValueChange={(on) =>
-                                        setQuietHours({
-                                            ...reminder.quietHours,
-                                            enabled: on,
-                                        })
-                                    }
-                                    trackColor={{ false: '#ddd', true: colors.accentLight }}
-                                    thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : (reminder.quietHours.enabled ? colors.accent : '#9e9e9e')}
-                                />
-                            </View>
-
-                            {reminder.quietHours.enabled && (
-                                <>
-                                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
-                                        <Text style={[styles.label, { color: colors.text }]}>Quiet Start</Text>
-                                        <Pressable
-                                            style={[
-                                                styles.input,
-                                                {
-                                                    backgroundColor: colors.inputBg,
-                                                    borderColor: colors.accentPurple,
-                                                    justifyContent: 'center',
-                                                },
-                                            ]}
-                                            onPress={() => setShowQuietStartPicker(true)}
-                                        >
-                                            <Text style={{ color: colors.text, fontSize: 16 }}>
-                                                {reminder.quietHours.startHHMM}
-                                            </Text>
-                                        </Pressable>
-                                    </View>
-                                    {showQuietStartPicker && (
-                                        <>
-                                            <DateTimePicker
-                                                value={(() => {
-                                                    const [h, m] = reminder.quietHours.startHHMM.split(':').map(Number);
-                                                    const date = new Date();
-                                                    date.setHours(h, m, 0, 0);
-                                                    return date;
-                                                })()}
-                                                mode="time"
-                                                is24Hour={true}
-                                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                                onChange={(event, selectedDate) => {
-                                                    if (Platform.OS !== 'ios') {
-                                                        setShowQuietStartPicker(false);
-                                                    }
-                                                    if (event.type === 'set' && selectedDate) {
-                                                        const hh = selectedDate.getHours().toString().padStart(2, '0');
-                                                        const mm = selectedDate.getMinutes().toString().padStart(2, '0');
-                                                        setQuietHours({
-                                                            ...reminder.quietHours,
-                                                            startHHMM: `${hh}:${mm}`,
-                                                        });
-                                                    }
-                                                }}
-                                            />
-                                            {Platform.OS === 'ios' && (
-                                                <Pressable
-                                                    onPress={() => setShowQuietStartPicker(false)}
-                                                    style={{ alignSelf: 'flex-end', paddingHorizontal: 16, paddingVertical: 8 }}
-                                                >
-                                                    <Text style={{ color: colors.accent, fontWeight: '600', fontSize: 16 }}>Done</Text>
-                                                </Pressable>
-                                            )}
-                                        </>
-                                    )}
-
-                                    <View style={[styles.row, { borderBottomColor: colors.border }]}>
-                                        <Text style={[styles.label, { color: colors.text }]}>Quiet End</Text>
-                                        <Pressable
-                                            style={[
-                                                styles.input,
-                                                {
-                                                    backgroundColor: colors.inputBg,
-                                                    borderColor: colors.accentPurple,
-                                                    justifyContent: 'center',
-                                                },
-                                            ]}
-                                            onPress={() => setShowQuietEndPicker(true)}
-                                        >
-                                            <Text style={{ color: colors.text, fontSize: 16 }}>
-                                                {reminder.quietHours.endHHMM}
-                                            </Text>
-                                        </Pressable>
-                                    </View>
-                                    {showQuietEndPicker && (
-                                        <>
-                                            <DateTimePicker
-                                                value={(() => {
-                                                    const [h, m] = reminder.quietHours.endHHMM.split(':').map(Number);
-                                                    const date = new Date();
-                                                    date.setHours(h, m, 0, 0);
-                                                    return date;
-                                                })()}
-                                                mode="time"
-                                                is24Hour={true}
-                                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                                onChange={(event, selectedDate) => {
-                                                    if (Platform.OS !== 'ios') {
-                                                        setShowQuietEndPicker(false);
-                                                    }
-                                                    if (event.type === 'set' && selectedDate) {
-                                                        const hh = selectedDate.getHours().toString().padStart(2, '0');
-                                                        const mm = selectedDate.getMinutes().toString().padStart(2, '0');
-                                                        setQuietHours({
-                                                            ...reminder.quietHours,
-                                                            endHHMM: `${hh}:${mm}`,
-                                                        });
-                                                    }
-                                                }}
-                                            />
-                                            {Platform.OS === 'ios' && (
-                                                <Pressable
-                                                    onPress={() => setShowQuietEndPicker(false)}
-                                                    style={{ alignSelf: 'flex-end', paddingHorizontal: 16, paddingVertical: 8 }}
-                                                >
-                                                    <Text style={{ color: colors.accent, fontWeight: '600', fontSize: 16 }}>Done</Text>
-                                                </Pressable>
-                                            )}
-                                        </>
-                                    )}
-
-                                    <Text style={[styles.infoText, { color: colors.textMuted }]}>
-                                        Reminder will be shifted to quiet-end if it falls inside quiet hours.
-                                    </Text>
-                                </>
-                            )}
-
-                            {!!statusText && (
-                                <Text style={[styles.infoText, { color: colors.textMuted, marginTop: 8 }]}>
-                                    {statusText}
-                                </Text>
-                            )}
-                        </>
+                        <TimeRow label={t('settings.notifications.reminderTime')} hhmm={reminder.timeHHMM} onChange={setReminderTimeHHMM} />
                     )}
-                </View>
+                    {reminder.enabled && (
+                        <SwitchRow
+                            label={t('settings.notifications.quiet')}
+                            value={reminder.quietHours.enabled}
+                            onValueChange={(on) => setQuietHours({ ...reminder.quietHours, enabled: on })}
+                        />
+                    )}
+                    {reminder.enabled && reminder.quietHours.enabled && (
+                        <TimeRow
+                            label={t('settings.notifications.quietStart')}
+                            hhmm={reminder.quietHours.startHHMM}
+                            onChange={(startHHMM) => setQuietHours({ ...reminder.quietHours, startHHMM })}
+                        />
+                    )}
+                    {reminder.enabled && reminder.quietHours.enabled && (
+                        <TimeRow
+                            label={t('settings.notifications.quietEnd')}
+                            hhmm={reminder.quietHours.endHHMM}
+                            onChange={(endHHMM) => setQuietHours({ ...reminder.quietHours, endHHMM })}
+                        />
+                    )}
+                    {notice === 'denied' && (
+                        <ButtonRow label={t('settings.notifications.openSettings')} onPress={() => Linking.openSettings().catch(() => {})} />
+                    )}
+                </ListGroup>
 
-                {/* About Section */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>About</Text>
-                    <Pressable
-                        style={[styles.updateButton, { backgroundColor: colors.accentPurple }]}
-                        onPress={() => Linking.openURL('https://valentine-pomodoro-developer-websit.vercel.app/')}
-                    >
-                        <Text style={styles.updateButtonText}>Visit Developer Website</Text>
-                    </Pressable>
-                    {/* A 1.5 s long-press opens the start-up probe (Phase 1 B7); the line is unchanged */}
-                    <HiddenStartupDiagnostics>
-                        <Text style={[styles.infoText, { color: colors.textMuted }]}>
-                            Made with ❤️ by Mert Efe Sensoy
-                        </Text>
-                    </HiddenStartupDiagnostics>
-                </View>
+                <ListGroup header={t('settings.feel.header')}>
+                    <SwitchRow label={t('settings.feel.sound')} value={settings.sound} onValueChange={(on) => updateSettings({ sound: on })} />
+                    <SwitchRow label={t('settings.feel.haptics')} value={settings.haptics} onValueChange={(on) => updateSettings({ haptics: on })} />
+                </ListGroup>
 
-                {/* Check for Updates Button */}
-                <Pressable
-                    style={[styles.updateButton, { backgroundColor: colors.accentPurple }]}
-                    onPress={() => checkForUpdates({ force: true })}
-                >
-                    <Text style={styles.updateButtonText}>Check for Updates</Text>
-                </Pressable>
+                <ListGroup header={t('settings.notes.header')}>
+                    <SwitchRow
+                        label={t('settings.notes.show')}
+                        value={settings.showLoveNotes}
+                        onValueChange={(on) => updateSettings({ showLoveNotes: on })}
+                    />
+                </ListGroup>
 
-                {/* Reset Button */}
-                <Pressable
-                    style={[styles.resetButton, { backgroundColor: colors.accent }]}
-                    onPress={confirmReset}
-                >
-                    <Text style={styles.resetButtonText}>Reset to Defaults</Text>
-                </Pressable>
-
-                {/* Info Note */}
-                <Text style={[styles.infoText, { color: colors.textMuted }]}>
-                    Settings changes apply to your next session. Currently running sessions are not
-                    affected.
-                </Text>
-            </ScrollView>
-            </KeyboardAvoidingView>
-
-            {/* The number pad's "Done" bar (iOS only; Android's number keyboard has its own) */}
-            {Platform.OS === 'ios' && (
-                <InputAccessoryView nativeID={NUMBER_DONE_ID}>
-                    <View style={[styles.keyboardDoneBar, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
-                        <Pressable
-                            onPress={() => Keyboard.dismiss()}
-                            accessibilityRole="button"
-                            accessibilityLabel="Done"
-                            style={styles.keyboardDoneButton}
-                        >
-                            <Text style={[styles.keyboardDoneText, { color: colors.accent }]}>Done</Text>
-                        </Pressable>
+                {/* Classic's layout (D1 brief §3): the same choice as the Modes sheet's. */}
+                <ListGroup header={t('settings.appearance.header')} footer={t('settings.appearance.footer')}>
+                    <View style={styles.segmentRow}>
+                        <Text style={[styles.caption, { color: tokens.inkSoft }]}>{t('modes.layout')}</Text>
+                        <SegmentedControl<ClassicLayout>
+                            segments={[
+                                { value: 'ring', label: t('modes.ring'), accessibilityLabel: t('modes.ring') },
+                                { value: 'spread', label: t('modes.spread'), accessibilityLabel: t('modes.spread') },
+                            ]}
+                            value={classicLayoutOf(settings)}
+                            onChange={(classicLayout) => updateSettings({ classicLayout })}
+                        />
                     </View>
-                </InputAccessoryView>
-            )}
-        </SafeAreaView>
+                </ListGroup>
+
+                {/* System follows the iPhone's language, as before D3. Reset leaves it alone, as it
+                    leaves Classic's layout: it must never change the language behind a restart. */}
+                <ListGroup header={t('settings.language.header')} footer={t('settings.language.footer')}>
+                    <View style={styles.segmentRow}>
+                        <SegmentedControl<LanguageChoice>
+                            segments={[
+                                { value: 'system', label: t('settings.language.system'), accessibilityLabel: t('settings.language.system') },
+                                { value: 'en', label: t('settings.language.en'), accessibilityLabel: t('settings.language.en') },
+                                { value: 'tr', label: t('settings.language.tr'), accessibilityLabel: t('settings.language.tr') },
+                            ]}
+                            value={languageChoice}
+                            onChange={chooseLanguage}
+                        />
+                    </View>
+                </ListGroup>
+
+                <ListGroup header={t('modes.fly')}>
+                    <SwitchRow
+                        label={t('settings.fly.ambient')}
+                        value={settings.flyModeSound}
+                        onValueChange={(on) => updateSettings({ flyModeSound: on })}
+                    />
+                </ListGroup>
+
+                <ListGroup
+                    header={t('settings.about.header')}
+                    footer={
+                        <View style={styles.footerBlock}>
+                            <Text style={[styles.footer, { color: tokens.inkSoft }]}>{t('settings.about.origin', { app: APP_NAME })}</Text>
+                            {/* A 1.5 s long-press opens the start-up probe (Phase 1 B7). */}
+                            <HiddenStartupDiagnostics>
+                                <Text style={[styles.footer, { color: tokens.inkSoft }]}>{t('settings.about.credit')}</Text>
+                            </HiddenStartupDiagnostics>
+                        </View>
+                    }
+                >
+                    <ButtonRow label={t('welcome.replay')} onPress={() => router.push('/welcome')} />
+                    <ButtonRow label={t('tour.replay')} onPress={replayTour} />
+                    <ButtonRow label={t('settings.about.updates')} onPress={() => checkForUpdates({ force: true })} />
+                    <ButtonRow label={t('settings.about.website')} onPress={() => Linking.openURL(DEVELOPER_URL).catch(() => {})} />
+                </ListGroup>
+
+                <ListGroup>
+                    <ButtonRow label={t('settings.reset.button')} onPress={confirmReset} destructive />
+                </ListGroup>
+            </View>
+        </ScrollView>
+        <StatusBarScrim />
+        </>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        // backgroundColor removed - now inline
-    },
-    keyboardDoneBar: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        borderTopWidth: StyleSheet.hairlineWidth,
-        paddingHorizontal: 8,
-    },
-    keyboardDoneButton: {
-        minHeight: 44,
-        minWidth: 64,
-        paddingHorizontal: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    keyboardDoneText: {
-        fontSize: 17,
-        fontWeight: '600',
-    },
-    scrollContent: {
-        padding: 16,
-    },
-    scrollContentTablet: {
-        maxWidth: 720,
-        alignSelf: 'center',
-        width: '100%',
-    },
-    header: {
-        fontSize: 24,
-        fontWeight: '600',
-        // color removed - now inline
-        marginBottom: 24,
-    },
-    section: {
-        marginBottom: 24,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        // color removed - now inline
-        marginBottom: 12,
-    },
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        // borderBottomColor removed - now inline
-    },
-    label: {
-        fontSize: 16,
-        // color removed - now inline
-        flex: 1,
-    },
-    input: {
-        borderWidth: 1,
-        // borderColor, backgroundColor, color removed - now inline
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        fontSize: 16,
-        width: 70,
-        textAlign: 'center',
-    },
-    themeSelector: {
-        flexDirection: 'row',
-        gap: 12,
-        marginTop: 12,
-    },
-    themeOption: {
-        flex: 1,
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        borderRadius: 10,
-        borderWidth: 2,
-        alignItems: 'center',
-        // borderColor, backgroundColor removed - now inline per button
-    },
-    themeOptionText: {
-        fontSize: 14,
-        fontWeight: '600',
-        // color removed - now inline
-    },
-    resetButton: {
-        // backgroundColor removed - now inline
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-        borderRadius: 12,
-        alignItems: 'center',
-        marginTop: 12,
-    },
-    resetButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    updateButton: {
-        // backgroundColor removed - now inline
-        paddingHorizontal: 24,
-        paddingVertical: 14,
-        borderRadius: 12,
-        alignItems: 'center',
-        marginTop: 12,
-    },
-    updateButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    infoText: {
-        fontSize: 14,
-        // color removed - now inline
-        marginTop: 16,
-        textAlign: 'center',
-        lineHeight: 20,
-    },
-    presetRow: {
-        flexDirection: 'row',
-        gap: 8,
-        marginTop: 12,
-        marginBottom: 12,
-        flexWrap: 'wrap',
-    },
-    presetButton: {
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        borderRadius: 999,
-        minWidth: 60,
-        alignItems: 'center',
-    },
+    page: { alignItems: 'center' },
+    column: { gap: space.xl },
+    title: { fontFamily: fonts.semiBold, fontSize: 34, lineHeight: 42, paddingHorizontal: space.xs },
+    segmentRow: { paddingHorizontal: space.l, paddingVertical: space.m, gap: space.s },
+    caption: { fontSize: 13, fontWeight: '600' },
+    footer: { fontSize: 13, lineHeight: 18, paddingHorizontal: space.l },
+    footerBlock: { gap: space.xs },
 });

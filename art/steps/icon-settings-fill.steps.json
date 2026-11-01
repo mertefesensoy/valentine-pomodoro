@@ -24,6 +24,14 @@
  {
   "command": "document.export",
   "params": {
+   "path": "C:/vp-art/art/out/icon/icon-settings-fill-25.png",
+   "format": "png",
+   "scale": 1.0416666666666667
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
    "path": "C:/vp-art/art/out/icon/icon-settings-fill-50.png",
    "format": "png",
    "scale": 2.0833333333333335

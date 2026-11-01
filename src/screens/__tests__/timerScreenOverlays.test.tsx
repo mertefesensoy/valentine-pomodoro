@@ -5,13 +5,17 @@ import { useSettingsStore } from '../../stores/settingsStore';
 import { useStatsStore } from '../../stores/statsStore';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import { AdManager } from '../../ads/AdManager';
+import { LoveNoteSheet } from '../../components/loveNote/LoveNoteSheet';
+import { useLoveNoteSheet } from '../../stores/loveNoteSheetStore';
 import TimerScreen from '../TimerScreen';
 
 // What Classic shows after a completed focus, and in what order (Phase 1 B5):
 // the goal celebration first, then the love note, and the interstitial only
 // once neither is showing (FR-ADS-001 rule 3). Written against the screen
 // before B5 replaced its effect-driven queue, and kept as the check that the
-// order didn't change.
+// order didn't change. Phase 1 D1 moved the celebration inline onto today's
+// row and the love note into a native sheet (/love-note) that stays until it
+// is dismissed; the order is the same.
 jest.useFakeTimers();
 jest.setTimeout(30_000);
 
@@ -37,10 +41,27 @@ jest.mock('../../ads/AdPolicy', () => ({
 jest.mock('../../ads/AdManager', () => ({
     AdManager: { showIfReady: jest.fn(() => false) },
 }));
+// The love note's sheet is the /love-note route (Phase 1 D1), which needs a navigator: the
+// screen's push is recorded, and going back does what the native sheet's dismissal does,
+// unmounting the route, which closes the sheet store.
+jest.mock('expo-router', () => ({
+    ...jest.requireActual('expo-router'),
+    router: {
+        push: jest.fn(),
+        canGoBack: () => true,
+        back: jest.fn(() => jest.requireActual('../../stores/loveNoteSheetStore').useLoveNoteSheet.getState().close()),
+    },
+}));
+
+/** Stands in for the presented route: the sheet's content, while the store holds a note. */
+function LoveNoteSheetHost() {
+    const note = useLoveNoteSheet((s) => s.note);
+    return note === null ? null : <LoveNoteSheet />;
+}
 
 const showAd = jest.mocked(AdManager.showIfReady);
 
-const CELEBRATION = 'daily goal reached';
+const CELEBRATION = 'Goal reached';
 const LOVE_NOTE_CLOSE = 'Close';
 
 async function renderTimerScreen() {
@@ -48,6 +69,7 @@ async function renderTimerScreen() {
         <GestureHandlerRootView style={{ flex: 1 }}>
             <StoreGate>
                 <TimerScreen />
+                <LoveNoteSheetHost />
             </StoreGate>
         </GestureHandlerRootView>,
     );
@@ -73,18 +95,17 @@ async function completeOneMinuteFocus({ goalMinutes, showLoveNotes }: { goalMinu
         useSettingsStore.getState().updateSettings({
             durations: { ...useSettingsStore.getState().settings.durations, focus: 1 },
             showLoveNotes,
-            // GoalReachedPopup then closes without its exit animation.
-            animationsEnabled: false,
         });
         useStatsStore.getState().setGoalMinutes(goalMinutes);
     });
-    await press('Start');
+    await press('Start focus');
     await tick(61_000);
 }
 
 beforeEach(async () => {
     await resetStorage();
     showAd.mockClear();
+    useLoveNoteSheet.getState().close();
 });
 
 // covers: FR-ADS-001, FR-NTE-001
@@ -96,7 +117,7 @@ describe('after a completed focus on Classic', () => {
         expect(screen.queryByText(LOVE_NOTE_CLOSE)).toBeNull();
         expect(showAd).not.toHaveBeenCalled();
 
-        // The celebration dismisses itself after 1.4 s; the love note follows.
+        // The goal moment leaves after 1.4 s; the love note's sheet follows.
         await tick(1_400);
         expect(screen.queryByText(CELEBRATION)).toBeNull();
         expect(screen.getByText(LOVE_NOTE_CLOSE)).toBeOnTheScreen();
@@ -111,15 +132,19 @@ describe('after a completed focus on Classic', () => {
         expect(showAd).toHaveBeenCalledTimes(1);
     });
 
-    it('below the goal shows the love note, then the ad once it closes by itself', async () => {
+    it('below the goal shows the love note, which stays until it is closed, then the ad', async () => {
         await completeOneMinuteFocus({ goalMinutes: 600, showLoveNotes: true });
 
         expect(screen.queryByText(CELEBRATION)).toBeNull();
         expect(screen.getByText(LOVE_NOTE_CLOSE)).toBeOnTheScreen();
         expect(showAd).not.toHaveBeenCalled();
 
-        // LoveNoteCard dismisses itself after 8 s.
-        await tick(8_000);
+        // The sheet doesn't close itself (Phase 1 D1, WCAG 2.2.1): v1's card left after 8 s.
+        await tick(30_000);
+        expect(screen.getByText(LOVE_NOTE_CLOSE)).toBeOnTheScreen();
+        expect(showAd).not.toHaveBeenCalled();
+
+        await press(LOVE_NOTE_CLOSE);
         expect(screen.queryByText(LOVE_NOTE_CLOSE)).toBeNull();
         expect(showAd).toHaveBeenCalledTimes(1);
     });
@@ -130,7 +155,8 @@ describe('after a completed focus on Classic', () => {
         expect(screen.getByText(CELEBRATION)).toBeOnTheScreen();
         expect(showAd).not.toHaveBeenCalled();
 
-        await press('continue');
+        // The goal moment is inline now (Phase 1 D1): it leaves by itself after 1.4 s.
+        await tick(1_400);
         expect(screen.queryByText(CELEBRATION)).toBeNull();
         expect(screen.queryByText(LOVE_NOTE_CLOSE)).toBeNull();
         expect(showAd).toHaveBeenCalledTimes(1);

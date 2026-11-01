@@ -1,0 +1,363 @@
+{
+  "tabs": {
+    "timer": "Timer",
+    "stats": "Stats",
+    "settings": "Settings",
+    "notes": "Notes"
+  },
+  "timer": {
+    "phase": {
+      "focus": "Focus",
+      "shortBreak": "Short break",
+      "longBreak": "Long break"
+    },
+    "phaseLine": "{{phase}} · session {{n}} of {{total}}",
+    "session": "session {{n}} of {{total}}",
+    "nextChange": {
+      "break": "Break at {{time}}",
+      "focus": "Focus at {{time}}"
+    },
+    "paused": "Paused",
+    "a11y": {
+      "remaining": "{{minutes}}, {{seconds}} left, {{phase}}, session {{n}} of {{total}}",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes",
+      "seconds_one": "{{count}} second",
+      "seconds_other": "{{count}} seconds"
+    }
+  },
+  "controls": {
+    "startFocus": "Start focus",
+    "startBreak": "Start break",
+    "pause": "Pause",
+    "resume": "Resume",
+    "skip": "Skip",
+    "endSession": "End session",
+    "endConfirm": {
+      "title": "End this session?",
+      "message": "The timer goes back to the start.",
+      "end": "End session",
+      "cancel": "Cancel"
+    },
+    "skipConfirm": {
+      "title": "Skip the rest of this focus?",
+      "message": "Your break starts now, and this session won't add a sticker.",
+      "skip": "Skip",
+      "cancel": "Keep focusing"
+    }
+  },
+  "presets": {
+    "label": "{{focus}} minutes focus, {{rest}} minutes break",
+    "position": "{{n}} of {{total}}",
+    "custom": "Custom",
+    "key": "focus / break, in minutes",
+    "customLabel": "Custom: {{focus}} minutes focus, {{rest}} minutes break, set in Settings",
+    "customKey": "Custom: {{focus}} / {{rest}} min, set in Settings",
+    "settingsNote": "Custom on the Timer uses these durations."
+  },
+  "modes": {
+    "button": "Modes",
+    "title": "Modes",
+    "classic": "Classic",
+    "fly": "Fly",
+    "layout": "Timer layout",
+    "ring": "Ring",
+    "spread": "Facing pages"
+  },
+  "partner": {
+    "ready": "Pomo & Doro are ready when you are",
+    "studying": "Pomo & Doro are studying with you",
+    "break": "Pomo & Doro are on a break with you",
+    "paused": "Pomo & Doro are waiting for you"
+  },
+  "spread": {
+    "you": "You",
+    "doro": "Doro"
+  },
+  "today": {
+    "a11y_one": "{{count}} session today",
+    "a11y_other": "{{count}} sessions today",
+    "a11y_zero": "No sessions yet today",
+    "more": "+{{count}}",
+    "empty": "Finish a focus and your first sticker lands here",
+    "label": "Today",
+    "left_one": "{{count}} more for today's goal",
+    "left_other": "{{count}} more for today's goal"
+  },
+  "goal": {
+    "reached": "Goal reached",
+    "streak_one": "{{count}}-day streak",
+    "streak_other": "{{count}}-day streak"
+  },
+  "loveNote": {
+    "title": "A note for you",
+    "close": "Close"
+  },
+  "welcome": {
+    "updated": "Your diary has a new look.",
+    "fresh": "Meet Pomo & Doro.",
+    "start": "Start",
+    "art": "Pomo and Doro become the pages of one diary",
+    "replay": "Watch the welcome again"
+  },
+  "settings": {
+    "title": "Settings",
+    "minutes_one": "{{n}} min",
+    "minutes_other": "{{n}} min",
+    "everySessions_one": "{{count}} session",
+    "everySessions_other": "{{count}} sessions",
+    "timer": {
+      "header": "Timer",
+      "focus": "Focus",
+      "shortBreak": "Short break",
+      "longBreak": "Long break",
+      "longBreakEvery": "Long break every",
+      "footer": "Custom on the Timer uses these durations. Changes apply from your next session."
+    },
+    "goal": {
+      "header": "Daily goal",
+      "toggle": "Set a daily goal",
+      "caption": "Minutes a day",
+      "customRow": "Custom goal",
+      "presetA11y_one": "{{count}} minute a day",
+      "presetA11y_other": "{{count}} minutes a day",
+      "footer": "Days that reach the goal count toward your love streak."
+    },
+    "notifications": {
+      "header": "Notifications",
+      "sessionAlerts": "Session alerts",
+      "reminder": "Daily reminder",
+      "reminderTime": "Reminder time",
+      "quiet": "Quiet hours",
+      "quietStart": "Starts",
+      "quietEnd": "Ends",
+      "footer": "Session alerts tell you when a focus or a break ends, even with your phone locked. Quiet hours move the daily reminder out of them.",
+      "denied": "Notifications are off for this app in iOS Settings, so the reminder can't be set.",
+      "failed": "The reminder couldn't be set. Try again in a moment.",
+      "openSettings": "Open iOS Settings"
+    },
+    "feel": {
+      "header": "Sound and haptics",
+      "sound": "Sound",
+      "haptics": "Haptics"
+    },
+    "notes": {
+      "header": "Love notes",
+      "show": "Show a note after each focus"
+    },
+    "appearance": {
+      "header": "Appearance",
+      "footer": "Light or dark follows your iPhone."
+    },
+    "language": {
+      "header": "Language",
+      "system": "System",
+      "en": "English",
+      "tr": "Türkçe",
+      "footer": "A change takes effect after you close and reopen the app."
+    },
+    "fly": {
+      "ambient": "Ambient sounds"
+    },
+    "about": {
+      "header": "About",
+      "updates": "Check for updates",
+      "website": "Developer website",
+      "origin": "{{app}} began as a gift for Bengisu.",
+      "credit": "Made with love by Mert Efe Şensoy"
+    },
+    "reset": {
+      "button": "Reset settings",
+      "title": "Reset settings?",
+      "message": "Timer lengths and switches go back to their defaults. Your notes, stats, goal and reminders stay as they are.",
+      "cancel": "Cancel",
+      "confirm": "Reset"
+    }
+  },
+  "notesScreen": {
+    "title": "Love notes",
+    "count_one": "{{count}} note",
+    "count_other": "{{count}} notes",
+    "add": "Add",
+    "addA11y": "Add a note",
+    "preview": "Preview a note",
+    "edit": "Edit",
+    "editHint": "Opens the note to edit it",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "deleteTitle": "Delete this note?",
+    "deleteMessage": "It's removed from your notes. This can't be undone.",
+    "restore": "Restore default notes",
+    "restoreTitle": "Restore default notes?",
+    "restoreMessage": "This adds back any default notes you've removed. Your own notes stay as they are.",
+    "restoreConfirm": "Restore",
+    "restoredNone": "All the default notes are already here.",
+    "restored_one": "Added {{count}} note.",
+    "restored_other": "Added {{count}} notes.",
+    "emptyLine": "Add a note for after your next focus",
+    "editor": {
+      "new": "New note",
+      "edit": "Edit note",
+      "save": "Save",
+      "cancel": "Cancel",
+      "placeholder": "Write something sweet for after a focus",
+      "left_one": "{{count}} character left",
+      "left_other": "{{count}} characters left",
+      "long": "This note is longer than 280 characters. It's kept as it is, and it can't grow.",
+      "delete": "Delete note",
+      "discardTitle": "Discard your changes?",
+      "discard": "Discard changes",
+      "keep": "Keep editing"
+    }
+  },
+  "stats": {
+    "title": "Stats",
+    "loading": "Loading stats…",
+    "metricSessions": "Sessions",
+    "metricMinutes": "Minutes",
+    "weekSessions_one": "Last 7 days: {{n}} session",
+    "weekSessions_other": "Last 7 days: {{n}} sessions",
+    "weekMinutes_one": "Last 7 days: {{n}} minute",
+    "weekMinutes_other": "Last 7 days: {{n}} minutes",
+    "goalDays_one": "goal reached on {{count}} day",
+    "goalDays_other": "goal reached on {{count}} days",
+    "today": "Today",
+    "noSessions": "no sessions",
+    "sessions_one": "{{count}} session",
+    "sessions_other": "{{count}} sessions",
+    "minutes_one": "{{count}} minute",
+    "minutes_other": "{{count}} minutes",
+    "sessionsN_one": "{{n}} session",
+    "sessionsN_other": "{{n}} sessions",
+    "minutesN_one": "{{n}} minute",
+    "minutesN_other": "{{n}} minutes",
+    "minutesShort_one": "{{n}} min",
+    "minutesShort_other": "{{n}} min",
+    "goalReached": "goal reached",
+    "toGoal_one": "{{n}} min to the goal",
+    "toGoal_other": "{{n}} min to the goal",
+    "goalTitle_one": "Goal {{n}} min",
+    "goalTitle_other": "Goal {{n}} min",
+    "leftToday_one": "{{n}} min left today",
+    "leftToday_other": "{{n}} min left today",
+    "goalReachedToday": "Reached today",
+    "streakTitle": "Love streak",
+    "streakValue_one": "{{n}} day · best {{best}}",
+    "streakValue_other": "{{n}} days · best {{best}}",
+    "streakStart": "Starts the day you reach your goal",
+    "best": "Best {{best}}",
+    "turnOnGoal": "Turn on a daily goal",
+    "goalOffFooter": "A daily goal marks the days you reach it and counts your love streak.",
+    "startSession": "Start a session",
+    "allTime": "All time: {{sessions}} · {{minutes}}"
+  },
+  "updates": {
+    "failedTitle": "Couldn't check for updates",
+    "failedMessage": "Check your connection and try again.",
+    "upToDateTitle": "You're up to date",
+    "upToDateMessage": "You have the latest version ({{version}}).",
+    "availableTitle": "Update available",
+    "availableMessage": "Version {{version}} is available on the App Store with the latest improvements and fixes.",
+    "notNow": "Not now",
+    "update": "Update"
+  },
+  "fly": {
+    "loading": "Loading Fly Mode",
+    "resetNorth": "Reset map to north",
+    "cameraMode": "Camera mode: {{mode}}. Tap to cycle.",
+    "camera": {
+      "followPlane": "Following",
+      "route": "Route",
+      "free": "Free"
+    },
+    "hintOrigin": "Tap an airport dot to pick the origin",
+    "hintDestination": "Tap an airport dot to pick the destination",
+    "toFlat": "Switch to flat map",
+    "toGlobe": "Switch to globe map",
+    "flat": "Flat",
+    "globe": "Globe",
+    "landed": "Landed!",
+    "from": "From",
+    "to": "To",
+    "fromTitle": "Departure airport",
+    "toTitle": "Arrival airport",
+    "routeLine": "{{km}} km  ·  {{duration}} focus",
+    "duration": {
+      "minutes": "{{m}} min",
+      "hours": "{{h}}h",
+      "hoursMinutes": "{{h}}h {{m}}m"
+    },
+    "start": "Start flight",
+    "reset": "Reset"
+  },
+  "airportPicker": {
+    "placeholder": "Select airport",
+    "search": "Search airports…",
+    "done": "Done"
+  },
+  "notifications": {
+    "focusDone": {
+      "title": "Focus complete",
+      "body": "Time for a sweet break"
+    },
+    "breakOver": {
+      "title": "Break's over",
+      "body": "Back to your goals"
+    },
+    "landed": {
+      "title": "Landed!",
+      "body": "Your flight focus session is complete"
+    },
+    "reminder": {
+      "title": "Valentine Pomodoro",
+      "body": "A little focus session today?"
+    }
+  },
+  "notFound": {
+    "home": "Go to Home"
+  },
+  "tour": {
+    "pomo": "Pomo",
+    "doro": "Doro",
+    "says": "{{name}}: {{line}}",
+    "next": "Next",
+    "done": "Done",
+    "skip": "Skip tour",
+    "notNow": "Not now",
+    "mute": "Mute the voices",
+    "unmute": "Turn the voices on",
+    "replay": "Watch the tour again",
+    "continue": "Continue",
+    "presetsLabel": "Focus length",
+    "presets": {
+      "fresh": "Hi, we're Pomo and Doro! First, pick how long you'd like to focus.",
+      "updated": "Hi again! The diary has lots that's new. First, pick how long to focus.",
+      "replay": "Hi again! Here's where you pick how long to focus."
+    },
+    "today": {
+      "goal": "Every focus you finish puts a sticker here and fills today's goal.",
+      "noGoal": "Every focus you finish puts a sticker here, on today's page."
+    },
+    "modes": {
+      "fly": "Tap {{modes}} to change the layout, or to fly over a map while you focus.",
+      "noFly": "Tap {{modes}} to switch between {{ring}} and {{spread}}.",
+      "sheet": "Pick {{ring}} or {{spread}} here, then tap {{continue}}."
+    },
+    "stats": {
+      "lead": "Your week lives in {{tab}}. Tap the tab to see it.",
+      "week": "Each day is a postcard, today in front. Your goal and streak are below.",
+      "weekNoGoal": "Each day is a postcard, today in front. You can turn on a daily goal below.",
+      "empty": "Each day you focus becomes a postcard here, with today's in front."
+    },
+    "notes": {
+      "lead": "Love notes live in {{tab}}. Tap the tab to see them.",
+      "here": "A love note pops up after each focus. Add your own here, too."
+    },
+    "invite": {
+      "lead": "That's the tour! Tap {{tab}} to head back.",
+      "first": "Ready for your first focus? Tap {{start}} when you are.",
+      "again": "Ready for a focus? Tap {{start}} when you are.",
+      "break": "A break is next. Tap {{start}} when you're ready."
+    }
+  }
+}

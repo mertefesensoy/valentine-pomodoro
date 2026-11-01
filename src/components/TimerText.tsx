@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, type StyleProp, type TextStyle } from 'react-native';
+import { StyleSheet, Text, type StyleProp, type TextStyle } from 'react-native';
 import { useDisplayedSeconds } from '../stores/clockStore';
 import type { SessionKind } from '../types';
 import { formatTime } from '../utils/time';
@@ -13,6 +13,14 @@ interface TimerTextProps {
      */
     idleMs: number | null;
     style?: StyleProp<TextStyle>;
+    /**
+     * When given, the text is one VoiceOver element with this label and the "updates frequently"
+     * trait (role `timer`), built from the seconds shown, so VoiceOver reads the time on focus
+     * instead of a spoken tick every second (Classic brief §6).
+     */
+    accessibilityLabelFor?: (seconds: number | null) => string;
+    /** Shrinks the text to fit one line (Classic's ring and spine frame: "180:00" must fit). */
+    fitWidth?: boolean;
 }
 
 /**
@@ -23,8 +31,27 @@ interface TimerTextProps {
  * only thing that re-renders each second (FR-TMR-006, NFR-PERF-003). Its
  * parent re-renders only when the session itself changes (start, pause,
  * resume, stop).
+ *
+ * Its digits are always tabular ("The Steady Digits Rule", DESIGN.md; ADR-0046): the variant
+ * is applied after the caller's style, so no caller can drop it and no digit jiggles as it counts.
  */
-export default function TimerText({ kind, idleMs, style }: TimerTextProps) {
+export default function TimerText({ kind, idleMs, style, accessibilityLabelFor, fitWidth }: TimerTextProps) {
     const seconds = useDisplayedSeconds(kind, idleMs);
-    return <Text style={style}>{seconds === null ? '--:--' : formatTime(seconds * 1000)}</Text>;
+    return (
+        <Text
+            style={[style, styles.steady]}
+            accessible={accessibilityLabelFor ? true : undefined}
+            accessibilityRole={accessibilityLabelFor ? 'timer' : undefined}
+            accessibilityLabel={accessibilityLabelFor?.(seconds)}
+            numberOfLines={fitWidth ? 1 : undefined}
+            adjustsFontSizeToFit={fitWidth}
+            minimumFontScale={fitWidth ? 0.5 : undefined}
+        >
+            {seconds === null ? '--:--' : formatTime(seconds * 1000)}
+        </Text>
+    );
 }
+
+const styles = StyleSheet.create({
+    steady: { fontVariant: ['tabular-nums'] },
+});

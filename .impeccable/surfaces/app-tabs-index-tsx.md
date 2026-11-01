@@ -61,12 +61,16 @@ The owner chose two of the three dealt structures on 2026-10-30: "both of them s
   - **Skip:** a quiet pill.
   - **End:** shown only while paused; it confirms in a native alert with a destructive button.
   - **Feedback:** every press scales to 0.97 over 100–150 ms with a haptic on the same frame.
-- **Presets** (25/5, 50/10, 52/17, 90/20): a native segmented control under the timer, **idle only**. On Start it crossfades into the cycle row (session 1–4) in the same reserved height, so nothing jumps.
+- **Presets** (25/5, 50/10, 52/17, 90/20): a segmented control under the timer, **idle only**. On Start it crossfades into the cycle row (session 1–4) in the same reserved height, so nothing jumps.
+  - **Each preset sets all three durations** (the owner, D1, 2026-10-30): 25/5 with a 15-minute long break, 50/10 with 30, and 52/17 and 90/20 with the long break equal to the short one. Durations that match no preset select none ("Custom").
+  - **The control is built, not `UISegmentedControl`** (D1). The native control can't speak each segment in words (M-3), can't wrap four Turkish labels at AX5, and can't crossfade into the cycle row in place. It keeps the native look: one track, a sliding selection, segments of equal width. For VoiceOver, each segment is a button with a selected state, its words and its position ("1 of 4"). It is never a "tab": tabs navigate, and a preset sets a value (D1 HIG D1-M2).
 - **The mode button:** top right, 44 × 44 pt, the custom "modes" icon. It opens a native page sheet (medium detent) listing the modes as stickers: Classic, with its layout choice, and Fly; Garden, Room and Pet join in Phase 4.
 - **The timer is not a hidden control:** there is no tap or long-press on it. VoiceOver reads one element ("18 minutes 42 seconds left, focus, session 2 of 4") with the updates-frequently trait, not a spoken tick every second.
 - **VoiceOver order, both layouts:** the phase line, the timer, the partner slot (and in Facing Pages, your page before your partner's), today's row, then the controls. Facing Pages sets this order explicitly, because its spine card is drawn over both pages (HIG review M-2).
 - **Labels for icon-only and numeric controls:** the mode button reads "Modes"; each preset reads in words, "25 minutes focus, 5 minutes break" (HIG review M-3).
 - **Overlays:** the love note becomes a native sheet (small detent); "goal reached" becomes an inline moment; the interstitial keeps its policy and shows only after the completion sheet closes.
+  - **The love-note sheet stays until it is dismissed** (D1): a swipe down, or its "Close" button. The v1 card closed itself after 8 s, but a self-closing sheet fails someone reading at a large text size (WCAG 2.2.1). FR-NTE-001 doesn't fix the timing.
+  - **The sheet fits at every text size:** it is sized to its content (`fitToContents`); a long note at AX5 reaches full height and scrolls. It isn't resizable, so it has no grabber. A short title names the moment (D1 HIG D1-M3).
 - **Motion:**
   - tab switches: none
   - phase change: the ring colour and Pomo & Doro's pose crossfade over 200–300 ms
@@ -82,9 +86,33 @@ The owner chose two of the three dealt structures on 2026-10-30: "both of them s
 ## 7. Constraints and open decisions
 
 - **Platform:** iOS 16.4+, the native tab bar; Liquid Glass only where the system draws it (the tab bar, sheets).
-- **The tab bar, from the HIG review:** D1 sets `NativeTabs`' tint to `primaryInk` (5.75:1 light, 8.91:1 dark on the page), so the selected tab is strawberry, not system blue (H-1); the four tab icons ship as filled variants of the C3 set, as `tab-bars.md` prefers (M-4); the controls sit above the floating bar by its measured height plus the bottom safe area, because every tab sets `disableAutomaticContentInsets` (M-5); nothing is painted under the bar, so the system's scroll edge effect stays, including when Facing Pages scrolls at accessibility text sizes (checked on the device in D1).
+- **The tab bar, from the HIG review:**
+  - **H-1:** the selected tab is strawberry (`primaryInk`: 5.75:1 light, 8.91:1 dark on the page), not system blue. In `expo-router` 58.0.28, `NativeTabs`' `tintColor` is Android-only, so iOS gets it through `iconColor` (selected) and the selected `labelStyle`. The unselected colour stays the system's monochrome, which adapts on Liquid Glass (D1 HIG D1-M1).
+  - **M-4:** the four tab icons ship as filled variants of the C3 set, as `tab-bars.md` prefers.
+  - **M-5:** the controls clear the floating bar, because every tab sets `disableAutomaticContentInsets`. Inside `NativeTabs` the bottom safe-area inset already includes the bar (Phase 1 B6), so the bar's height isn't added a second time. Checked on the device.
+  - **Scroll edge effect:** nothing is painted under the bar, so the system's effect stays, including when Facing Pages scrolls at accessibility text sizes. Checked on the device in D1.
+- **Copy:** every string is an i18n key with English and Turkish text from D1 on (the owner moved D3's plumbing into D1, 2026-10-30). Turkish upper case goes through `tr-TR` casing.
 - **Design system:** the C1 tokens (`src/theme/palette.json`); Baloo 2 for the timer only, with tabular figures and the ligatures removed (ADR-0046); the system face for everything else; the C3 icons and Pomo & Doro's five sticker poses (ADR-0047).
 - **Confirmed by the owner at the C4 gate, 2026-10-30:** the brief as written; the three discovery assumptions (during focus the page also shows today's progress, nothing more; the presets live on the page when idle; a mode button opens a sheet); and **sentence case** for English button labels ("Start focus", "End session"), as Turkish is written too.
-- **Open:**
-  - Does the segmented control use the native module (`@react-native-segmented-control/segmented-control`), which adds native code in D1, or a built control with the same look?
-  - Phase 3's partner-slot field order: name, status, intention, local time.
+- **Open:** Phase 3's partner-slot field order: name, status, intention, local time. The segmented-control question is settled in §6 (D1).
+
+## Direction contract
+
+THESIS: One diary page with one moving part. It refuses the category default: a countdown ring floating on an empty screen above a stack of buttons and a stats strip. Here the timer is the only large type, Pomo & Doro sit in the partner slot as the pair studying with you, and the day fills with stickers you can count without a tap.
+
+OWN-WORLD: A flat `page` ground. `paper` fields with a crisp `edge` and radii of 14 or 22, never a shadow. The ring is `ringFocus` or `ringBreak` on `ringTrack`, with round caps. The timer is Baloo 2 SemiBold with tabular figures; the system face sets everything else. A strawberry pill with a cocoa label, and a quiet paper pill for Skip. Only stickers lift: a die-cut white edge and a soft plum-tinted shadow. Custom filled icons, and the selected tab in `primaryInk`.
+
+STORY: One glance answers how long is left, which phase this is, who is with me and how today is going. One thumb press starts or pauses. Finishing presses a sticker onto today: that is the signature interaction, the page's one bounce.
+
+FIRST VIEWPORT: iPhone portrait, The Ring.
+- Top: the phase line leading ("Focus · session 2 of 4"), the Modes button trailing.
+- Centre: the ring at about 70 % of the width, with the Baloo timer inside it as the largest thing on the page, and "Break at 10:25" under the digits.
+- Below the ring: the partner strip, with Pomo & Doro in their focusing pose and one line.
+- Then today's sticker row.
+- Bottom, in thumb reach above the tab bar: the preset row when idle (the cycle row once running), the primary pill at least 54 pt tall, then Skip.
+
+Facing Pages swaps the ring for a two-page spread, tilted toward the spine, with the timer framed on that spine.
+
+FORM: The Ring, structure 6 of 7 on the C4 list and the dealt lead, is the default. Facing Pages, 2 of 7, is the alternate, on one component set. seed:d8d47ae43e992025
+
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

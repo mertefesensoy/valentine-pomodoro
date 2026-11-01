@@ -1,29 +1,22 @@
 /**
  * Theme Resolver Hook
- * Returns current theme colors based on user preference and system settings
+ * Returns the Sticker Diary theme (Phase 1 D1: Strawberry Milk or Midnight Plum from
+ * `palette.ts`) for the system appearance: the theme, its `tokens` (the palette roles every screen
+ * paints with) and `isDark`.
+ *
+ * The app follows the phone's light or dark mode (the owner, D2, 2026-10-31; HIG
+ * `dark-mode.md`, DESIGN.md › Themes). v1's System / Light / Dark switch is retired:
+ * `settings.themeMode` stays in storage, as every key is kept, but nothing reads it.
+ *
+ * D2 rebuilt the last v1 screens and re-tokened Fly's chrome, so the transitional `colors` adapter
+ * (`legacyColors.ts`, the v1 names mapped onto these tokens) is gone.
  */
 
 import { useColorScheme } from 'react-native';
-import { useSettingsStore } from '../stores/settingsStore';
-import { LightTheme, DarkTheme, ThemeColors } from './tokens';
+import { MidnightPlum, StrawberryMilk, type Theme, type ThemeTokens } from './palette';
 
-export function useTheme(): { colors: ThemeColors; isDark: boolean } {
-    const systemScheme = useColorScheme();
-    const themeMode = useSettingsStore((s) => s.settings.themeMode);
-
-    let isDark = false;
-
-    if (themeMode === 'dark') {
-        isDark = true;
-    } else if (themeMode === 'light') {
-        isDark = false;
-    } else {
-        // 'system' - follow device preference
-        isDark = systemScheme === 'dark';
-    }
-
-    return {
-        colors: isDark ? DarkTheme : LightTheme,
-        isDark,
-    };
+export function useTheme(): { theme: Theme; tokens: ThemeTokens; isDark: boolean } {
+    const isDark = useColorScheme() === 'dark';
+    const theme = isDark ? MidnightPlum : StrawberryMilk;
+    return { theme, tokens: theme.tokens, isDark };
 }

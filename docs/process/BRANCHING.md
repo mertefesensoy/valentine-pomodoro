@@ -43,5 +43,6 @@ All eight old `release/*` branches were deleted on 2026-10-30 after every commit
 - [Changelog](../../CHANGELOG.md)
 - [Contributing](../../CONTRIBUTING.md)
 - [Documentation map](../README.md)
+- ["Phase 1 Stage E: verify and ship v1.4.0"](../implementations/2026-11-01-phase1-stage-e.md)
 - [Release process](RELEASE.md)
 <!-- backlinks:end -->

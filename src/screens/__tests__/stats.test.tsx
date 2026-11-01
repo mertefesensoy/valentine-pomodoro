@@ -1,0 +1,337 @@
+import React, { type ReactNode } from 'react';
+import { Dimensions, View } from 'react-native';
+import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { router } from 'expo-router';
+import { StoreGate } from '../../stores/StoreGate';
+import { resetStorage } from '../../__fixtures__/storage/resetStorage';
+import { useSettingsFocus } from '../../stores/settingsFocusStore';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { useStatsStore } from '../../stores/statsStore';
+import { StrawberryMilk } from '../../theme/palette';
+import type { DayStats } from '../../types';
+import StatsScreen from '../StatsScreen';
+import { dateOfKey } from '../stats/WeekStack';
+
+jest.mock('expo-router', () => ({
+    ...jest.requireActual('expo-router'),
+    router: { push: jest.fn(), back: jest.fn(), navigate: jest.fn(), canGoBack: () => true },
+}));
+
+function Providers({ children }: { children: ReactNode }) {
+    return (
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <StoreGate>{children}</StoreGate>
+        </GestureHandlerRootView>
+    );
+}
+
+/** The local day key `daysAgo` days before today. */
+function keyOf(daysAgo: number): string {
+    const d = new Date();
+    d.setDate(d.getDate() - daysAgo);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// The sketch's week: 2, 0, 1, 3, 0, 4 sessions of 25 minutes before today, then 1 today; the goal
+// (50 min) reached on three days.
+const WEEK: [number, DayStats][] = [
+    [6, { focusSessions: 2, focusMinutes: 50, goalHit: true }],
+    [4, { focusSessions: 1, focusMinutes: 25 }],
+    [3, { focusSessions: 3, focusMinutes: 75, goalHit: true }],
+    [1, { focusSessions: 4, focusMinutes: 100, goalHit: true }],
+    [0, { focusSessions: 1, focusMinutes: 25 }],
+];
+
+async function showWeek() {
+    await render(<StatsScreen />, { wrapper: Providers });
+    await act(async () => {
+        useStatsStore.setState({
+            days: Object.fromEntries(WEEK.map(([ago, day]) => [keyOf(ago), day])),
+            goalMinutes: 50,
+            streak: { current: 1, best: 3, lastHitDayKey: keyOf(1) },
+        });
+    });
+}
+
+beforeEach(async () => {
+    await resetStorage();
+    jest.mocked(router.navigate).mockClear();
+});
+
+// covers: FR-STA-003, FR-STA-004, FR-STA-005
+describe('Stats: the postcard stack (D2 Stats contract)', () => {
+    it('opens with one summary line of the week, then today and the six days before it', async () => {
+        await showWeek();
+        expect(screen.getByText('Last 7 days: 11 sessions · goal reached on 3 days')).toBeOnTheScreen();
+        expect(screen.getByLabelText(/^Today, 1 session, 25 minutes$/)).toBeOnTheScreen();
+        // Each earlier day is one element, empty ones included, never "missed".
+        expect(screen.getAllByLabelText(/, (\d+ sessions?|no sessions)/)).toHaveLength(7);
+        expect(screen.getAllByLabelText(/goal reached$/)).toHaveLength(3);
+        expect(screen.getAllByLabelText(/no sessions$/)).toHaveLength(2);
+        expect(screen.queryByText(/missed/i)).toBeNull();
+    });
+
+    it("shows today's progress toward the goal, the goal and the love streak", async () => {
+        await showWeek();
+        expect(screen.getByText(/25 min to the goal/)).toBeOnTheScreen();
+        expect(screen.getByText('Goal 50 min')).toBeOnTheScreen();
+        expect(screen.getByText('25 min left today')).toBeOnTheScreen();
+        expect(screen.getByText('Love streak')).toBeOnTheScreen();
+        expect(screen.getByText('1 day · best 3')).toBeOnTheScreen();
+    });
+
+    // break-ui (D2 record §3.13): "goal reached on 0 days" read as a miss (#4); a streak of 0 read
+    // as a loss beside the best (the owner's decision); a count of 1,000 or more showed two ways (#6).
+    it('says nothing of goal days when none was reached, and how a streak of 0 starts', async () => {
+        await showWeek();
+        // The largest goal, reached on no day this week (each day keeps whether it reached its goal).
+        await act(async () =>
+            useStatsStore.setState({
+                days: Object.fromEntries(WEEK.map(([ago, { goalHit: _hit, ...day }]) => [keyOf(ago), day])),
+                goalMinutes: 1440,
+                streak: { current: 0, best: 3, lastHitDayKey: keyOf(9) },
+            }),
+        );
+        expect(screen.getByText('Last 7 days: 11 sessions')).toBeOnTheScreen();
+        expect(screen.queryByText(/goal reached on 0 days/)).toBeNull();
+        expect(screen.getByText('Goal 1,440 min')).toBeOnTheScreen();
+        // The best on a line of its own (build 52 device check: " · best 3" wrapped and dangled).
+        expect(screen.getByText('Starts the day you reach your goal')).toBeOnTheScreen();
+        expect(screen.getByText('Best 3')).toBeOnTheScreen();
+        await act(async () => useStatsStore.setState({ streak: { current: 0, best: 0, lastHitDayKey: undefined } }));
+        expect(screen.getByText('Starts the day you reach your goal')).toBeOnTheScreen();
+    });
+
+    it('groups a count of 1,000 or more the same way in every line', async () => {
+        await showWeek();
+        await act(async () => {
+            useStatsStore.setState((st) => ({ days: { ...st.days, [keyOf(2)]: { focusSessions: 30, focusMinutes: 1500, goalHit: true } } }));
+        });
+        await act(async () => {
+            await fireEvent.press(screen.getByLabelText('Minutes'));
+        });
+        expect(screen.getByText('Last 7 days: 1,775 minutes · goal reached on 4 days')).toBeOnTheScreen();
+        expect(screen.getByText('1,500')).toBeOnTheScreen();
+        expect(screen.getByText('All time: 41 sessions · 1,775 minutes')).toBeOnTheScreen();
+    });
+
+    it('switches the week to minutes, and the summary names the metric in view', async () => {
+        await showWeek();
+        await act(async () => {
+            await fireEvent.press(screen.getByLabelText('Minutes'));
+        });
+        expect(screen.getByText('Last 7 days: 275 minutes · goal reached on 3 days')).toBeOnTheScreen();
+    });
+
+    it('with the goal off, offers to turn it on in Settings, and drops the goal from the summary', async () => {
+        await showWeek();
+        await act(async () => useStatsStore.setState({ goalMinutes: 0 }));
+        expect(screen.getByText('Last 7 days: 11 sessions')).toBeOnTheScreen();
+        expect(screen.queryByText('Love streak')).toBeNull();
+        await act(async () => {
+            await fireEvent.press(screen.getByRole('button', { name: 'Turn on a daily goal' }));
+        });
+        expect(router.navigate).toHaveBeenCalledWith('/settings');
+        // Settings opens at the goal row (step 6, D2 record §3.14).
+        expect(useSettingsFocus.getState().section).toBe('goal');
+    });
+
+    it('invites a first session on an empty week', async () => {
+        await render(<StatsScreen />, { wrapper: Providers });
+        await act(async () => {});
+        expect(screen.getByText(/^Last 7 days: 0 sessions/)).toBeOnTheScreen();
+        await act(async () => {
+            await fireEvent.press(screen.getByRole('button', { name: 'Start a session' }));
+        });
+        expect(router.navigate).toHaveBeenCalledWith('/');
+    });
+
+    it('totals all time below the week', async () => {
+        await showWeek();
+        expect(screen.getByText('All time: 11 sessions · 275 minutes')).toBeOnTheScreen();
+    });
+
+    // Build 52 device check (D2 record §3.17): with no ad to show, the slot's paper and top edge
+    // drew a stray line and a band above the tab bar. They appear only once an ad fills it.
+    it('draws the ad slot only while an ad fills it', async () => {
+        const ads = jest.requireMock<{ BannerAd: (props: object) => unknown }>('react-native-google-mobile-ads');
+        let banner: { onAdLoaded: (size: object) => void; onAdFailedToLoad: (error: object) => void } | undefined;
+        const spy = jest.spyOn(ads, 'BannerAd').mockImplementation((props) => {
+            banner = props as typeof banner;
+            return React.createElement(View, { testID: 'banner' });
+        });
+        await showWeek();
+        const slot = () => screen.getByTestId('banner').parent!;
+        expect(slot()).toHaveStyle({ backgroundColor: 'transparent', borderTopColor: 'transparent' });
+        await act(async () => banner!.onAdLoaded({ width: 320, height: 50 }));
+        expect(slot()).toHaveStyle({ backgroundColor: StrawberryMilk.tokens.paper, borderTopColor: StrawberryMilk.tokens.edge });
+        await act(async () => banner!.onAdFailedToLoad({ code: 'googleMobileAds/no-fill', message: 'No fill' }));
+        expect(slot()).toHaveStyle({ backgroundColor: 'transparent', borderTopColor: 'transparent' });
+        spy.mockRestore();
+    });
+});
+
+/** The window at a given text size, restored after. */
+async function atTextSize(fontScale: number, run: () => Promise<void>) {
+    const jestWindow = Dimensions.get('window');
+    const phone = { width: 393, height: 852, scale: 3, fontScale };
+    try {
+        await act(async () => Dimensions.set({ window: phone, screen: phone }));
+        await run();
+    } finally {
+        await act(async () => Dimensions.set({ window: jestWindow, screen: jestWindow }));
+    }
+}
+
+/** A window of the given size at the default text size, restored after. */
+async function inWindow(size: { width: number; height: number }, run: () => Promise<void>) {
+    const jestWindow = Dimensions.get('window');
+    const window = { ...size, scale: 3, fontScale: 1 };
+    try {
+        await act(async () => Dimensions.set({ window, screen: window }));
+        await run();
+    } finally {
+        await act(async () => Dimensions.set({ window: jestWindow, screen: jestWindow }));
+    }
+}
+
+// covers: FR-STA-003
+// The finish review, round 1 (D2 record §3.23): in landscape the week kept the readable cap, its
+// stack's last edge ended open, and the Minutes tracks ended where each count's digits left them.
+describe('Stats after the finish review', () => {
+    const yesterday = /, 4 sessions, 100 minutes, goal reached$/;
+
+    it('spans the width between the side insets in landscape (fix 1)', async () => {
+        await inWindow({ width: 852, height: 393 }, async () => {
+            await showWeek();
+            // 852 less the 16 pt gutters (Jest's side insets are 0).
+            expect(screen.getByRole('header', { name: 'Stats' }).parent!).toHaveStyle({ width: 852 - 32 });
+        });
+    });
+
+    it("closes the stack's last edge in landscape, where nothing sits in front of it (fix 2)", async () => {
+        await inWindow({ width: 852, height: 393 }, async () => {
+            await showWeek();
+            expect(screen.getByLabelText(yesterday)).toHaveStyle({ borderBottomWidth: 1.5, marginBottom: 0 });
+        });
+    });
+
+    it("leaves it open in portrait, tucked under today's card", async () => {
+        await inWindow({ width: 393, height: 852 }, async () => {
+            await showWeek();
+            expect(screen.getByLabelText(yesterday)).toHaveStyle({ borderBottomWidth: 0, marginBottom: -8 });
+        });
+    });
+
+    it('gives every count the same width, so the Minutes tracks end together (fix 3)', async () => {
+        await inWindow({ width: 393, height: 852 }, async () => {
+            await showWeek();
+            await act(async () => {
+                await fireEvent.press(screen.getByLabelText('Minutes'));
+            });
+            const counts = screen.getAllByText(/^\d+$/);
+            expect(counts.length).toBeGreaterThan(2);
+            for (const count of counts) expect(count).toHaveStyle({ minWidth: 36 });
+        });
+    });
+});
+
+// covers: FR-STA-003
+// The finish review, round 2 (D2 record §3.25): today's card showed a fixed eight cells, which a
+// 393 pt phone wrapped seven and one. It now holds one row of whole cells, planned from its width.
+describe("today's card after the finish review's round 2", () => {
+    // 1-minute focus sessions against the 50-minute goal, so far more cells are owed than fit.
+    async function showToday(focusSessions: number) {
+        await render(<StatsScreen />, { wrapper: Providers });
+        await act(async () => {
+            useSettingsStore.setState((s) => ({ settings: { ...s.settings, durations: { ...s.settings.durations, focus: 1 } } }));
+            useStatsStore.setState({ days: { [keyOf(0)]: { focusSessions, focusMinutes: focusSessions } }, goalMinutes: 50 });
+        });
+    }
+    const dashedCells = () => within(screen.getByTestId('today-cells')).queryAllByTestId('dashed-cell');
+
+    it('fills one row on a 393 pt phone: two stickers and four dashed cells, nothing wrapped', async () => {
+        await inWindow({ width: 393, height: 852 }, async () => {
+            await showToday(2);
+            // 361 pt of card, 326 inside its padding and edge: six 40 pt cells with their 8 pt gaps.
+            expect(dashedCells()).toHaveLength(4);
+        });
+    });
+
+    it('counts the stickers past the row in its last cell', async () => {
+        await inWindow({ width: 393, height: 852 }, async () => {
+            await showToday(9);
+            // Five stickers and "+4" fill the six cells; nothing is owed a dashed cell's room.
+            expect(within(screen.getByTestId('today-cells')).getByText('+4')).toBeOnTheScreen();
+            expect(dashedCells()).toHaveLength(0);
+        });
+    });
+
+    it('plans for its half of the row in landscape, at the short screen\'s 34 pt cells', async () => {
+        await inWindow({ width: 852, height: 393 }, async () => {
+            await showToday(2);
+            // A 402 pt card beside the stack (Jest's insets are 0): eight cells, six of them dashed.
+            expect(dashedCells()).toHaveLength(6);
+        });
+    });
+});
+
+/** An edge's visible day name, as DayEdge writes it. */
+function edgeName(daysAgo: number): string {
+    const date = dateOfKey(keyOf(daysAgo));
+    return `${date.toLocaleDateString('en-US', { weekday: 'short' })} ${date.getDate()}`;
+}
+
+// covers: NFR-A11Y-003
+// Review round (D2 record §3.12, HIG S-1): a fixed 56 pt column cut "Wed 29" to "Wed…" from xxLarge,
+// and to one letter in the list built for the accessibility sizes.
+describe('Stats at larger text sizes', () => {
+    it('grows the day column and the goal flag with the text size in the stack (xxLarge)', async () => {
+        await atTextSize(1.235, async () => {
+            await showWeek();
+            const name = screen.getByText(edgeName(1));
+            expect(name).toHaveStyle({ width: 56 * 1.235 });
+            expect(name.props.numberOfLines).toBeUndefined();
+            // The flag on a day that reached the goal: the edge's only icon.
+            const edge = screen.getByLabelText(/, 4 sessions, 100 minutes, goal reached$/);
+            const svgs: { props: { width?: number } }[] = [];
+            const walk = (node: unknown) => {
+                if (!node || typeof node !== 'object') return;
+                const n = node as { type?: string; props: { width?: number }; children?: unknown[] };
+                if (n.type === 'RNSVGSvgView') svgs.push(n);
+                n.children?.forEach(walk);
+            };
+            walk(edge);
+            expect(svgs.at(-1)!.props.width).toBeCloseTo(14 * 1.235);
+        });
+    });
+
+    // break-ui #5: side by side at AX sizes, each half's text column was about 110 pt, and
+    // "Hedef" and "serisi" broke mid-word. In the list the halves stack.
+    const stripOf = () => screen.getByText('Love streak').parent!.parent!.parent!;
+
+    it('stacks the goal and streak strip in the list (an AX size)', async () => {
+        await atTextSize(3.1, async () => {
+            await showWeek();
+            expect(stripOf()).toHaveStyle({ flexDirection: 'column' });
+        });
+    });
+
+    it('keeps the strip side by side at the default size', async () => {
+        await atTextSize(1, async () => {
+            await showWeek();
+            expect(stripOf()).toHaveStyle({ flexDirection: 'row' });
+        });
+    });
+
+    it('gives each day a line of its own in the list (an AX size)', async () => {
+        await atTextSize(3.1, async () => {
+            await showWeek();
+            const name = screen.getByText(edgeName(1));
+            expect(name).toHaveStyle({ flexBasis: '100%' });
+            expect(name).not.toHaveStyle({ width: 56 });
+            expect(name.props.numberOfLines).toBeUndefined();
+        });
+    });
+});

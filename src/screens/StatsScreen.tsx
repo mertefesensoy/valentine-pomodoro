@@ -1,43 +1,65 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
-import Svg, { Line } from 'react-native-svg';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useStatsStore, useStatsViews } from '../stores/statsStore';
-import { useTheme } from '../theme/useTheme';
-import { useResponsive } from '../hooks/useResponsive';
+import { router } from 'expo-router';
+
 import { BANNER_ID } from '../ads/AdConfig';
 import { noteBannerFailed, noteBannerLayout, noteBannerLoaded, noteBannerRequested } from '../ads/bannerStatus';
+import { Icon } from '../components/icons/Icon';
+import { goal as goalGlyph } from '../components/icons/art/goal';
+import { streak as streakGlyph } from '../components/icons/art/streak';
+import { ButtonRow, ListGroup } from '../components/settings/SettingsList';
+import { SegmentedControl } from '../components/ui/SegmentedControl';
+import { StatusBarScrim } from '../components/ui/StatusBarScrim';
 import { useHasBeenFocused, useScreenFocused } from '../hooks/useScreenFocus';
+import { formatNumber, t } from '../i18n';
+import { useSettingsFocus } from '../stores/settingsFocusStore';
+import { useSettingsStore } from '../stores/settingsStore';
+import { useStatsStore, useStatsViews } from '../stores/statsStore';
+import { fonts } from '../theme/type';
+import { edgeWidth, radius, space } from '../theme/layout';
+import { useTheme } from '../theme/useTheme';
+import { goalCellsLeft } from './classic/TodayStickers';
+import { DayEdge, TodayCard, todayCellsPerRow, type Metric } from './stats/WeekStack';
+import { useTourBeatHere, useTourReach, useTourScroll } from './tutorial/useTour';
 
-type Metric = 'sessions' | 'minutes';
+// The tour's layer (Phase 1 D5), evaluated when a tour first reaches Stats (tutorial brief §4).
+const TourLayer = lazy(() => import('./tutorial/TourLayer'));
 
-function clamp(n: number, min: number, max: number) {
-    return Math.max(min, Math.min(max, n));
-}
+// AX1 and up (iOS reports a font scale of about 1.65 there): the stack becomes a list, today first.
+const LIST_FONT_SCALE = 1.6;
+// Compact height (an iPhone in landscape): today leads, the stack trails.
+const COMPACT_HEIGHT = 500;
+// Regular width (iPad, wide windows): the page centres at a readable width.
+const READABLE_WIDTH = 560;
+// A short screen (an iPhone SE, 667 pt) tightens the stack's pitch, so the week, the goal and the
+// streak fit above the banner (D2 record §3.4: checked with a 375 × 667 render).
+const SHORT_HEIGHT = 700;
+// An edge's day column at the default text size: "Wed 29" in 13 pt semibold, with room to spare.
+const DAY_COLUMN = 56;
+// An edge's count column at the default text size: "1,440" (a day's most minutes) in 13 pt
+// semibold tabular figures. A fixed width ends every Minutes track at the same x, so a full bar
+// and a 2 % bar share the goal's length (finish review fix 3; they ended 9 pt apart).
+const COUNT_COLUMN = 36;
 
-const BAR_MAX = 120;       // keep your existing scale (you already use 120)
-const BAR_AREA = 150;      // matches styles.bars height
-
-function parseLocalDateKey(dayKey: string) {
-    // dayKey format: YYYY-MM-DD
-    const [y, m, d] = dayKey.split('-').map(Number);
-    return new Date(y, (m ?? 1) - 1, d ?? 1); // ✅ local time, avoids UTC parsing bugs
-}
-
-function formatNumber(n: number) {
-    // Avoid "25.0"
-    if (Number.isInteger(n)) return String(n);
-    // keep 1 decimal for test configs like 0.1 min
-    return n.toFixed(1).replace(/\.0$/, '');
-}
-
+/**
+ * Stats (D2 Stats contract): the week as a stack of day postcards, today in front.
+ *
+ * - One summary line names the metric in view and is read first by VoiceOver (HIG review).
+ * - The six earlier days stack as edges, oldest at the top; today's postcard sits in front, with
+ *   dashed cells for the sessions still owed to the goal (D1 record §4.3).
+ * - The goal and the love streak share one paper strip; with the goal off, a button opens Settings.
+ * - All-time totals sit below, quietly; the banner keeps its slot above the tab bar.
+ * - Nothing animates on entry: Stats is opened often (Emil's frequency gate).
+ */
 export default function StatsScreen() {
     const isReady = useStatsStore((s) => s.isReady);
     const goalMinutes = useStatsStore((s) => s.goalMinutes);
+    const focusMinutes = useSettingsStore((s) => s.settings.durations.focus);
     const { today, totals, last7Days, streak } = useStatsViews();
-    const { colors } = useTheme();
-    const { isTablet, height } = useResponsive();
+    const { tokens } = useTheme();
+    const { width, height, fontScale } = useWindowDimensions();
     const insets = useSafeAreaInsets();
 
     // The banner (B6 fix, record §9). The tab is rendered before it is first
@@ -55,6 +77,15 @@ export default function StatsScreen() {
     // of the window, so its numbers would mean nothing): on focus, on layout,
     // and when the ad answers, since a failed load changes no layout.
     const focused = useScreenFocused();
+    // The tour (D5): its Stats step shows here, with the week lit; the tab coming to the front moves
+    // its lead on. The page scrolls the week clear of the AX panel.
+    useTourReach('stats', focused);
+    const tourHere = useTourBeatHere('stats') && focused;
+    const todayRef = useRef<React.ComponentRef<typeof View>>(null);
+    // The banner's height above the tab bar: the tour keeps its bubble and pair clear of the ad.
+    const [bannerReserve, setBannerReserve] = useState(0);
+    const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
+    const { track: trackScroll, scrollBy } = useTourScroll(tourHere, (y) => scrollRef.current?.scrollTo({ y, animated: true }));
     const measureBannerBox = useCallback(() => {
         if (!focused) return;
         bannerBoxRef.current?.measureInWindow((_x, y, _w, h) => noteBannerLayout(y + h, height - insets.bottom, h));
@@ -63,454 +94,294 @@ export default function StatsScreen() {
         if (bannerAllowed) measureBannerBox();
     }, [bannerAllowed, measureBannerBox]);
 
-    const [metric, setMetric] = useState<Metric>('minutes');
-    const [barAreaWidth, setBarAreaWidth] = useState(0);
+    const [metric, setMetric] = useState<Metric>('sessions');
+    // The slot shows its paper and edge only once an ad fills it: empty (no fill, or before the
+    // first answer), it drew a stray line and a band above the tab bar (build 52 device check).
+    const [bannerFilled, setBannerFilled] = useState(false);
 
-    const hasStats = totals.focusSessions > 0;
-
-    const weekTotals = useMemo(() => {
-        return last7Days.reduce(
-            (acc, [, day]) => ({
-                focusSessions: acc.focusSessions + day.focusSessions,
-                focusMinutes: acc.focusMinutes + day.focusMinutes,
-            }),
-            { focusSessions: 0, focusMinutes: 0 }
-        );
-    }, [last7Days]);
-
-    const avgPerDay = useMemo(() => {
+    const week = useMemo(() => {
+        const days = last7Days.map(([key, stats]) => ({ key, stats }));
         return {
-            focusSessions: weekTotals.focusSessions / 7,
-            focusMinutes: weekTotals.focusMinutes / 7,
+            earlier: days.slice(0, 6),
+            today: days[6],
+            sessions: days.reduce((n, d) => n + d.stats.focusSessions, 0),
+            minutes: days.reduce((n, d) => n + d.stats.focusMinutes, 0),
+            goalDays: days.filter((d) => d.stats.goalHit).length,
         };
-    }, [weekTotals]);
-
-    const showGoalLine = metric === 'minutes' && (goalMinutes ?? 0) > 0;
-
-    const maxValue = useMemo(() => {
-        const values = last7Days.map(([, day]) =>
-            metric === 'sessions' ? day.focusSessions : day.focusMinutes
-        );
-        const baseMax = Math.max(...values, 1);
-        return showGoalLine ? Math.max(baseMax, goalMinutes ?? 0, 1) : baseMax;
-    }, [last7Days, metric, showGoalLine, goalMinutes]);
-
-    // SVG uses y-from-top; BAR_AREA is the container height (150px)
-    const goalLineY = useMemo(() => {
-        if (!showGoalLine) return 0;
-        const yFromBottom = ((goalMinutes ?? 0) / maxValue) * BAR_AREA;
-        const clampedFromBottom = clamp(yFromBottom, 0, BAR_AREA);
-        return BAR_AREA - clampedFromBottom;
-    }, [showGoalLine, goalMinutes, maxValue]);
-
-    const leftToday = useMemo(() => Math.max(goalMinutes - today.focusMinutes, 0), [goalMinutes, today.focusMinutes]);
+    }, [last7Days]);
 
     // The loading return must come after every hook: returning before them
     // changes the hook count when isReady flips on a mounted screen, and React throws.
     if (!isReady) {
         return (
-            <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-                <Text style={[styles.loadingText, { color: colors.textMuted }]}>Loading stats…</Text>
-            </SafeAreaView>
+            <View style={[styles.loading, { backgroundColor: tokens.page }]}>
+                <Text style={[styles.loadingText, { color: tokens.inkSoft }]}>{t('stats.loading')}</Text>
+            </View>
         );
     }
 
-    const chartTitle = metric === 'sessions' ? 'Last 7 Days (Sessions)' : 'Last 7 Days (Minutes)';
+    const goalOn = goalMinutes > 0;
+    const list = fontScale >= LIST_FONT_SCALE;
+    const compact = height < COMPACT_HEIGHT;
+    const short = height < SHORT_HEIGHT;
+    // Stickers and icons grow with Dynamic Type up to 1.3×, as Classic's timer does; cells stay whole.
+    const grow = Math.min(fontScale, 1.3);
+    const edgeHeight = (short ? 30 : 34) * grow + space.s;
+    // The day's name grows with the text size, uncapped, up to where the list takes over; the
+    // fixed 56 pt cut "Wed 29" to "Wed…" from xxLarge (HIG S-1).
+    const dayWidth = DAY_COLUMN * Math.max(fontScale, 1);
+    const countWidth = COUNT_COLUMN * Math.max(fontScale, 1);
+    const todayGoal = today.goalMinutes ?? goalMinutes;
+    // In landscape the week spans the width between the side insets (the brief; finish review fix
+    // 1); the readable cap is for portrait and iPad.
+    const columnWidth = compact ? width - insets.left - insets.right - space.l * 2 : Math.min(width, READABLE_WIDTH) - space.l * 2;
+    const sticker = (short ? 34 : 40) * grow;
+    // Today's card holds one row of whole cells, planned from its own width: a fixed eight wrapped
+    // seven and one on a 393 pt phone (finish review round 2, D2 record §3.25). In landscape the
+    // card shares the row with the stack.
+    const todayPerRow = todayCellsPerRow(compact && !list ? (columnWidth - space.l) / 2 : columnWidth, sticker);
+    const owed = goalCellsLeft({ goalMinutes: todayGoal, minutesToday: today.focusMinutes, focusMinutes, goalHit: !!today.goalHit });
+
+    // Counts of 1,000 or more are grouped as the language writes them, in every line, so one
+    // number never shows two ways on one screen (D2 record §3.13, break-ui #6).
+    const summary = [
+        metric === 'sessions'
+            ? t('stats.weekSessions', { count: week.sessions, n: formatNumber(week.sessions) })
+            : t('stats.weekMinutes', { count: Math.round(week.minutes), n: formatNumber(week.minutes) }),
+        // No goal day this week says nothing rather than "goal reached on 0 days", which reads
+        // as a miss (the contract; PRODUCT principle 2; break-ui #4).
+        goalOn && week.goalDays > 0 ? t('stats.goalDays', { count: week.goalDays }) : null,
+    ]
+        .filter(Boolean)
+        .join(' · ');
+
+    const minutesLeftToday = Math.ceil(Math.max(goalMinutes - today.focusMinutes, 0));
+    // A streak of 0 says how it starts, not "0 days" beside the best (the owner, D2; break-ui), and
+    // the best takes a line of its own: joined by " · " it wrapped into a dangling "·" and a lone
+    // "best 2" (build 52 device check).
+    const streakLines =
+        streak.current > 0
+            ? [t('stats.streakValue', { count: streak.current, n: formatNumber(streak.current), best: formatNumber(streak.best) })]
+            : [t('stats.streakStart'), ...(streak.best > 0 ? [t('stats.best', { best: formatNumber(streak.best) })] : [])];
+
+    // Today's postcard is the tour's opening on Stats (D5 device check, build 57): the whole week left
+    // the pair no room, and "today in front" is the line's subject.
+    const todayCard = (
+        <View ref={todayRef} collapsable={false}>
+            <TodayCard
+                day={week.today}
+                metric={metric}
+                goal={todayGoal}
+                owed={owed}
+                perRow={todayPerRow}
+                sticker={sticker}
+                compact={compact}
+                tokens={tokens}
+            />
+        </View>
+    );
+    const edges = (list ? [...week.earlier].reverse() : week.earlier).map((day, i) => (
+        <DayEdge
+            key={day.key}
+            day={day}
+            metric={metric}
+            goal={day.stats.goalMinutes ?? goalMinutes}
+            height={edgeHeight}
+            sticker={(short ? 16 : 18) * grow}
+            flag={14 * grow}
+            dayWidth={dayWidth}
+            countWidth={countWidth}
+            tilt={list ? 0 : i % 2 ? 0.6 : -0.6}
+            stacked={!list}
+            // In landscape today's card sits in the other column, so the stack's last edge closes
+            // itself instead of ending open (finish review fix 2).
+            closed={compact && !list && i === week.earlier.length - 1}
+            tokens={tokens}
+        />
+    ));
+    // The stack reads top to bottom, oldest first, today in front. At AX sizes, a list: today first.
+    const stack = list ? (
+        <View style={styles.list}>
+            {todayCard}
+            {edges}
+        </View>
+    ) : compact ? (
+        <View style={styles.compactRow}>
+            {todayCard}
+            <View style={styles.compactStack}>{edges}</View>
+        </View>
+    ) : (
+        <View>
+            <View style={styles.edges}>{edges}</View>
+            {todayCard}
+        </View>
+    );
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-            <ScrollView contentContainerStyle={[styles.scrollContent, isTablet && styles.scrollContentTablet]}>
-                <Text style={[styles.header, { color: colors.text }]}>Stats</Text>
+        <View style={[styles.container, { backgroundColor: tokens.page }]}>
+            <ScrollView
+                ref={scrollRef}
+                contentContainerStyle={[styles.page, { paddingTop: insets.top + space.s }]}
+                onScroll={tourHere ? trackScroll : undefined}
+                // No drag while the tour is here: it would leave the opening behind.
+                scrollEnabled={!tourHere}
+                scrollEventThrottle={tourHere ? 32 : undefined}
+                // Room to scroll the week clear of the bubble's panel, whenever it takes the bottom.
+                contentInset={tourHere ? { bottom: height * 0.5 } : undefined}
+            >
+                <View style={[styles.column, { width: columnWidth }]}>
+                    <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header" maxFontSizeMultiplier={1.4}>
+                        {t('stats.title')}
+                    </Text>
+                    <SegmentedControl<Metric>
+                        segments={[
+                            { value: 'sessions', label: t('stats.metricSessions'), accessibilityLabel: t('stats.metricSessions') },
+                            { value: 'minutes', label: t('stats.metricMinutes'), accessibilityLabel: t('stats.metricMinutes') },
+                        ]}
+                        value={metric}
+                        onChange={setMetric}
+                    />
+                    <Text style={[styles.summary, { color: tokens.ink }]} accessibilityRole="summary">
+                        {summary}
+                    </Text>
 
-                {/* Summary Cards */}
-                <View style={styles.cardsRow}>
-                    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                        <Text style={[styles.cardValue, { color: colors.accent }]}>{today.focusSessions}</Text>
-                        <Text style={[styles.cardLabel, { color: colors.textMuted }]}>Today Sessions</Text>
-                    </View>
+                    {stack}
 
-                    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                        <Text style={[styles.cardValue, { color: colors.accent }]}>
-                            {formatNumber(today.focusMinutes)}
-                        </Text>
-                        <Text style={[styles.cardLabel, { color: colors.textMuted }]}>Today Minutes</Text>
-                    </View>
-                </View>
+                    {week.sessions === 0 && (
+                        <ListGroup>
+                            <ButtonRow label={t('stats.startSession')} onPress={() => router.navigate('/')} />
+                        </ListGroup>
+                    )}
 
-                <View style={styles.cardsRow}>
-                    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                        <Text style={[styles.cardValue, { color: colors.accent }]}>{totals.focusSessions}</Text>
-                        <Text style={[styles.cardLabel, { color: colors.textMuted }]}>All-Time Sessions</Text>
-                    </View>
-
-                    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                        <Text style={[styles.cardValue, { color: colors.accent }]}>
-                            {formatNumber(totals.focusMinutes)}
-                        </Text>
-                        <Text style={[styles.cardLabel, { color: colors.textMuted }]}>All-Time Minutes</Text>
-                    </View>
-                </View>
-
-                <View style={styles.cardsRow}>
-                    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                        <Text style={[styles.cardValue, { color: colors.accent }]}>
-                            {formatNumber(goalMinutes)}
-                        </Text>
-                        <Text style={[styles.cardLabel, { color: colors.textMuted }]}>Daily Goal (min)</Text>
-                        <Text style={[styles.cardHint, { color: colors.textMuted }]}>
-                            Left today: {formatNumber(leftToday)}
-                        </Text>
-                    </View>
-
-                    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                        <Text style={[styles.cardValue, { color: colors.accent }]}>
-                            {streak.current}
-                        </Text>
-                        <Text style={[styles.cardLabel, { color: colors.textMuted }]}>Love Streak</Text>
-                        <Text style={[styles.cardHint, { color: colors.textMuted }]}>
-                            Best: {streak.best}
-                        </Text>
-                    </View>
-                </View>
-
-                {/* Last 7 Days Chart */}
-                <View
-                    style={[
-                        styles.chartContainer,
-                        { backgroundColor: colors.card, borderColor: colors.border },
-                    ]}
-                >
-                    <View style={styles.chartHeaderRow}>
-                        <Text style={[styles.chartTitle, { color: colors.text }]}>{chartTitle}</Text>
-
-                        {/* Metric Toggle */}
-                        <View style={[styles.segment, { backgroundColor: colors.surfaceTint }]}>
-                            <Pressable
-                                onPress={() => setMetric('minutes')}
-                                style={[
-                                    styles.segmentItem,
-                                    metric === 'minutes' && {
-                                        backgroundColor: colors.accent,
-                                    },
-                                ]}
-                            >
-                                <Text
-                                    style={[
-                                        styles.segmentText,
-                                        { color: metric === 'minutes' ? '#FFFFFF' : colors.textMuted },
-                                    ]}
-                                >
-                                    Minutes
-                                </Text>
-                            </Pressable>
-
-                            <Pressable
-                                onPress={() => setMetric('sessions')}
-                                style={[
-                                    styles.segmentItem,
-                                    metric === 'sessions' && {
-                                        backgroundColor: colors.accent,
-                                    },
-                                ]}
-                            >
-                                <Text
-                                    style={[
-                                        styles.segmentText,
-                                        { color: metric === 'sessions' ? '#FFFFFF' : colors.textMuted },
-                                    ]}
-                                >
-                                    Sessions
-                                </Text>
-                            </Pressable>
-                        </View>
-                    </View>
-
-                    {/* Weekly rollups */}
-                    <View style={styles.weekSummaryRow}>
-                        <Text style={[styles.weekSummaryText, { color: colors.text }]}>
-                            This week: {weekTotals.focusSessions} sessions •{' '}
-                            {formatNumber(weekTotals.focusMinutes)} minutes
-                        </Text>
-                        <Text style={[styles.weekSummarySubtext, { color: colors.textMuted }]}>
-                            Avg/day: {formatNumber(avgPerDay.focusMinutes)} min •{' '}
-                            {formatNumber(avgPerDay.focusSessions)} sessions
-                        </Text>
-                    </View>
-
-                    {!hasStats ? (
-                        <View style={styles.emptyState}>
-                            <Text style={[styles.emptyText, { color: colors.textMuted }]}>No stats yet</Text>
-                            <Text style={[styles.emptySubtext, { color: colors.textMuted }]}>
-                                Complete a focus session to see your progress.
-                            </Text>
-                        </View>
-                    ) : (
-                        <View style={styles.chart}>
-                            <View
-                                style={styles.barArea}
-                                onLayout={(e) => setBarAreaWidth(e.nativeEvent.layout.width)}
-                            >
-                                <View style={styles.bars}>
-                                    {last7Days.map(([dayKey, day], idx) => {
-                                        const value = metric === 'sessions' ? day.focusSessions : day.focusMinutes;
-                                        const height = (value / maxValue) * BAR_MAX;
-
-                                        const isToday = idx === last7Days.length - 1;
-                                        const labelDate = parseLocalDateKey(dayKey);
-                                        const weekday = labelDate.toLocaleDateString('en', { weekday: 'short' });
-
-                                        return (
-                                            <View key={dayKey} style={styles.barColumn}>
-                                                <View style={styles.barContainer}>
-                                                    {value > 0 && (
-                                                        <Text style={[styles.barValue, { color: colors.text }]}>
-                                                            {metric === 'sessions' ? value : formatNumber(value)}
-                                                        </Text>
-                                                    )}
-                                                    <View
-                                                        style={[
-                                                            styles.bar,
-                                                            {
-                                                                height: Math.max(height, 4),
-                                                                backgroundColor: isToday
-                                                                    ? colors.accent
-                                                                    : colors.accentPurple,
-                                                            },
-                                                        ]}
-                                                    />
-                                                </View>
-                                                <Text style={[styles.barLabel, { color: colors.textMuted }]}>
-                                                    {weekday}
-                                                </Text>
-                                            </View>
-                                        );
-                                    })}
+                    {/* At AX sizes the strip's halves stack: side by side, each text column was
+                        about 110 pt, and "Hedef" and "serisi" broke mid-word (break-ui #5). */}
+                    {goalOn ? (
+                        <View
+                            style={[
+                                styles.strip,
+                                list && styles.stripStacked,
+                                { backgroundColor: tokens.paper, borderColor: tokens.edge },
+                            ]}
+                        >
+                            <View style={[styles.half, !list && styles.halfSide]} accessible>
+                                <Icon glyph={goalGlyph} size={22 * grow} color={tokens.successInk} />
+                                <View style={styles.halfText}>
+                                    <Text style={[styles.stripTitle, { color: tokens.ink }]}>
+                                        {t('stats.goalTitle', { count: goalMinutes, n: formatNumber(goalMinutes) })}
+                                    </Text>
+                                    <Text style={[styles.stripValue, { color: tokens.inkSoft }]}>
+                                        {today.goalHit
+                                            ? t('stats.goalReachedToday')
+                                            : t('stats.leftToday', { count: minutesLeftToday, n: formatNumber(minutesLeftToday) })}
+                                    </Text>
                                 </View>
-
-                                {/* SVG dashed goal line — reliable on all iOS/Android */}
-                                {showGoalLine && barAreaWidth > 0 && (
-                                    <Svg
-                                        pointerEvents="none"
-                                        width={barAreaWidth}
-                                        height={BAR_AREA}
-                                        style={styles.goalOverlay}
-                                    >
-                                        <Line
-                                            x1={0}
-                                            y1={goalLineY}
-                                            x2={barAreaWidth}
-                                            y2={goalLineY}
-                                            stroke={colors.textMuted}
-                                            strokeWidth={2}
-                                            strokeDasharray="6 6"
-                                            opacity={0.75}
-                                        />
-                                    </Svg>
-                                )}
+                            </View>
+                            <View style={[list ? styles.dividerStacked : styles.divider, { backgroundColor: tokens.edge }]} />
+                            <View style={[styles.half, !list && styles.halfSide]} accessible>
+                                <Icon glyph={streakGlyph} size={22 * grow} color={tokens.primaryInk} />
+                                <View style={styles.halfText}>
+                                    <Text style={[styles.stripTitle, { color: tokens.ink }]}>{t('stats.streakTitle')}</Text>
+                                    {streakLines.map((line) => (
+                                        <Text key={line} style={[styles.stripValue, { color: tokens.inkSoft }]}>
+                                            {line}
+                                        </Text>
+                                    ))}
+                                </View>
                             </View>
                         </View>
+                    ) : (
+                        <ListGroup footer={t('stats.goalOffFooter')}>
+                            <ButtonRow
+                                label={t('stats.turnOnGoal')}
+                                onPress={() => {
+                                    // Settings opens at the goal row, not its top (the contract).
+                                    useSettingsFocus.getState().request('goal');
+                                    router.navigate('/settings');
+                                }}
+                            />
+                        </ListGroup>
                     )}
+
+                    <Text style={[styles.allTime, { color: tokens.inkSoft }]}>
+                        {t('stats.allTime', {
+                            sessions: t('stats.sessionsN', { count: totals.focusSessions, n: formatNumber(totals.focusSessions) }),
+                            minutes: t('stats.minutesN', { count: Math.round(totals.focusMinutes), n: formatNumber(totals.focusMinutes) }),
+                        })}
+                    </Text>
                 </View>
             </ScrollView>
-            {/* The SafeAreaView's bottom inset includes the native tab bar (Phase 1 B6). */}
-            <View ref={bannerBoxRef} onLayout={measureBannerBox} style={{
-                backgroundColor: colors.card,
-                borderTopWidth: 1,
-                borderTopColor: colors.border,
-                alignItems: 'center',
-                paddingVertical: 8,
-            }}>
+            <StatusBarScrim />
+            {tourHere && (
+                <Suspense fallback={null}>
+                    <TourLayer
+                        screen="stats"
+                        targets={{ week: { ref: todayRef, radius: radius.l, a11y: { label: summary, role: 'text' } } }}
+                        scrollBy={scrollBy}
+                        bottomReserve={bannerReserve}
+                    />
+                </Suspense>
+            )}
+            {/* The bottom inset includes the native tab bar (Phase 1 B6); the slot sits above it,
+                with about 12 pt between the ad and the bar (its own padding plus this margin). */}
+            <View
+                ref={bannerBoxRef}
+                onLayout={(e) => {
+                    measureBannerBox();
+                    const reserve = Math.ceil(e.nativeEvent.layout.height + space.xs);
+                    if (reserve !== bannerReserve) setBannerReserve(reserve);
+                }}
+                style={[
+                    styles.banner,
+                    {
+                        backgroundColor: bannerFilled ? tokens.paper : 'transparent',
+                        borderTopColor: bannerFilled ? tokens.edge : 'transparent',
+                        marginBottom: insets.bottom + space.xs,
+                    },
+                ]}
+            >
                 {bannerAllowed && (
                     <BannerAd
                         unitId={BANNER_ID}
                         size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
                         requestOptions={{ requestNonPersonalizedAdsOnly: true }}
                         onAdLoaded={(size) => {
+                            setBannerFilled(true);
                             noteBannerLoaded(size);
                             measureBannerBox();
                         }}
                         onAdFailedToLoad={(error) => {
+                            setBannerFilled(false);
                             noteBannerFailed(error);
                             measureBannerBox();
                         }}
                     />
                 )}
             </View>
-        </SafeAreaView >
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        // backgroundColor removed - now inline
-    },
-    scrollContent: {
-        padding: 16,
-    },
-    scrollContentTablet: {
-        maxWidth: 720,
-        alignSelf: 'center',
-        width: '100%',
-    },
-    loadingText: {
-        fontSize: 16,
-        // color removed - now inline
-        textAlign: 'center',
-        marginTop: 24,
-    },
-
-    header: {
-        fontSize: 24,
-        fontWeight: '600',
-        // color removed - now inline
-        marginBottom: 24,
-    },
-
-    cardsRow: {
-        flexDirection: 'row',
-        gap: 12,
-        marginBottom: 12,
-    },
-    card: {
-        flex: 1,
-        // backgroundColor, borderColor removed - now inline
-        borderRadius: 16,
-        padding: 20,
-        alignItems: 'center',
-        borderWidth: 1,
-    },
-    cardValue: {
-        fontSize: 32,
-        fontWeight: '700',
-        // color removed - now inline
-        marginBottom: 4,
-    },
-    cardLabel: {
-        fontSize: 12,
-        fontWeight: '500',
-        // color removed - now inline
-        textAlign: 'center',
-    },
-    cardHint: {
-        fontSize: 11,
-        marginTop: 6,
-    },
-
-    chartContainer: {
-        marginTop: 12,
-        // backgroundColor, borderColor removed - now inline
-        borderRadius: 16,
-        padding: 20,
-        borderWidth: 1,
-    },
-
-    chartHeaderRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    chartTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        // color removed - now inline
-    },
-
-    segment: {
-        flexDirection: 'row',
-        // backgroundColor removed - now inline
-        borderRadius: 999,
-        padding: 2,
-    },
-    segmentItem: {
-        paddingVertical: 6,
-        paddingHorizontal: 10,
-        borderRadius: 999,
-        // backgroundColor removed - now inline per item
-    },
-    segmentText: {
-        fontSize: 12,
-        fontWeight: '600',
-        // color removed - now inline
-    },
-
-    weekSummaryRow: {
-        marginTop: 14,
-        marginBottom: 10,
-    },
-    weekSummaryText: {
-        fontSize: 13,
-        fontWeight: '600',
-        // color removed - now inline
-    },
-    weekSummarySubtext: {
-        fontSize: 12,
-        // color removed - now inline
-        marginTop: 4,
-    },
-
-    emptyState: {
-        paddingVertical: 40,
-        alignItems: 'center',
-    },
-    emptyText: {
-        fontSize: 18,
-        fontWeight: '600',
-        // color removed - now inline
-        marginBottom: 8,
-    },
-    emptySubtext: {
-        fontSize: 14,
-        // color removed - now inline
-        textAlign: 'center',
-    },
-
-    chart: {
-        height: 180,
-        marginTop: 8,
-    },
-    barArea: {
-        position: 'relative',
-        height: BAR_AREA, // 150
-        justifyContent: 'flex-end',
-    },
-    bars: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-end',
-        height: 150,
-    },
-    goalOverlay: {
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        zIndex: 50,
-        elevation: 50,
-    },
-    barColumn: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    barContainer: {
-        flex: 1,
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-        width: '100%',
-    },
-    barValue: {
-        fontSize: 12,
-        fontWeight: '600',
-        // color removed - now inline
-        marginBottom: 4,
-    },
-    bar: {
-        width: 24,
-        borderRadius: 4,
-        // backgroundColor removed - now inline
-    },
-    barLabel: {
-        fontSize: 10,
-        // color removed - now inline
-        marginTop: 8,
-    },
+    container: { flex: 1 },
+    loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+    loadingText: { fontSize: 15 },
+    page: { alignItems: 'center', paddingBottom: space.l },
+    column: { gap: space.l },
+    title: { fontFamily: fonts.semiBold, fontSize: 34, lineHeight: 42, paddingHorizontal: space.xs },
+    summary: { fontSize: 15, fontWeight: '600', fontVariant: ['tabular-nums'] },
+    edges: { paddingHorizontal: space.s },
+    list: { gap: space.s },
+    compactRow: { flexDirection: 'row', gap: space.l, alignItems: 'flex-start' },
+    compactStack: { flex: 1 },
+    strip: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: edgeWidth, borderRadius: radius.m, paddingVertical: space.m },
+    stripStacked: { flexDirection: 'column', flexWrap: 'nowrap' },
+    half: { flexDirection: 'row', alignItems: 'center', gap: space.s, paddingHorizontal: space.m },
+    halfSide: { flex: 1, minWidth: 150 },
+    halfText: { flexShrink: 1 },
+    divider: { width: edgeWidth, alignSelf: 'stretch' },
+    dividerStacked: { height: StyleSheet.hairlineWidth, marginVertical: space.s, marginLeft: space.m },
+    stripTitle: { fontSize: 15, fontWeight: '600' },
+    stripValue: { fontSize: 13, fontVariant: ['tabular-nums'] },
+    allTime: { fontSize: 14, fontVariant: ['tabular-nums'] },
+    banner: { alignItems: 'center', paddingVertical: space.s, borderTopWidth: 1 },
 });

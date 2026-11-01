@@ -166,7 +166,7 @@ export const useStatsStore = create<StatsStore>()((set, get) => ({
         const nowIso = new Date().toISOString();
         const prev = get();
 
-        // ✅ Idempotency: prevent double-counting the same session
+        // Idempotency: prevent double-counting the same session
         if (sessionId && sessionId === prev.lastAppliedSessionId) {
             if (__DEV__) {
                 console.warn('[statsStore] Ignoring duplicate session:', sessionId);

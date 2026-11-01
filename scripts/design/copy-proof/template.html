@@ -1,0 +1,460 @@
+<title>Valentine Pomodoro Copy Proof</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&display=swap">
+<style>
+/* A proof sheet in the diary's stationery: each string a paper slip, English pencilled above,
+   Turkish inked below, one column, the reviewer's mark at the slip's foot. */
+:root {
+  --page: #FFF6F1; --paper: #FFFDFB; --field: #FBEAE4; --edge: #F0DAD3; --edge-strong: #A07A72;
+  --ink: #4A2C29; --ink-soft: #7D5A54; --primary: #F7A9BE; --on-primary: #4A2C29;
+  --primary-ink: #B03158; --primary-soft: #FDE4EB; --ok: #BFE5B5; --on-ok: #4A2C29; --ok-ink: #2F7339;
+  --danger-ink: #A82431;
+  --display: "Baloo 2", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+  --body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #221726; --paper: #2E2033; --field: #3A2A40; --edge: #44324A; --edge-strong: #9A80A3;
+    --ink: #FFF3EE; --ink-soft: #CDB3C6; --primary: #F7A9BE; --on-primary: #221726;
+    --primary-ink: #FF9EBB; --primary-soft: #4D2B45; --ok: #8ED493; --on-ok: #221726; --ok-ink: #8ED493;
+    --danger-ink: #FF9A90; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #221726; --paper: #2E2033; --field: #3A2A40; --edge: #44324A; --edge-strong: #9A80A3;
+  --ink: #FFF3EE; --ink-soft: #CDB3C6; --primary: #F7A9BE; --on-primary: #221726;
+  --primary-ink: #FF9EBB; --primary-soft: #4D2B45; --ok: #8ED493; --on-ok: #221726; --ok-ink: #8ED493;
+  --danger-ink: #FF9A90; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--page); color: var(--ink); font: 16px/1.5 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 48px;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--page); }
+.wrap { max-width: 720px; margin: 0 auto; display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: 2.1rem; }
+h2 { font-size: 1.45rem; }
+h3 { font-size: 1.08rem; font-weight: 600; }
+p { margin: 0; }
+.intro { display: grid; gap: 10px; padding-top: 28px; }
+.intro p { color: var(--ink-soft); max-width: 62ch; }
+.eyebrow { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--primary-ink); font-weight: 600; }
+
+/* The sticky bar: progress, filter, and where to jump. */
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--page);
+  display: grid; gap: 10px; padding-block: 10px; border-bottom: 1.5px solid var(--edge);
+}
+.progress { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; font-variant-numeric: tabular-nums; }
+.progress strong { font-size: 1.05rem; }
+.progress span { color: var(--ink-soft); font-size: .92rem; }
+.track { height: 6px; border-radius: 3px; background: var(--field); overflow: hidden; }
+.track i { display: block; height: 100%; width: 0; background: var(--primary-ink); border-radius: 3px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg { display: inline-flex; background: var(--field); border: 1.5px solid var(--edge); border-radius: 999px; padding: 3px; }
+.seg button {
+  font: 600 .9rem var(--body); color: var(--ink-soft); background: none; border: 0; border-radius: 999px;
+  min-height: 36px; padding: 0 14px; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--edge-strong); }
+.jump { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.jump::-webkit-scrollbar { display: none; }
+.jump a {
+  flex: none; font-size: .85rem; color: var(--ink); text-decoration: none; padding: 5px 11px;
+  border: 1.5px solid var(--edge); border-radius: 999px; background: var(--paper); font-variant-numeric: tabular-nums;
+}
+.jump a span { color: var(--ink-soft); }
+
+.notice { padding: 12px 14px; border-radius: 14px; background: var(--primary-soft); color: var(--ink); font-size: .95rem; }
+.notice[hidden] { display: none; }
+
+section { display: grid; gap: 14px; scroll-margin-top: 150px; }
+.section-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.section-head .meta { color: var(--ink-soft); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.list { display: grid; gap: 10px; }
+
+.slip {
+  background: var(--paper); border: 1.5px solid var(--edge); border-radius: 14px; padding: 12px 14px;
+  display: grid; gap: 6px; min-width: 0;
+}
+.slip[data-status="ok"] { border-color: color-mix(in srgb, var(--ok-ink) 45%, var(--edge)); }
+.slip[data-status="change"] { border-color: var(--primary-ink); }
+.slip-head { display: flex; justify-content: space-between; gap: 8px; align-items: center; min-width: 0; }
+.key { font: .74rem var(--mono); color: var(--ink-soft); overflow-wrap: anywhere; }
+.pill { flex: none; font-size: .75rem; font-weight: 600; padding: 2px 9px; border-radius: 999px; }
+.pill.ok { background: var(--ok); color: var(--on-ok); }
+.pill.change { background: var(--primary-soft); color: var(--primary-ink); }
+.en { color: var(--ink-soft); font-size: .92rem; overflow-wrap: anywhere; }
+.tr { font-size: 1.08rem; font-weight: 500; overflow-wrap: anywhere; }
+.ph { font: .8em var(--mono); background: var(--field); border: 1px solid var(--edge); border-radius: 6px; padding: 0 4px; white-space: nowrap; }
+.proposed { border-left: 3px solid var(--primary-ink); padding: 4px 0 4px 10px; display: grid; gap: 2px; }
+.proposed .label { font-size: .75rem; color: var(--primary-ink); font-weight: 600; letter-spacing: .03em; text-transform: uppercase; }
+.proposed .note { color: var(--ink-soft); font-size: .9rem; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+button.act {
+  font: 600 .92rem var(--body); min-height: 40px; padding: 0 14px; border-radius: 999px; cursor: pointer;
+  border: 1.5px solid var(--edge-strong); background: var(--paper); color: var(--ink);
+}
+button.act.primary { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+button.act.quiet { border-color: transparent; background: none; color: var(--primary-ink); padding: 0 6px; }
+button.act:disabled { opacity: .5; cursor: default; }
+button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2.5px solid var(--primary-ink); outline-offset: 2px; }
+form.edit { display: grid; gap: 8px; margin-top: 4px; }
+form.edit label { font-size: .82rem; font-weight: 600; color: var(--ink-soft); }
+textarea, input[type="text"] {
+  width: 100%; font: 1rem/1.45 var(--body); color: var(--ink); background: var(--page);
+  border: 1.5px solid var(--edge-strong); border-radius: 10px; padding: 9px 11px;
+}
+textarea { min-height: 76px; resize: vertical; }
+.warn { color: var(--danger-ink); font-size: .88rem; }
+.err { color: var(--danger-ink); font-size: .88rem; }
+
+/* Notes: the English and Turkish slip of one note side by side, stacked on a phone. */
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px; }
+.pair-label { font: 600 .8rem var(--body); color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.note-group { display: grid; gap: 6px; }
+
+.question { background: var(--paper); border: 1.5px solid var(--edge); border-radius: 14px; padding: 14px; display: grid; gap: 10px; }
+.question p { color: var(--ink-soft); }
+.choices { display: grid; gap: 6px; }
+.choices label { display: flex; gap: 10px; align-items: center; min-height: 40px; padding: 0 12px; border: 1.5px solid var(--edge); border-radius: 12px; cursor: pointer; }
+.choices input { accent-color: var(--primary-ink); width: 18px; height: 18px; }
+
+/* The filter hides what's not asked for. */
+main[data-filter="todo"] .slip:not([data-status="none"]) { display: none; }
+main[data-filter="change"] .slip:not([data-status="change"]) { display: none; }
+main[data-filter="todo"] .note-group:not(:has(.slip[data-status="none"])) { display: none; }
+main[data-filter="change"] .note-group:not(:has(.slip[data-status="change"])) { display: none; }
+main:not([data-filter="all"]) .questions { display: none; }
+.empty-filter { color: var(--ink-soft); }
+footer { color: var(--ink-soft); font-size: .85rem; }
+@media (prefers-reduced-motion: no-preference) { .track i { transition: width .25s ease-out; } }
+</style>
+
+<div class="wrap">
+  <header class="intro">
+    <span class="eyebrow">Phase 1 · D1 to D5 · before build 57</span>
+    <h1>Turkish copy proof</h1>
+    <p>Every Turkish string in the app, beside its English, and the 20 default love notes in both languages. Mark each one <b>Looks right</b>, or suggest a change: write the Turkish you want and, if it helps, why. Your answers save as you go, and Claude reads them back to apply them.</p>
+    <p>Your marks from the first review are kept. Two sets have none yet, and <b>To review</b> shows just those: D3's strings (Fly, the notifications, the update prompt and the Language row) and D5's tour, Pomo &amp; Doro's lines as they speak them, with the bubble's words. A tour line is at most 110 characters in Turkish, and no word in it runs past 10 letters, so it fits the largest text size.</p>
+    <p>Grey chips such as <span class="ph">count</span> are filled in by the app (a number, a name). Keep them in your version.</p>
+  </header>
+
+  <div class="bar" role="region" aria-label="Progress and filters">
+    <div class="progress" aria-live="polite">
+      <strong id="done">0 of __TOTAL__ reviewed</strong>
+      <span id="changes">0 changes suggested</span>
+    </div>
+    <div class="track" aria-hidden="true"><i id="fill"></i></div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Show">
+        <button type="button" data-filter="all" aria-pressed="true">All</button>
+        <button type="button" data-filter="todo" aria-pressed="false">To review</button>
+        <button type="button" data-filter="change" aria-pressed="false">Changes</button>
+      </div>
+    </div>
+    <nav class="jump" id="jump" aria-label="Sections"></nav>
+  </div>
+
+  <p class="notice" id="notice" hidden></p>
+
+  <main id="main" data-filter="all" class="wrap"></main>
+
+  <footer id="foot"></footer>
+</div>
+
+<script type="application/json" id="data">__DATA__</script>
+<script>
+(() => {
+  const DATA = JSON.parse(document.getElementById('data').textContent);
+  const verdicts = new Map();      // id -> stored verdict
+  const pending = new Set();       // ids with a write in flight
+  let col = null;                  // the verdicts collection, once the store answers
+  let readOnly = false;
+
+  const main = document.getElementById('main');
+  const notice = document.getElementById('notice');
+  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  // Placeholders like {{count}} become chips; everything else is escaped text.
+  const marked = (s) => esc(s).replace(/\{\{(\w+)\}\}/g, '<span class="ph">$1</span>');
+  const placeholders = (s) => [...s.matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1]);
+  const safeId = (id) => id.replace(/[^A-Za-z0-9_-]/g, '_');
+
+  const slips = new Map();         // id -> {el, item, lang}
+  let counter = 0;
+
+  function slipHTML(id, label, en, tr, lang) {
+    const uid = 's' + (++counter);
+    return `<article class="slip" data-id="${esc(id)}" data-status="none" id="${safeId(id)}">
+      <div class="slip-head"><code class="key">${esc(label)}</code><span class="pill" hidden></span></div>
+      ${en !== null ? `<p class="en" lang="en">${marked(en)}</p>` : ''}
+      <p class="tr" lang="${lang}">${marked(tr)}</p>
+      <div class="proposed" hidden><span class="label">Your version</span><span class="text" lang="${lang}"></span><span class="note"></span></div>
+      <div class="actions">
+        <button type="button" class="act primary" data-act="ok">Looks right</button>
+        <button type="button" class="act" data-act="edit">Suggest a change</button>
+        <button type="button" class="act quiet" data-act="undo" hidden>Undo</button>
+      </div>
+      <form class="edit" hidden>
+        <label for="${uid}-t">Your ${lang === 'tr' ? 'Turkish' : 'English'}</label>
+        <textarea id="${uid}-t" lang="${lang}"></textarea>
+        <label for="${uid}-n">Why, if it helps (optional)</label>
+        <input type="text" id="${uid}-n">
+        <p class="warn" hidden></p>
+        <div class="actions">
+          <button type="submit" class="act primary">Save change</button>
+          <button type="button" class="act" data-act="cancel">Cancel</button>
+        </div>
+      </form>
+      <p class="err" hidden></p>
+    </article>`;
+  }
+
+  // Build the page once; verdicts only update slips in place.
+  let html = '';
+  html += `<section class="questions" id="questions"><div class="section-head"><h2>Two questions</h2><span class="meta">from the polish pass</span></div>`;
+  for (const q of DATA.questions) {
+    html += `<div class="question" data-q="${q.id}"><h3>${esc(q.title)}</h3><p>${esc(q.body)}</p><div class="choices" role="radiogroup" aria-label="${esc(q.title)}">`;
+    q.choices.forEach((c, i) => {
+      html += `<label><input type="radio" name="${q.id}" value="${i}"> ${esc(c)}</label>`;
+    });
+    html += `</div><p class="err" hidden></p></div>`;
+  }
+  html += `</section>`;
+
+  html += `<section id="notes"><div class="section-head"><h2>Default love notes</h2><span class="meta" data-meta="notes"></span></div><p style="color:var(--ink-soft)">A fresh install gets these, in the phone's language. Each is reviewed in both languages; they needn't be word-for-word translations.</p><div class="list">`;
+  for (const n of DATA.notes) {
+    const label = n.n === 'fallback' ? 'When the list is empty' : 'Note ' + n.n;
+    html += `<div class="note-group"><span class="pair-label">${label}</span><div class="pair">`;
+    html += slipHTML('note-en-' + n.n, 'English', null, n.en, 'en');
+    html += slipHTML('note-tr-' + n.n, 'Türkçe', null, n.tr, 'tr');
+    html += `</div></div>`;
+  }
+  html += `</div></section>`;
+
+  for (const s of DATA.sections) {
+    html += `<section id="${s.id}"><div class="section-head"><h2>${esc(s.title)}</h2><span class="meta" data-meta="${s.id}"></span></div><div class="list">`;
+    for (const it of s.items) html += slipHTML(it.id, it.id, it.en, it.tr, 'tr');
+    html += `</div></section>`;
+  }
+  main.innerHTML = html;
+
+  for (const el of main.querySelectorAll('.slip')) {
+    const id = el.dataset.id;
+    let original;
+    const n = id.match(/^note-(en|tr)-(.+)$/);
+    if (n) {
+      const note = DATA.notes.find((x) => x.n === n[2]);
+      original = n[1] === 'en' ? note.en : note.tr;
+    } else {
+      original = DATA.sections.flatMap((s) => s.items).find((x) => x.id === id).tr;
+    }
+    slips.set(id, { el, original });
+  }
+
+  const sectionIds = (sid) => (sid === 'notes'
+    ? DATA.notes.flatMap((n) => ['note-en-' + n.n, 'note-tr-' + n.n])
+    : DATA.sections.find((s) => s.id === sid).items.map((i) => i.id));
+  const jump = document.getElementById('jump');
+  const jumpTargets = [{ id: 'notes', title: 'Notes' }, ...DATA.sections.map((s) => ({ id: s.id, title: s.title }))];
+  jump.innerHTML = jumpTargets.map((t) => `<a href="#${t.id}" data-jump="${t.id}">${esc(t.title)} <span></span></a>`).join('');
+
+  function paintSlip(id) {
+    const { el, original } = slips.get(id);
+    const v = verdicts.get(id);
+    const status = v ? v.status : 'none';
+    el.dataset.status = status;
+    const pill = el.querySelector('.pill');
+    pill.hidden = status === 'none';
+    pill.className = 'pill ' + status;
+    pill.textContent = status === 'ok' ? 'Looks right' : status === 'change' ? 'Change suggested' : '';
+    const prop = el.querySelector('.proposed');
+    prop.hidden = status !== 'change';
+    if (status === 'change') {
+      prop.querySelector('.text').textContent = v.text || '';
+      prop.querySelector('.note').textContent = v.note ? 'Why: ' + v.note : '';
+    }
+    const busy = pending.has(id) || readOnly || !col;
+    el.querySelector('[data-act="ok"]').hidden = status === 'ok';
+    el.querySelector('[data-act="undo"]').hidden = status === 'none';
+    el.querySelector('[data-act="edit"]').textContent = status === 'change' ? 'Edit your change' : 'Suggest a change';
+    for (const b of el.querySelectorAll('.actions button, form button[type="submit"]')) b.disabled = busy;
+    void original;
+  }
+
+  function paintCounts() {
+    const ids = [...slips.keys()];
+    const done = ids.filter((id) => verdicts.has(id)).length;
+    const changes = ids.filter((id) => verdicts.get(id)?.status === 'change').length;
+    document.getElementById('done').textContent = `${done} of ${ids.length} reviewed`;
+    document.getElementById('changes').textContent = `${changes} ${changes === 1 ? 'change' : 'changes'} suggested`;
+    document.getElementById('fill').style.width = (100 * done / ids.length).toFixed(1) + '%';
+    for (const t of jumpTargets) {
+      const own = sectionIds(t.id);
+      const left = own.filter((id) => !verdicts.has(id)).length;
+      jump.querySelector(`[data-jump="${t.id}"] span`).textContent = left ? `${left} left` : 'done';
+      const meta = main.querySelector(`[data-meta="${t.id}"]`);
+      if (meta) meta.textContent = `${own.length - left} of ${own.length} reviewed`;
+    }
+  }
+
+  function paintQuestions() {
+    for (const q of DATA.questions) {
+      const v = verdicts.get(q.id);
+      for (const r of main.querySelectorAll(`input[name="${q.id}"]`)) {
+        r.checked = v ? String(v.choice) === r.value : false;
+        r.disabled = readOnly || !col || pending.has(q.id);
+      }
+    }
+  }
+
+  function paintAll() {
+    for (const id of slips.keys()) paintSlip(id);
+    paintQuestions();
+    paintCounts();
+  }
+
+  function showError(el, msg) {
+    const p = el.querySelector(':scope > .err');
+    p.textContent = msg;
+    p.hidden = !msg;
+  }
+
+  // One write at a time per document; the snapshot repaints when it lands.
+  async function write(id, body, el) {
+    if (!col || readOnly || pending.has(id)) return false;
+    pending.add(id);
+    paintAll();
+    showError(el, '');
+    try {
+      if (body === null) await col.doc(id).delete();
+      else await col.doc(id).set({ ...body, at: new Date().toISOString() });
+      return true;
+    } catch (e) {
+      if (e && e.code === 'invalid_argument') {
+        readOnly = true;
+        setNotice('This view can read the review but not save it. Open it signed in as its owner to mark strings.');
+      }
+      showError(el, e && e.code === 'quota_exceeded'
+        ? 'The review store is full, so this mark wasn’t saved.'
+        : 'That didn’t save. Check your connection and try again.');
+      return false;
+    } finally {
+      pending.delete(id);
+      paintAll();
+    }
+  }
+
+  function setNotice(text) {
+    notice.textContent = text || '';
+    notice.hidden = !text;
+  }
+
+  main.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    const el = btn.closest('.slip');
+    const id = el.dataset.id;
+    const form = el.querySelector('form.edit');
+    const act = btn.dataset.act;
+    if (act === 'ok') {
+      form.hidden = true;
+      await write(id, { status: 'ok' }, el);
+    } else if (act === 'undo') {
+      form.hidden = true;
+      await write(id, null, el);
+    } else if (act === 'edit') {
+      const v = verdicts.get(id);
+      form.querySelector('textarea').value = v?.status === 'change' ? v.text : slips.get(id).original;
+      form.querySelector('input').value = v?.status === 'change' ? (v.note || '') : '';
+      form.querySelector('.warn').hidden = true;
+      form.hidden = false;
+      form.querySelector('textarea').focus();
+    } else if (act === 'cancel') {
+      form.hidden = true;
+    }
+  });
+
+  main.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const el = form.closest('.slip');
+    const id = el.dataset.id;
+    const text = form.querySelector('textarea').value.trim();
+    const note = form.querySelector('input').value.trim();
+    const warn = form.querySelector('.warn');
+    if (!text) {
+      warn.textContent = 'Write the version you want, or press Cancel.';
+      warn.hidden = false;
+      return;
+    }
+    const lost = placeholders(slips.get(id).original).filter((p) => !placeholders(text).includes(p));
+    if (lost.length && !form.dataset.confirmed) {
+      warn.innerHTML = `Your version leaves out ${lost.map((p) => `<span class="ph">${esc(p)}</span>`).join(', ')}, which the app fills in. Add ${lost.length > 1 ? 'them' : 'it'} back as {{${esc(lost[0])}}}, or press Save change again to keep it out.`;
+      warn.hidden = false;
+      form.dataset.confirmed = '1';
+      return;
+    }
+    delete form.dataset.confirmed;
+    if (await write(id, { status: 'change', text, note }, el)) form.hidden = true;
+  });
+
+  main.addEventListener('change', async (e) => {
+    const r = e.target.closest('input[type="radio"]');
+    if (!r) return;
+    const qEl = r.closest('.question');
+    await write(r.name, { status: 'answer', choice: Number(r.value), label: r.parentElement.textContent.trim() }, qEl);
+  });
+
+  for (const b of document.querySelectorAll('.seg button')) {
+    b.addEventListener('click', () => {
+      main.dataset.filter = b.dataset.filter;
+      for (const o of document.querySelectorAll('.seg button')) o.setAttribute('aria-pressed', String(o === b));
+    });
+  }
+
+  document.getElementById('foot').textContent = `Built from the app's string files on ${DATA.built}. Saved marks stay with this page.`;
+  paintAll();
+  setNotice('Connecting to the review store…');
+
+  // The store: one subscription to every verdict, a 10 s note if it doesn't answer.
+  (async () => {
+    const db = window.claude && window.claude.use ? await window.claude.use('db') : null;
+    if (!db) {
+      setNotice('Marks can’t be saved in this view. Open the page from claude.ai, signed in, to review.');
+      readOnly = true;
+      paintAll();
+      return;
+    }
+    col = db.collection('verdicts');
+    let answered = false;
+    const slow = setTimeout(() => {
+      if (!answered) setNotice('The review store isn’t answering yet. Marks will appear when it does.');
+    }, 10000);
+    col.onSnapshot((snap) => {
+      verdicts.clear();
+      for (const d of snap.docs) if (d.exists) verdicts.set(d.id, d.data());
+      if (!snap.metadata.fromCache) {
+        answered = true;
+        clearTimeout(slow);
+        if (!readOnly) setNotice('');
+      }
+      paintAll();
+    }, (err) => {
+      clearTimeout(slow);
+      readOnly = true;
+      setNotice(err && err.code === 'revoked'
+        ? 'This view can no longer save marks.'
+        : 'The review store stopped answering. Reload the page to keep reviewing.');
+      paintAll();
+    });
+  })();
+})();
+</script>

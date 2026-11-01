@@ -6,7 +6,7 @@ configureReanimatedLogger({ level: ReanimatedLogLevel.warn, strict: false });
 
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
-import { DarkTheme, DefaultTheme, router, ThemeProvider } from 'expo-router';
+import { router, ThemeProvider } from 'expo-router';
 import * as React from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -14,7 +14,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useUpdateCheck } from './hooks/useUpdateCheck';
 import { WindowInsetsProvider } from './hooks/useWindowInsets';
 import { useTheme } from './theme/useTheme';
-import GiftModeModal from './components/GiftModeModal';
+import { navigationThemes } from './theme/navigationTheme';
 import { StoreGate } from './stores/StoreGate';
 import { useUiStore } from './stores/uiStore';
 import { AdManager } from './ads/AdManager';
@@ -27,7 +27,9 @@ const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/upda
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
-    shouldPlaySound: false, // We handle sound separately
+    // With the app open, the app's own sounds play (D4, src/audio/uiSounds.ts); the system
+    // sound the notifications carry is for a locked or backgrounded phone.
+    shouldPlaySound: false,
     shouldSetBadge: false,
     shouldShowBanner: true,  // SDK 54 requires this
     shouldShowList: true,     // SDK 54 requires this
@@ -41,9 +43,7 @@ SplashScreen.preventAutoHideAsync();
 
 // Inner component: everything below StoreGate, so the stores are hydrated
 function ThemedApp({ children }: { children: React.ReactNode }) {
-  const { isDark } = useTheme();
-  const hasSeenGiftMode = useUiStore((s) => s.hasSeenGiftMode);
-  const dismissGiftMode = useUiStore((s) => s.dismissGiftMode);
+  const { theme } = useTheme();
 
   // Start-up work: each call waits for the first frame itself (Phase 1 B7)
   useUpdateCheck(UPDATE_JSON_URL);
@@ -58,7 +58,9 @@ function ThemedApp({ children }: { children: React.ReactNode }) {
         console.log('[App] Notification tapped:', response.notification.request.content);
       }
 
-      // The Timer tab is the index route (FR-NTF-003)
+      // The Timer tab is the index route (FR-NTF-003). Opened from a notification, the
+      // user came for the timer: the v1.4 welcome waits for a later launch (welcome brief §4).
+      useUiStore.getState().deferWelcome();
       router.navigate('/');
     });
 
@@ -73,14 +75,9 @@ function ThemedApp({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    // Navigation theme based on app theme
-    <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
+    // The navigator draws its backgrounds from the Sticker Diary tokens (Phase 1 D1)
+    <ThemeProvider value={navigationThemes[theme.id]}>
       {children}
-
-      {/* Gift Mode - shows only on first launch */}
-      {!hasSeenGiftMode && (
-        <GiftModeModal visible={!hasSeenGiftMode} onDismiss={dismissGiftMode} />
-      )}
     </ThemeProvider>
   );
 }
@@ -89,7 +86,8 @@ function ThemedApp({ children }: { children: React.ReactNode }) {
  * The app's root (Phase 1 B6: rendered by app/_layout.tsx around the router's
  * navigator, which comes in as `children`). It provides the gesture root, the
  * window's safe-area insets and the hydrated stores, then the navigation
- * theme, and shows Gift Mode on first launch.
+ * theme. v1's first-launch gift screen is retired (D2, the owner): the one-time welcome is
+ * the only first-run screen, and the app's origin is a line in Settings › About.
  */
 export function App({ children }: { children: React.ReactNode }) {
   return (

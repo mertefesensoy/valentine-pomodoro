@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import { t } from '../i18n';
 
 export type QuietHours = { enabled: boolean; startHHMM: string; endHHMM: string };
 
@@ -94,9 +95,10 @@ export async function scheduleDailyReminder(opts: {
 
     const id = await Notifications.scheduleNotificationAsync({
         content: {
-            title: 'Valentine Pomodoro 💗',
-            body: 'A little focus session today?',
-            sound: false,
+            title: `${t('notifications.reminder.title')} 💗`,
+            body: t('notifications.reminder.body'),
+            // The system's own sound (the owner, D4 wiring), as the session-end notification has.
+            sound: 'default',
             ...(Platform.OS === 'android' ? { channelId: 'daily-reminder' } : {}),
         },
         trigger: {

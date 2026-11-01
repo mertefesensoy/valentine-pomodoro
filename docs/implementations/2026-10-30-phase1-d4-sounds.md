@@ -334,5 +334,6 @@ And §6's D4 line: `- [x] D4: three sounds, each ≤ 1.5 s and ≤ 25 KB, rebuil
 <!-- backlinks:start -->
 - ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](2026-10-30-phase1-stage-d.md)
 - ["Phase 1 D4, wired in: D4's sounds merged into Stage D and played by Classic"](2026-11-01-phase1-d4-wiring.md)
+- ["Phase 1 D5: the general tutorial, Pomo & Doro show you around"](2026-11-01-phase1-d5-tutorial.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

@@ -1164,5 +1164,6 @@ Every string build 48 carries in Turkish, beside its English (generated from `sr
 - [An in-house translator over i18next, for English and Turkish](../architecture/adr/0048-in-house-translator.md)
 - ["Phase 1 D2: Stats, Settings and Notes rebuilt in the Sticker Diary design, the gift screen retired"](2026-10-31-phase1-d2-screens.md)
 - ["Phase 1 D3: every string in English and Turkish, a raw-text check, and the in-app language choice"](2026-11-01-phase1-d3-en-tr.md)
+- ["Phase 1 D5: the general tutorial, Pomo & Doro show you around"](2026-11-01-phase1-d5-tutorial.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

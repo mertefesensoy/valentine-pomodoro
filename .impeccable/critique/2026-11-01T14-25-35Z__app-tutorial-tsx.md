@@ -8,6 +8,7 @@ p1_count: 0
 target_identity: "file:C:\\vp\\stage-d\\app\\tutorial.tsx"
 timestamp: 2026-11-01T14-25-35Z
 slug: app-tutorial-tsx
+closed: true
 ---
 Method: design review only (detector not applicable, native platform). Second run, on a2e1553 and the scroll fix after it, read from source against the direction contract.
 

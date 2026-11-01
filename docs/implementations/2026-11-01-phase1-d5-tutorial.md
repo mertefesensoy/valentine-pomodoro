@@ -618,7 +618,7 @@ Found consistent, with nothing to change:
   - the empty week, the goal off, a break next and a replay mid-session each have their line.
 - **Code:** no dead code. Every export in `src/screens/tutorial/` is used, and lint reports nothing there.
 
-The critique snapshot stays open: its Priority Issues were kept, not cleared (the playbook closes a snapshot only when they are).
+**The critique snapshot is closed.** The playbook would have left it open, since its Priority Issues were kept rather than cleared. But the snapshot's target, `app/tutorial.tsx`, the brief's first route name, doesn't exist: the tour lives in `src/screens/tutorial/` (§3.2). The `critique-storage latest` helper reads a missing file as a changed one and closes the backlog, keeping its trend (32 → 35). Both kept items stay recorded in §3.9.
 
 **The copy review: copy proof v5.**
 - **The page:** `node scripts/design/copy-proof/build.mjs` gained a section for the tour, after the welcome (D5, `tour.*`). The page's intro now names both sets awaiting marks.

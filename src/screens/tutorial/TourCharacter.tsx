@@ -61,6 +61,8 @@ type Props = {
     shadow: string;
     /** Milliseconds to wait before arriving, so the pair land one after the other. */
     arriveDelay: number;
+    /** The run's first arrival drops in and lands; later ones (a new screen, a sheet closed) fade in. */
+    entrance: boolean;
 };
 
 function Layer({ art }: { art: Parameters<typeof Sticker>[0]['art'] }) {
@@ -88,7 +90,7 @@ function Layer({ art }: { art: Parameters<typeof Sticker>[0]['art'] }) {
  * Everything moves on the UI thread from shared values; React renders only when the pose, the
  * role or the placement changes. Decoration: hidden from VoiceOver (the bubble speaks).
  */
-export function TourCharacter({ who, role, pose, look, feet, scale, mouth, talking, reduced, shadow, arriveDelay }: Props) {
+export function TourCharacter({ who, role, pose, look, feet, scale, mouth, talking, reduced, shadow, arriveDelay, entrance }: Props) {
     const kit = KIT[who];
     const outer: Side = who === 'doro' ? 'left' : 'right';
     const [faces, setFaces] = useState({ cur: pose, prev: pose, look, prevLook: look });
@@ -130,14 +132,15 @@ export function TourCharacter({ who, role, pose, look, feet, scale, mouth, talki
     const arrive = useSharedValue(0);
     const land = useSharedValue(CHANGE_MS);
     useEffect(() => {
-        if (reduced) {
-            arrive.set(withDelay(arriveDelay, withTiming(1, { duration: 200 })));
+        if (reduced || !entrance) {
+            arrive.set(withDelay(reduced ? arriveDelay : 0, withTiming(1, { duration: 200 })));
             return;
         }
         arrive.set(withDelay(arriveDelay, withTiming(1, { duration: ARRIVE_MS, easing: EASE_OUT })));
         land.set(0);
         land.set(withDelay(arriveDelay + ARRIVE_MS - 60, withTiming(CHANGE_MS, { duration: CHANGE_MS, easing: Easing.linear })));
-    }, [arrive, land, arriveDelay, reduced]);
+        // The entrance is decided when the character mounts; a later change of it changes nothing.
+    }, [arrive, land, arriveDelay, reduced]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // The speaker breathes; the listener holds still (T-10). A random phase, so the two never sync.
     const period = BREATH.periodMs[who];
@@ -213,7 +216,7 @@ export function TourCharacter({ who, role, pose, look, feet, scale, mouth, talki
             opacity: a,
             transform: [
                 { translateX: x.get() - (fx / 512) * BOX },
-                { translateY: y.get() - (fy / 512) * BOX - (reduced ? 0 : 28 * (1 - a)) },
+                { translateY: y.get() - (fy / 512) * BOX - (reduced || !entrance ? 0 : 28 * (1 - a)) },
                 { rotate: `${rotate}deg` },
                 { scaleX: s / sy },
                 { scaleY: s * sy },

@@ -647,8 +647,10 @@ export default function TimerScreen() {
           contentContainerStyle={[styles.page, { paddingTop: insets.top + space.s }]}
           showsVerticalScrollIndicator={false}
           onLayout={(e) => measured('visible', e)}
-          // While the tour is here: where the page is, and room to scroll an opening above the AX panel.
+          // While the tour is here: where the page is, room to scroll an opening above the AX panel, and
+          // no drag, which would leave the opening behind (the tour's own scrollTo still moves it).
           onScroll={tourHere ? trackScroll : undefined}
+          scrollEnabled={!tourHere}
           scrollEventThrottle={tourHere ? 32 : undefined}
           contentInset={tourHere && fontScale >= STACK_FONT_SCALE ? { bottom: height * 0.5 } : undefined}
           testID="classic-page"

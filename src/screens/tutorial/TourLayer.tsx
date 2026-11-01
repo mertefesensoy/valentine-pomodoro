@@ -178,6 +178,11 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
     const [waited, setWaited] = useState<string | null>(null);
     // Once arrived they stay for the layer's life, gliding from beat to beat.
     const [arrived, setArrived] = useState(false);
+    // Whether this layer plays the run's entrance, fixed when it mounts (the run marks it played).
+    const [entrance] = useState(() => !useTourStore.getState().run?.introduced);
+    useEffect(() => {
+        if (arrived) useTourStore.getState().markIntroduced();
+    }, [arrived]);
     useEffect(() => {
         const id = setTimeout(() => setWaited(beatKey), MEASURE_WAIT_MS);
         return () => clearTimeout(id);
@@ -246,8 +251,8 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
             }}
             testID="tour-layer"
         >
-            <Scrim hole={lit} radius={(spec?.radius ?? 0) + PAD} W={W} H={H} color={raised ? tokens.scrimStrong : tokens.scrim} reduced={reduced} />
-            <Ribbon curve={placement.ribbon} tokens={tokens} reduced={reduced} />
+            <Scrim hole={lit} radius={(spec?.radius ?? 0) + PAD} W={W} H={H} color={raised ? tokens.scrimStrong : tokens.scrim} reduced={reduced} entrance={entrance} />
+            <Ribbon curve={placement.ribbon} tokens={tokens} reduced={reduced} entrance={entrance} />
             {screenReader === true && lit && spec?.a11y && <Opening rect={lit} a11y={spec.a11y} />}
             {ready &&
                 !panel &&
@@ -265,10 +270,11 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
                         reduced={reduced}
                         shadow={tokens.stickerShadow}
                         arriveDelay={who === speaker ? 160 : 260}
+                        entrance={entrance}
                     />
                 ))}
             {ready && (
-            <BubbleDock x={placement.bubble.x} y={placement.bubble.y} w={placement.bubble.w} reduced={reduced}>
+            <BubbleDock x={placement.bubble.x} y={placement.bubble.y} w={placement.bubble.w} reduced={reduced} delay={entrance ? 420 : 0}>
                 <Bubble
                     tokens={tokens}
                     name={t(`tour.${speaker}`)}
@@ -294,7 +300,7 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
 }
 
 /** The bubble's place: it glides with the dock on the sheet curve, and fades in once (under Reduce Motion, only fades). */
-function BubbleDock({ x, y, w, reduced, children }: { x: number; y: number; w: number; reduced: boolean; children: ReactNode }) {
+function BubbleDock({ x, y, w, reduced, delay, children }: { x: number; y: number; w: number; reduced: boolean; delay: number; children: ReactNode }) {
     const px = useSharedValue(x);
     const py = useSharedValue(y);
     const shown = useSharedValue(0);
@@ -309,10 +315,10 @@ function BubbleDock({ x, y, w, reduced, children }: { x: number; y: number; w: n
         }
         if (first.current) {
             first.current = false;
-            // After the pair have landed: the bubble is the last to arrive.
-            shown.set(withDelay(reduced ? 0 : 420, withTiming(1, { duration: 220, easing: EASE_OUT })));
+            // On the entrance, after the pair have landed: the bubble is the last to arrive.
+            shown.set(withDelay(reduced ? 0 : delay, withTiming(1, { duration: 220, easing: EASE_OUT })));
         }
-    }, [x, y, px, py, shown, reduced]);
+    }, [x, y, px, py, shown, reduced, delay]);
     const style = useAnimatedStyle(() => ({
         opacity: shown.get(),
         transform: [{ translateX: px.get() }, { translateY: py.get() + (reduced ? 0 : 6 * (1 - shown.get())) }],
@@ -326,7 +332,23 @@ function BubbleDock({ x, y, w, reduced, children }: { x: number; y: number; w: n
  * on the sheet curve; under Reduce Motion a cover closes the old opening and the new one opens
  * (brief §5). With no opening (a lead), the hole closes and the whole page dims.
  */
-function Scrim({ hole, radius, W, H, color, reduced }: { hole: Rect | null; radius: number; W: number; H: number; color: string; reduced: boolean }) {
+function Scrim({
+    hole,
+    radius,
+    W,
+    H,
+    color,
+    reduced,
+    entrance,
+}: {
+    hole: Rect | null;
+    radius: number;
+    W: number;
+    H: number;
+    color: string;
+    reduced: boolean;
+    entrance: boolean;
+}) {
     const closed = { x: W / 2, y: H / 2, w: 0, h: 0 };
     const target = hole ?? closed;
     const r = hole ? Math.min(radius, hole.w / 2, hole.h / 2) : 0;
@@ -359,6 +381,16 @@ function Scrim({ hole, radius, W, H, color, reduced }: { hole: Rect | null; radi
             }
         } else {
             const first = opening && !had.current;
+            if (first && !entrance) {
+                // A later screen: the opening is simply there as the layer fades in.
+                x.set(target.x);
+                y.set(target.y);
+                w.set(target.w);
+                h.set(target.h);
+                rr.set(r);
+                had.current = opening;
+                return;
+            }
             if (first) {
                 // The first opening grows from its own centre.
                 x.set(target.x + target.w / 2);

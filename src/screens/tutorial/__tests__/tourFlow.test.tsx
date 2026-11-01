@@ -121,6 +121,20 @@ describe('the tour on the Timer', () => {
         expect(createAudioPlayer).toHaveBeenCalledTimes(12);
     });
 
+    it('plays its entrance once a run, and holds the page still while it is on it', async () => {
+        await show(<TimerScreen />);
+        // The ribbon's drop and the pair's landing played here; a layer on the next tab, or after the
+        // Modes sheet closes, fades in instead (the run remembers).
+        expect(useTourStore.getState().run!.introduced).toBe(true);
+        // A drag would leave the opening behind; the tour's own scroll still moves the page.
+        expect(screen.getByTestId('classic-page', hidden).props.scrollEnabled).toBe(false);
+        await press(screen.getByText('Skip tour'));
+        await settle();
+        expect(screen.getByTestId('classic-page').props.scrollEnabled).toBe(true);
+        useTourStore.getState().start({ replay: true });
+        expect(useTourStore.getState().run!.introduced).toBe(false);
+    });
+
     it('waits for the welcome: nothing before it has been seen', async () => {
         await resetStorage();
         await show(<TimerScreen />);

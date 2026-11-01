@@ -27,7 +27,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 | 2. `/apple-design` on the brief | **Good**, 2026-11-01: no Critical, 2 High, 5 Medium, 4 Low (§3.3). All accepted, T-4 in part; the contract carries them. Spike done alongside (§3.2): the layer lives inside the tab screens |
 | 3. Composition round, then the direction contract | **The bookmark ribbon**, the owner's pick, 2026-11-01, after two rounds (§3.4). **The contract is approved** by the owner, 2026-11-01 (§3.5) |
 | 4. Assets: the pair's poses **and new expressions with their animations** (VectorCraft) on a pose sheet, their babble (SoundCraft) on a listening page | **Done**, 2026-11-01, in a parallel session; its own [assets record](2026-11-01-phase1-d5-assets.md). Both pages approved by the owner ("Approve, keep nubs"; "version 2 with variation is the way to go"). Fast-forwarded onto this branch on the owner's word (§3.6) |
-| 5. Build (`animate-expo`) | **Built**, 2026-11-01, from its plan (§3.7, committed before any code): §3.8. Every guard green, 480 tests; not yet seen on a device |
+| 5. Build (`animate-expo`) | **Built**, 2026-11-01, from its plan (§3.7, committed before any code): §3.8. Every guard green, 481 tests; not yet seen on a device |
 | 6. Critique, audit, HIG, `review-animations` | Pending |
 | 7. `break-ui` in Turkish at AX5 | Pending |
 | 8. Polish, then the copy review | Pending |
@@ -55,7 +55,7 @@ The owner, 2026-11-01: "we need an onboarding tutorial featuring pomo and doro �
 | `src/screens/tutorial/kit.ts` (new) | The tour kit's 44 layers by name, the expression recipes and the hands' pivots |
 | `src/screens/tutorial/babble.ts`, `useSpeaking.ts` (new) | The 12 players with the approved variation; the line's clock |
 | `src/screens/tutorial/TourCharacter.tsx`, `Ribbon.tsx`, `Bubble.tsx`, `TourLayer.tsx`, `ModesBubble.tsx`, `useTour.ts` (new) | The pair, the ribbon, the bubble, the layer with its scrim and VoiceOver openings, the Modes sheet's bubble, the hosts' hooks |
-| `src/screens/tutorial/__tests__/` (new: 3 files, 45 tests) | The model against the pose sheet's files, the store and placement, the flow through the real screens |
+| `src/screens/tutorial/__tests__/` (new: 3 files, 46 tests) | The model against the pose sheet's files, the store and placement, the flow through the real screens |
 | `src/screens/TimerScreen.tsx`, `classic/ClassicControls.tsx`, `classic/TodayStickers.tsx` | The gate, the four openings, the lazy layer, Start closing the tour, a preset moving step 1 on, Fly ending it |
 | `src/screens/StatsScreen.tsx`, `LoveNotesScreen.tsx` | The week and Add as openings, the lazy layer, a tab's focus moving its lead on |
 | `src/components/modes/ModeSheet.tsx` | The Modes step's bubble |
@@ -326,12 +326,14 @@ Changed:
 
 ### 3.8 The build
 
-**Built as planned (§3.7), with five changes found while building:**
+**Built as planned (§3.7), with seven changes found while building:**
 - **Choosing Fly mid-tour ends the tour.** The plan kept the tab steps working under Fly, but a tour that can't show its bubble on the Timer leaves the person guessing. The tour finishes as if skipped, and Settings replays it.
 - **A replay from Fly switches to Classic first.** It's the Modes sheet's own switch, so Fly's slot pauses as it does there.
 - **The scrim's checks are their own list, `dims`.** The contrast test holds every WCAG pair to 4.5 or 3, and a dim is a separation, not a text floor. So `palette.json` gains `dims` beside `pairs`, `check:contrast` gates both, and the test checks dims on their own.
 - **The pair and the bubble wait for the opening.** Before the control is measured they'd stand at a guessed place, then slide. They arrive once the opening is found; a control that can't be measured gets its beat after 600 ms, the whole page dimmed. Once arrived, they glide from beat to beat.
 - **The first line waits for VoiceOver's answer.** The screen-reader check is asynchronous, so the line starts only once it's known, and a VoiceOver user never hears a syllable.
+- **The entrance is the run's, once.** A layer mounts afresh on every tab step, and when a sheet over it closes (the Modes sheet, the note editor): the screen loses focus under a sheet. Each would have replayed the ribbon's drop and the pair's landing, more than the one delight the contract allows. The run now remembers that its entrance has played (`introduced`); a later layer fades in with the ribbon already hanging and the opening already open.
+- **The page holds still while the tour is on it.** A drag through the opening moved the control and left the opening behind. The hosts' scroll views turn off dragging while the tour is on their screen (`scrollEnabled`); the tour's own `scrollTo`, which brings an opening clear of the AX panel, still moves the page, and the layer measures again after it.
 
 **How it fits together.**
 - **Lazy, as Fly is.** Timer, Stats and Notes import only the store and four small hooks. `TourLayer`, the kit's 44 modules, the voices and the motion load with `lazy()` the first time a tour reaches a screen.
@@ -359,7 +361,7 @@ Changed:
 
 | Guard | Result |
 |---|---|
-| `npx jest` | 64 suites, 480 tests (+3 suites, +47 tests), all pass |
+| `npx jest` | 64 suites, 481 tests (+3 suites, +48 tests), all pass |
 | `npx tsc --noEmit` | Clean |
 | `npm run lint` | 0 errors, 29 warnings (unchanged) |
 | `node scripts/react-compiler-report.js` | 98 compiled, 5 skipped (unchanged); no file's worklet count changes |
@@ -451,6 +453,8 @@ The dimmed colour is c = α·scrim + (1 − α)·lit per 8-bit channel; the rati
 | The voices' gain base at −1.5 dB | Variation only downwards; no variation | expo-audio's volume stops at 1; this keeps the approved ±1.5 dB spread, 1.5 dB softer on average, which the owner's "softer" brief welcomes |
 | Choosing Fly ends the tour | Waiting out Fly | The tour never shows over Fly, and a hidden step leaves the person guessing; Settings replays it |
 | The dock waits for the opening, with a 600 ms fallback | Placing it at once | Nothing slides in from a guessed place, and a control that can't be measured never strands the tour |
+| The entrance once a run; later layers fade in | One entrance per layer | Layers remount on every tab step and after a sheet; the contract allows one delight |
+| No dragging while the tour is on a screen | Re-measuring after every drag | A frozen page under a coach mark is expected, and the opening can never lag its control; the tour's own scroll still moves the page |
 
 ## 6. Verification
 
@@ -459,7 +463,7 @@ The dimmed colour is c = α·scrim + (1 − α)·lit per 8-bit channel; the rati
 - [x] The owner approves the direction contract (2026-11-01, "Approve the contract").
 - [x] The assets approved in their record and fast-forwarded here, every guard green (§3.6).
 - [x] The build plan committed before any code (§3.7).
-- [x] The build: `npx jest` (64 suites, 480 tests), `npx tsc --noEmit`, `npm run lint`, `node scripts/react-compiler-report.js`, `npx reassure --branch`, `npm run check:contrast`, `node scripts/i18n/check-raw-text.mjs`, `node scripts/design/check-emoji.mjs`, `node scripts/art/build.mjs --check`, `node scripts/sound/build.mjs --check`, all green (§3.8).
+- [x] The build: `npx jest` (64 suites, 481 tests), `npx tsc --noEmit`, `npm run lint`, `node scripts/react-compiler-report.js`, `npx reassure --branch`, `npm run check:contrast`, `node scripts/i18n/check-raw-text.mjs`, `node scripts/design/check-emoji.mjs`, `node scripts/art/build.mjs --check`, `node scripts/sound/build.mjs --check`, all green (§3.8).
 - [ ] The remaining steps of §0, the device check's list in §3.8 among them.
 
 ## 7. Related Docs

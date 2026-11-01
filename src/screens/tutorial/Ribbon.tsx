@@ -49,14 +49,14 @@ function mix(a: readonly number[], b: readonly number[], k: number): number[] {
  * The bookmark ribbon (the direction contract's FORM, owner's pick 2026-11-01): the diary's
  * strawberry ribbon hangs from beyond the top edge and drapes to the control the pair are talking
  * about, its swallowtail tip pointing at it. Between beats its curve's four points glide on the
- * sheet curve (the signature interaction); at the start it drops from the top. Under Reduce Motion
- * it fades out and back in at its new place instead.
+ * sheet curve (the signature interaction); at the run's start it drops from the top, and on a later
+ * screen it fades in, already hanging. Under Reduce Motion it fades out and back in at its new place.
  *
  * The curve is computed on the UI thread from three shared values (where it was, where it's going,
  * how far along), so a drape renders nothing in React. Decoration: no touches, hidden from
  * VoiceOver; the bubble names what it points at.
  */
-export function Ribbon({ curve, tokens, reduced }: { curve: RibbonCurve | null; tokens: ThemeTokens; reduced: boolean }) {
+export function Ribbon({ curve, tokens, reduced, entrance }: { curve: RibbonCurve | null; tokens: ThemeTokens; reduced: boolean; entrance: boolean }) {
     const from = useSharedValue<number[]>(curve ? [...furled(curve)] : [0, 0, 0, 0, 0, 0, 0, 0]);
     const to = useSharedValue<number[]>(curve ? [...toG(curve)] : [0, 0, 0, 0, 0, 0, 0, 0]);
     const k = useSharedValue(0);
@@ -74,7 +74,8 @@ export function Ribbon({ curve, tokens, reduced }: { curve: RibbonCurve | null; 
             shown.current = true;
             from.set([...furled(curve)]);
             to.set(target);
-            if (reduced) {
+            // The drop is the run's entrance; on a later screen the ribbon is already hanging.
+            if (reduced || !entrance) {
                 k.set(1);
                 opacity.set(0);
                 opacity.set(withTiming(1, { duration: FADE_MS * 2 }));

@@ -224,6 +224,8 @@ export default function StatsScreen() {
                 ref={scrollRef}
                 contentContainerStyle={[styles.page, { paddingTop: insets.top + space.s }]}
                 onScroll={tourHere ? trackScroll : undefined}
+                // No drag while the tour is here: it would leave the opening behind.
+                scrollEnabled={!tourHere}
                 scrollEventThrottle={tourHere ? 32 : undefined}
                 contentInset={tourHere && fontScale >= LIST_FONT_SCALE ? { bottom: height * 0.5 } : undefined}
             >

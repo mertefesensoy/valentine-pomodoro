@@ -246,6 +246,8 @@ export default function LoveNotesScreen() {
         <FlatList
             ref={listRef}
             onScroll={tourHere ? trackScroll : undefined}
+            // No drag while the tour is here: it would leave the opening behind.
+            scrollEnabled={!tourHere}
             scrollEventThrottle={tourHere ? 32 : undefined}
             style={{ backgroundColor: tokens.page }}
             contentContainerStyle={[

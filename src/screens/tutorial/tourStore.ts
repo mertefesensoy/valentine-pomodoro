@@ -31,6 +31,11 @@ export type Run = {
     replay: boolean;
     /** A first run picked up from a saved step: its one resume is used. */
     resumed: boolean;
+    /**
+     * The entrance has played: the ribbon's drop and the pair's landing, the tour's one delight. A
+     * layer mounts afresh on every tab step and when a sheet over it closes; only the first arrives.
+     */
+    introduced: boolean;
 };
 
 type Stored = { seen?: string; resumeAt?: number; resumed?: true };
@@ -56,6 +61,8 @@ export interface TourStore {
     /** Skip tour, Not now, Done, or Start focus: the run ends and a first run is remembered as seen. */
     finish(): void;
     toggleMute(): void;
+    /** The entrance has played (TourLayer, once per run). */
+    markIntroduced(): void;
 }
 
 function save(value: Stored): void {
@@ -95,7 +102,7 @@ export const useTourStore = create<TourStore>()((set, get) => ({
             const all = GENERAL.steps.map((_, i) => i);
             // A session running or paused: the presets are hidden and the invitation can't happen.
             const steps = sessionActive ? all.filter((i) => GENERAL.steps[i].id !== 'presets' && GENERAL.steps[i].id !== 'invite') : all;
-            set({ run: { tutorialId: GENERAL.id, steps, at: 0, beat: beatOf(GENERAL.steps[steps[0]]), replay: true, resumed: false }, muted: false });
+            set({ run: { tutorialId: GENERAL.id, steps, at: 0, beat: beatOf(GENERAL.steps[steps[0]]), replay: true, resumed: false, introduced: false }, muted: false });
             return;
         }
         const tutorial = dueTutorial(get().seen);
@@ -105,7 +112,7 @@ export const useTourStore = create<TourStore>()((set, get) => ({
         const at = resumeAt !== null && resumeAt < steps.length ? resumeAt : 0;
         if (resumeAt !== null) save({ resumeAt: at, resumed: true });
         else save({ resumeAt: at });
-        set({ run: { tutorialId: tutorial.id, steps, at, beat: beatOf(tutorial.steps[at]), replay: false, resumed: resumeAt !== null }, muted: false });
+        set({ run: { tutorialId: tutorial.id, steps, at, beat: beatOf(tutorial.steps[at]), replay: false, resumed: resumeAt !== null, introduced: false }, muted: false });
     },
 
     next() {
@@ -146,6 +153,11 @@ export const useTourStore = create<TourStore>()((set, get) => ({
 
     toggleMute() {
         set({ muted: !get().muted });
+    },
+
+    markIntroduced() {
+        const run = get().run;
+        if (run && !run.introduced) set({ run: { ...run, introduced: true } });
     },
 
 }));

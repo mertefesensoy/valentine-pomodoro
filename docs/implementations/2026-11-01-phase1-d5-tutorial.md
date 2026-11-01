@@ -29,7 +29,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 | 4. Assets: the pair's poses **and new expressions with their animations** (VectorCraft) on a pose sheet, their babble (SoundCraft) on a listening page | **Done**, 2026-11-01, in a parallel session; its own [assets record](2026-11-01-phase1-d5-assets.md). Both pages approved by the owner ("Approve, keep nubs"; "version 2 with variation is the way to go"). Fast-forwarded onto this branch on the owner's word (§3.6) |
 | 5. Build (`animate-expo`) | **Built**, 2026-11-01, from its plan (§3.7, committed before any code): §3.8. Every guard green, 481 tests; not yet seen on a device |
 | 6. Critique, audit, HIG, `review-animations` | **Done**, 2026-11-01, after three passes and three batches (§3.9): critique 32 → **35/40**, audit 15 → **18/20**, HIG Good → **Excellent**, motion not clean → **clean** |
-| 7. `break-ui` in Turkish at AX5 | Pending |
+| 7. `break-ui` in Turkish at AX5 | **First pass**, 2026-11-01 (§3.10): 3 Broken, 1 Ugly; two decisions for the owner. The worst case is a Jest fixture, `tourWorstCase.test.tsx` |
 | 8. Polish, then the copy review | Pending |
 | 9. Device check | Pending |
 | FINISH: the finish review, its verdict, DESIGN.md's "Tutorial (first run)" row | Pending |
@@ -514,6 +514,61 @@ The fixes follow this record. The four reviews run again once they're in.
 - `npx reassure --branch`: Timer 13, Stats 1, Settings 1, Notes 1, leaf 12, settings-only 1 (unchanged).
 - `npm run check:contrast`: 60 checks in two themes, all pass.
 - The raw-text and emoji checks: clean.
+
+### 3.10 `break-ui` in Turkish at AX5 (step 7)
+
+**The owner, 2026-11-01: "Run the stress test".**
+
+**How it ran.** As D2's did (D2 record §3.13):
+- **No in-app toggle.** A worst-case toggle in a TestFlight build would ship to the App Store, which `break-ui` forbids (rule 4).
+- **The worst case is a Jest regression fixture,** `tourWorstCase.test.tsx`: the locale mocked to `tr-TR`, AX5 (font scale 3.1) on an iPhone SE-sized window (375 × 667), and the states below. It pins what holds; each break gets its assertion when it's fixed.
+- **Logic findings are verified by rendering.**
+- **Layout findings are inferred** from the styles and from `placement.ts`, which is pure, with SF Pro's advance at about 0.55 em a character. The TestFlight device check confirms them.
+
+**The limits.**
+- A line: 90 characters in English, 110 in Turkish, with names filled in (the model test enforces both).
+- A control's name: its own key, so a lengthened label flows into the lines.
+- The bubble: 360 pt wide at most; at AX sizes, a full-width panel whose line scrolls in 30 % of the screen's height.
+- The text size is never capped (T-2).
+
+**The worst case.**
+- **Text:** every line-per-state variant (new install, updater, replay, goal off, empty week), both speakers, the longest Turkish lines, the tabs' and controls' Turkish names ("Karşılıklı sayfalar", "Zamanlayıcı", "Odağı başlat").
+- **States:** a replay mid-session, and the invitation with a break up next.
+- **Screens:** an SE at xxxLarge (1.35) and at AX5, an SE in landscape, an iPad with its tab bar at the top, and a control that can't be measured (in Jest, every one).
+
+**What broke** (first pass, `ead9316`):
+
+| # | Severity | Worst case | What happens | Verified or inferred | Fix |
+|---|---|---|---|---|---|
+| 1 | Broken | The invitation with a break up next (an updater whose v1.3.1 session stopped after a focus, or a replay) | The line says "Hazır olunca Odağı başlat düğmesine dokun", but the lit button reads "Molayı başlat"; tapping it ends the tour and starts a break | Verified (rendered) | A decision (below): a break line naming `controls.startBreak`, or no invitation when a break is next (`tutorials.ts:149-155`) |
+| 2 | Broken on a 375 pt iPhone | The invitation's row at AX5 in Turkish | "Şimdi değil" at 46.5 pt is about 297 pt; with the 16 pt gap and the 44 pt mute that's 357 pt against the panel's 319 pt column. The group can't wrap, so the mute is pushed past the panel's edge. "Turu atla" is about 306 pt, a hair inside | Inferred | Cap the bubble's and the Modes bubble's action labels at 1.6×, as every other button in the app is (`ClassicControls`), and let the group wrap (`Bubble.tsx:80-96`, `ModesBubble.tsx`) |
+| 3 | Broken | AX sizes in landscape on an SE (667 × 375) | The bottom panel is about 320 pt: the name row, a line at 30 % of the height and two action rows. The room above the landscape tab bar is about 310 pt. The panel's top runs off the screen, and no opening can show above it | Inferred | In compact height, the panel takes the half of the screen away from the opening, the contract's own landscape rule, with its line scrolling (`placement.ts` panel branch, `TourLayer.tsx`) |
+| 4 | Ugly | Turkish words wider than the AX5 column (about 11 letters at 52.7 pt in 319 pt) | "odaklanacağını" (14 letters; the updater and replay hellos), "odaklanırken" (12; Modes) and "Odaklandığın" (12; the empty week) break mid-word. At risk at 11: "değiştirmek", "açabilirsin", "kartpostala", and the tab's own "Zamanlayıcı" | Inferred | A decision (below): rephrase the tour's lines to words of 10 letters or fewer |
+
+**Decisions for the owner.**
+- **#1, the invitation before a break:**
+  - **Recommended:** a break line, "A break is next. Tap Start break when you're ready." It names the real button and keeps the tour's last tap the app's own.
+  - **The alternative:** end on Done when a break is next, with no invitation.
+- **#4, long Turkish words:**
+  - **Recommended:** rephrase. These are the tour's own lines, and the copy review sees them in step 8. The tab's own "Zamanlayıcı" stays.
+  - **The alternative:** accept, as D2 did for Settings' rows ("Güncellemeleri", "Geliştiricinin").
+
+**What held up:**
+- **Every line fits its budget** in both languages, with the controls' Turkish names filled in.
+- **AX5 on an SE:**
+  - the bubble is the panel and the pair a badge;
+  - the line never caps and scrolls;
+  - "İleri", "Turu atla" and the mute are all there.
+- **The states:**
+  - an updater gets "Yeniden merhaba! …";
+  - with the goal off, the today line drops the goal;
+  - an empty week says so;
+  - a replay mid-session starts at today's row and ends on "Bitti" at Notes;
+  - the Modes sheet says its Turkish line, with "Devam".
+- **Small phones:** at xxxLarge a dock that can't fit switches to the panel, and the bubble never goes above the safe area (§3.9).
+- **A control that can't be measured** still gets its beat after 600 ms, the whole page dimmed.
+- **Turkish letters** (ç, ğ, ı, İ, ö, ş, ü) count as letters for the syllables, as on the pose sheet.
+- **The opening reads in Midnight Plum:** the outline is 8.06:1 against the dim.
 
 ## 4. Mathematical / Statistical Details
 

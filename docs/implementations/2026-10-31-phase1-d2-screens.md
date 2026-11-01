@@ -31,7 +31,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | 5. `break-ui` (TR at AX5) | 2 Ugly (the zero-goal summary, the strip at AX5) and the shared number formats: **fixed**; a streak of 0 softened (§3.13) | The number formats: **fixed**; Turkish words wider than a row: accepted (the owner) | 2 Broken (an emoji cut at the cap, the editor header at AX5) and 1 Ugly (line breaks lost): **fixed** | Retired: none |
 | 6. `polish`, `harden`, `clarify` | Done: "Turn on a daily goal" opens Settings at the goal row; Turkish "kaldı" (§3.14). The Turkish copy and the default notes: **reviewed** by the owner, six note changes applied (§3.15) | Done: a failed reminder told from a refusal; "Check for updates" offline; link rejections; "Sound and haptics" (§3.14) | Done (§3.13–3.14) | Retired: none |
 | 7. Device check (the next build, with D1's finish-review fixes) | Builds 51–53 checked and fixed (§3.11, §3.17, §3.20). **Build 54: passed** (the owner, 2026-11-01, §3.22) | **Build 54: passed** | **Build 54: passed** | Retired: none |
-| FINISH: the finish review, its verdict, DESIGN.md | Round 1: **fix**; fixes 1–3 built (§3.23), on TestFlight as build 55 (§3.24); round 2 waits for its captures | Round 1: faithful | Round 1: faithful; fix 4 built (§3.23) | Retired: none |
+| FINISH: the finish review, its verdict, DESIGN.md | Round 1: **fix** (§3.23). Round 2, on build 55: **ship**; fix 2 verified by code; the lone cell in today's card is open (§3.25). DESIGN.md waits for D1's open fix | Round 1: faithful | Round 1: faithful; fix 4 resolved by code (§3.25) | Retired: none |
 
 **Alongside the screens** (Stage D plan §3.3), D2 also does:
 - the emoji check;
@@ -996,6 +996,59 @@ It carries §3.23's four fixes: Stats spans the width in landscape and closes it
 - D2 (§3.23): Stats in landscape, in Sessions and in Minutes; Stats in portrait, in Minutes.
 - D1 (§3.22): Facing Pages in light; the shadows in light; the Modes sheet over Classic and over Fly.
 
+### 3.25 The finish review, round 2: ship
+
+**The owner, 2026-11-01:** "This looks nice. Here you go", with eight captures from build 55, then the same eight again ("All photos you asked"; identical by SHA-1). Four are D2's, kept untracked in `.impeccable/review/d2/`:
+- `stats-landscape-sessions-dark-b55.png` and `stats-landscape-minutes-dark-b55.png`: Stats in landscape;
+- `stats-minutes-dark-b55.png`: Stats in portrait, on Minutes;
+- `stats-sessions-dark-b55.png`: Stats in portrait, on Sessions (not asked for).
+
+The other four are D1's (the D1 record §3.21).
+
+**How it ran:** the same reviewer, resumed with its round 1, scored its four fixes. It was told two things first:
+- neither landscape capture reaches the stack's last edge (fix 2);
+- today's card in portrait wraps a lone cell (below).
+
+| Fix | Verdict | Evidence |
+|---|---|---|
+| 1. Stats spans the width in landscape | **Resolved** | The content runs from x 178 to 1822 of 2000 px, about 700 pt (round 1: about 512). Today's line now fits on one line; in build 53 it wrapped. All eight cells fit on one row. Code: `StatsScreen.tsx:213–215` |
+| 2. The stack's last edge closes in landscape | **Resolved, by code, not by capture** | The banner cuts both landscape stacks, at Fri 30 (Sessions) and Thu 29 (Minutes). Code: `StatsScreen.tsx:180` passes `closed`; `WeekStack.tsx:198–203` closes the edge. Tests: `stats.test.tsx:212–224`. A capture scrolled to the stack's foot would change the verdict only if it showed the tilt opening a gap or the edge clipped; the code gives no reason to expect either |
+| 3. Every Minutes track ends at the same x | **Resolved** | Portrait Minutes: Fri 30 ("65", full) and Sat 31 ("1") both end at x ≈ 680; in build 52 they were about 9 pt apart. Code: `WeekStack.tsx:130` |
+| 4. Notes at Stats' and Settings' iPad width | **Resolved, by code** | `LoveNotesScreen.tsx:232` gives a 528 pt column, as Stats' `min(width, 560) − 32`; `notes.test.tsx` asserts it. iPad stays unreviewed by capture (settled). Round 1's "512" for Stats assumed `space.l` was 24; it is 16 |
+
+**Regressions from the fix batch:** none.
+- The stack keeps its alternating tilt in all four captures.
+- In landscape, today's postcard keeps its radius and leads the row.
+- The stickers are still the only things that lift.
+
+**Residual risk, not a defect:**
+- A day's most minutes, "1,440" ("1.440" in Turkish), needs about 35 pt at 13 pt semibold.
+- If a locale or font ever pushes it past 36 pt, `minWidth` widens that one row, and only that track ends early.
+
+**Checked here:**
+- every code citation, read at `963a683`;
+- the measurements, against the captures (1644 px at 2.35 px/pt is about 700 pt; the code gives 852 − 2 × 59 − 32 = 702 pt with the landscape side insets).
+
+**Open, outside the four fixes: today's card wraps a lone cell.**
+- In portrait Sessions, today's card shows its eight cells as seven on the first row and one dashed cell alone on a second.
+- `TODAY_CELLS` is 8 (`StatsScreen.tsx:36`), and nothing plans the cells from the card's width.
+- **The arithmetic:**
+  - In portrait a cell is 40 pt with an 8 pt gap. A 393 pt phone leaves 393 − 32 − 32 = 329 pt inside the card, which fits 7 cells (328 pt); 8 need 376.
+  - 375 pt and 430 pt phones also fit 7.
+  - Landscape is short, so its cells are 34 pt, and 8 fit in 328 pt exactly. That's the clean row in the landscape captures.
+- **When it shows:** only when the stickers and the cells still owed reach 8, as with the owner's 1-minute Custom focus against a 50-minute goal. The defaults (25 minutes, 50-minute goal) owe 2 cells.
+- **The reviewer:** not material to this verdict. When it shows, a lone cell reads as a leftover and breaks the comp's single row.
+- **Proposed fix** (waits for the owner's OK): plan the cells from the card's inner width, as Classic's `TodayStickers` does with `rowWidth`:
+  - per row = ⌊(inner + gap) / (cell + gap)⌋;
+  - cap at whole rows, never per row + 1;
+  - "+n" past the cap.
+
+**The keep list holds:** the stack's alternating tilt, and the stickers as the only lifted elements. The landscape fixes kept both: the stack trails today's card as tilted postcards and didn't flatten into a list.
+
+**Disposition: ship,** for round 1's four fixes. What D2's FINISH still needs:
+- the documenter's DESIGN.md, shared with D1, after D1's open fix (D1 record §3.21);
+- optionally, a landscape capture scrolled to the stack's foot, to see fix 2 on the device.
+
 ## 4. Mathematical / Statistical Details
 
 None yet. The week's sticker capacity and the goal counts will reuse D1's rules (D1 record §4.3) when Stats is built.
@@ -1046,7 +1099,8 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
 - [x] **The owner's copy review** on the copy proof page (§3.14, done: §3.15): every Turkish string (D1's and D2's) and the 21 default notes in both languages, and the two tab-title questions. The marks are read back and applied before build 52.
 - [x] **The device check, build 53** (the owner, 2026-11-01: the fixes hold; two new problems fixed in §3.20). Its list was: §3.18's notifications first. Start a focus and lock the phone: nothing arrives at the start. At its end, "Focus complete 💗 · Time for a sweet break". At the break's end, "Break's over 💘 · Back to your goals". With the app open, the banner comes at the end too. Fly's "Landed!" comes on landing. Then the eight nits of §3.17. The stickers lift with a soft shadow and no square, in both themes. "Custom" sits level in its pill. Fly's peeked sheet shows its mode line above the bar; its timer is in ink; "From" and "To" align. No empty band on Stats. "Best n" on its own line. Restore adds no near-duplicates. Then D1's six captures for its verdict pass.
 - [x] **The device check, build 54** (the owner, 2026-11-01: "nice everything passes the checks good job"; §3.22): §3.20. Classic in landscape, both layouts: the face fills the left half at full height with no empty area; the phase line and Modes button head the right column; the partner line shows; today's cells sit in two rows; nothing runs under the tab bar. Scrolled tabs (Classic, Stats, Settings, Notes) never run under the clock. Then D1's remaining captures: Facing Pages in light, the shadows in light, the Modes sheet over Classic and over Fly.
-- [ ] **Build 55's captures for the finish reviews' second rounds (§3.24):** Stats in landscape (Sessions and Minutes) and in portrait (Minutes), for D2 (§3.23). Facing Pages in light, the shadows in light, and the Modes sheet over Classic and over Fly, for D1 (§3.22).
+- [x] **Build 55's captures for the finish reviews' second rounds (§3.24)** (the owner, 2026-11-01): Stats in landscape (Sessions and Minutes) and in portrait (Minutes), for D2: **ship** (§3.25). Facing Pages in light, the shadows in light, and the Modes sheet over Classic and over Fly, for D1: **fix**, the Ring's height (D1 record §3.21).
+- [ ] **The next build's captures:** the Ring idle, running and paused, dark, at the default text size, for D1's open fix (D1 record §3.21). Stats in landscape scrolled to the stack's foot, for fix 2 (§3.25). Today's card in portrait Sessions, if the owner takes the lone-cell fix.
 - [ ] B2's notes tests stay green: Bengisu's install keeps its notes.
 - [ ] The emoji check (`src/__tests__/noEmojiIcons.test.ts`) passes.
 - [ ] **The device check, build 51** (needs a physical device). It goes with the D1 record's §6 "build 51" list, for D1's finish fixes and the six recaptures.

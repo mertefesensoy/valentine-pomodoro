@@ -29,7 +29,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 | 7. Device check, build 48 | Build 48 on EAS from `61fd06e` (§3.15). The owner's check, 2026-10-30: four findings (F1–F4, §3.16), fixed for build 49 | The same build. The owner asked for a livelier morph (F5, §3.16), rebuilt for build 49 |
 | 7. Device check, build 49 | Build 49 on EAS from `9f0de71`, submitted to TestFlight, tag `v1.4.0-tf.49` pushed (§3.17). The owner's check, 2026-10-31: "All well" except one finding (F6, §3.18): Fly's Modes button belongs at the top right, where the compass was. Fixed in build 50 | The same build: "All well" |
 | 7. Device check, build 50 | Build 50 on EAS from `98f6a1f`, submitted to TestFlight, tag `v1.4.0-tf.50` pushed (§3.19). The owner's check, 2026-10-31: every check passed, "all well" (§6) | The same build; no welcome change since build 49 |
-| FINISH (both contracts): the finish review, its verdict, DESIGN.md | **In progress** (§3.20). Round 1: recapture (no iPad capture; the owner has no iPad and accepted the gap). Round 2: fix; the eight fixes are built (`3fd834a`). Their device check and the reviewer's verdict wait for the next build, which carries D2's first additions (the owner). DESIGN.md follows the verdict | **Captures waived by the owner** (§3.20). The verdict is the owner's device checks. DESIGN.md's welcome exception is still to be written |
+| FINISH (both contracts): the finish review, its verdict, DESIGN.md | **In progress** (§3.20–3.21). Round 1: recapture (no iPad capture; the owner has no iPad and accepted the gap). Round 2: fix; the eight fixes built (`3fd834a`). The verdict pass, 2026-11-01, on captures from builds 52–55: **fix**. Seven fixes resolved; fix 7 partial: the Ring overflows an 852 pt iPhone at the default text size, so Skip is behind the bar while a session runs (§3.21). DESIGN.md follows that fix | **Captures waived by the owner** (§3.20). The verdict is the owner's device checks. DESIGN.md's welcome exception is still to be written |
 
 **FINISH is not yet discharged.** Each direction contract ends with "this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance". That waits for evidence this machine can't make:
 - After the device check, a fresh `impeccable-finish-reviewer` gets both contracts and the owner's screenshots, labelled as hardware evidence.
@@ -718,6 +718,95 @@ The build 51 checklist is §6. **Jest's window** is the preset's 750 × 1334 at 
 
 **The welcome: captures waived by the owner,** 2026-10-31: "i confirm it no ned for an extra screen rocording all works well". The welcome gets no finish-review captures, so its verdict is the owner's, from the device checks of builds 49 and 50 (§6). The documenter still carries its exception into DESIGN.md (§1).
 
+### 3.21 The verdict pass: fix, for the Ring's height
+
+**The owner, 2026-11-01:** "This looks nice. Here you go", with eight captures from build 55, then the same eight again ("All photos you asked"; identical by SHA-1). Four are D1's.
+
+**The evidence:** twelve iPhone captures, kept untracked in `.impeccable/review/d1/` (excluded locally, as round 1's six are).
+- **Build 55, light:**
+  - Facing Pages idle on a short break, which is also the shadows in light. It was sent twice; the two copies differ only in the tab-bar band.
+  - The Modes sheet over Classic, and over Fly.
+- **Build 53, dark,** with the current shadow (D2 record §3.17):
+  - the Ring with a break running;
+  - the Ring idle, with the presets;
+  - Facing Pages idle on a break;
+  - Fly running in landscape.
+- **Build 52, dark:**
+  - Facing Pages paused. Its shadow is the superseded blur, so it's used only for the paused state.
+  - The Modes sheet over the Ring.
+
+The build 55 captures show a break at 01:00, not the paused session round 1 asked for. They still serve the spread, the shadows, the labels and the sheet.
+
+**How it ran:** the same reviewer, resumed with rounds 1 and 2, scored the eight fixes. It was told what had changed since:
+- the shadow's three stroke layers (build 53);
+- Fly's ink timer and its 120 pt peek (build 53);
+- Classic in landscape and the status-bar band (build 54).
+
+| Fix | Verdict | Evidence |
+|---|---|---|
+| 1. The frame covered the stickers | **Resolved** | The light (build 55) and dark (build 53) spreads: "You" over Pomo and "Doro" over Doro at the top of the pages, the frame below both |
+| 2. The open diary | **Resolved** | Round outer corners, tight spine corners, the pages leaning from the spine, the frame seated in a page-coloured band. It reads as one diary |
+| 3. The sticker lift | **Resolved** | Light: a soft shadow, down and to the right, under Pomo, Doro and today's stickers, and the white edge reads off the paper. Dark: no square |
+| 4. The partner slot | **Resolved** | The pages are labelled; the pair's line is on the right page's foot; nothing sits under the spread |
+| 5. The Ring's paper strip | **Resolved** | One paper field, radius 22, in both Ring captures |
+| 6. Today's row | **Resolved** | "Today", dashed cells up to the goal, stickers replacing them in order. With the 1-minute Custom preset the cells fill both rows, which is correct by the rule |
+| 7. Clearance above the tab bar | **Partial** | Facing Pages: Skip about 18 pt clear of the bar, nothing scrolls, the dead band gone. **The Ring: unresolved, and worse than build 50** (below) |
+| 8a. The frame's stroke | **Resolved** | `edge`, not `edgeStrong` |
+| 8b. The Modes title | **Resolved** | Set in the system face |
+| 8c. Fly's tile when selected | **Resolved** | The paper tile shows on the selected row |
+
+**The Ring doesn't fit an 852 pt iPhone at the default text size.** Checked here against the captures and the code:
+- **Running** (build 53, a break): Pause ends about 18 pt above the bar, and the top of the Skip pill shows behind the bar. Skip is off the screen.
+- **Idle** (build 53): the page sits scrolled by about 55 pt, so the phase line and the Modes button are under the clock and the battery. Build 54's band hides the collision, not the overflow.
+- **Paused** (build 52): the same overflow.
+- **The ring never shrinks.** It's 297 pt (696 px at 2.35 px/pt) in every Ring capture, which is `ringCap`: 0.86 × the 345 pt column.
+
+**Why the ring never shrinks:**
+- The slot (`flexGrow: 1`, `flexBasis: 0`, `minHeight` 200) sits in `centre`, `column` and the page, all `flexGrow: 1` inside the ScrollView.
+- Flex can hand the slot only spare height.
+- The first layout draws the ring at min(`ringCap`, 0.36 × height), 297 pt on an 852 pt phone. At that size the page is already taller than the screen, so there's no spare height.
+- The slot therefore takes the ring's own height and reports it back, and the ring stays at 297. It's a fixed point, not a fit.
+
+**Why it went unseen:**
+- **The tests passed** because `classic.test.tsx` fires the slot's `onLayout` by hand with a chosen height. That tests the arithmetic, not Yoga's layout inside a ScrollView.
+- **It's worse than build 50** because fixes 5 and 6 made the strip and today's row taller, counting on the ring to give the height back.
+- **Builds 54 and 55 are the same.** Since build 53, portrait Classic changed only by the band (`git diff v1.4.0-tf.53 HEAD`: `topRow` became a const with the same markup; the rest is landscape).
+
+**The proposed fix** (waits for the owner's OK):
+1. **Measure what the page lacks.** The ScrollView reports its visible height (`onLayout`) and its content's height (`onContentSizeChange`).
+2. **The room:** the slot's height − max(0, content − visible).
+   - When the page fits, the slot already holds the spare height and nothing is lacking.
+   - When it overflows, the ring gives up exactly the overflow.
+3. **The ring:** clamp(room, `MIN_RING` 200, `ringCap`). Below 200 the page scrolls, as it does at AX sizes.
+4. **The goal moment** still holds the ring's size for its 1.4 s.
+5. **The visible height** must end at the tab bar, as the device shows: Facing Pages clears the bar by exactly the page's 16 pt bottom padding. The build checks it before relying on it.
+6. **Tests:** fire the ScrollView's two events with an overflowing content height, and assert that the ring shrinks by the overflow.
+7. **The device check:** the Ring idle, running and paused, dark, at the default text size. Skip clears the bar by about 16 pt, and the phase line sits at its normal height.
+
+The reviewer suggested measuring each sibling instead. That comes to the same number with more measurements.
+
+**Keep, confirmed and amended, for the documenter:**
+- **The timer:** Baloo 2 SemiBold with tabular figures is the only large type. Everything else, sheet titles included, is in the system face.
+- **Paused:** a quiet "Paused" stamp, an outline in `primaryInk` rotated −3°.
+- **The grounds:** exactly `page`, #FFF6F1 light and #221726 dark.
+- **One moving part:** during focus, only the ring or the spine's progress bar moves.
+- **Facing Pages:**
+  - outer corners 22, tight spine corners, the pages leaning from the spine;
+  - the frame seated in a page-coloured band, covering no sticker;
+  - "You" and the partner's page labelled, with the pair's line on the right page's foot.
+- **The Ring:** one paper partner strip (radius 22, `edge`, no shadow).
+- **Today's row:** "Today", dashed cells up to the goal, and stickers replacing them in order, wrapping in whole cells to two rows and then "+n".
+- **Stickers are the only things that lift:** a white die-cut edge and a soft shadow in `stickerShadow`, drawn as a three-layer silhouette inside the SVG. Never an SVG blur filter on iOS.
+- **Icons and tint:** custom filled icons, and the selected tab in `primaryInk`.
+- **The Modes button:** the same paper button in Classic and at Fly's top right.
+- **The motion table:**
+  - The sticker placement keeps the one bounce.
+  - It gains a "Welcome (once)" row, the owner's exception (build 49, F5): squash and stretch, its own bounce, and one burst of at most 12 sparkles. Under Reduce Motion it falls back to opacity only.
+
+**Disposition: fix,** with one open item, the Ring's height.
+- Two rounds was the budget, and this pass is the third look.
+- iPad's regular width stays unreviewed by capture (the owner: "No iPad").
+
 ## 4. Mathematical / Statistical Details
 
 The numeric rules D1 implements are in the [Stage D plan §4](2026-10-30-phase1-stage-d.md#4-mathematical--statistical-details): contrast, tabular digits, the font build, the sticker spring, "Break at" and bytecode.
@@ -895,7 +984,7 @@ Examples, with C = 16:
   3. The button opens the Modes sheet, Classic returns from it, and VoiceOver reads "Modes" (Turkish: "Modlar").
   4. Light and dark: the paper chip above the compass reads as intended (the compass keeps v1's look until D2).
   5. During a flight at the largest text size: the timer pill never covers the Modes button.
-- [ ] **The device check, build 51** (`v1.4.0-tf.51`, built from `d96eb7c` and submitted to TestFlight on 2026-10-31, with D2's build; D2 record §3.10), for the finish review's fixes (§3.20). The owner retakes the six captures, which go to the reviewer for its verdict:
+- [x] **The device check, build 51** (`v1.4.0-tf.51`, built from `d96eb7c` and submitted to TestFlight on 2026-10-31, with D2's build; D2 record §3.10), for the finish review's fixes (§3.20). The owner retakes the six captures, which go to the reviewer for its verdict. **Scored on 2026-11-01, on captures from builds 52–55 (§3.21):** items 2–6 pass. Item 1 fails: the Ring overflows, and Skip is behind the bar while a session runs.
   1. **The Ring, paused, dark** (`phone-ring-dark-paused`): Skip clears the tab bar by about 16 pt, and the page doesn't scroll. The ring is a little smaller than build 50's. Pomo & Doro and their line sit on one paper strip.
   2. **Facing Pages, paused, dark and light** (`phone-spread-dark-paused`, `phone-spread-light-paused`): "You" over Pomo and "Doro" over Doro at the top of the pages. The timer's frame sits below them and covers neither. The pair's line is on the right page's foot. The pages lean in from the spine, with round outer corners and tight spine corners, and the frame is seated in a band of the page colour. Nothing scrolls, and Skip clears the bar.
   3. **The shadow,** both themes: every Pomo, Doro and today's sticker casts a soft shadow, down and to the right. It must be blurred, not a hard copy of the shape (the blur filter's first time on the device). In light, the white edge reads off the paper.
@@ -903,6 +992,7 @@ Examples, with C = 16:
   5. **The Modes sheet over Classic and over Fly** (`phone-modes-sheet-over-spread-dark`, `phone-modes-sheet-over-fly-dark`): the title is set in the system face. With Fly selected, Fly's icon keeps a paper tile.
   6. **Fly running** (`phone-fly-dark-running`): unchanged; the Modes button stays at the top right.
   7. Not captured, worth a glance: The Ring while focus runs ("Break at …" inside the ring), and both layouts in landscape (Facing Pages may scroll there now; record it if it does).
+- [ ] **The Ring's height** (§3.21's proposed fix), on the next build: the Ring idle with the presets, running and paused, dark, at the default text size. Skip clears the bar by about 16 pt, the phase line sits at its normal height, and nothing scrolls.
 
 ## 7. Related Docs
 

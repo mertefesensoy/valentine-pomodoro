@@ -1065,7 +1065,7 @@ When r ≥ R_min, the page's height t + P + (the rows) + D is at most V, so noth
   5. **The Modes sheet over Classic and over Fly** (`phone-modes-sheet-over-spread-dark`, `phone-modes-sheet-over-fly-dark`): the title is set in the system face. With Fly selected, Fly's icon keeps a paper tile.
   6. **Fly running** (`phone-fly-dark-running`): unchanged; the Modes button stays at the top right.
   7. Not captured, worth a glance: The Ring while focus runs ("Break at …" inside the ring), and both layouts in landscape (Facing Pages may scroll there now; record it if it does).
-- [ ] **The Ring's height** (§3.21; rebuilt in §3.22), on the next build: the Ring idle with the presets, running and paused, dark, at the default text size. Skip clears the bar by about 16 pt, the phase line sits at its normal height, and nothing scrolls.
+- [ ] **The Ring's height** (§3.21; rebuilt in §3.22), on build 56 (`v1.4.0-tf.56`, D3 record §3.5): the Ring idle with the presets, running and paused, dark, at the default text size. Skip clears the bar by about 16 pt, the phase line sits at its normal height, and nothing scrolls.
 
 ## 7. Related Docs
 

@@ -513,7 +513,14 @@ The approval covers version 2's twelve files and the playback variation of ±10 
    - **The babble:**
      - A voice picks body syllables at random, never the same twice running, and ends a line on its `up` or `down` syllable. Each syllable's `mouth` in `sounds.json` is the layer to show.
      - All 12 files play at the same volume. The levels are in the files, quieter than the UI sounds by design (§4.2).
-     - If the owner keeps the variation, set each syllable's playback rate to 2^(c/1200), c uniform in ±10 cents, with pitch correction off, and its volume to 10^(g/20), g uniform in ±1.5 dB (`sounds.json` `babble.playback`).
+     - **The approved variation** (`sounds.json` `babble.playback`): set each syllable's playback rate to 2^(c/1200), c uniform in ±10 cents, with pitch correction off, and its volume to 10^(g/20), g uniform in ±1.5 dB.
+     - **expo-audio can do it** (58.0.10, read in `node_modules/expo-audio`, `ios/AudioModule.swift`):
+       - set `player.shouldCorrectPitch = false` first, then call `player.setPlaybackRate(rate)`;
+       - with correction off, `setPlaybackRate` sets the item's `audioTimePitchAlgorithm` to `.varispeed`, so the rate moves the pitch as on the listening page;
+       - the rate is clamped to 0–2, and this one is 0.994–1.006;
+       - the algorithm carries over when the player's source is replaced.
+
+       Not yet heard on a device.
      - Each file carries its reverb tail, 0.5–0.6 s, and syllables overlap in a line (a new one every 135 or 180 ms). So use a player per syllable, or a small pool, rather than restarting one player.
 2. **The module generator and line endings.** `build-icon-components.mjs` writes LF over the checkout's CRLF, so every existing module shows as modified with its content unchanged. It's worth teaching the generator to leave unchanged files alone. Not changed here: outside this task.
 3. **Phone speakers below 400 Hz.** Doro's "mo" sits at G4 (392 Hz) and its line ending falls to E4 (330 Hz). iPhone speakers are weak there (D4 §3.3), so the device check will tell.

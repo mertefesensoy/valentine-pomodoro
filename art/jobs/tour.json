@@ -1,0 +1,225 @@
+{
+ "about": "D5: Pomo & Doro's tour kit, the layers the tutorial stacks and animates (body, hands, eyes, mouths) on the shipped 512 artboard. Generated with its sources by scripts/art/tour-sources.mjs; built by scripts/art/build.mjs. No PNGs: the layers are only ever drawn stacked.",
+ "assets": [
+  {
+   "id": "pomo-tour-body-cut",
+   "src": "art/src/tour/pomo-tour-body-cut.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-body-fill",
+   "src": "art/src/tour/pomo-tour-body-fill.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-hand-wave-left",
+   "src": "art/src/tour/pomo-tour-hand-wave-left.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-hand-wave-right",
+   "src": "art/src/tour/pomo-tour-hand-wave-right.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-hand-point-left",
+   "src": "art/src/tour/pomo-tour-hand-point-left.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-hand-point-right",
+   "src": "art/src/tour/pomo-tour-hand-point-right.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-eyes-open",
+   "src": "art/src/tour/pomo-tour-eyes-open.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-eyes-blink",
+   "src": "art/src/tour/pomo-tour-eyes-blink.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-eyes-smile",
+   "src": "art/src/tour/pomo-tour-eyes-smile.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-eyes-sparkle",
+   "src": "art/src/tour/pomo-tour-eyes-sparkle.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-eyes-wide",
+   "src": "art/src/tour/pomo-tour-eyes-wide.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-eyes-wink",
+   "src": "art/src/tour/pomo-tour-eyes-wink.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-eyes-proud",
+   "src": "art/src/tour/pomo-tour-eyes-proud.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-eyes-look-left",
+   "src": "art/src/tour/pomo-tour-eyes-look-left.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-eyes-look-right",
+   "src": "art/src/tour/pomo-tour-eyes-look-right.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-mouth-smile",
+   "src": "art/src/tour/pomo-tour-mouth-smile.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-mouth-talk-small",
+   "src": "art/src/tour/pomo-tour-mouth-talk-small.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-mouth-talk-wide",
+   "src": "art/src/tour/pomo-tour-mouth-talk-wide.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-mouth-talk-round",
+   "src": "art/src/tour/pomo-tour-mouth-talk-round.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-mouth-grin",
+   "src": "art/src/tour/pomo-tour-mouth-grin.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-mouth-wow",
+   "src": "art/src/tour/pomo-tour-mouth-wow.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "pomo-tour-mouth-proud",
+   "src": "art/src/tour/pomo-tour-mouth-proud.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-body-cut",
+   "src": "art/src/tour/doro-tour-body-cut.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-body-fill",
+   "src": "art/src/tour/doro-tour-body-fill.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-hand-wave-left",
+   "src": "art/src/tour/doro-tour-hand-wave-left.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-hand-wave-right",
+   "src": "art/src/tour/doro-tour-hand-wave-right.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-hand-point-left",
+   "src": "art/src/tour/doro-tour-hand-point-left.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-hand-point-right",
+   "src": "art/src/tour/doro-tour-hand-point-right.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-eyes-open",
+   "src": "art/src/tour/doro-tour-eyes-open.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-eyes-blink",
+   "src": "art/src/tour/doro-tour-eyes-blink.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-eyes-smile",
+   "src": "art/src/tour/doro-tour-eyes-smile.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-eyes-sparkle",
+   "src": "art/src/tour/doro-tour-eyes-sparkle.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-eyes-wide",
+   "src": "art/src/tour/doro-tour-eyes-wide.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-eyes-wink",
+   "src": "art/src/tour/doro-tour-eyes-wink.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-eyes-proud",
+   "src": "art/src/tour/doro-tour-eyes-proud.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-eyes-look-left",
+   "src": "art/src/tour/doro-tour-eyes-look-left.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-eyes-look-right",
+   "src": "art/src/tour/doro-tour-eyes-look-right.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-mouth-smile",
+   "src": "art/src/tour/doro-tour-mouth-smile.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-mouth-talk-small",
+   "src": "art/src/tour/doro-tour-mouth-talk-small.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-mouth-talk-wide",
+   "src": "art/src/tour/doro-tour-mouth-talk-wide.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-mouth-talk-round",
+   "src": "art/src/tour/doro-tour-mouth-talk-round.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-mouth-grin",
+   "src": "art/src/tour/doro-tour-mouth-grin.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-mouth-wow",
+   "src": "art/src/tour/doro-tour-mouth-wow.svg",
+   "kind": "illustration"
+  },
+  {
+   "id": "doro-tour-mouth-proud",
+   "src": "art/src/tour/doro-tour-mouth-proud.svg",
+   "kind": "illustration"
+  }
+ ]
+}

@@ -1,7 +1,7 @@
 ---
 id: IMPL-2026-10-31-phase1-d2-screens
 title: "Phase 1 D2: Stats, Settings and Notes rebuilt in the Sticker Diary design, the gift screen retired"
-status: in-progress
+status: done
 date: 2026-10-31
 owner: Mert Efe Şensoy
 related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-d1-classic, DESIGN-WORKFLOW, ADR-0045, ADR-0047, SRS]
@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-d1-classic, DES
 
 # 2026-10-31 — Phase 1 D2: Stats, Settings, Notes and the gift screen
 
-**Status:** In progress. The owner confirmed the four briefs on 2026-10-31 ("Confirm all four") and chose Stats' layout, the postcard stack. The owner approved the three direction contracts and the picker dependency on 2026-10-31 ("Approve, build D2"); the build is under way.
+**Status:** Done, 2026-11-02. Shipped on the finish reviews' verdicts (§3.23–3.25), and the device checks passed through TestFlight build 58 (D5 record §3.12). The owner closed Stage D on 2026-11-02 ("we can close it"). The owner confirmed the four briefs on 2026-10-31 ("Confirm all four") and chose Stats' layout, the postcard stack. The owner approved the three direction contracts and the picker dependency on 2026-10-31 ("Approve, build D2"); the build is under way.
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.3. This record holds what happened: each step's output, the owner's gates, the scores and the measurements.
 

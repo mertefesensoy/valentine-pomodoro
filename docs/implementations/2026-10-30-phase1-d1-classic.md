@@ -1,7 +1,7 @@
 ---
 id: IMPL-2026-10-30-phase1-d1-classic
 title: "Phase 1 D1: Classic rebuilt in the Sticker Diary design, with the v1.4 welcome screen"
-status: in-progress
+status: done
 date: 2026-10-30
 owner: Mert Efe Şensoy
 related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design, IMPL-2026-10-29-phase1-plan, DESIGN-WORKFLOW, ADR-0045, ADR-0046, ADR-0047, SRS]
@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 
 # 2026-10-30 — Phase 1 D1: Classic, and the v1.4 welcome screen
 
-**Status:** In progress. The owner approved both direction contracts on 2026-10-30 ("Approve, build D1"); the build is under way.
+**Status:** Done, 2026-11-02. Shipped: the finish review's verdict was ship (§3.23), and the device checks passed through TestFlight build 58 (D3 record §3.6, D5 record §3.12). The owner closed Stage D on 2026-11-02 ("we can close it"). The owner approved both direction contracts on 2026-10-30 ("Approve, build D1"); the build is under way.
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.2, which holds the approach, the contracts of each new module, the render budget and the device checklist. This record holds what happened: each step's output, the owner's gates, the scores and the measurements.
 

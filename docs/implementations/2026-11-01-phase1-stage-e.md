@@ -9,7 +9,19 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-stage-d, IMPL-2026
 
 # 2026-11-01 — Phase 1 Stage E: verify and ship v1.4.0
 
-**Status:** In progress. **S1 done** (2026-11-01): build 58's device check passed, visual and sound ("All visual tests are passed", "Yes, sounds passed"). The plan below was written before any of its steps. The owner, 2026-11-01: "wonderful everything is looking just like how i want it. All visual tests are passed. I think it is time to prepare the app for shipping."
+**Status:** In progress.
+- **S1 done** (2026-11-01): build 58's device check passed, visual and sound ("All visual tests are passed", "Yes, sounds passed").
+- **D5's verdict: ship** (2026-11-01). The finish review's captures were waived ("Skip, as in D2"), so the device check stands as the verdict.
+- **The owner's answers, 2026-11-02:**
+  - the merge: "do it";
+  - closing Stage D: "we can close it";
+  - E1: "there was no valuable data in any way so this is also check";
+  - the release candidate: "go for it";
+  - the listing: "yes walk me through that".
+- **E1: accepted by the owner** without a fresh run. 1.3.1's data has already survived the update on a real iPhone twice: A0 on build 42, and B2's MMKV migration on build 43 (the Phase 1 plan, Stage A and B2). The migration code was last changed in B3 (`71d836f`), before builds 44–58, and no install the owner tests holds data worth comparing.
+
+The plan below was written before any of its steps. The owner, 2026-11-01: "wonderful everything is looking just like how i want it. All visual tests are passed. I think it is time to prepare the app for shipping."
+
 **Branch:** `phase1/stage-d` until it merges into `rehaul/v2`; then `rehaul/v2`, which `master` fast-forwards to at release ([BRANCHING.md](../process/BRANCHING.md#the-transition-from-rehaulv2-now)).
 **Plan:** the [Phase 1 plan](2026-10-29-phase1-plan.md) Stage E (E1–E4) and its exit criteria, run through the [release process](../process/RELEASE.md) §3.
 
@@ -109,6 +121,7 @@ Drafted 2026-11-01 from what v1.4 ships, in the app's own names for each feature
 > • Uygulamanın tamamı artık Türkçe de; dili Ayarlar'dan seçebilirsin.
 > • Odak ya da mola başlarken ve bitirdiğinde yumuşak sesler. Sessiz moda uyarlar.
 > • Haritada uçuş eskisi gibi. 1.3'teki her şey seninle gelir.
+
 **Phase 1's exit criteria** (the plan §3), checked at E3 and E4:
 - A1's guards green;
 - Reassure's F1 drop (14 → ≤ 2);

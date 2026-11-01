@@ -1,7 +1,7 @@
 ---
 id: IMPL-2026-11-01-phase1-d4-wiring
 title: "Phase 1 D4, wired in: D4's sounds merged into Stage D and played by Classic"
-status: in-progress
+status: done
 date: 2026-11-01
 owner: Mert Efe Şensoy
 related: [IMPL-2026-10-30-phase1-d4-sounds, IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-d1-classic, ADR-0003, ADR-0027, SRS]

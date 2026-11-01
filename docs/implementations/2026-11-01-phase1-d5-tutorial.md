@@ -32,7 +32,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 | 7. `break-ui` in Turkish at AX5 | **Done**, 2026-11-01 (§3.10): 3 Broken and 1 Ugly, all fixed with the owner's two choices (a break line; the Turkish rephrased). The worst case is a Jest fixture, `tourWorstCase.test.tsx` |
 | 8. Polish, then the copy review | **Done**, 2026-11-01 (§3.11): polish found nothing to change; the copy review passed 76 of 77, with the owner's one change applied |
 | 9. Device check | **Passed on build 58**, 2026-11-01, the owner: "All visual tests are passed" and "Yes, sounds passed" (§3.12). Build 57 had stuck on the Stats step, under the ad banner (fixed in `03e86ea`) |
-| FINISH: the finish review, its verdict, DESIGN.md's "Tutorial (first run)" row | **Round 1: recapture**, 2026-11-01 (§3.13): no captures of build 58. The owner chooses: recapture, or waive with the device check as the verdict |
+| FINISH: the finish review, its verdict, DESIGN.md's "Tutorial (first run)" row | **Verdict: ship**, 2026-11-01 (§3.13). Round 1 asked for captures; the owner waived them ("Skip, as in D2"), so the verdict is their device check on build 58. DESIGN.md's row follows |
 
 ## 1. Problem / Motivation
 
@@ -752,6 +752,8 @@ Items 7, 11, 13, 14 and 15 also make up E2's v1.4 checklist (dark mode, the larg
 - **Recommended for the same round:** the Stats step with the banner, step 1 at an AX size, the Modes sheet's bubble, and step 1 in landscape.
 
 **The choice is the owner's,** as it was for D2: recapture (phone, and iPad if there is one), or waive the captures and let the verdict be the owner's device check on build 58, which passed every item (§3.12). D2's finish review was waived the same way (D1 record, the FINISH row).
+
+**The owner, 2026-11-01: "Skip, as in D2".** The captures are waived. **The verdict: ship**, on the owner's device check of build 58, which passed every item, visual and sound (§3.12). The four reviews (§3.9) and break-ui (§3.10) are the code's own evidence.
 
 ## 4. Mathematical / Statistical Details
 

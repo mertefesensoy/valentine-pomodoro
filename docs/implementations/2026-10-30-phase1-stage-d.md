@@ -466,11 +466,11 @@ node scripts/docs/check-docs.mjs
 From D1: `python -P art/type/build-fonts.py --check`. From D4: `node scripts/sound/build.mjs --check`.
 
 - [x] This plan is committed before any other file on the branch.
-- [ ] D1: every step of DESIGN-WORKFLOW §2. Critique and audit ≥ 16/20, no Critical HIG finding, `review-animations` clean. Guards green. The device checks on builds 48, 49 and 50 (need a physical device).
-- [ ] D2: the four briefs confirmed. The emoji check green. B2's notes tests green. The device check on D2's own build (needs a physical device).
-- [ ] D3: every string extracted, and the raw-text check green. The in-app language choice works (the owner, 2026-10-31). The device check in TR at the largest size on D3's own build (needs a physical device).
+- [x] D1: every step of DESIGN-WORKFLOW §2. Critique and audit ≥ 16/20, no Critical HIG finding, `review-animations` clean. Guards green. The device checks on builds 48, 49 and 50 (need a physical device).
+- [x] D2: the four briefs confirmed. The emoji check green. B2's notes tests green. The device check on D2's own build (needs a physical device).
+- [x] D3: every string extracted, and the raw-text check green. The in-app language choice works (the owner, 2026-10-31). The device check in TR at the largest size on D3's own build (needs a physical device).
 - [ ] D5: the general tutorial on a new install's first launch and on the first launch after updating from v1.3.1, skippable, in both languages, with the pair's new poses and voices approved by the owner; the device check (needs a physical device).
-- [ ] D4: three sounds, each ≤ 1.5 s and ≤ 25 KB, rebuilt byte for byte (**done**: the D4 record; merged in `362b930` and wired, the D4 wiring record). The silent switch and the toggle respected on the device (needs a physical device).
+- [x] D4: three sounds, each ≤ 1.5 s and ≤ 25 KB, rebuilt byte for byte (**done**: the D4 record; merged in `362b930` and wired, the D4 wiring record). The silent switch and the toggle respected on the device (needs a physical device).
 
 ## 7. Questions for the owner, answered 2026-10-30
 

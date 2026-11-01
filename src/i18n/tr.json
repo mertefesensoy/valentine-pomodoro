@@ -149,6 +149,13 @@
       "header": "Görünüm",
       "footer": "Açık ya da koyu görünüm iPhone'unu izler."
     },
+    "language": {
+      "header": "Dil",
+      "system": "Sistem",
+      "en": "English",
+      "tr": "Türkçe",
+      "footer": "Değişiklik, uygulamayı kapatıp yeniden açtığında geçerli olur."
+    },
     "fly": {
       "ambient": "Ortam sesleri"
     },

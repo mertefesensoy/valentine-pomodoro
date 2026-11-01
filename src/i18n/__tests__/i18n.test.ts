@@ -1,7 +1,7 @@
 // covers: FR-SET-005, NFR-I18N-001
 import en from '../en.json';
 import tr from '../tr.json';
-import { fixedT, pickLanguage, t } from '../index';
+import { fixedT, pickLanguage, resolveLanguage, t } from '../index';
 import { upper } from '../casing';
 
 type Tree = { [k: string]: string | Tree };
@@ -50,6 +50,28 @@ describe('the language', () => {
         expect(pickLanguage(['de', 'fr'])).toBe('en');
         expect(pickLanguage([])).toBe('en');
         expect(pickLanguage([null, undefined])).toBe('en');
+    });
+
+    // D3 (D3 record §3.4): Settings › Language stores a choice that wins over the device's.
+    it('takes a stored choice over the device, and follows the device on System', () => {
+        expect(resolveLanguage('tr', ['en-US'])).toBe('tr');
+        expect(resolveLanguage('en', ['tr-TR'])).toBe('en');
+        expect(resolveLanguage('system', ['tr-TR'])).toBe('tr');
+        expect(resolveLanguage('system', ['de'])).toBe('en');
+    });
+
+    it('reads the stored choice once, when it loads: the next launch', () => {
+        jest.isolateModules(() => {
+            // One module registry: the store written here is the one the translator reads.
+            const { saveLanguageChoice } = jest.requireActual<typeof import('../languageChoice')>('../languageChoice');
+            saveLanguageChoice('tr');
+            const fresh = jest.requireActual<typeof import('../index')>('../index');
+            expect(fresh.language).toBe('tr');
+            expect(fresh.t('modes.title')).toBe('Modlar');
+            saveLanguageChoice('system');
+        });
+        // This process's translator loaded before the choice: it keeps its language.
+        expect(t('modes.title')).toBe('Modes');
     });
 
     it('is available at the first render, with interpolation and plurals', () => {

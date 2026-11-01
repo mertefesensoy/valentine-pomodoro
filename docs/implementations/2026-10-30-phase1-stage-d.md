@@ -542,6 +542,18 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 **Statement:** The Stats screen shall show today, the all-time totals and the last seven days, each day with its sessions and minutes, switchable between a sessions view and a minutes view, under one summary line of the week.
 ```
 
+**From D3 (D3 record §3.4), to apply when D3 ships:**
+
+- **SRS FR-SET-005**, the statement, replacing the current text. The owner added the in-app choice (2026-10-31) and chose that it applies at the next launch (2026-11-01):
+
+```markdown
+**Statement:** The app shall be available in English and Turkish, following the device language unless the person chooses English or Türkçe in Settings, which applies the next time the app opens, with the UI copy reviewed in both.
+```
+
+- **SRS FR-SET-001**, the settings list: add "the app's language (System, English or Türkçe; under its own key, `language_choice`, outside the settings blob; applied at the next launch)".
+- **ADR-0048's consequences:** add "The in-app language choice (D3) is read once, when the translator loads, so the language stays fixed for a process."
+- **The CHANGELOG, v1.4:** add "Every screen, notification and alert in English and Turkish, and a Language choice in Settings."
+
 **Phase 2 inherits (the owner, Q3, 2026-10-30):** the pages-to-logo morph also plays at the first pairing. It reuses D1's welcome-screen choreography (§3.2.11). For the rehaul plan's Phase 2 section and the ROADMAP's Phase 2 row:
 
 ```markdown

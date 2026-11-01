@@ -5,10 +5,12 @@
  * i18next was 35 % of D1's growth; D1 record §4.1). The resources and the keys are unchanged.
  *
  * Contract
- *   - The language follows the device: the first preferred locale whose language is Turkish
- *     gives 'tr'; anything else gives 'en'. iOS relaunches an app when its language changes
- *     (system or per-app setting), so the language is fixed for a process and `t` needs no
- *     subscription: calling it in render is pure.
+ *   - The language is the in-app choice (Settings › Language, `./languageChoice`) when one is
+ *     stored; otherwise it follows the device: the first preferred locale whose language is
+ *     Turkish gives 'tr'; anything else gives 'en'. It is read once, when this module loads. iOS
+ *     relaunches an app when its language changes (system or per-app setting), and the in-app
+ *     choice applies at the next launch (D3), so the language is fixed for a process and `t`
+ *     needs no subscription: calling it in render is pure.
  *   - `t(key, options)` looks the dotted key up in the app's language, then in English; a key
  *     missing from both returns itself (a visible bug, never a crash).
  *   - Plurals: with a numeric `options.count`, the key takes a suffix from the language's plural
@@ -20,6 +22,7 @@
 import { getLocales } from 'expo-localization';
 
 import en from './en.json';
+import { readLanguageChoice, type LanguageChoice } from './languageChoice';
 import tr from './tr.json';
 
 export type Language = 'en' | 'tr';
@@ -40,15 +43,26 @@ export function pickLanguage(codes: readonly (string | null | undefined)[]): Lan
     return 'en';
 }
 
-function deviceLanguage(): Language {
+/** The app's language: a stored choice wins; 'system' follows the preferred language codes. */
+export function resolveLanguage(choice: LanguageChoice, codes: readonly (string | null | undefined)[]): Language {
+    return choice === 'system' ? pickLanguage(codes) : choice;
+}
+
+function appLanguage(): Language {
+    let choice: LanguageChoice = 'system';
     try {
-        return pickLanguage(getLocales().map((l) => l.languageCode));
+        choice = readLanguageChoice();
     } catch {
-        return 'en';
+        // No storage (a broken native module): follow the device.
+    }
+    try {
+        return resolveLanguage(choice, getLocales().map((l) => l.languageCode));
+    } catch {
+        return choice === 'system' ? 'en' : choice;
     }
 }
 
-export const language: Language = deviceLanguage();
+export const language: Language = appLanguage();
 
 /**
  * A whole number grouped the way the app's language writes it: "2,975" in English, "2.975" in

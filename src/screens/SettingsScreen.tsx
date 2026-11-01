@@ -23,6 +23,7 @@ import { APP_NAME } from '../constants/app';
 import { DURATION_LIMITS, classicLayoutOf, customDurationsOf, editCustomPatch, type ClassicLayout } from '../constants/presets';
 import { useUpdateCheck } from '../hooks/useUpdateCheck';
 import { formatNumber, t } from '../i18n';
+import { readLanguageChoice, saveLanguageChoice, type LanguageChoice } from '../i18n/languageChoice';
 import { HiddenStartupDiagnostics } from '../startup/StartupDiagnostics';
 import { useSettingsFocus } from '../stores/settingsFocusStore';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -89,6 +90,13 @@ export default function SettingsScreen() {
     const [reminderBusy, setReminderBusy] = useState(false);
     // Why the reminder is off after asking for it: iOS denied notifications, or scheduling failed.
     const [notice, setNotice] = useState<'denied' | 'failed' | null>(null);
+    // The in-app language (D3): stored at once, applied at the next launch, when the translator
+    // reads it (ADR-0048: one language a process). The row shows the choice, not the running language.
+    const [languageChoice, setLanguageChoice] = useState<LanguageChoice>(readLanguageChoice);
+    const chooseLanguage = (choice: LanguageChoice) => {
+        saveLanguageChoice(choice);
+        setLanguageChoice(choice);
+    };
 
     // Another screen can ask for a group (Stats' "Turn on a daily goal"): once the goal group has
     // laid out, it scrolls into view and the request is cleared (the Stats contract).
@@ -360,6 +368,22 @@ export default function SettingsScreen() {
                             ]}
                             value={classicLayoutOf(settings)}
                             onChange={(classicLayout) => updateSettings({ classicLayout })}
+                        />
+                    </View>
+                </ListGroup>
+
+                {/* System follows the iPhone's language, as before D3. Reset leaves it alone, as it
+                    leaves Classic's layout: it must never change the language behind a restart. */}
+                <ListGroup header={t('settings.language.header')} footer={t('settings.language.footer')}>
+                    <View style={styles.segmentRow}>
+                        <SegmentedControl<LanguageChoice>
+                            segments={[
+                                { value: 'system', label: t('settings.language.system'), accessibilityLabel: t('settings.language.system') },
+                                { value: 'en', label: t('settings.language.en'), accessibilityLabel: t('settings.language.en') },
+                                { value: 'tr', label: t('settings.language.tr'), accessibilityLabel: t('settings.language.tr') },
+                            ]}
+                            value={languageChoice}
+                            onChange={chooseLanguage}
                         />
                     </View>
                 </ListGroup>

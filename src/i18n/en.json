@@ -149,6 +149,13 @@
       "header": "Appearance",
       "footer": "Light or dark follows your iPhone."
     },
+    "language": {
+      "header": "Language",
+      "system": "System",
+      "en": "English",
+      "tr": "Türkçe",
+      "footer": "A change takes effect after you close and reopen the app."
+    },
     "fly": {
       "ambient": "Ambient sounds"
     },

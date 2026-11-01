@@ -10,6 +10,7 @@ import { useSettingsFocus } from '../../stores/settingsFocusStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { space } from '../../theme/layout';
 import { useStatsStore } from '../../stores/statsStore';
+import { readLanguageChoice, saveLanguageChoice } from '../../i18n/languageChoice';
 import SettingsScreen from '../SettingsScreen';
 
 jest.mock('../../hooks/useUpdateCheck', () => ({
@@ -110,7 +111,10 @@ describe('Settings as a native grouped list', () => {
 
     it('has no appearance switch: light or dark follows the iPhone (the owner, D2)', async () => {
         await renderSettings();
-        for (const mode of ['System', 'Light', 'Dark']) expect(screen.queryByText(mode)).toBeNull();
+        for (const mode of ['Light', 'Dark']) expect(screen.queryByText(mode)).toBeNull();
+        // The one "System" is the Language row's (D3), not a theme choice.
+        expect(screen.getAllByText('System')).toHaveLength(1);
+        expect(screen.getByRole('button', { name: 'System' })).toBeOnTheScreen();
         expect(screen.getByText('Light or dark follows your iPhone.')).toBeOnTheScreen();
         expect(screen.getByLabelText('Facing pages')).toBeOnTheScreen();
     });
@@ -278,6 +282,39 @@ describe("Settings' notifications, About and reset", () => {
         expect(message).toMatch(/notes, stats, goal and reminders stay/);
         await act(async () => buttons.find((b) => b.text === 'Reset')!.onPress!());
         expect(useSettingsStore.getState().settings).toMatchObject({ longBreakEvery: 4, sound: true });
+        alert.mockRestore();
+    });
+});
+
+// covers: FR-SET-005
+// D3 (D3 record §3.4; the owner, 2026-11-01: "At the next launch is fine"): Settings › Language
+// stores System, English or Türkçe, and the translator reads it at the next launch.
+describe("Settings' language", () => {
+    const selected = (name: string) => screen.getByRole('button', { name }).props.accessibilityState?.selected;
+
+    it('starts on System, and stores a choice for the next launch without changing this one', async () => {
+        await renderSettings();
+        expect(screen.getByText('Language')).toBeOnTheScreen();
+        expect(screen.getByText('A change takes effect after you close and reopen the app.')).toBeOnTheScreen();
+        expect(selected('System')).toBe(true);
+        await press(screen.getByRole('button', { name: 'Türkçe' }));
+        expect(readLanguageChoice()).toBe('tr');
+        expect(selected('Türkçe')).toBe(true);
+        // The running language is this process's: still English until the app opens again.
+        expect(screen.getByText('Language')).toBeOnTheScreen();
+        await press(screen.getByRole('button', { name: 'System' }));
+        expect(readLanguageChoice()).toBe('system');
+    });
+
+    it('shows the stored choice when Settings opens, and Reset leaves it alone', async () => {
+        saveLanguageChoice('en');
+        await renderSettings();
+        expect(selected('English')).toBe(true);
+        const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+        await press(screen.getByRole('button', { name: 'Reset settings' }));
+        const buttons = alert.mock.calls[0][2] as { text: string; onPress?: () => void }[];
+        await act(async () => buttons.find((b) => b.text === 'Reset')!.onPress!());
+        expect(readLanguageChoice()).toBe('en');
         alert.mockRestore();
     });
 });

@@ -60,6 +60,11 @@
       "streamMomentaryLufs": -20,
       "toleranceLu": 0.5
     },
+    "playback": {
+      "detuneCents": 10,
+      "gainDb": 1.5,
+      "about": "Applied when each syllable plays, never baked into the files (the owner's sound-design notes, 2026-11-01): a random pitch shift uniform in ±detuneCents and a random gain uniform in ±gainDb, drawn afresh for every syllable, so a line never sounds like a loop. The files stay exactly as built."
+    },
     "order": [
       0,
       2,

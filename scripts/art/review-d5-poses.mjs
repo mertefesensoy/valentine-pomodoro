@@ -17,7 +17,8 @@ import { fileURLToPath } from 'node:url';
 import { tourLayers, tourSymbols } from './tour-symbols.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+// LF whatever the checkout's line endings, so the page is the same from any clone.
+const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8').replace(/\r\n/g, '\n');
 const KIT = JSON.parse(read('art/src/tour/expressions.json'));
 const palette = JSON.parse(read('src/theme/palette.json'));
 const baloo = /@font-face\{font-family:'Baloo 2 C2';font-weight:600;[^}]*\}/.exec(read('art/review/c2-type-specimen.html'))[0];

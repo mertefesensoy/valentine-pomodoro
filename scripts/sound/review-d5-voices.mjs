@@ -18,7 +18,8 @@ import { fileURLToPath } from 'node:url';
 import { tourLayers, tourSymbols } from '../art/tour-symbols.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+// LF whatever the checkout's line endings, so the page is the same from any clone.
+const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8').replace(/\r\n/g, '\n');
 const uri = (rel) => `data:audio/mp4;base64,${fs.readFileSync(path.join(ROOT, rel)).toString('base64')}`;
 const palette = JSON.parse(read('src/theme/palette.json'));
 const report = JSON.parse(read('art/sound/report.json'));
@@ -37,6 +38,7 @@ const tok = (t) => keys.map((k) => `--${k}:${t[k]}`).join(';') + ';' + lift(t);
 const num = (x, d = 0) => x.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
 const minus = (s) => String(s).replace(/^-/, '−');
 const B = report.babble;
+const PLAY = job.babble.playback;
 const talk = B.talk;
 const ui = B.level.uiSoundsMomentaryMaxLufs;
 const uiMean = ui.reduce((a, b) => a + b, 0) / ui.length;
@@ -181,8 +183,20 @@ ${tourSymbols(layers)}
     <p>You said version 1 was too high-pitched and could hurt if it came out of the blue. So both voices now use the soft chime voice of the app's other sounds instead of a square wave, and sit about an octave lower: the highest note is E5 (659 Hz), where version 1 reached C♯6 (1,109 Hz). Nothing is boosted around 2 to 3 kHz any more, where the ear is most sensitive; the syllables start more gently, carry a touch of the chimes' small reverb, and play 2 LU quieter. Their brightness (spectral centroid) went from 0.5–1.3 kHz to ${num(Math.min(...Object.values(B.voices).flatMap((v) => v.syllables.map((s) => s.centroidHz))) / 1000, 2)}–${num(Math.max(...Object.values(B.voices).flatMap((v) => v.syllables.map((s) => s.centroidHz))) / 1000, 2)} kHz. The bouncy glides stay: they are the cute part.</p>
   </section>
 
+  <section class="changed" aria-labelledby="h-notes">
+    <h2 id="h-notes">Your sound-design notes, applied to version 2</h2>
+    <p>Version 3 is gone: these are version 2's files, exactly. Your notes' main cure for a robotic babble is variation when each syllable plays, so that is what's new, and it changes nothing in the files:</p>
+    <ul>
+      <li><b>New: a little variation on every syllable.</b> Each one plays a tiny bit higher or lower (a random ±${PLAY.detuneCents} cents, a tenth of a semitone at most) and a touch louder or softer (±${num(PLAY.gainDb, 1)} dB), drawn fresh every time, so a line never repeats exactly. Use the switch to hear it against plain version 2.</li>
+      <li><b>Already in version 2:</b> a soft, warm tone with nothing in the harsh 2–4 kHz band; soft starts and gentle tails; a small set of syllables, never the same one twice running; a syllable on every 3rd or 4th letter, resting at commas and full stops; and babble that lasts as long as the line does.</li>
+      <li><b>Not used:</b> recording voices or animal sounds. The app's rule is that every sound is synthesised in SoundCraft, with no samples and never a human voice.</li>
+    </ul>
+  </section>
+
   <div class="bar-top">
     <button class="pill" type="button" id="play-both">Play both lines</button>
+    <span class="hint" id="l-vary">Variation</span>
+    <div class="seg" role="group" aria-labelledby="l-vary"><button type="button" id="vary-on" aria-pressed="true">On</button><button type="button" id="vary-off" aria-pressed="false">Off, plain version 2</button></div>
     <span class="hint" id="l-lang">Lines in</span>
     <div class="seg" role="group" aria-labelledby="l-lang"><button type="button" id="lang-en" aria-pressed="true">English</button><button type="button" id="lang-tr" aria-pressed="false">Türkçe</button></div>
     <span class="hint">If you hear nothing on an iPhone, check the ring switch: the app itself will stay quiet on silent.</span>
@@ -224,6 +238,7 @@ ${tourSymbols(layers)}
       <li><b>The voices.</b> Are they soft and pleasant now, and still cute: clearly not a person, Pomo higher and bouncier, Doro lower and rounder? Should either be softer still, lower, slower or a different pitch?</li>
       <li><b>The level.</b> Is the babble at the right loudness next to focus start, or should it sit higher or lower?</li>
       <li><b>The pace.</b> Is ${num(1000 / talk.charMs, 1)} characters a second right for the write-on, or should it be faster or slower?</li>
+      <li><b>The variation.</b> Keep it on, or plain version 2? Your notes also suggest the babble change with the mood. Pomo &amp; Doro already change face, so it could follow them: a little higher when happy or excited, and higher still when surprised. Want that tried?</li>
     </ol>
   </section>
 
@@ -278,11 +293,20 @@ ${read('scripts/art/tour-motion.js')}
     document.querySelectorAll('.on').forEach((b) => b.classList.remove('on'));
     for (const who of Object.keys(speakers)) { T.set(speakers[who], 'rest'); writing[who] = null; }
   }
-  function play(id, when) {
+  // The playback variation (sounds.json babble.playback): a pitch shift in cents, made with the
+  // playback rate (2^(cents/1200), which also stretches the syllable by under 0.6 %), and a gain in dB.
+  const PLAY = ${JSON.stringify({ detuneCents: PLAY.detuneCents, gainDb: PLAY.gainDb })};
+  let vary = true;
+  const spread = (x) => (Math.random() * 2 - 1) * x;
+  function play(id, when, { cents = 0, gainDb = 0 } = {}) {
     const node = ctx.createBufferSource();
     return decode(id).then((buffer) => {
       node.buffer = buffer;
-      node.connect(ctx.destination);
+      node.playbackRate.value = Math.pow(2, cents / 1200);
+      const gain = ctx.createGain();
+      gain.gain.value = Math.pow(10, gainDb / 20);
+      node.connect(gain);
+      gain.connect(ctx.destination);
       node.start(when);
       nodes.push(node);
       node.onended = () => { nodes = nodes.filter((n) => n !== node); };
@@ -315,7 +339,7 @@ ${read('scripts/art/tour-motion.js')}
     const list = VOICES[who];
     const body = list.filter((s) => !s.role);
     const picks = w.syllables.map((syl, i) => (i === w.syllables.length - 1 ? list.find((s) => s.role === syl.end) : body[ORDER[i % ORDER.length]]));
-    await Promise.all(picks.map((p, i) => play(p.id, whenAudio + w.syllables[i].t / 1000)));
+    await Promise.all(picks.map((p, i) => play(p.id, whenAudio + w.syllables[i].t / 1000, vary ? { cents: spread(PLAY.detuneCents), gainDb: spread(PLAY.gainDb) } : {})));
     const startPage = performance.now() + (whenAudio - ctx.currentTime) * 1000;
     timers.push(setTimeout(() => {
       const now = performance.now();
@@ -361,6 +385,13 @@ ${read('scripts/art/tour-motion.js')}
       document.getElementById('play-both').textContent = 'This browser could not play them';
     }
   }
+  function setVary(v) {
+    vary = v;
+    document.getElementById('vary-on').setAttribute('aria-pressed', String(v));
+    document.getElementById('vary-off').setAttribute('aria-pressed', String(!v));
+  }
+  document.getElementById('vary-on').addEventListener('click', () => setVary(true));
+  document.getElementById('vary-off').addEventListener('click', () => setVary(false));
   document.getElementById('play-both').addEventListener('click', () => run(['pomo', 'doro']));
   document.getElementById('play-level').addEventListener('click', () => run(['focus-start', 'pomo', 'doro']));
   document.querySelectorAll('[data-line]').forEach((b) => b.addEventListener('click', () => run([b.dataset.line])));

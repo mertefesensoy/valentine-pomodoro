@@ -29,7 +29,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 | 7. Device check, build 48 | Build 48 on EAS from `61fd06e` (§3.15). The owner's check, 2026-10-30: four findings (F1–F4, §3.16), fixed for build 49 | The same build. The owner asked for a livelier morph (F5, §3.16), rebuilt for build 49 |
 | 7. Device check, build 49 | Build 49 on EAS from `9f0de71`, submitted to TestFlight, tag `v1.4.0-tf.49` pushed (§3.17). The owner's check, 2026-10-31: "All well" except one finding (F6, §3.18): Fly's Modes button belongs at the top right, where the compass was. Fixed in build 50 | The same build: "All well" |
 | 7. Device check, build 50 | Build 50 on EAS from `98f6a1f`, submitted to TestFlight, tag `v1.4.0-tf.50` pushed (§3.19). The owner's check, 2026-10-31: every check passed, "all well" (§6) | The same build; no welcome change since build 49 |
-| FINISH (both contracts): the finish review, its verdict, DESIGN.md | **Ship**, 2026-11-01 (§3.23). Round 1: recapture (no iPad). Round 2: fix, eight fixes (`3fd834a`). The verdict pass: fix 7 open (§3.21), rebuilt (§3.22), and resolved on build 56: the Ring is 275 pt and Skip clears the bar by 16 pt. DESIGN.md is next | **Captures waived by the owner** (§3.20). The verdict is the owner's device checks. DESIGN.md's welcome exception is still to be written |
+| FINISH (both contracts): the finish review, its verdict, DESIGN.md | **Done**, 2026-11-01. The verdict: **ship** (§3.23); the Ring is 275 pt and Skip clears the bar by 16 pt on build 56. **DESIGN.md written** from the shipped code, with its sidecar (§3.24). Round 1: recapture (no iPad); round 2: fix, eight fixes; the verdict pass: fix 7, rebuilt and resolved | **Captures waived by the owner** (§3.20). The verdict is the owner's device checks. **DESIGN.md's "Welcome (once)" row written** (§3.24) |
 
 **FINISH is not yet discharged.** Each direction contract ends with "this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance". That waits for evidence this machine can't make:
 - After the device check, a fresh `impeccable-finish-reviewer` gets both contracts and the owner's screenshots, labelled as hardware evidence.
@@ -872,6 +872,37 @@ The device check is §6 "The Ring's height".
 **The keep list, amended for the documenter:** §3.21's list, plus the Ring's sizing rule. The Ring sizes from the height its neighbours leave, clamped between 200 pt and `ringCap` (275 pt on a 393 × 852 pt iPhone). Below the AX sizes the page never scrolls, and Skip sits about 16 pt above the tab bar.
 
 **Next:** the documenter writes DESIGN.md, from both verdicts (D1's and D2's), with the "Welcome (once)" row.
+
+### 3.24 DESIGN.md, written from the shipped D1 and D2
+
+`impeccable-documenter` rewrote `DESIGN.md` from the code and both keep lists, and wrote its sidecar `.impeccable/design.json` (Midnight Plum's values and the colour metadata).
+
+**Kept:** the PINNED DIRECTION block, the North Star "The Sticker Diary", the Overview, every named rule and every Do and Don't.
+
+**Resolved from code:** every "[to be resolved during implementation]" marker.
+- Spacing: 4 / 8 / 12 / 16 / 24 / 32.
+- The edge: 1.5 pt.
+- Icons: 2 pt rounded strokes, built to filled shapes.
+- The timer: 25 % of the ring, or 56 pt on Facing Pages.
+- Titles 34/42, the welcome line 28/36, today's postcard 22/28; system text 18 / 17 / 16 / 15 / 13.
+- The frontmatter carries Strawberry Milk's 25 roles, keyed by `palette.json`.
+
+**Added:**
+- **From the keep lists:** the One Large Number rule (Classic), the Paused stamp, the Exact Ground rule, one moving part, the Ring's sizing rule, Facing Pages' geometry, today's row, the Modes button, the postcard stack (±0.6° tilt) and Settings' grouped list.
+- **The Locale Casing rule:** no style upper-cases text (`a21939b`).
+- **The motion table:** the sticker placement stays the one bounce (450 ms, damping ratio 0.75, 12 particles of a cap of 24). It gains the **"Welcome (once)"** row, the owner's exception: 4.2 s, squash and stretch, its own rebound, 10 sparkles of a cap of 12, opacity only under Reduce Motion. A "Tutorial (first run)" row follows with D5.
+- **Spot-checked against code:** the welcome's `PARTICLE_COUNT` is 10, and the sticker burst draws 12.
+
+**Deviations it states rather than hides:**
+- **The tab bar** is NativeTabs' system bar, Liquid Glass on iOS 26: the platform's own chrome, beside the No Glass Rule.
+- **Sheets** use the system's form-sheet motion, not the seed's custom spring.
+- **The Modes button** is a bare glyph in a 44 pt target on Classic, and a paper disc over Fly's map. The keep list's "same paper button" holds only for the place.
+- **"The only large type"** holds on Classic. The D2 screens' titles are Baloo 2 at 34 pt.
+
+**Drift it found and left, for later:**
+- `src/theme/tokens.ts` still holds v1's greys, purple gradients and `ValentineSpec`.
+- Fly's map buttons carry a black view shadow and Android `elevation`.
+- The Baloo2-Medium font ships unused.
 
 ## 4. Mathematical / Statistical Details
 

@@ -1,0 +1,778 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-01T09:51:21.706Z",
+  "title": "Design System: Valentine Pomodoro (working name)",
+  "extensions": {
+    "themes": {
+      "strawberryMilk": {
+        "name": "Strawberry Milk",
+        "scheme": "light",
+        "note": "Frontmatter colors; canonical"
+      },
+      "midnightPlum": {
+        "name": "Midnight Plum",
+        "scheme": "dark",
+        "note": "Each colorMeta entry's dark / darkOklch"
+      }
+    },
+    "colorMeta": {
+      "page": {
+        "role": "neutral",
+        "displayName": "Milk Cream",
+        "canonical": "#FFF6F1",
+        "oklch": "oklch(97.9% 0.012 51.3)",
+        "dark": "#221726",
+        "darkOklch": "oklch(22.6% 0.033 316.8)",
+        "purpose": "The diary page: the ground of every screen.",
+        "tonalRamp": [
+          "#0C0B0A",
+          "#262322",
+          "#46413E",
+          "#69615D",
+          "#8C8480",
+          "#AFA9A6",
+          "#D0CDCB",
+          "#EFEEED"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#FFFDFB",
+        "oklch": "oklch(99.5% 0.003 67.8)",
+        "dark": "#2E2033",
+        "darkOklch": "oklch(26.9% 0.040 317.0)",
+        "purpose": "Paper fields and list groups that sit on the page, separated by tone and a crisp edge, never a shadow.",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#242423",
+          "#434241",
+          "#646361",
+          "#878684",
+          "#ACAAA9",
+          "#CECDCD",
+          "#EFEEEE"
+        ]
+      },
+      "field": {
+        "role": "neutral",
+        "displayName": "Well",
+        "canonical": "#FBEAE4",
+        "oklch": "oklch(94.9% 0.020 40.5)",
+        "dark": "#3A2A40",
+        "darkOklch": "oklch(31.3% 0.044 316.6)",
+        "purpose": "Inputs, segmented-control tracks and other wells inside paper.",
+        "tonalRamp": [
+          "#0C0B0A",
+          "#282321",
+          "#49403D",
+          "#6E605B",
+          "#91837D",
+          "#B3A8A5",
+          "#D2CCCA",
+          "#F0EEED"
+        ]
+      },
+      "edge": {
+        "role": "neutral",
+        "displayName": "Paper Edge",
+        "canonical": "#F0DAD3",
+        "oklch": "oklch(90.4% 0.026 38.5)",
+        "dark": "#44324A",
+        "darkOklch": "oklch(34.7% 0.047 317.5)",
+        "purpose": "The paper's crisp edge. Decorative: never the only cue for a control.",
+        "tonalRamp": [
+          "#0D0B0A",
+          "#292220",
+          "#4B3F3B",
+          "#715E58",
+          "#94817B",
+          "#B5A7A3",
+          "#D4CCC9",
+          "#F1EEEC"
+        ]
+      },
+      "edgeStrong": {
+        "role": "neutral",
+        "displayName": "Control Edge",
+        "canonical": "#A07A72",
+        "oklch": "oklch(61.4% 0.049 32.1)",
+        "dark": "#9A80A3",
+        "darkOklch": "oklch(63.6% 0.059 317.3)",
+        "purpose": "Boundaries that identify a control, such as a text input (3:1).",
+        "tonalRamp": [
+          "#0E0A09",
+          "#2D211E",
+          "#533C37",
+          "#7D5952",
+          "#A07C75",
+          "#BEA49E",
+          "#DACAC6",
+          "#F3EDEB"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Cocoa",
+        "canonical": "#4A2C29",
+        "oklch": "oklch(33.0% 0.045 26.0)",
+        "dark": "#FFF3EE",
+        "darkOklch": "oklch(97.2% 0.015 44.2)",
+        "purpose": "Cocoa: body text, headings, the timer and icons.",
+        "tonalRamp": [
+          "#0E0A0A",
+          "#2C211F",
+          "#523C3A",
+          "#7B5A56",
+          "#9F7D79",
+          "#BDA4A1",
+          "#D9CAC8",
+          "#F3EDEC"
+        ]
+      },
+      "inkSoft": {
+        "role": "neutral",
+        "displayName": "Soft Cocoa",
+        "canonical": "#7D5A54",
+        "oklch": "oklch(50.3% 0.048 29.8)",
+        "dark": "#CDB3C6",
+        "darkOklch": "oklch(79.5% 0.039 335.5)",
+        "purpose": "Secondary text and icons, tinted from cocoa, never grey.",
+        "tonalRamp": [
+          "#0E0A09",
+          "#2D211F",
+          "#533C38",
+          "#7C5953",
+          "#A07C76",
+          "#BEA49F",
+          "#D9CAC7",
+          "#F3EDEC"
+        ]
+      },
+      "primary": {
+        "role": "primary",
+        "displayName": "Strawberry Pink",
+        "canonical": "#F7A9BE",
+        "oklch": "oklch(81.6% 0.095 1.8)",
+        "dark": "#F7A9BE",
+        "darkOklch": "oklch(81.6% 0.095 1.8)",
+        "purpose": "Strawberry: the primary action's fill. A soft fill, so it carries a dark label.",
+        "tonalRamp": [
+          "#10090B",
+          "#331C23",
+          "#5F3240",
+          "#8F4A5F",
+          "#B36F82",
+          "#CD9BA8",
+          "#E3C5CC",
+          "#F7EBEE"
+        ]
+      },
+      "onPrimary": {
+        "role": "primary",
+        "displayName": "Cocoa on Strawberry",
+        "canonical": "#4A2C29",
+        "oklch": "oklch(33.0% 0.045 26.0)",
+        "dark": "#221726",
+        "darkOklch": "oklch(22.6% 0.033 316.8)",
+        "purpose": "The label on a primary fill.",
+        "tonalRamp": [
+          "#0E0A0A",
+          "#2C211F",
+          "#523C3A",
+          "#7B5A56",
+          "#9F7D79",
+          "#BDA4A1",
+          "#D9CAC8",
+          "#F3EDEC"
+        ]
+      },
+      "primaryInk": {
+        "role": "primary",
+        "displayName": "Strawberry Ink",
+        "canonical": "#B03158",
+        "oklch": "oklch(51.6% 0.165 6.7)",
+        "dark": "#FF9EBB",
+        "darkOklch": "oklch(80.5% 0.120 0.8)",
+        "purpose": "Strawberry as text or an icon: links, selected labels, the selected tab.",
+        "tonalRamp": [
+          "#140709",
+          "#3D141F",
+          "#722038",
+          "#AA2B53",
+          "#D15776",
+          "#E48EA0",
+          "#F2BEC7",
+          "#FEE8EC"
+        ]
+      },
+      "primarySoft": {
+        "role": "primary",
+        "displayName": "Strawberry Blush",
+        "canonical": "#FDE4EB",
+        "oklch": "oklch(94.1% 0.029 358.8)",
+        "dark": "#4D2B45",
+        "darkOklch": "oklch(34.2% 0.064 336.1)",
+        "purpose": "A selected chip or row, tinted from strawberry.",
+        "tonalRamp": [
+          "#0D0A0B",
+          "#292224",
+          "#4C3E42",
+          "#725D63",
+          "#958086",
+          "#B6A6AA",
+          "#D4CBCD",
+          "#F1EDEE"
+        ]
+      },
+      "accent": {
+        "role": "secondary",
+        "displayName": "Accent Red",
+        "canonical": "#C93A24",
+        "oklch": "oklch(55.9% 0.183 31.6)",
+        "dark": "#FF7A5E",
+        "darkOklch": "oklch(73.0% 0.168 33.3)",
+        "purpose": "The brand's red, used small and rarely (a badge, the sticker moment). A strong fill, so it carries a light label.",
+        "tonalRamp": [
+          "#150705",
+          "#41130B",
+          "#781C0E",
+          "#B4230C",
+          "#DB533D",
+          "#EC8D7B",
+          "#F7BEB2",
+          "#FFE8E3"
+        ]
+      },
+      "onAccent": {
+        "role": "secondary",
+        "displayName": "On Accent",
+        "canonical": "#FFFFFF",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "dark": "#221726",
+        "darkOklch": "oklch(22.6% 0.033 316.8)",
+        "purpose": "The label on a red accent fill.",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#242424",
+          "#424242",
+          "#636363",
+          "#868686",
+          "#ABABAB",
+          "#CECECE",
+          "#EEEEEE"
+        ]
+      },
+      "accentInk": {
+        "role": "secondary",
+        "displayName": "Accent Red Ink",
+        "canonical": "#C03A24",
+        "oklch": "oklch(54.4% 0.174 32.0)",
+        "dark": "#FF8C73",
+        "darkOklch": "oklch(76.0% 0.145 33.4)",
+        "purpose": "The accent red as text: rare emphasis.",
+        "tonalRamp": [
+          "#150705",
+          "#3F140D",
+          "#762012",
+          "#B12A14",
+          "#D75741",
+          "#E98F7D",
+          "#F5BFB3",
+          "#FFE9E4"
+        ]
+      },
+      "success": {
+        "role": "tertiary",
+        "displayName": "Leaf Green",
+        "canonical": "#BFE5B5",
+        "oklch": "oklch(88.2% 0.076 139.2)",
+        "dark": "#8ED493",
+        "darkOklch": "oklch(80.7% 0.115 146.1)",
+        "purpose": "Leaf: goal reached, garden growth. A soft fill with a dark label.",
+        "tonalRamp": [
+          "#090C08",
+          "#1C2819",
+          "#33492E",
+          "#4C6E43",
+          "#709167",
+          "#9BB395",
+          "#C5D3C1",
+          "#EBF0E9"
+        ]
+      },
+      "onSuccess": {
+        "role": "tertiary",
+        "displayName": "Cocoa on Leaf",
+        "canonical": "#4A2C29",
+        "oklch": "oklch(33.0% 0.045 26.0)",
+        "dark": "#221726",
+        "darkOklch": "oklch(22.6% 0.033 316.8)",
+        "purpose": "The label on a leaf fill.",
+        "tonalRamp": [
+          "#0E0A0A",
+          "#2C211F",
+          "#523C3A",
+          "#7B5A56",
+          "#9F7D79",
+          "#BDA4A1",
+          "#D9CAC8",
+          "#F3EDEC"
+        ]
+      },
+      "successInk": {
+        "role": "tertiary",
+        "displayName": "Leaf Ink",
+        "canonical": "#2F7339",
+        "oklch": "oklch(49.7% 0.113 146.5)",
+        "dark": "#8ED493",
+        "darkOklch": "oklch(80.7% 0.115 146.1)",
+        "purpose": "Leaf as text or an icon.",
+        "tonalRamp": [
+          "#070D07",
+          "#142A17",
+          "#224D28",
+          "#30743A",
+          "#58975E",
+          "#8DB890",
+          "#BDD6BE",
+          "#E8F2E8"
+        ]
+      },
+      "danger": {
+        "role": "error",
+        "displayName": "Danger Red",
+        "canonical": "#A82431",
+        "oklch": "oklch(48.2% 0.167 21.4)",
+        "dark": "#FF8A80",
+        "darkOklch": "oklch(75.9% 0.144 26.1)",
+        "purpose": "Destructive actions only (reset, delete), kept apart from the brand red so the brand colour never means loss.",
+        "tonalRamp": [
+          "#140707",
+          "#3F1415",
+          "#742025",
+          "#AE2B36",
+          "#D5575A",
+          "#E78F8C",
+          "#F4BEBC",
+          "#FFE8E7"
+        ]
+      },
+      "onDanger": {
+        "role": "error",
+        "displayName": "On Danger",
+        "canonical": "#FFFFFF",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "dark": "#221726",
+        "darkOklch": "oklch(22.6% 0.033 316.8)",
+        "purpose": "The label on a destructive fill.",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#242424",
+          "#424242",
+          "#636363",
+          "#868686",
+          "#ABABAB",
+          "#CECECE",
+          "#EEEEEE"
+        ]
+      },
+      "dangerInk": {
+        "role": "error",
+        "displayName": "Danger Ink",
+        "canonical": "#A82431",
+        "oklch": "oklch(48.2% 0.167 21.4)",
+        "dark": "#FF9A90",
+        "darkOklch": "oklch(78.8% 0.123 26.3)",
+        "purpose": "A destructive text action.",
+        "tonalRamp": [
+          "#140707",
+          "#3F1415",
+          "#742025",
+          "#AE2B36",
+          "#D5575A",
+          "#E78F8C",
+          "#F4BEBC",
+          "#FFE8E7"
+        ]
+      },
+      "ringTrack": {
+        "role": "neutral",
+        "displayName": "Ring Track",
+        "canonical": "#FBEDE8",
+        "oklch": "oklch(95.6% 0.017 40.8)",
+        "dark": "#3D2C44",
+        "darkOklch": "oklch(32.3% 0.047 315.8)",
+        "purpose": "The timer ring's unfilled track; also chart baselines.",
+        "tonalRamp": [
+          "#0C0B0A",
+          "#272322",
+          "#48403E",
+          "#6C605C",
+          "#8F837F",
+          "#B1A9A6",
+          "#D2CCCB",
+          "#F0EEED"
+        ]
+      },
+      "ringFocus": {
+        "role": "neutral",
+        "displayName": "Ring Focus",
+        "canonical": "#D64B76",
+        "oklch": "oklch(61.4% 0.177 5.0)",
+        "dark": "#FF8FB1",
+        "darkOklch": "oklch(77.9% 0.139 1.4)",
+        "purpose": "The ring during focus, and focus data marks in Stats (3:1 on the page and the track).",
+        "tonalRamp": [
+          "#14070A",
+          "#3F121F",
+          "#741B39",
+          "#AE2256",
+          "#D55179",
+          "#E88BA1",
+          "#F5BCC8",
+          "#FFE8EC"
+        ]
+      },
+      "ringBreak": {
+        "role": "tertiary",
+        "displayName": "Ring Break",
+        "canonical": "#428C4E",
+        "oklch": "oklch(57.7% 0.119 147.3)",
+        "dark": "#8ED493",
+        "darkOklch": "oklch(80.7% 0.115 146.1)",
+        "purpose": "The ring during a break, and break data marks.",
+        "tonalRamp": [
+          "#060D07",
+          "#132A16",
+          "#1E4E27",
+          "#297538",
+          "#53995D",
+          "#8AB98F",
+          "#BBD6BD",
+          "#E7F2E8"
+        ]
+      },
+      "stickerEdge": {
+        "role": "neutral",
+        "displayName": "Sticker Edge",
+        "canonical": "#FFFFFF",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "dark": "#FFF6F1",
+        "darkOklch": "oklch(97.9% 0.012 51.3)",
+        "purpose": "The die-cut border around every sticker, in both themes. Stickers only, never chrome.",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#242424",
+          "#424242",
+          "#636363",
+          "#868686",
+          "#ABABAB",
+          "#CECECE",
+          "#EEEEEE"
+        ]
+      },
+      "stickerShadow": {
+        "role": "neutral",
+        "displayName": "Sticker Shadow",
+        "canonical": "#4A2C2929",
+        "oklch": "oklch(33.0% 0.045 26.0)",
+        "dark": "#0D070F66",
+        "darkOklch": "oklch(14.2% 0.020 317.9)",
+        "purpose": "The sticker's soft, offset shadow, tinted from the theme. Stickers are the only things that lift.",
+        "tonalRamp": [
+          "#0E0A0A",
+          "#2C211F",
+          "#523C3A",
+          "#7B5A56",
+          "#9F7D79",
+          "#BDA4A1",
+          "#D9CAC8",
+          "#F3EDEC"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "timer": {
+        "displayName": "Timer",
+        "purpose": "The countdown only: Baloo 2 SemiBold, tabular figures, 25% of the ring's size on the Ring, 56pt on Facing Pages, fit to one line down to 0.5."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Tab titles drawn in the content on Stats, Settings and Notes; capped at 1.4x."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The welcome's one line."
+      },
+      "headline-small": {
+        "displayName": "Headline small",
+        "purpose": "Today's postcard title in Stats."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "List rows, notes, values; system face, Dynamic Type."
+      },
+      "body-strong": {
+        "displayName": "Body strong",
+        "purpose": "Classic's phase line, the Add pill, the editor title."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "The primary pill's label (16pt semibold on the quiet pill)."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Partner and next-change lines, segment labels, summaries (500 or 600)."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Group headers, page labels, day names and counts."
+      },
+      "footnote": {
+        "displayName": "Footnote",
+        "purpose": "List-group footers."
+      }
+    },
+    "shadows": [
+      {
+        "name": "sticker-lift",
+        "value": "stickerShadow (#4A2C2929 light, #0D070F66 dark); silhouette offset 1pt right, 2pt down; three layers at 0, 1, 2pt outward stroke, each at alpha 1 - (1 - a)^(1/3)",
+        "purpose": "Stickers only: the pose stickers, today's row, the postcards. Drawn inside the sticker's SVG, never an SVG blur filter or a view shadow."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-strong",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "Press feedback, crossfades, entrances and flights."
+      },
+      {
+        "name": "ease-in-out-strong",
+        "value": "cubic-bezier(0.77, 0, 0.175, 1)",
+        "purpose": "The segmented indicator, which moves across rather than entering."
+      },
+      {
+        "name": "press",
+        "value": "scale 0.97, 100ms in / 180ms out, ease-out-strong; Reduce Motion: opacity 0.85",
+        "purpose": "Every pill and button, with the selection haptic on press-in."
+      },
+      {
+        "name": "phase-crossfade",
+        "value": "250ms opacity, ease-out-strong",
+        "purpose": "Ring or spine-bar colour and mascot pose on focus/break change."
+      },
+      {
+        "name": "reserved-row-crossfade",
+        "value": "200ms opacity, ease-out-strong",
+        "purpose": "Presets to the cycle row on Start."
+      },
+      {
+        "name": "segment-slide",
+        "value": "200ms translateX, ease-in-out-strong",
+        "purpose": "The segmented control's selection."
+      },
+      {
+        "name": "sticker-placement",
+        "value": "spring 450ms, dampingRatio 0.75 (bounce ~0.25); from translateY -16, scale 1.35, rotate -10deg; opacity 120ms; 12 particles, 600ms ease-out; Reduce Motion: 200ms fade",
+        "purpose": "The one bounce: a completed session's sticker pressed onto today's row."
+      },
+      {
+        "name": "goal-moment",
+        "value": "250ms fade in, held 1.4s",
+        "purpose": "The inline Goal reached pill."
+      },
+      {
+        "name": "welcome-once",
+        "value": "4200ms timeline: staging, anticipation, parabolic leap, squash on landing (1650ms) with rebound, hop, dive into the mark, 10 sparkles (cap 12); Reduce Motion: 300ms fade",
+        "purpose": "The owner-approved exception (build 49, F5): the one-time v1.4 welcome."
+      },
+      {
+        "name": "sheet",
+        "value": "system formSheet presentation",
+        "purpose": "Modes, love note, note editor: the platform's own sheet motion."
+      }
+    ],
+    "layout": [
+      {
+        "name": "readable-width",
+        "value": "560pt",
+        "purpose": "Column cap; Classic gutters 24pt, Stats/Settings/Notes 16pt."
+      },
+      {
+        "name": "compact-height",
+        "value": "< 500pt",
+        "purpose": "iPhone landscape: the page splits in two."
+      },
+      {
+        "name": "ax-font-scale",
+        "value": ">= 1.6",
+        "purpose": "Accessibility layouts: stacked pages, wrapped segments, the stack as a list."
+      },
+      {
+        "name": "edge-width",
+        "value": "1.5pt",
+        "purpose": "Every paper and control edge."
+      },
+      {
+        "name": "min-target",
+        "value": "44pt",
+        "purpose": "Every touch target on iOS."
+      },
+      {
+        "name": "ring",
+        "value": "clamp(room, 200pt, min(0.86 x column, 340pt)); stroke 5.5%",
+        "purpose": "The Ring sizes from the height its neighbours leave."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Pill",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one strawberry action per screen: Start focus, the welcome's Start.",
+      "html": "<button class=\"ds-btn-primary\">Start focus</button>",
+      "css": ".ds-btn-primary { font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; background: #F7A9BE; color: #4A2C29; font-size: 18px; font-weight: 600; min-height: 56px; min-width: 280px; padding: 12px 24px; border: none; border-radius: 999px; transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-btn-primary:active { transform: scale(0.97); transition-duration: 100ms; } .ds-btn-primary:focus-visible { outline: 2px solid #B03158; outline-offset: 3px; }"
+    },
+    {
+      "name": "Quiet Pill",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Skip, and End session (dangerInk label, only while paused).",
+      "html": "<div class=\"ds-quiet-row\"><button class=\"ds-btn-quiet\">Skip</button><button class=\"ds-btn-quiet ds-btn-quiet-danger\">End session</button></div>",
+      "css": ".ds-quiet-row { display: flex; gap: 12px; } .ds-btn-quiet { font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; background: #FFFDFB; color: #4A2C29; font-size: 16px; font-weight: 600; min-height: 44px; min-width: 112px; padding: 8px 24px; border: 1.5px solid #F0DAD3; border-radius: 999px; transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-btn-quiet-danger { color: #A82431; } .ds-btn-quiet:active { transform: scale(0.97); transition-duration: 100ms; } .ds-btn-quiet:focus-visible { outline: 2px solid #B03158; outline-offset: 3px; }"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "chip",
+      "refersTo": "segmented-track",
+      "description": "The presets and Stats' metric: a field track, a paper indicator with a control edge.",
+      "html": "<div class=\"ds-seg\" role=\"group\"><button class=\"ds-seg-item ds-seg-on\">25/5</button><button class=\"ds-seg-item\">50/10</button><button class=\"ds-seg-item\">90/15</button><button class=\"ds-seg-item\">Custom</button></div>",
+      "css": ".ds-seg { display: flex; width: 340px; padding: 3px; background: #FBEAE4; border: 1.5px solid #F0DAD3; border-radius: 999px; } .ds-seg-item { font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; flex: 1; min-height: 44px; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; color: #7D5A54; background: transparent; border: 1.5px solid transparent; border-radius: 999px; transition: background 200ms cubic-bezier(0.77, 0, 0.175, 1), border-color 200ms cubic-bezier(0.77, 0, 0.175, 1); } .ds-seg-item:hover { color: #4A2C29; } .ds-seg-on { color: #4A2C29; background: #FFFDFB; border-color: #A07A72; } .ds-seg-item:focus-visible { outline: 2px solid #B03158; outline-offset: 1px; }"
+    },
+    {
+      "name": "Paused Stamp",
+      "kind": "custom",
+      "refersTo": "paused-stamp",
+      "description": "A quiet ink stamp under the timer while paused, rotated -3deg.",
+      "html": "<span class=\"ds-stamp\">Paused</span>",
+      "css": ".ds-stamp { font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; display: inline-block; color: #B03158; font-size: 14px; font-weight: 700; padding: 2px 8px; border: 1.5px solid #B03158; border-radius: 8px; transform: rotate(-3deg); }"
+    },
+    {
+      "name": "Grouped List",
+      "kind": "card",
+      "refersTo": "list-group",
+      "description": "Settings' native inset group: paper, radius 14, hairlines inset 16, header and footer.",
+      "html": "<div class=\"ds-group\"><div class=\"ds-group-head\">Daily goal</div><div class=\"ds-group-field\"><div class=\"ds-row\"><span>Goal</span><span class=\"ds-row-val\">50 min</span></div><div class=\"ds-row ds-row-sep\"><span>Reminder</span><span class=\"ds-switch\" aria-hidden=\"true\"></span></div><button class=\"ds-row ds-row-sep ds-row-destructive\">Reset statistics</button></div><div class=\"ds-group-foot\">Stickers fill your day toward the goal.</div></div>",
+      "css": ".ds-group { font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; width: 360px; display: flex; flex-direction: column; gap: 8px; } .ds-group-head { font-size: 13px; font-weight: 600; color: #7D5A54; padding: 0 16px; } .ds-group-field { background: #FFFDFB; border: 1.5px solid #F0DAD3; border-radius: 14px; overflow: hidden; } .ds-row { display: flex; width: 100%; align-items: center; justify-content: space-between; min-height: 44px; padding: 8px 16px; box-sizing: border-box; font-size: 17px; color: #4A2C29; background: none; border: none; text-align: left; position: relative; } .ds-row-sep::before { content: ''; position: absolute; top: 0; left: 16px; right: 0; height: 0.5px; background: #F0DAD3; } .ds-row:hover { background: #FBEAE4; } .ds-row-val { color: #7D5A54; font-variant-numeric: tabular-nums; } .ds-row-destructive { color: #A82431; cursor: pointer; } .ds-row-destructive:focus-visible { outline: 2px solid #B03158; outline-offset: -2px; } .ds-switch { width: 51px; height: 31px; border-radius: 999px; background: #F7A9BE; position: relative; } .ds-switch::after { content: ''; position: absolute; right: 2px; top: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; } .ds-group-foot { font-size: 13px; line-height: 18px; color: #7D5A54; padding: 0 16px; }"
+    },
+    {
+      "name": "Postcard Stack",
+      "kind": "custom",
+      "refersTo": "postcard-today",
+      "description": "Stats' week: tilted day edges tucked under today's postcard.",
+      "html": "<div class=\"ds-stack\"><div class=\"ds-edge\" style=\"transform: rotate(-0.6deg)\"><span class=\"ds-edge-day\">Wed 29</span><span class=\"ds-dash\"></span><span class=\"ds-edge-n\"></span></div><div class=\"ds-edge\" style=\"transform: rotate(0.6deg)\"><span class=\"ds-edge-day\">Thu 30</span><span class=\"ds-edge-body\"><span class=\"ds-dot\"></span><span class=\"ds-dot\"></span></span><span class=\"ds-edge-n\">2</span><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"#2F7339\" aria-hidden=\"true\"><path d=\"M4.5 4 C4.5 3.45 4.95 3 5.5 3 C6.05 3 6.5 3.45 6.5 4 L6.5 21 C6.5 21.55 6.05 22 5.5 22 C4.95 22 4.5 21.55 4.5 21 Z\"/><path d=\"M5.5 3.5 L16.7 3.5 C18.01 3.5 18.76 5 17.99 6.05 L16.23 8.5 L17.99 10.95 C18.76 12 18.01 13.5 16.7 13.5 L5.5 13.5 C4.95 13.5 4.5 13.05 4.5 12.5 C4.5 11.95 4.95 11.5 5.5 11.5 L15.92 11.5 L14.19 9.08 C13.94 8.73 13.94 8.27 14.19 7.92 L15.92 5.5 L5.5 5.5 C4.95 5.5 4.5 5.05 4.5 4.5 C4.5 3.95 4.95 3.5 5.5 3.5 Z\"/></svg></div><div class=\"ds-today\"><div class=\"ds-today-date\">Friday, 31 October</div><div class=\"ds-today-title\">Today</div><div class=\"ds-today-row\"><span class=\"ds-dot ds-dot-l\"></span><span class=\"ds-dash ds-dash-l\"></span><span class=\"ds-dash ds-dash-l\"></span></div><div class=\"ds-today-line\">1 session · 25 min <span>· 25 min to the goal</span></div></div></div>",
+      "css": ".ds-stack { font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; width: 345px; } .ds-edge { display: flex; align-items: flex-start; gap: 8px; min-height: 42px; padding: 8px 12px 0; margin: 0 8px -8px; background: #FFFDFB; border: 1.5px solid #F0DAD3; border-bottom: none; border-radius: 14px 14px 0 0; box-sizing: border-box; } .ds-edge-day { width: 56px; font-size: 13px; font-weight: 600; color: #7D5A54; } .ds-edge-body { flex: 1; display: flex; gap: 3px; } .ds-edge-n { flex: 1; text-align: right; font-size: 13px; font-weight: 600; color: #4A2C29; font-variant-numeric: tabular-nums; } .ds-dot { width: 18px; height: 18px; border-radius: 50%; background: #F7A9BE; border: 2px solid #FFFFFF; box-shadow: 1px 2px 2px #4A2C2929; box-sizing: border-box; } .ds-dash { width: 16px; height: 16px; border-radius: 50%; border: 1.5px dashed #A07A72; } .ds-today { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; background: #FFFDFB; border: 1.5px solid #F0DAD3; border-radius: 22px; } .ds-today-date { font-size: 13px; font-weight: 600; color: #7D5A54; } .ds-today-title { font-family: 'Baloo 2', 'Baloo2-SemiBold', system-ui, sans-serif; font-weight: 600; font-size: 22px; line-height: 28px; color: #4A2C29; } .ds-today-row { display: flex; gap: 8px; margin: 4px 0; } .ds-dot-l { width: 40px; height: 40px; } .ds-dash-l { width: 38px; height: 38px; } .ds-today-line { font-size: 15px; color: #4A2C29; font-variant-numeric: tabular-nums; } .ds-today-line span { color: #7D5A54; }"
+    },
+    {
+      "name": "Partner Strip",
+      "kind": "card",
+      "refersTo": "paper-field",
+      "description": "The Ring's one paper field: the pair as lifted stickers and their line. No shadow on the field.",
+      "html": "<div class=\"ds-partner\"><span class=\"ds-pair\"><span class=\"ds-mascot ds-pomo\"></span><span class=\"ds-mascot ds-doro\"></span></span><span class=\"ds-partner-line\">Pomo &amp; Doro are ready when you are</span></div>",
+      "css": ".ds-partner { font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; display: flex; align-items: center; gap: 12px; width: 345px; min-height: 72px; padding: 12px 16px; box-sizing: border-box; background: #FFFDFB; border: 1.5px solid #F0DAD3; border-radius: 22px; } .ds-pair { display: flex; } .ds-mascot { width: 40px; height: 40px; border-radius: 50%; border: 2.5px solid #FFFFFF; box-shadow: 1px 2px 2px #4A2C2929; box-sizing: border-box; } .ds-pomo { background: #F7A9BE; } .ds-doro { background: #BFE5B5; margin-left: -8px; } .ds-partner-line { flex: 1; font-size: 15px; font-weight: 500; color: #4A2C29; }"
+    },
+    {
+      "name": "Goal Moment",
+      "kind": "chip",
+      "refersTo": "goal-moment",
+      "description": "The inline \"Goal reached\" pill under today's row, 1.4 s.",
+      "html": "<div class=\"ds-goal\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"#4A2C29\" aria-hidden=\"true\"><path d=\"M4.5 4 C4.5 3.45 4.95 3 5.5 3 C6.05 3 6.5 3.45 6.5 4 L6.5 21 C6.5 21.55 6.05 22 5.5 22 C4.95 22 4.5 21.55 4.5 21 Z\"/><path d=\"M5.5 3.5 L16.7 3.5 C18.01 3.5 18.76 5 17.99 6.05 L16.23 8.5 L17.99 10.95 C18.76 12 18.01 13.5 16.7 13.5 L5.5 13.5 C4.95 13.5 4.5 13.05 4.5 12.5 C4.5 11.95 4.95 11.5 5.5 11.5 L15.92 11.5 L14.19 9.08 C13.94 8.73 13.94 8.27 14.19 7.92 L15.92 5.5 L5.5 5.5 C4.95 5.5 4.5 5.05 4.5 4.5 C4.5 3.95 4.95 3.5 5.5 3.5 Z\"/></svg><span class=\"ds-goal-t\">Goal reached</span><span class=\"ds-goal-s\">3-day streak</span></div>",
+      "css": ".ds-goal { font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: #BFE5B5; color: #4A2C29; border-radius: 999px; animation: ds-fade 250ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-goal-t { font-size: 16px; font-weight: 700; } .ds-goal-s { font-size: 15px; font-weight: 500; } @keyframes ds-fade { from { opacity: 0; } to { opacity: 1; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Sticker Diary",
+    "overview": "The app is the diary a student couple keeps together, the kind of kawaii stationery people carry to the library. Its pages are the screens: soft paper fields with crisp edges, set in calm, quiet chrome. Its stickers are the rewards. Pomo & Doro, two small round characters (a strawberry with one curl and a matcha dome; together they make the timer's colon), are drawn as stickers, and every completed session, landed flight, garden harvest and couple milestone is a sticker placed onto the diary. The mark, **Same Page**, is two pages of one open diary, leaning in. The paper stays calm; the stickers carry the emotion.\n\nIt is an Operate product first. A student opens it to start a focus session in seconds and to see that their partner is there. The world lends four things only: **type, palette, density, and one signature move**. Navigation, layout model and controls stay native: a tab bar, sheets, switches and pickers that a fluent iPhone or Android user already trusts. Long-distance is the lead situation, so **both partners are always in the frame**: the partner's presence, intention and local time are part of the page, not a detail behind a tap.\n\nThe tone is soft, not sugary. It is cute enough to be loved and grown-up enough that a university student is happy to open it in a lecture hall. There is one delightful moment per screen, never ten. Nothing in the visual language ever scolds.",
+    "keyCharacteristics": [
+      "Paper pages, sticker rewards, calm chrome.",
+      "Pomo & Doro carry the emotion; the interface does not perform.",
+      "Both partners visible on every primary screen.",
+      "Native navigation and controls; the brand lives in type, palette, density, icons and the sticker move.",
+      "One delight per screen; nothing ever punishes."
+    ],
+    "rules": [
+      {
+        "name": "The Contrast Gate Rule",
+        "body": "Every text and background pair in every theme meets 4.5:1 for body text, and 3:1 for large text and icons. A script over the token file proves it. A theme that fails does not ship.",
+        "section": "colors"
+      },
+      {
+        "name": "The Paper Not Gradient Rule",
+        "body": "Fields are flat paper colours. No purple-to-blue aurora, no gradient text, no gradient buttons.",
+        "section": "colors"
+      },
+      {
+        "name": "The Exact Ground Rule",
+        "body": "Every screen's ground is exactly `page`: #FFF6F1 in Strawberry Milk and #221726 in Midnight Plum. The status-bar band, the Modes sheet and the note editor take the same `page`; only the love-note sheet is `paper`.",
+        "section": "colors"
+      },
+      {
+        "name": "The Theme Is The Product Rule",
+        "body": "Themes are part of what Plus sells, so the palette never yields to Android Dynamic Color (Material You) wallpaper colours. The one exception is opt-in: a \"Match my wallpaper\" theme (Android 12+), planned with the Plus themes after v1.4. Because wallpaper colours can't be checked at build time, that theme needs a runtime contrast guard that falls back to the brand roles.",
+        "section": "colors"
+      },
+      {
+        "name": "The Steady Digits Rule",
+        "body": "Timer numerals use tabular figures in every theme and locale. A digit that changes width is a bug.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Large Number Rule",
+        "body": "On Classic the timer is the only display-scale type: the phase line, the partner line and every control are in the system face, and no title competes. Sheet titles (Modes) are in the system face. Baloo 2 appears only as the timer, a tab's title, the welcome line and today's postcard title.",
+        "section": "typography"
+      },
+      {
+        "name": "The Locale Casing Rule",
+        "body": "Text is never cased by a style (`textTransform`); casing goes through the locale's own `toLocaleUpperCase`, so a Turkish i becomes İ, not I.",
+        "section": "typography"
+      },
+      {
+        "name": "The Only Stickers Lift Rule",
+        "body": "Chrome is flat at rest. If a control or card needs a shadow to be found, its tone or edge is wrong. Stickers lift wherever they appear: the pose stickers, today's row, the postcards.",
+        "section": "elevation"
+      },
+      {
+        "name": "The No Glass Rule",
+        "body": "No decorative blur or glassmorphism, including the tab bar. Blur intensity and Android `elevation` are never animated. *Known deviation, stated honestly:* the iOS tab bar is NativeTabs' system bar, which iOS 26 draws as Liquid Glass. It is the platform's own chrome, not a surface the app draws; the app tints only the selected item (`primaryInk`) and leaves the unselected items in the system's adaptive monochrome. Every surface the app draws itself stays glass-free.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep both partners visible on every primary screen: presence, intention and local time.",
+      "Do spend each screen's single delight on the sticker placement, and keep everything else calm.",
+      "Do use the platform's own controls (switches, pickers, segmented controls, sheets, alerts) and theme them through tint, type and shape.",
+      "Do prove the 4.5:1 and 3:1 contrast with the token script for every theme, light and dark.",
+      "Do draw every icon from the VectorCraft set at one stroke weight.",
+      "Do give every gesture-only moment a non-gesture fallback (press-and-hold \"Board\" for the boarding-pass tear).",
+      "Do take every size from the scales: spacing 4 / 8 / 12 / 16 / 24 / 32, radius 8 / 14 / 22 / pill, the 1.5 pt edge, 44 pt targets.",
+      "Do keep one moving part during focus: the ring's arc or the spine's bar, nothing else.",
+      "Do keep the Modes button at the top trailing corner in every mode, so the way in is the way back.",
+      "Do keep the postcard stack's alternating tilt and Facing Pages' 1° lean; they are the only tilted chrome."
+    ],
+    "donts": [
+      "Don't go babyish: no primary-colour cartoon, no oversized bubbly toddler-app UI. A university student must be happy to open this in a library.",
+      "Don't let a mascot sulk, cry, wilt or nag, and never shame a missed day or a broken streak. Plants only look sleepy.",
+      "Don't draw a tomato anywhere, or a clock, timer ring or heart in the mark: those are the category's habits (ADR-0047).",
+      "Don't fall back to generic grey productivity: a grey-and-white screen with one accent colour is not restraint here, it is a different product.",
+      "Don't overload with candy: no neon pinks, glitter or sparkles everywhere, and never more than one delight moment per screen.",
+      "Don't use purple-to-blue aurora gradients, gradient text or a decorative blur tab bar.",
+      "Don't use emoji or Unicode glyphs as icons. Emoji belong only in push-notification copy and in text users write.",
+      "Don't nest cards, or use a modal where a sheet or an inline moment would do.",
+      "Don't use hard offset (zero-blur) shadows or grey drop shadows.",
+      "Don't draw a sticker's shadow with an SVG blur filter or a view shadow; use the three-layer silhouette.",
+      "Don't set display type anywhere but the timer, a tab's title, the welcome line and today's postcard title."
+    ]
+  }
+}

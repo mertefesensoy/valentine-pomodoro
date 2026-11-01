@@ -31,7 +31,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | 5. `break-ui` (TR at AX5) | 2 Ugly (the zero-goal summary, the strip at AX5) and the shared number formats: **fixed**; a streak of 0 softened (§3.13) | The number formats: **fixed**; Turkish words wider than a row: accepted (the owner) | 2 Broken (an emoji cut at the cap, the editor header at AX5) and 1 Ugly (line breaks lost): **fixed** | Retired: none |
 | 6. `polish`, `harden`, `clarify` | Done: "Turn on a daily goal" opens Settings at the goal row; Turkish "kaldı" (§3.14). The Turkish copy and the default notes: **reviewed** by the owner, six note changes applied (§3.15) | Done: a failed reminder told from a refusal; "Check for updates" offline; link rejections; "Sound and haptics" (§3.14) | Done (§3.13–3.14) | Retired: none |
 | 7. Device check (the next build, with D1's finish-review fixes) | Builds 51–53 checked and fixed (§3.11, §3.17, §3.20). **Build 54: passed** (the owner, 2026-11-01, §3.22) | **Build 54: passed** | **Build 54: passed** | Retired: none |
-| FINISH: the finish review, its verdict, DESIGN.md | Round 1: **fix** (§3.23). Round 2, on build 55: **ship**; fix 2 verified by code; today's card now holds one row of whole cells (§3.26). DESIGN.md waits for D1's open fix | Round 1: faithful | Round 1: faithful; fix 4 resolved by code (§3.25) | Retired: none |
+| FINISH: the finish review, its verdict, DESIGN.md | **Done**, 2026-11-01. Round 1: **fix** (§3.23); round 2: **ship** (§3.25); today's card in whole rows (§3.26). **DESIGN.md written**, with D1's (D1 record §3.24) | Round 1: faithful; DESIGN.md written | Round 1: faithful; fix 4 resolved by code; DESIGN.md written | Retired: none |
 
 **Alongside the screens** (Stage D plan §3.3), D2 also does:
 - the emoji check;

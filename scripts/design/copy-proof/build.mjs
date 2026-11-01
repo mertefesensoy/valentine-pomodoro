@@ -20,6 +20,9 @@ const SECTIONS = [
     { id: 'stats', title: 'Stats', phase: 'D2', ns: ['stats'] },
     { id: 'settings', title: 'Settings', phase: 'D2', ns: ['settings', 'updates'] },
     { id: 'notes-screen', title: 'Love notes screen', phase: 'D2', ns: ['notesScreen'] },
+    { id: 'fly', title: 'Fly', phase: 'D3', ns: ['fly', 'airportPicker'] },
+    { id: 'notifications', title: 'Notifications', phase: 'D3', ns: ['notifications'] },
+    { id: 'not-found', title: 'A page that doesn’t exist', phase: 'D3', ns: ['notFound'] },
 ];
 
 const covered = new Set(SECTIONS.flatMap((s) => s.ns));

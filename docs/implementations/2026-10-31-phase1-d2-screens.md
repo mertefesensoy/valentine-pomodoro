@@ -826,6 +826,49 @@ It carries §3.18's notification fix and §3.17's eight nits.
 
 The device check is §6 "the next build's device check": §3.18's notifications, §3.17's eight nits, then D1's six captures for its verdict pass.
 
+### 3.20 The build 53 device check: the fixes hold; landscape Classic and the status bar fixed
+
+**The owner, 2026-11-01,** sent 15 screenshots: "Here is the new picks but there are other problems".
+
+**What the screenshots confirm** (§3.17, §3.18):
+- **The notifications:** "Focus complete 💗 · Time for a sweet break" arrives as a focus ends, with the love note; nothing arrives at the start.
+- **The stickers** lift with a soft shadow and no square: Facing Pages, the Ring's partner strip, today's row, Stats.
+- **Settings:** "Custom" sits level in its pill.
+- **Stats:** the strip's "Best 2" is on its own line; the ad slot draws its paper and edge with an ad in it (landscape, filled).
+- **Fly, landscape:** the setup panel ("From" and "To" aligned, the timer in ink) and a flight in the peeked panel.
+
+**The problems found in them, and fixed:**
+
+| # | Problem | Cause | Fix |
+|---|---|---|---|
+| 1 | **Classic in landscape (both layouts):** an empty area under the phase line where the Ring should be; the partner strip shows the pair with no line; today's cells stack one a line down the right edge; the Ring and the pages run under the floating tab bar | The column kept the portrait readable cap, 560 less the gutters (512 pt). In the compact row the face grew from its own width (about 348 pt), the trailing column from zero, so the trailing column got about 80 pt. That hid the line, and today's row, which planned its cells from the window (twelve a line), wrapped one a line. The column grew several screens tall, and the face, centred against it, began below the screen. The face was also sized without the phase line above it, so it overflowed the height | In landscape (compact height) the page spans the width between the side insets (`TimerScreen.tsx`). The face takes half of it, less the gap, and the whole height between the insets and the page's padding. The Ring is the smaller of the two; Facing Pages takes the width. The face's column is at least that tall, with the face centred in it. The phase line and the Modes button head the trailing column, so nothing sits above the face; VoiceOver now reads the timer first there. Today's row takes a `rowWidth`, the trailing column's width, to plan its cells (`TodayStickers.tsx`) |
+| 2 | **Scrolled tabs run under the status bar:** Classic's phase line over the clock and the Modes button over the battery; Settings' and Notes' rows behind the clock | The tabs draw their titles in the content, with no navigation bar (HIG X-2, kept), and nothing covers the status bar's band | `StatusBarScrim` (`src/components/ui`, new): a band of the page's colour as tall as the top inset, over the scroll view, taking no touches, drawn on Classic, Stats, Settings and Notes. Settings and Notes add it in a Fragment beside their list, so their long render blocks keep their indentation. It draws nothing where the top inset is 0 (landscape) |
+
+**Seen and kept:**
+- With a 1-minute custom focus and a 50-minute goal, today's row fills both rows with dashed cells and the Ring page scrolls a little at the default size. The Ring keeps its 200 pt floor; the scrim keeps the scrolled phase line off the clock.
+- The ad band takes a share of Stats in landscape: the banner's own height.
+
+**Tests:**
+- `classic.test.tsx`, landscape on an iPhone 15 (852 × 393):
+  - the Ring is min(369, 390) pt;
+  - the phase line heads the trailing column, beside the partner line;
+  - today's row plans two rows of eight (16 dashed cells) for the 390 pt column, against 24 planned from the window.
+  - Each fails on the old code (a 358 pt Ring, the phase line outside the column, 24 cells).
+- `StatusBarScrim.test.tsx` (new): the band's height, colour and `pointerEvents`; nothing with no top inset.
+
+**D1's verdict pass** has these captures from builds 52–53: Facing Pages paused in dark, the Ring on a break, today's row, Fly running (landscape). It still needs Facing Pages in light, the shadows in light, and the Modes sheet over Classic and over Fly, on the next build.
+
+**Guards:**
+
+| Guard | Result |
+|---|---|
+| Jest | 56 suites, 400 tests, all passing |
+| Lint | 0 errors, 29 warnings |
+| tsc | Clean |
+| React Compiler | 81 compiled, 5 skipped (`StatusBarScrim` is new) |
+| The emoji check | Clean |
+| Reassure | Unchanged: Timer 13, Stats 1, Settings 1, Notes 1, leaf 12, settings-only 1 |
+
 **Tests:**
 - **`settings.test.tsx`:** a failed schedule says so, is announced, and offers no iOS Settings row; a denial keeps its footer and row (permissions mocked per test). The goal group scrolls into view once laid out, then the request clears.
 - **`stats.test.tsx`:** "Turn on a daily goal" requests the goal group.
@@ -890,7 +933,8 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
      - An emoji typed at the end of a full note never leaves a "�".
      - Judge how long notes read at the largest size (the owner kept the full text).
 - [x] **The owner's copy review** on the copy proof page (§3.14, done: §3.15): every Turkish string (D1's and D2's) and the 21 default notes in both languages, and the two tab-title questions. The marks are read back and applied before build 52.
-- [ ] **The device check, build 53** (submitted, §3.19): §3.18's notifications first. Start a focus and lock the phone: nothing arrives at the start. At its end, "Focus complete 💗 · Time for a sweet break". At the break's end, "Break's over 💘 · Back to your goals". With the app open, the banner comes at the end too. Fly's "Landed!" comes on landing. Then the eight nits of §3.17. The stickers lift with a soft shadow and no square, in both themes. "Custom" sits level in its pill. Fly's peeked sheet shows its mode line above the bar; its timer is in ink; "From" and "To" align. No empty band on Stats. "Best n" on its own line. Restore adds no near-duplicates. Then D1's six captures for its verdict pass.
+- [x] **The device check, build 53** (the owner, 2026-11-01: the fixes hold; two new problems fixed in §3.20). Its list was: §3.18's notifications first. Start a focus and lock the phone: nothing arrives at the start. At its end, "Focus complete 💗 · Time for a sweet break". At the break's end, "Break's over 💘 · Back to your goals". With the app open, the banner comes at the end too. Fly's "Landed!" comes on landing. Then the eight nits of §3.17. The stickers lift with a soft shadow and no square, in both themes. "Custom" sits level in its pill. Fly's peeked sheet shows its mode line above the bar; its timer is in ink; "From" and "To" align. No empty band on Stats. "Best n" on its own line. Restore adds no near-duplicates. Then D1's six captures for its verdict pass.
+- [ ] **The next build's device check:** §3.20. Classic in landscape, both layouts: the face fills the left half at full height with no empty area; the phase line and Modes button head the right column; the partner line shows; today's cells sit in two rows; nothing runs under the tab bar. Scrolled tabs (Classic, Stats, Settings, Notes) never run under the clock. Then D1's remaining captures: Facing Pages in light, the shadows in light, the Modes sheet over Classic and over Fly.
 - [ ] B2's notes tests stay green: Bengisu's install keeps its notes.
 - [ ] The emoji check (`src/__tests__/noEmojiIcons.test.ts`) passes.
 - [ ] **The device check, build 51** (needs a physical device). It goes with the D1 record's §6 "build 51" list, for D1's finish fixes and the six recaptures.

@@ -11,6 +11,7 @@ import { goal as goalGlyph } from '../components/icons/art/goal';
 import { streak as streakGlyph } from '../components/icons/art/streak';
 import { ButtonRow, ListGroup } from '../components/settings/SettingsList';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
+import { StatusBarScrim } from '../components/ui/StatusBarScrim';
 import { useHasBeenFocused, useScreenFocused } from '../hooks/useScreenFocus';
 import { formatNumber, t } from '../i18n';
 import { useSettingsFocus } from '../stores/settingsFocusStore';
@@ -275,6 +276,7 @@ export default function StatsScreen() {
                     </Text>
                 </View>
             </ScrollView>
+            <StatusBarScrim />
             {/* The bottom inset includes the native tab bar (Phase 1 B6); the slot sits above it,
                 with about 12 pt between the ad and the bar (its own padding plus this margin). */}
             <View

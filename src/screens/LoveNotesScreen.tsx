@@ -8,6 +8,7 @@ import { Icon } from '../components/icons/Icon';
 import { plus } from '../components/icons/art/plus';
 import { ButtonRow, ListGroup } from '../components/settings/SettingsList';
 import { PressableScale } from '../components/ui/PressableScale';
+import { StatusBarScrim } from '../components/ui/StatusBarScrim';
 import { t } from '../i18n';
 import { useLoveNoteSheet } from '../stores/loveNoteSheetStore';
 import { useNotesStore } from '../stores/notesStore';
@@ -218,6 +219,7 @@ export default function LoveNotesScreen() {
     );
 
     return (
+        <>
         <FlatList
             style={{ backgroundColor: tokens.page }}
             contentContainerStyle={[
@@ -246,6 +248,8 @@ export default function LoveNotesScreen() {
             ListFooterComponentStyle={styles.footerSpacing}
             ListEmptyComponent={empty}
         />
+        <StatusBarScrim />
+        </>
     );
 }
 

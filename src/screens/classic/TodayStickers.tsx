@@ -133,6 +133,13 @@ type Props = {
     onGoalMomentDone: () => void;
     /** Whether a new sticker may play its placement (Timer focused); otherwise it just appears. */
     animate: boolean;
+    /**
+     * The width the row has, in points. Without it, the portrait column's width (the window's,
+     * capped at 560, less the gutters). Landscape passes its trailing column's: planned from the
+     * window, the row expected a dozen cells a line in a column a fraction as wide, and wrapped one
+     * cell a line (build 53 device check, D2 record §3.20).
+     */
+    rowWidth?: number;
 };
 
 /**
@@ -147,11 +154,12 @@ type Props = {
  * "Goal reached" is an inline moment here (brief §6), not a modal: it shows for 1.4 s with the
  * streak, then leaves the goal mark in the row for the rest of the day.
  */
-export function TodayStickers({ tokens, count, goalHit, sessionsToGoal, goalStreak, onGoalMomentDone, animate }: Props) {
+export function TodayStickers({ tokens, count, goalHit, sessionsToGoal, goalStreak, onGoalMomentDone, animate, rowWidth }: Props) {
     const goalMoment = goalStreak !== null;
     const reduced = useReducedMotion();
     const { width } = useWindowDimensions();
-    const perRow = Math.max(4, Math.floor((Math.min(width, 560) - space.xl * 2 - CELL - LABEL_ROOM) / CELL));
+    const row = rowWidth ?? Math.min(width, 560) - space.xl * 2;
+    const perRow = Math.max(4, Math.floor((row - CELL - LABEL_ROOM) / CELL));
     const capacity = perRow * ROWS;
     const overflow = count > capacity ? count - (capacity - 1) : 0;
     const shown = overflow ? capacity - 1 : count;

@@ -18,6 +18,7 @@ import { router } from 'expo-router';
 
 import { ButtonRow, ListGroup, NumberWheel, SwitchRow, TimeRow, ValueRow } from '../components/settings/SettingsList';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
+import { StatusBarScrim } from '../components/ui/StatusBarScrim';
 import { APP_NAME } from '../constants/app';
 import { DURATION_LIMITS, classicLayoutOf, customDurationsOf, editCustomPatch, type ClassicLayout } from '../constants/presets';
 import { useUpdateCheck } from '../hooks/useUpdateCheck';
@@ -202,6 +203,7 @@ export default function SettingsScreen() {
     };
 
     return (
+        <>
         <ScrollView
             ref={scroll}
             style={{ backgroundColor: tokens.page }}
@@ -392,6 +394,8 @@ export default function SettingsScreen() {
                 </ListGroup>
             </View>
         </ScrollView>
+        <StatusBarScrim />
+        </>
     );
 }
 

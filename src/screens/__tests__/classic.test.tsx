@@ -1,5 +1,5 @@
 // covers: FR-SET-001, NFR-I18N-001, NFR-A11Y-003, NFR-A11Y-002
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import { Dimensions, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -234,6 +234,58 @@ describe('Classic after its first reviews (critique, HIG, review-animations)', (
             // Never wider than its cap: 86 % of the 345 pt column.
             await act(async () => fireEvent(slot, 'layout', layout(600)));
             expect(ringWidth()).toBeCloseTo(345 * 0.86);
+        });
+    });
+});
+
+// Build 53 device check (D2 record §3.20): in landscape the column kept the 560 pt readable cap, so
+// the trailing column got about 80 pt. The partner line vanished, today's cells stacked one a line,
+// and the face, centred against that tall column, began below the screen. Landscape now uses the
+// width between the side insets: the face takes half and the whole height, and the phase line
+// heads the trailing column.
+describe('Classic in landscape', () => {
+    // An iPhone 15 on its side, at the default text size (Jest's insets are 0).
+    async function onLandscape(run: () => Promise<void>) {
+        const jestWindow = Dimensions.get('window');
+        const landscape = { width: 852, height: 393, scale: 3, fontScale: 1 };
+        try {
+            await act(async () => Dimensions.set({ window: landscape, screen: landscape }));
+            await run();
+        } finally {
+            await act(async () => Dimensions.set({ window: jestWindow, screen: jestWindow }));
+        }
+    }
+    // The page: 852 less the 24 pt gutters; the face: half of it, less the gap; the height: 393
+    // less the page's top (8) and bottom (16) padding.
+    const pageWidth = 852 - 48;
+    const faceWidth = (pageWidth - 24) / 2;
+    const faceHeight = 393 - 8 - 16;
+
+    it('sizes the Ring to the height it has, beside a trailing column of half the page', async () => {
+        await onLandscape(async () => {
+            await show(<TimerScreen />);
+            const ring = StyleSheet.flatten(screen.getByTestId('phase-ring').props.style);
+            expect(ring.width).toBe(Math.min(faceHeight, faceWidth));
+        });
+    });
+
+    it('heads the trailing column with the phase line, beside the partner line', async () => {
+        await onLandscape(async () => {
+            await show(<TimerScreen />);
+            const trailing = screen.getByRole('header', { name: /^Focus/ }).parent!.parent!;
+            expect(within(trailing).getByText('Pomo & Doro are ready when you are')).toBeOnTheScreen();
+            expect(within(trailing).queryByTestId('phase-ring')).toBeNull();
+        });
+    });
+
+    it("plans today's row for the trailing column's width: two rows of eight", async () => {
+        await onLandscape(async () => {
+            await show(<TimerScreen />);
+            // The largest goal, so the dashed cells fill the row's capacity.
+            await act(async () => useStatsStore.setState({ goalMinutes: 1440 }));
+            const dashed = JSON.stringify(screen.toJSON()).match(/"borderStyle":"dashed"/g) ?? [];
+            // (390 − 34 − 68) / 34 → 8 a row; planned from the window it was 12 (24 cells).
+            expect(dashed).toHaveLength(16);
         });
     });
 });

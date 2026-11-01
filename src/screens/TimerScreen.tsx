@@ -8,6 +8,7 @@ import TimerText from "../components/TimerText";
 import { Icon } from "../components/icons/Icon";
 import { modes as modesGlyph } from "../components/icons/art/modes";
 import { PressableScale } from "../components/ui/PressableScale";
+import { StatusBarScrim } from "../components/ui/StatusBarScrim";
 import { useSessionState } from "../hooks/useSessionClock";
 import { useSlotProgress } from "../hooks/useSlotClock";
 import { useNotesStore } from "../stores/notesStore";
@@ -335,7 +336,20 @@ export default function TimerScreen() {
 
   const layout = classicLayoutOf(settings);
   const compactHeight = height < COMPACT_HEIGHT;
-  const pageWidth = Math.min(width, READABLE_WIDTH) - space.xl * 2;
+  // Landscape (compact height) uses the width between the side insets; the readable cap is for a
+  // portrait column. Capped, the face took most of 512 pt and the trailing column got about 80 pt:
+  // the partner line vanished, today's cells stacked one a line, and the column grew so tall the
+  // face, centred against it, began below the screen (build 53 device check, D2 record §3.20).
+  const pageWidth = compactHeight
+    ? width - insets.left - insets.right - space.xl * 2
+    : Math.min(width, READABLE_WIDTH) - space.xl * 2;
+  // Landscape: the face takes half the page and the whole height between the insets and the page's
+  // padding; the phase line moves into the trailing column, so nothing sits above the face.
+  const compactFace = {
+    width: (pageWidth - space.xl) / 2,
+    height: height - insets.top - insets.bottom - space.s - space.l,
+  };
+  const trailingWidth = pageWidth - compactFace.width - space.xl;
   const pose = poseFor(phase, isRunning);
   // The partner line says what the pair is doing now (critique P3, HIG B-L1).
   const partnerLine = isRunning ? (isBreak ? 'partner.break' : 'partner.studying') : paused ? 'partner.paused' : 'partner.ready';
@@ -375,7 +389,7 @@ export default function TimerScreen() {
   const goalMomentShowing = !!goalPopup && focused;
   const ringCap = Math.min(pageWidth * (fontScale >= STACK_FONT_SCALE ? 0.66 : 0.86), 340);
   const ringSize = compactHeight
-    ? Math.min(height - insets.top - insets.bottom - space.xl, width * 0.42)
+    ? Math.min(compactFace.height, compactFace.width)
     : ringFits && ringSlot !== null
       ? Math.max(MIN_RING, Math.min(ringCap, ringSlot))
       : Math.min(ringCap, height * 0.36);
@@ -384,7 +398,7 @@ export default function TimerScreen() {
     layout === 'spread' ? (
       <SpreadPages
         tokens={tokens}
-        width={compactHeight ? Math.min(pageWidth, width * 0.5) : pageWidth}
+        width={compactHeight ? compactFace.width : pageWidth}
         stacked={fontScale >= STACK_FONT_SCALE}
         pose={pose}
         progress={ringProgress}
@@ -436,6 +450,7 @@ export default function TimerScreen() {
       goalStreak={goalPopup && focused ? goalPopup.newStreak : null}
       onGoalMomentDone={clearGoalHitPulse}
       animate={focused}
+      rowWidth={compactHeight ? trailingWidth : undefined}
     />
   );
 
@@ -455,6 +470,26 @@ export default function TimerScreen() {
       cycleDone={completedFocusCountInCycle}
       cycleLength={cycleTotal}
     />
+  );
+
+  const topRow = (
+    <View style={styles.topRow}>
+      <Text style={styles.phaseLine} maxFontSizeMultiplier={1.6} accessibilityRole="header">
+        <Text style={{ color: tokens.ink }}>{phaseLabel}</Text>
+        <Text style={{ color: tokens.inkSoft }}>
+          {' · '}
+          {t('timer.session', { n: sessionN, total: cycleTotal })}
+        </Text>
+      </Text>
+      <PressableScale
+        onPress={() => router.push('/modes')}
+        haptic={false}
+        accessibilityLabel={t('modes.button')}
+        style={styles.modeButton}
+      >
+        <Icon glyph={modesGlyph} size={24} color={tokens.ink} />
+      </PressableScale>
+    </View>
   );
 
   return (
@@ -490,28 +525,13 @@ export default function TimerScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={[styles.column, { width: pageWidth }]}>
-            <View style={styles.topRow}>
-              <Text style={styles.phaseLine} maxFontSizeMultiplier={1.6} accessibilityRole="header">
-                <Text style={{ color: tokens.ink }}>{phaseLabel}</Text>
-                <Text style={{ color: tokens.inkSoft }}>
-                  {' · '}
-                  {t('timer.session', { n: sessionN, total: cycleTotal })}
-                </Text>
-              </Text>
-              <PressableScale
-                onPress={() => router.push('/modes')}
-                haptic={false}
-                accessibilityLabel={t('modes.button')}
-                style={styles.modeButton}
-              >
-                <Icon glyph={modesGlyph} size={24} color={tokens.ink} />
-              </PressableScale>
-            </View>
-
+            {/* Landscape: the face leads at the full height, centred in it, and the phase line
+                heads the trailing column (so VoiceOver reads the timer first there). */}
             {compactHeight ? (
               <View style={styles.compact}>
-                <View style={styles.centre}>{face}</View>
+                <View style={[styles.compactFace, { width: compactFace.width, minHeight: compactFace.height }]}>{face}</View>
                 <View style={styles.trailing}>
+                  {topRow}
                   {partner}
                   {today}
                   {controls}
@@ -519,6 +539,7 @@ export default function TimerScreen() {
               </View>
             ) : (
               <>
+                {topRow}
                 <View style={styles.centre}>
                   {ringFits ? (
                     <View
@@ -540,6 +561,7 @@ export default function TimerScreen() {
           </View>
         </ScrollView>
       )}
+      {activeMode !== 'fly' && <StatusBarScrim />}
     </View>
   );
 }
@@ -601,11 +623,16 @@ const styles = StyleSheet.create({
   compact: {
     flexGrow: 1,
     flexDirection: 'row',
+    alignItems: 'flex-start',
     gap: space.xl,
+  },
+  // Landscape's face column: half the page, at least the visible height, the face centred in it.
+  compactFace: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   trailing: {
     flex: 1,
-    justifyContent: 'center',
     gap: space.l,
   },
   timer: {

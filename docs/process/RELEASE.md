@@ -77,6 +77,7 @@ When Android returns (the [roadmap Android track](../roadmap/ROADMAP.md#android-
 - [Changelog](../../CHANGELOG.md)
 - [Valentine Pomodoro](../../README.md)
 - [Documentation map](../README.md)
+- ["Phase 1 Stage E: verify and ship v1.4.0"](../implementations/2026-11-01-phase1-stage-e.md)
 - [Branching model](BRANCHING.md)
 - [Evaluation — xtool (cross-platform Xcode replacement) vs staying on Expo/EAS](../proposals/xtool-evaluation.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)

@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-d1-classic, IMP
 
 # 2026-11-01 — Phase 1 D5: the general tutorial
 
-**Status:** In progress. The brief is confirmed, the direction contract approved, the assets are on this branch, the tutorial is built (§3.8) and its four reviews pass (§3.9) `break-ui`'s breaks are fixed (§3.10), and polish and the copy review are done (§3.11), all 2026-11-01. Nothing is seen on a device yet. The device check is next (step 9).
+**Status:** In progress. The brief is confirmed, the direction contract approved, the assets are on this branch, the tutorial is built (§3.8) and its four reviews pass (§3.9) `break-ui`'s breaks are fixed (§3.10), and polish and the copy review are done (§3.11), all 2026-11-01. The device check passed on build 58, the sounds aside (§3.12). FINISH is next, in [Stage E](2026-11-01-phase1-stage-e.md) S2.
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.9, added by the owner on 2026-11-01. This record holds what happens: each step's output, the owner's gates and the measurements.
 
@@ -31,7 +31,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 | 6. Critique, audit, HIG, `review-animations` | **Done**, 2026-11-01, after three passes and three batches (§3.9): critique 32 → **35/40**, audit 15 → **18/20**, HIG Good → **Excellent**, motion not clean → **clean** |
 | 7. `break-ui` in Turkish at AX5 | **Done**, 2026-11-01 (§3.10): 3 Broken and 1 Ugly, all fixed with the owner's two choices (a break line; the Turkish rephrased). The worst case is a Jest fixture, `tourWorstCase.test.tsx` |
 | 8. Polish, then the copy review | **Done**, 2026-11-01 (§3.11): polish found nothing to change; the copy review passed 76 of 77, with the owner's one change applied |
-| 9. Device check | **Build 57** (2026-11-01): stuck on the Stats step, under the ad banner; fixed in `03e86ea`. **Build 58** (`v1.4.0-tf.58`, EAS `0bdc6591`) is on TestFlight; the check continues (§3.12) |
+| 9. Device check | **Passed on build 58**, 2026-11-01, the owner: "All visual tests are passed" (§3.12). Build 57 had stuck on the Stats step, under the ad banner (fixed in `03e86ea`). The sounds wait for the owner's word (Stage E S1) |
 | FINISH: the finish review, its verdict, DESIGN.md's "Tutorial (first run)" row | Pending |
 
 ## 1. Problem / Motivation
@@ -738,6 +738,10 @@ Items 7, 11, 13, 14 and 15 also make up E2's v1.4 checklist (dark mode, the larg
 - **The IPA:** 21,615,727 B (+369 B on build 57).
 - **The tag:** annotated `v1.4.0-tf.58` on `03e86ea`, pushed.
 - **The device check** carries on from build 57's list, the Stats step first.
+
+**The device check on build 58: passed** (the owner, 2026-11-01): "wonderful everything is looking just like how i want it. All visual tests are passed."
+- **Covered:** the tour end to end, the Stats step with its fix included, and D3's, D1's and D2's visual items (items 1–9, 11–16 and 18 of the list).
+- **Still open:** the sounds are no visual check. The babble's level and its silencing (item 10) and D4's three sounds (item 17) wait for the owner's own word, gathered in [Stage E](2026-11-01-phase1-stage-e.md) S1.
 
 ## 4. Mathematical / Statistical Details
 

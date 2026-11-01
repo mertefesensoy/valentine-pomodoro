@@ -31,7 +31,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | 5. `break-ui` (TR at AX5) | 2 Ugly (the zero-goal summary, the strip at AX5) and the shared number formats: **fixed**; a streak of 0 softened (§3.13) | The number formats: **fixed**; Turkish words wider than a row: accepted (the owner) | 2 Broken (an emoji cut at the cap, the editor header at AX5) and 1 Ugly (line breaks lost): **fixed** | Retired: none |
 | 6. `polish`, `harden`, `clarify` | Done: "Turn on a daily goal" opens Settings at the goal row; Turkish "kaldı" (§3.14). The Turkish copy and the default notes: **reviewed** by the owner, six note changes applied (§3.15) | Done: a failed reminder told from a refusal; "Check for updates" offline; link rejections; "Sound and haptics" (§3.14) | Done (§3.13–3.14) | Retired: none |
 | 7. Device check (the next build, with D1's finish-review fixes) | Builds 51–53 checked and fixed (§3.11, §3.17, §3.20). **Build 54: passed** (the owner, 2026-11-01, §3.22) | **Build 54: passed** | **Build 54: passed** | Retired: none |
-| FINISH: the finish review, its verdict, DESIGN.md | Round 1: **fix**; fixes 1–3 built (§3.23); round 2 waits for captures | Round 1: faithful | Round 1: faithful; fix 4 built (§3.23) | Retired: none |
+| FINISH: the finish review, its verdict, DESIGN.md | Round 1: **fix**; fixes 1–3 built (§3.23), on TestFlight as build 55 (§3.24); round 2 waits for its captures | Round 1: faithful | Round 1: faithful; fix 4 built (§3.23) | Retired: none |
 
 **Alongside the screens** (Stage D plan §3.3), D2 also does:
 - the emoji check;
@@ -976,6 +976,26 @@ The device check is §6 "the next build's device check" (§3.20's items), then D
 
 The same round takes D1's remaining four captures (§3.22), so one build serves both verdict passes.
 
+### 3.24 Build 55 (the owner, 2026-11-01: "Build, submit, push tag")
+
+It carries §3.23's four fixes: Stats spans the width in landscape and closes its stack's last edge there; every Minutes track ends at the same x; Notes matches the 528 pt iPad column.
+
+| Item | Value |
+|---|---|
+| Commit | `0441d3a` on `phase1/stage-d` (the branch stays unpushed) |
+| Command | `eas build --platform ios --profile production --non-interactive --no-wait --auto-submit --json` |
+| Pre-flight | The tree clean. Jest 56 suites, 405 tests; lint 0 errors; tsc clean; the React Compiler 81 compiled, 5 skipped; the emoji check clean; Reassure unchanged (§3.23). `expo-doctor`: 18 of 20, the same two failures as builds 52–54 |
+| Version and build | 1.4.0 (55); EAS incremented the remote build number from 54 |
+| EAS build | `894ddd56-fbfd-4588-9dfc-af95a0415d07`, created 2026-11-01 06:49 UTC (09:49 UTC+3) |
+| Build result | **Finished** 06:55 UTC (09:55 UTC+3); EAS reports the source as `0441d3a6` |
+| TestFlight submission | `8550bfd2-dc99-46c0-b7df-43e87caf39d8`, **finished**: EAS's `submit-ios` workflow succeeded at 06:55:22 UTC |
+| Tag | `v1.4.0-tf.55`, annotated, on `0441d3a`, **pushed** on the owner's word in the same message as the build. The remote tag object is `7f89a9f` and peels to `0441d3a`; the branch stays unpushed |
+| IPA | **21,706,841 B**, +202 B (+0.001 %) on build 54 (21,706,639 B) |
+
+**What build 55 is for:** the captures for both finish reviews' second rounds (§6):
+- D2 (§3.23): Stats in landscape, in Sessions and in Minutes; Stats in portrait, in Minutes.
+- D1 (§3.22): Facing Pages in light; the shadows in light; the Modes sheet over Classic and over Fly.
+
 ## 4. Mathematical / Statistical Details
 
 None yet. The week's sticker capacity and the goal counts will reuse D1's rules (D1 record §4.3) when Stats is built.
@@ -1026,7 +1046,7 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
 - [x] **The owner's copy review** on the copy proof page (§3.14, done: §3.15): every Turkish string (D1's and D2's) and the 21 default notes in both languages, and the two tab-title questions. The marks are read back and applied before build 52.
 - [x] **The device check, build 53** (the owner, 2026-11-01: the fixes hold; two new problems fixed in §3.20). Its list was: §3.18's notifications first. Start a focus and lock the phone: nothing arrives at the start. At its end, "Focus complete 💗 · Time for a sweet break". At the break's end, "Break's over 💘 · Back to your goals". With the app open, the banner comes at the end too. Fly's "Landed!" comes on landing. Then the eight nits of §3.17. The stickers lift with a soft shadow and no square, in both themes. "Custom" sits level in its pill. Fly's peeked sheet shows its mode line above the bar; its timer is in ink; "From" and "To" align. No empty band on Stats. "Best n" on its own line. Restore adds no near-duplicates. Then D1's six captures for its verdict pass.
 - [x] **The device check, build 54** (the owner, 2026-11-01: "nice everything passes the checks good job"; §3.22): §3.20. Classic in landscape, both layouts: the face fills the left half at full height with no empty area; the phase line and Modes button head the right column; the partner line shows; today's cells sit in two rows; nothing runs under the tab bar. Scrolled tabs (Classic, Stats, Settings, Notes) never run under the clock. Then D1's remaining captures: Facing Pages in light, the shadows in light, the Modes sheet over Classic and over Fly.
-- [ ] **The next build's captures for the finish reviews' second rounds:** Stats in landscape (Sessions and Minutes) and in portrait (Minutes), for D2 (§3.23). Facing Pages in light, the shadows in light, and the Modes sheet over Classic and over Fly, for D1 (§3.22).
+- [ ] **Build 55's captures for the finish reviews' second rounds (§3.24):** Stats in landscape (Sessions and Minutes) and in portrait (Minutes), for D2 (§3.23). Facing Pages in light, the shadows in light, and the Modes sheet over Classic and over Fly, for D1 (§3.22).
 - [ ] B2's notes tests stay green: Bengisu's install keeps its notes.
 - [ ] The emoji check (`src/__tests__/noEmojiIcons.test.ts`) passes.
 - [ ] **The device check, build 51** (needs a physical device). It goes with the D1 record's §6 "build 51" list, for D1's finish fixes and the six recaptures.

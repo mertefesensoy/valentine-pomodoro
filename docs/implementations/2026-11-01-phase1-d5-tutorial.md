@@ -32,7 +32,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 | 7. `break-ui` in Turkish at AX5 | **Done**, 2026-11-01 (§3.10): 3 Broken and 1 Ugly, all fixed with the owner's two choices (a break line; the Turkish rephrased). The worst case is a Jest fixture, `tourWorstCase.test.tsx` |
 | 8. Polish, then the copy review | **Done**, 2026-11-01 (§3.11): polish found nothing to change; the copy review passed 76 of 77, with the owner's one change applied |
 | 9. Device check | **Passed on build 58**, 2026-11-01, the owner: "All visual tests are passed" and "Yes, sounds passed" (§3.12). Build 57 had stuck on the Stats step, under the ad banner (fixed in `03e86ea`) |
-| FINISH: the finish review, its verdict, DESIGN.md's "Tutorial (first run)" row | Pending |
+| FINISH: the finish review, its verdict, DESIGN.md's "Tutorial (first run)" row | **Round 1: recapture**, 2026-11-01 (§3.13): no captures of build 58. The owner chooses: recapture, or waive with the device check as the verdict |
 
 ## 1. Problem / Motivation
 
@@ -742,6 +742,16 @@ Items 7, 11, 13, 14 and 15 also make up E2's v1.4 checklist (dark mode, the larg
 **The device check on build 58: passed** (the owner, 2026-11-01): "wonderful everything is looking just like how i want it. All visual tests are passed."
 - **Covered:** the tour end to end, the Stats step with its fix included, and D3's, D1's and D2's visual items (items 1–9, 11–16 and 18 of the list).
 - **The sounds, passed** (the owner, 2026-11-01, asked separately because they aren't visual): "Yes, sounds passed". That covers the babble's level, the silent switch, Settings › Sound and the tour's mute (item 10), and D4's three sounds with the silent switch, the music mix and the Sound switch (item 17). **Every item of the list has passed.**
+
+### 3.13 FINISH: the finish review
+
+**Round 1, 2026-11-01: recapture.** The `impeccable-finish-reviewer` sub-agent, briefed with the contract, the comp, the pose sheet, the code and §3.7–3.12, stopped at its check 0, as D1's round 1 did (D1 record §3.21):
+- **The app ships two device classes:** `app.json` has `supportsTablet: true`, and the brief promises its own landscape and iPad placement.
+- **So the review needs** a phone capture and an iPad capture of the tour's first viewport (step 1, the presets).
+- **The only capture on file,** build 57's stuck Stats step, shows a defect since fixed and proves nothing about build 58.
+- **Recommended for the same round:** the Stats step with the banner, step 1 at an AX size, the Modes sheet's bubble, and step 1 in landscape.
+
+**The choice is the owner's,** as it was for D2: recapture (phone, and iPad if there is one), or waive the captures and let the verdict be the owner's device check on build 58, which passed every item (§3.12). D2's finish review was waived the same way (D1 record, the FINISH row).
 
 ## 4. Mathematical / Statistical Details
 

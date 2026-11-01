@@ -80,6 +80,35 @@ Each step names who acts. Every push, merge, EAS build, TestFlight submission, s
 | R5 | **The update prompt:** `latestVersion` in `update.json` on `gh-pages` set to 1.4.0, and the served file checked | **The owner's go-ahead**, then Claude |
 | R6 | **Close up:** the ROADMAP milestone closed, the release date in the CHANGELOG, `rehaul/v2` deleted | Claude; the deletion on the owner's word |
 
+### 3.5 R2's drafts: "What's New" for the App Store (for the owner to edit)
+
+Drafted 2026-11-01 from what v1.4 ships, in the app's own names for each feature. It makes no performance claim and adds no feature beyond Stage D's records. App Store Connect takes up to 4,000 characters per language.
+
+**English**
+
+> Valentine Pomodoro 1.4 is a whole new diary.
+> • Meet Pomo & Doro, the two little faces of your timer. On your first visit they show you around.
+> • Pick a length in one tap: 25/5, 50/10, 90/20, or your own.
+> • Two timer layouts: the Ring, or Facing pages.
+> • Every focus you finish presses a sticker onto today's page, toward a daily goal.
+> • Stats is now a stack of postcards, with your goal and your love streak.
+> • Write and edit your own love notes.
+> • The whole app in Turkish too, with a language choice in Settings.
+> • Soft sounds when a focus or a break starts and when you finish. They respect the silent switch.
+> • Fly over the map, as before. Everything you had in 1.3 comes with you.
+
+**Türkçe**
+
+> Valentine Pomodoro 1.4 yepyeni bir günlük.
+> • Zamanlayıcının iki küçük yüzü Pomo ile Doro'yla tanış. İlk açılışta sana etrafı gösterirler.
+> • Süreni tek dokunuşla seç: 25/5, 50/10, 90/20 ya da kendi süren.
+> • İki zamanlayıcı düzeni: Halka ya da Karşılıklı sayfalar.
+> • Bitirdiğin her odak bugünün sayfasına bir çıkartma yapıştırır ve günlük hedefine yaklaştırır.
+> • İstatistikler artık bir kartpostal destesi; hedefin ve aşk serin de orada.
+> • Kendi aşk notlarını yaz ve düzenle.
+> • Uygulamanın tamamı artık Türkçe de; dili Ayarlar'dan seçebilirsin.
+> • Odak ya da mola başlarken ve bitirdiğinde yumuşak sesler. Sessiz moda uyarlar.
+> • Haritada uçuş eskisi gibi. 1.3'teki her şey seninle gelir.
 **Phase 1's exit criteria** (the plan §3), checked at E3 and E4:
 - A1's guards green;
 - Reassure's F1 drop (14 → ≤ 2);

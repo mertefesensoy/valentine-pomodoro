@@ -30,7 +30,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 | 5. Build (`animate-expo`) | **Built**, 2026-11-01, from its plan (§3.7, committed before any code): §3.8. Every guard green, 481 tests; not yet seen on a device |
 | 6. Critique, audit, HIG, `review-animations` | **Done**, 2026-11-01, after three passes and three batches (§3.9): critique 32 → **35/40**, audit 15 → **18/20**, HIG Good → **Excellent**, motion not clean → **clean** |
 | 7. `break-ui` in Turkish at AX5 | **Done**, 2026-11-01 (§3.10): 3 Broken and 1 Ugly, all fixed with the owner's two choices (a break line; the Turkish rephrased). The worst case is a Jest fixture, `tourWorstCase.test.tsx` |
-| 8. Polish, then the copy review | Pending |
+| 8. Polish, then the copy review | **Polish done**, 2026-11-01: nothing to change (§3.11). **The copy review is open:** copy proof v5, with D3's 46 strings and the tour's 30, awaits the owner's marks |
 | 9. Device check | Pending |
 | FINISH: the finish review, its verdict, DESIGN.md's "Tutorial (first run)" row | Pending |
 
@@ -590,6 +590,43 @@ The fixes follow this record. The four reviews run again once they're in.
 - **A control that can't be measured** still gets its beat after 600 ms, the whole page dimmed.
 - **Turkish letters** (ç, ğ, ı, İ, ö, ş, ü) count as letters for the syllables, as on the pose sheet.
 - **The opening reads in Midnight Plum:** the outline is 8.06:1 against the dim.
+
+### 3.11 Polish and the copy review (step 8)
+
+**The owner, 2026-11-01: "Let's continue on step 8".**
+
+**Polish** (`/impeccable polish`, from source; there's no Simulator here). The pass ran the playbook's checks:
+- **The system:** DESIGN.md's type roles, the tokens, neighbouring flows, and the states the tour can meet.
+- **The critique's latest snapshot:** its two Priority Issues are the ones kept by decision (§3.9).
+
+Found consistent, with nothing to change:
+- **Type:**
+  - the line is Body (17 pt, 23 pt line);
+  - Next and Continue are the quiet pill's Button (16 pt semibold);
+  - Skip tour is a Label (15 pt semibold);
+  - the names are Captions (13 pt semibold).
+  - The buttons stop at 1.6× like the app's others; the line never does.
+- **Colour:** every colour is a token in both themes, checked by `check:contrast`:
+  - the dim (`scrim`, `scrimStrong`) and the opening's outline (`ringFocus`);
+  - Next (`primarySoft` with `primaryInk`);
+  - the names (`pomoInk`, `doroInk`).
+- **Copy:** "tour" and "Tap" throughout, in sentence case like the rest of the app. Each control is named by its own key.
+- **States:**
+  - the lazy layer shows nothing until loaded;
+  - a voice that can't play leaves the tour silent;
+  - a control that can't be measured gets its beat with the page dimmed;
+  - the empty week, the goal off, a break next and a replay mid-session each have their line.
+- **Code:** no dead code. Every export in `src/screens/tutorial/` is used, and lint reports nothing there.
+
+The critique snapshot stays open: its Priority Issues were kept, not cleared (the playbook closes a snapshot only when they are).
+
+**The copy review: copy proof v5.**
+- **The page:** `node scripts/design/copy-proof/build.mjs` gained a section for the tour, after the welcome (D5, `tour.*`). The page's intro now names both sets awaiting marks.
+- **Published** to the same private artifact, so every mark is kept: https://claude.ai/artifact/TmachCPtjwYoFfYpPbVuvp (version 5).
+- **It holds 307 items:** 265 strings and 21 default-note pairs.
+- **Still to review:** D3's 46 strings (unmarked since v4) and the tour's 30 strings, Pomo & Doro's lines with the bubble's words and the replay row.
+- **No marks since v4:** the `verdicts` db had none dated after 2026-11-01T11:15Z.
+- **Next:** read the owner's marks back from the `verdicts` db and apply them before build 57.
 
 ## 4. Mathematical / Statistical Details
 

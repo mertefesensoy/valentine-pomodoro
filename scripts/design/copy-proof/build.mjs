@@ -17,6 +17,8 @@ const SECTIONS = [
     { id: 'tabs', title: 'Tab bar', phase: 'D1', ns: ['tabs'] },
     { id: 'timer', title: 'Timer', phase: 'D1', ns: ['timer', 'controls', 'presets', 'modes', 'partner', 'spread', 'today', 'goal', 'loveNote'] },
     { id: 'welcome', title: 'Welcome', phase: 'D1', ns: ['welcome'] },
+    // The tour follows the welcome (D5): Pomo & Doro's lines, the bubble's words and the replay row.
+    { id: 'tour', title: 'The tour: Pomo & Doro show you around', phase: 'D5', ns: ['tour'] },
     { id: 'stats', title: 'Stats', phase: 'D2', ns: ['stats'] },
     { id: 'settings', title: 'Settings', phase: 'D2', ns: ['settings', 'updates'] },
     { id: 'notes-screen', title: 'Love notes screen', phase: 'D2', ns: ['notesScreen'] },

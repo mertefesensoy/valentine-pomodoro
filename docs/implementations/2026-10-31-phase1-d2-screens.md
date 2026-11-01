@@ -808,6 +808,24 @@ The device check is §6 "the next build (52)", which repeats the build 51 list, 
 
 **Guards:** Jest 55 suites, 395 tests, all passing; lint 0 errors; tsc clean; React Compiler 80 compiled, 5 skipped; the emoji check clean.
 
+### 3.19 Build 53 (the owner, 2026-11-01: "Build, submit, push tag")
+
+It carries §3.18's notification fix and §3.17's eight nits.
+
+| Item | Value |
+|---|---|
+| Commit | `2ba4867` on `phase1/stage-d` (the branch stays unpushed) |
+| Command | `eas build --platform ios --profile production --non-interactive --no-wait --auto-submit --json` |
+| Pre-flight | The tree clean. Jest 55 suites, 395 tests; lint 0 errors; tsc clean; the React Compiler 80 compiled, 5 skipped; the emoji check clean (§3.18). Reassure unchanged: Timer 13, Stats 1, Settings 1, Notes 1, leaf 12, settings-only 1. `expo-doctor`: 18 of 20, the same two failures and the same five patch mismatches as build 52 (§3.16) |
+| Version and build | 1.4.0 (53); EAS incremented the remote build number from 52 |
+| EAS build | `116880a7-eb7b-433f-9952-db79d79d8605`, queued 2026-11-01 01:35 UTC (04:35 UTC+3) |
+| Build result | **Finished** 01:41 UTC (04:41 UTC+3); EAS reports the source as `2ba48672` |
+| TestFlight submission | `9de50124-fa09-4705-9b28-5579003ce262`, **finished**: EAS's `submit-ios` workflow succeeded at 01:41:13 UTC |
+| Tag | `v1.4.0-tf.53`, annotated, on `2ba4867`, **pushed** on the owner's word in the same message as the build. The remote tag object is `2bbd8e7` and peels to `2ba4867`; the branch stays unpushed |
+| IPA | **21,704,610 B**, +2,376 B (+0.01 %) on build 52 (21,702,234 B) |
+
+The device check is §6 "the next build's device check": §3.18's notifications, §3.17's eight nits, then D1's six captures for its verdict pass.
+
 **Tests:**
 - **`settings.test.tsx`:** a failed schedule says so, is announced, and offers no iOS Settings row; a denial keeps its footer and row (permissions mocked per test). The goal group scrolls into view once laid out, then the request clears.
 - **`stats.test.tsx`:** "Turn on a daily goal" requests the goal group.
@@ -872,7 +890,7 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
      - An emoji typed at the end of a full note never leaves a "�".
      - Judge how long notes read at the largest size (the owner kept the full text).
 - [x] **The owner's copy review** on the copy proof page (§3.14, done: §3.15): every Turkish string (D1's and D2's) and the 21 default notes in both languages, and the two tab-title questions. The marks are read back and applied before build 52.
-- [ ] **The next build's device check:** §3.18's notifications first. Start a focus and lock the phone: nothing arrives at the start. At its end, "Focus complete 💗 · Time for a sweet break". At the break's end, "Break's over 💘 · Back to your goals". With the app open, the banner comes at the end too. Fly's "Landed!" comes on landing. Then the eight nits of §3.17. The stickers lift with a soft shadow and no square, in both themes. "Custom" sits level in its pill. Fly's peeked sheet shows its mode line above the bar; its timer is in ink; "From" and "To" align. No empty band on Stats. "Best n" on its own line. Restore adds no near-duplicates. Then D1's six captures for its verdict pass.
+- [ ] **The device check, build 53** (submitted, §3.19): §3.18's notifications first. Start a focus and lock the phone: nothing arrives at the start. At its end, "Focus complete 💗 · Time for a sweet break". At the break's end, "Break's over 💘 · Back to your goals". With the app open, the banner comes at the end too. Fly's "Landed!" comes on landing. Then the eight nits of §3.17. The stickers lift with a soft shadow and no square, in both themes. "Custom" sits level in its pill. Fly's peeked sheet shows its mode line above the bar; its timer is in ink; "From" and "To" align. No empty band on Stats. "Best n" on its own line. Restore adds no near-duplicates. Then D1's six captures for its verdict pass.
 - [ ] B2's notes tests stay green: Bengisu's install keeps its notes.
 - [ ] The emoji check (`src/__tests__/noEmojiIcons.test.ts`) passes.
 - [ ] **The device check, build 51** (needs a physical device). It goes with the D1 record's §6 "build 51" list, for D1's finish fixes and the six recaptures.

@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-d1-classic, IMP
 
 # 2026-11-01 — Phase 1 D5: the general tutorial
 
-**Status:** In progress. The brief is written and waits for the owner's confirmation.
+**Status:** In progress. The brief is confirmed by the owner (2026-11-01, "Confirm the brief"); `/apple-design` reviews it next.
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.9, added by the owner on 2026-11-01. This record holds what happens: each step's output, the owner's gates and the measurements.
 
@@ -23,8 +23,8 @@ DESIGN-WORKFLOW §2, as every new surface:
 
 | Step | State |
 |---|---|
-| 1. Shape | **Brief written**, 2026-11-01, from the owner's five answers (§3.1). Waits for the owner's confirmation |
-| 2. `/apple-design` on the brief | Pending |
+| 1. Shape | **Confirmed** by the owner, 2026-11-01 ("Confirm the brief"); written from their five answers (§3.1) |
+| 2. `/apple-design` on the brief | Running, 2026-11-01. Spike done alongside (§3.2): the layer lives inside the tab screens |
 | 3. Composition round, then the direction contract | Pending: the dock, the bubble's placement, the opening, the Modes step, the motion row |
 | 4. Assets: the pair's poses (VectorCraft) on a pose sheet, their babble (SoundCraft) on a listening page | Pending; possibly a parallel session, as D4's were |
 | 5. Build (`animate-expo`) | Pending |
@@ -89,6 +89,17 @@ The owner, 2026-11-01: "we need an onboarding tutorial featuring pomo and doro �
   - the dock's place;
   - the motion table's "Tutorial (first run)" row, an owner-approved exception like "Welcome (once)".
 
+### 3.2 Spike: how a spotlit tap reaches the real control
+
+The brief left open how the opening's tap acts as the control, since NativeTabs and native sheets sit above React Native views. Read from the code, 2026-11-01; a device prototype confirms it.
+
+- **NativeTabs is iOS's own tab bar controller.** Its host, `RNSTabBarController` (react-native-screens, `ios/tabs/host/`), subclasses `UITabBarController`. Each tab screen is a child view controller, and the bar sits above all of them.
+- **So a layer drawn inside a tab screen never covers the bar.** A tap on the real Stats or Notes tab reaches the bar natively, with nothing to forward. The welcome's way, a root route (`presentation: 'fullScreenModal'`), would cover the bar and take every tap. **The layer lives inside the tab screens** (Timer, Stats, Notes), mounted like `StatusBarScrim`, and reads one tutorial store. The brief's `app/tutorial.tsx` route isn't needed.
+- **An opening on an in-screen control** (the presets, today's row, the Modes button, Start focus) is a dim of four rectangles around a hole, with nothing over the hole. A tap there reaches the real control.
+- **The Modes sheet** is a native form sheet over everything, the layer included. At that step, the sheet's own route (`app/modes.tsx`) shows the bubble.
+- **What the layer can't do:** dim the tab bar or stop a tap on another tab. Mid-tour someone could go to Settings, so the contract decides what the layer says there (a gentle "come back", or waiting).
+- **Positions** come from each control's own layout (`measureInWindow`), in the same window as the layer. Nothing is fixed.
+
 ## 4. Mathematical / Statistical Details
 
 None yet. The write-on pace and the babble's syllable rate will be set, with their numbers, in the contract.
@@ -106,7 +117,7 @@ None yet. The write-on pace and the babble's syllable rate will be set, with the
 ## 6. Verification
 
 - [x] The brief written and stored (`impeccable surface-brief write`).
-- [ ] The owner confirms the brief.
+- [x] The owner confirms the brief (2026-11-01, "Confirm the brief").
 - [ ] The remaining steps of §0.
 
 ## 7. Related Docs

@@ -7,7 +7,7 @@ related_targets: []
 
 # The general tutorial: Pomo & Doro show you around (first run, `/tutorial`)
 
-Surface brief from `/impeccable shape`, Phase 1 D5 (Stage D plan §3.9), 2026-11-01. **Mode: Operate.** It's a teaching layer over the live tabs, and the visitor succeeds by knowing where things are and starting a focus. Build path: code-led.
+Surface brief from `/impeccable shape`, Phase 1 D5 (Stage D plan §3.9), 2026-11-01. **Confirmed by the owner, 2026-11-01** ("Confirm the brief"). **Mode: Operate.** It's a teaching layer over the live tabs, and the visitor succeeds by knowing where things are and starting a focus. Build path: code-led.
 
 **The owner's discovery answers, 2026-11-01:**
 - **Placement:** right after the welcome.

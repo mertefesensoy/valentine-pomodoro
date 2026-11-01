@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-d1-classic, IMP
 
 # 2026-11-01 — Phase 1 D5: the general tutorial
 
-**Status:** In progress. The brief is confirmed and the direction contract approved by the owner (2026-11-01). The asset step is next.
+**Status:** In progress. The brief is confirmed, the direction contract approved, and the assets are done and on this branch (2026-11-01). The build is next.
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.9, added by the owner on 2026-11-01. This record holds what happens: each step's output, the owner's gates and the measurements.
 
@@ -26,7 +26,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 | 1. Shape | **Confirmed** by the owner, 2026-11-01 ("Confirm the brief"); written from their five answers (§3.1) |
 | 2. `/apple-design` on the brief | **Good**, 2026-11-01: no Critical, 2 High, 5 Medium, 4 Low (§3.3). All accepted, T-4 in part; the contract carries them. Spike done alongside (§3.2): the layer lives inside the tab screens |
 | 3. Composition round, then the direction contract | **The bookmark ribbon**, the owner's pick, 2026-11-01, after two rounds (§3.4). **The contract is approved** by the owner, 2026-11-01 (§3.5) |
-| 4. Assets: the pair's poses **and new expressions with their animations** (VectorCraft) on a pose sheet, their babble (SoundCraft) on a listening page | Pending; possibly a parallel session, as D4's were. The expressions are the owner's addition (§3.4, round 2) |
+| 4. Assets: the pair's poses **and new expressions with their animations** (VectorCraft) on a pose sheet, their babble (SoundCraft) on a listening page | **Done**, 2026-11-01, in a parallel session; its own [assets record](2026-11-01-phase1-d5-assets.md). Both pages approved by the owner ("Approve, keep nubs"; "version 2 with variation is the way to go"). Fast-forwarded onto this branch on the owner's word (§3.6) |
 | 5. Build (`animate-expo`) | Pending |
 | 6. Critique, audit, HIG, `review-animations` | Pending |
 | 7. `break-ui` in Turkish at AX5 | Pending |
@@ -49,6 +49,7 @@ The owner, 2026-11-01: "we need an onboarding tutorial featuring pomo and doro �
 |------|--------|
 | `.impeccable/surfaces/app-tutorial-tsx.md` (new) | The tutorial's surface brief (§3.1), written with `impeccable surface-brief write` |
 | This record (new) | D5's record |
+| Everything in the [assets record](2026-11-01-phase1-d5-assets.md) §2 | Fast-forwarded from `phase1/d5-assets` (§3.6): the tour kit's art and modules, the babble and their build steps. Its own table lists each file |
 
 ## 3. Implementation Approach
 
@@ -195,6 +196,31 @@ Two lend a discipline to whichever structure wins: one message per bubble, its p
   - the new expressions and their motion.
 - **Approved by the owner, 2026-11-01:** "Approve the contract".
 
+### 3.6 The assets land on this branch
+
+**The owner, 2026-11-01: "Fast-forward it",** in reply to "Shall I fast-forward phase1/stage-d to the assets branch (8c64c6e)?".
+
+- **The move:** `git merge --ff-only refs/heads/phase1/d5-assets` took `phase1/stage-d` from `2fb8d5a` to `8c64c6e`. The assets branch was cut at `2fb8d5a` and nothing landed here since, so it is a fast-forward: no merge commit, and the twelve commits keep their IDs.
+- **What it brings** (the assets record §2 lists each file):
+  - the tour kit: 44 VectorCraft layers for the pair (bodies, eyes, mouths, the nub hands), each with its job in `art/jobs/tour.json`, its export in `art/out/illustration/` and its module in `src/components/stickers/art/`;
+  - the babble: six syllables each for Pomo and Doro in `src/assets/sounds/babble/`, built by `scripts/sound/`;
+  - the review pages `art/review/d5-*`, and the generated backlinks and TRACEABILITY lines.
+- **Nothing is wired yet.** Under `src/` the move only adds files (56, all new), and no app file imports them, so the app is unchanged until the build (step 5).
+- **The guards here,** where packages are installed (the assets worktree has none, so Jest couldn't run there):
+
+| Guard | Result |
+|---|---|
+| `npx jest` | 61 suites, 433 tests, all pass (the count before the move: the assets add no tests) |
+| `npx tsc --noEmit` | Clean, the 56 modules included |
+| `npm run lint` | 0 errors, 29 warnings (unchanged) |
+| `node scripts/art/build.mjs --check` | Every export matches a clean rebuild from its steps |
+| `node scripts/sound/build.mjs --check` | Every sound matches; each pair's babble: 6 syllables, the sample line at −20 LUFS momentary max, 5.83 LU under the UI sounds |
+| `node scripts/design/check-emoji.mjs`, `node scripts/i18n/check-raw-text.mjs` | Clean |
+| `node scripts/docs/check-docs.mjs` | 126 docs, 103 requirements, 0 errors |
+| `node scripts/react-compiler-report.js` | 81 compiled, 5 skipped (unchanged) |
+
+- **Still open from the assets, by the owner's choice:** the trial of more variation in the babble's pitch (±20 or ±30 cents beside the approved ±10), which they called "experimental" (assets record §3.7). The build uses the approved ±10 cents and ±1.5 dB until they pick.
+
 ## 4. Mathematical / Statistical Details
 
 None yet. The write-on pace and the babble's syllable rate will be set, with their numbers, in the contract.
@@ -213,9 +239,11 @@ None yet. The write-on pace and the babble's syllable rate will be set, with the
 
 - [x] The brief written and stored (`impeccable surface-brief write`).
 - [x] The owner confirms the brief (2026-11-01, "Confirm the brief").
+- [x] The owner approves the direction contract (2026-11-01, "Approve the contract").
+- [x] The assets approved in their record and fast-forwarded here, every guard green (§3.6).
 - [ ] The remaining steps of §0.
 
 ## 7. Related Docs
 
-- [Stage D plan](2026-10-30-phase1-stage-d.md) §3.9 · [D1 record](2026-10-30-phase1-d1-classic.md) (the welcome) · [D4 record](2026-10-30-phase1-d4-sounds.md) and [D4 wiring](2026-11-01-phase1-d4-wiring.md) (the sounds and their session)
+- [Stage D plan](2026-10-30-phase1-stage-d.md) §3.9 · [D1 record](2026-10-30-phase1-d1-classic.md) (the welcome) · [D5 assets](2026-11-01-phase1-d5-assets.md) (the kit and the babble) · [D4 record](2026-10-30-phase1-d4-sounds.md) and [D4 wiring](2026-11-01-phase1-d4-wiring.md) (the sounds and their session)
 - The tutorial's brief: `.impeccable/surfaces/app-tutorial-tsx.md` · the welcome's brief: `.impeccable/surfaces/app-welcome-tsx.md`

@@ -45,6 +45,22 @@ describe('placement (the contract’s FIRST VIEWPORT)', () => {
         expect(p.overflow).toBe(false);
     });
 
+    // The build 57 device check: on Stats the whole week (207–566 pt of 390 × 844) left the pair no room,
+    // the panel took the bottom, and the ad banner, drawn over the layer, hid Next and Skip tour.
+    it("stands the pair above today’s postcard on Stats, and keeps everything clear of the ad banner", () => {
+        const banner = 70; // the banner's slot above the tab bar, as Stats reports it
+        const statsInsets = { ...PHONE, bottom: PHONE.bottom + banner };
+        const week = place(base({ insets: statsInsets, opening: { x: 18, y: 207, w: 354, h: 359 } }));
+        expect(week.overflow).toBe(true);
+        const today = place(base({ insets: statsInsets, opening: { x: 18, y: 416, w: 354, h: 170 }, speaker: 'doro' }));
+        expect(today.overflow).toBe(false);
+        expect(today.side).toBe('above');
+        expect(today.scale).toBe(1);
+        // The panel, when it comes, ends above the banner, so its actions are never under the ad.
+        const panel = place(base({ insets: statsInsets, opening: { x: 18, y: 207, w: 354, h: 359 }, panel: { h: 260 } }));
+        expect(panel.bubble.y + 260).toBeLessThanOrEqual(844 - PHONE.bottom - banner);
+    });
+
     it('goes below an opening at the top, with the ribbon hanging straight onto it', () => {
         const opening = { x: 324, y: 49, w: 56, h: 56 };
         const p = place(base({ opening, speaker: 'pomo' }));

@@ -61,6 +61,12 @@ type Props = {
     targets: Partial<Record<TourOpening, TourTargetSpec>>;
     /** Scrolls the host's page by dy points, to bring an opening clear of the bubble (T-2). */
     scrollBy?: (dy: number) => void;
+    /**
+     * The host's own chrome above the tab bar, drawn over the layer: Stats' ad banner. The dock, the
+     * panel and the ribbon's tip stay above it, so the ad is never covered and the bubble's actions
+     * are always reachable (the build 57 device check: the banner hid Next and Skip tour).
+     */
+    bottomReserve?: number;
 };
 
 /** The breathing room around an opening. */
@@ -106,12 +112,15 @@ const sameRect = (a: Rect | null, b: Rect | null) =>
  * - At AX sizes the bubble is a bottom panel, the pair a badge, the ribbon a short tab, and the page
  *   scrolls the opening clear of it.
  */
-export default function TourLayer({ screen, targets, scrollBy }: Props) {
+export default function TourLayer({ screen, targets, scrollBy, bottomReserve = 0 }: Props) {
     const run = useTourStore((s) => s.run);
     const muted = useTourStore((s) => s.muted);
     const { tokens } = useTheme();
     const window = useWindowDimensions();
-    const insets = useSafeAreaInsets();
+    const safe = useSafeAreaInsets();
+    // Everything the layer places keeps clear of the host's bottom chrome; the tab bar's own position
+    // (atBottom, the tabs' x) reads the real insets.
+    const insets = { ...safe, bottom: safe.bottom + bottomReserve };
     const reduced = useReducedMotion();
     const screenReader = useScreenReader();
     const raised = useRaisedScrim();
@@ -242,8 +251,8 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
     const ready = arrived || !(!!opening && !lit && waited !== beatKey);
     if (ready && !arrived) setArrived(true);
 
-    const atBottom = insets.bottom >= 44;
-    const tabX = tab ? tabCentre(W, insets, TAB_INDEX[tab], TAB_COUNT, atBottom) : null;
+    const atBottom = safe.bottom >= 44;
+    const tabX = tab ? tabCentre(W, safe, TAB_INDEX[tab], TAB_COUNT, atBottom) : null;
     const wide = W > H || Math.min(W, H) >= 600;
     // The dock, unless it can't fit even at half size: then the bottom panel, for good (review H-1).
     const asPanel = panel || squeezed;

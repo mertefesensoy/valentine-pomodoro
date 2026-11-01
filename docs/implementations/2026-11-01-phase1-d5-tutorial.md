@@ -717,6 +717,20 @@ Found consistent, with nothing to change:
 
 Items 7, 11, 13, 14 and 15 also make up E2's v1.4 checklist (dark mode, the largest text size, Turkish, Reduce Motion, landscape, iPad).
 
+**The device check, first report (the owner, 2026-11-01):** "I got stuck on this part of the tutorial", with a capture of the Stats step at the default text size.
+- **What happened, read from the capture and the code:**
+  - The step lit the whole week, about 360 pt of a 390 × 844 screen: 207 to 566 pt. That left room for neither the bubble nor the pair, above (k ≈ 0.02) or below (k ≈ 0.24). So the layer fell back to its bottom panel (§3.9, H-1).
+  - On Stats the ad banner is laid out after the layer and draws over it. It hid the panel's lower half, Next and Skip tour included, so nothing moved the tour on.
+- **The fix (planned here, then built):**
+  - **The tour keeps clear of the ad.** Stats passes the banner's height (`bottomReserve`). The layer adds it to the bottom inset for everything it places: the dock, the panel, the ribbon's tip on the tab step, and the measuring limit. The ad is never covered, and the bubble's actions are always above it.
+  - **The Stats step lights today's postcard,** not the whole week. "Each day is a postcard, today in front" names it. At about 170 pt it leaves room for the pair to stand above it at full size (k ≈ 1.3 on the same screen), the step's intended look.
+- **Built:**
+  - `StatsScreen` measures the banner's slot from its `onLayout` (its height plus the 4 pt margin) and passes it to the layer. The layer's `insets.bottom` takes it for everything it places, while the tab bar's position and the tabs' x still read the real insets.
+  - The opening is a ref on the today card.
+  - **The regression test** replays the capture's numbers. The week overflows; today's postcard takes the pair above it at full size; a panel ends above a 70 pt banner.
+  - **Checks:** `npx jest` 65 suites, 494 tests; lint, `tsc`, the raw-text check and Reassure unchanged.
+  - **Not yet on a phone:** the fix needs the next build. On build 57 the Stats step can't be passed by touch.
+
 ## 4. Mathematical / Statistical Details
 
 ### 4.1 Speaking (`speech.ts`; assets record §3.4)

@@ -81,7 +81,9 @@ export default function StatsScreen() {
     // its lead on. The page scrolls the week clear of the AX panel.
     useTourReach('stats', focused);
     const tourHere = useTourBeatHere('stats') && focused;
-    const weekRef = useRef<React.ComponentRef<typeof View>>(null);
+    const todayRef = useRef<React.ComponentRef<typeof View>>(null);
+    // The banner's height above the tab bar: the tour keeps its bubble and pair clear of the ad.
+    const [bannerReserve, setBannerReserve] = useState(0);
     const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
     const { track: trackScroll, scrollBy } = useTourScroll(tourHere, (y) => scrollRef.current?.scrollTo({ y, animated: true }));
     const measureBannerBox = useCallback(() => {
@@ -162,17 +164,21 @@ export default function StatsScreen() {
             ? [t('stats.streakValue', { count: streak.current, n: formatNumber(streak.current), best: formatNumber(streak.best) })]
             : [t('stats.streakStart'), ...(streak.best > 0 ? [t('stats.best', { best: formatNumber(streak.best) })] : [])];
 
+    // Today's postcard is the tour's opening on Stats (D5 device check, build 57): the whole week left
+    // the pair no room, and "today in front" is the line's subject.
     const todayCard = (
-        <TodayCard
-            day={week.today}
-            metric={metric}
-            goal={todayGoal}
-            owed={owed}
-            perRow={todayPerRow}
-            sticker={sticker}
-            compact={compact}
-            tokens={tokens}
-        />
+        <View ref={todayRef} collapsable={false}>
+            <TodayCard
+                day={week.today}
+                metric={metric}
+                goal={todayGoal}
+                owed={owed}
+                perRow={todayPerRow}
+                sticker={sticker}
+                compact={compact}
+                tokens={tokens}
+            />
+        </View>
     );
     const edges = (list ? [...week.earlier].reverse() : week.earlier).map((day, i) => (
         <DayEdge
@@ -239,9 +245,7 @@ export default function StatsScreen() {
                         {summary}
                     </Text>
 
-                    <View ref={weekRef} collapsable={false}>
-                        {stack}
-                    </View>
+                    {stack}
 
                     {week.sessions === 0 && (
                         <ListGroup>
@@ -309,14 +313,23 @@ export default function StatsScreen() {
             <StatusBarScrim />
             {tourHere && (
                 <Suspense fallback={null}>
-                    <TourLayer screen="stats" targets={{ week: { ref: weekRef, radius: radius.l, a11y: { label: summary, role: 'text' } } }} scrollBy={scrollBy} />
+                    <TourLayer
+                        screen="stats"
+                        targets={{ week: { ref: todayRef, radius: radius.l, a11y: { label: summary, role: 'text' } } }}
+                        scrollBy={scrollBy}
+                        bottomReserve={bannerReserve}
+                    />
                 </Suspense>
             )}
             {/* The bottom inset includes the native tab bar (Phase 1 B6); the slot sits above it,
                 with about 12 pt between the ad and the bar (its own padding plus this margin). */}
             <View
                 ref={bannerBoxRef}
-                onLayout={measureBannerBox}
+                onLayout={(e) => {
+                    measureBannerBox();
+                    const reserve = Math.ceil(e.nativeEvent.layout.height + space.xs);
+                    if (reserve !== bannerReserve) setBannerReserve(reserve);
+                }}
                 style={[
                     styles.banner,
                     {

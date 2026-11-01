@@ -31,7 +31,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | 5. `break-ui` (TR at AX5) | 2 Ugly (the zero-goal summary, the strip at AX5) and the shared number formats: **fixed**; a streak of 0 softened (§3.13) | The number formats: **fixed**; Turkish words wider than a row: accepted (the owner) | 2 Broken (an emoji cut at the cap, the editor header at AX5) and 1 Ugly (line breaks lost): **fixed** | Retired: none |
 | 6. `polish`, `harden`, `clarify` | Done: "Turn on a daily goal" opens Settings at the goal row; Turkish "kaldı" (§3.14). The Turkish copy and the default notes: **reviewed** by the owner, six note changes applied (§3.15) | Done: a failed reminder told from a refusal; "Check for updates" offline; link rejections; "Sound and haptics" (§3.14) | Done (§3.13–3.14) | Retired: none |
 | 7. Device check (the next build, with D1's finish-review fixes) | Builds 51–53 checked and fixed (§3.11, §3.17, §3.20). **Build 54: passed** (the owner, 2026-11-01, §3.22) | **Build 54: passed** | **Build 54: passed** | Retired: none |
-| FINISH: the finish review, its verdict, DESIGN.md | — | — | — | — |
+| FINISH: the finish review, its verdict, DESIGN.md | Round 1: **fix**, 3 fixes (§3.23) | Round 1: faithful; iPad width shared (§3.23) | Round 1: faithful; iPad width fix (§3.23) | Retired: none |
 
 **Alongside the screens** (Stage D plan §3.3), D2 also does:
 - the emoji check;
@@ -911,6 +911,36 @@ The device check is §6 "the next build's device check" (§3.20's items), then D
 - No screenshots came with this check. D1's verdict pass still needs four captures from build 54 or later: Facing Pages in light, the shadows in light, and the Modes sheet over Classic and over Fly. Its other captures came with builds 52–53 (§3.20).
 
 **What remains of D2:** FINISH. The finish reviewer's verdict on the built screens against their direction contracts, using the owner's device captures from builds 51–54, then the documenter's DESIGN.md (shared with D1's, after D1's verdict pass).
+
+### 3.23 The finish review (FINISH), round 1: fix
+
+**The owner, 2026-11-01:** "Start the review".
+
+**How it ran.**
+- `impeccable-finish-reviewer` read three things: the three direction contracts; the approved Stats comp (`art/review/d2-stats-postcard-stack.html`); and DESIGN.md and PRODUCT.md, standing in for a quality-bar card.
+- It also read this record's dispositions, the code, and 16 of the owner's iPhone captures from builds 52–53. The captures are dark theme, kept untracked in `.impeccable/review/d2/` (excluded locally, as D1's are).
+- It judged from code what no capture shows: the light theme, iPad, Turkish at AX5 (§3.13's fixture), and the status-bar band.
+- It was told the owner's decisions and not to re-litigate them.
+
+**Its findings, beyond the four fixes:**
+- **Persistence:** passes. The Stats seed `seed:fc916bfd00f1c093` matches §3.3's roll; Settings and Notes had no roll by design. DESIGN.md matches the built world: the light tokens equal the comp's.
+- **Fidelity:** Stats matches the comp in its title, the stack's edges, tilt and pitch, today's postcard, the strip, the all-time line, the ad slot and the type. Two adaptations, both cited: the segmented control is D1's built one, and the summary line comes from the HIG review. Settings and Notes are faithful to their contracts. Notes' filled Add pill is an accepted adaptation (DESIGN.md: "pill for primary actions").
+- **Ceiling:** reached for three Operate surfaces.
+- **Keep:** the stack's alternating tilt, and the stickers as the only lifted elements. The fixes must keep the postcard stack in landscape.
+- **Evidence correction:** the brief said the status-bar band shipped in build 53. It shipped in build 54 (`e6ff419`), so two build 53 captures still show text under the clock. The owner's build 54 pass covers it.
+
+**The material fixes, checked against the captures, the code and the briefs:**
+
+| # | Finding | Checked | Disposition |
+|---|---|---|---|
+| 1 | Stats in landscape keeps the 560 pt readable cap: about 160 pt of dead page a side on an 852 pt iPhone, and today's line wraps to "48 min to the / goal" | Yes. The brief says "in landscape the week spans the width" (`app-tabs-stats-tsx.md:79`). `StatsScreen.tsx:198` caps every width; the capture shows the margins and the wrap | **Accept.** In compact height, the column spans the width between the side insets, as Classic's does since §3.20 |
+| 2 | Stats in landscape: the stack's last edge ends open, its side borders stopping in mid-air, because no today card sits in front | Yes. Every stacked edge has no bottom border and a −8 pt bottom margin (`WeekStack.tsx:184`). In compact height today's card is in the other column. The captures show Sat 31 open | **Accept.** In compact height the last edge closes: a bottom border, 14 pt bottom corners, bottom padding, no negative margin |
+| 3 | Stats, Minutes view: the fill tracks differ in length, because the count column sizes to its digits, so a full bar and a 2 % bar don't share the goal's length | Yes. Fri 30's track ("65") ends about 9 pt before Sat 31's ("1") in the capture; `edgeCount` has no width | **Accept.** The count takes a fixed minimum width (four tabular digits, grown with the text size), so every track ends at the same x |
+| 4 | iPad: the tabs' widths disagree, so switching tabs moves the page's edges | Yes, with corrected numbers. Stats and Settings set their column to 560 less 32 (528 pt on an iPad); Notes pads to 560 pt of content (`LoveNotesScreen.tsx:230`): 16 pt a side apart. The reviewer's "512" is Classic's, whose wider 24 pt gutters are D1's own | **Accept, for D2's tabs:** Notes pads to the same 528 pt as Stats and Settings. Classic keeps D1's gutters |
+
+**Not open:**
+- **iPad remains unreviewed by capture,** as D1's is (D1 record §3.20, round 2, the owner: "No iPad"). There's no Simulator on this machine. The reviewer counts that against `ship`, not against this `fix`.
+- **The light theme** is judged from the tokens. The captures for D1's verdict pass include light.
 
 ## 4. Mathematical / Statistical Details
 

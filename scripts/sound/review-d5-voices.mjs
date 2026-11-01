@@ -39,6 +39,10 @@ const num = (x, d = 0) => x.toLocaleString('en-US', { minimumFractionDigits: d, 
 const minus = (s) => String(s).replace(/^-/, '−');
 const B = report.babble;
 const PLAY = job.babble.playback;
+// The owner's approval of version 2 with the variation, and the bigger settings they asked to try
+// ("We can up the variation a bit more to make a difference but that would be experimental").
+const APPROVED = 'version 2 with variation is the way to go';
+const TRY = [{ detuneCents: 20, gainDb: 2 }, { detuneCents: 30, gainDb: 3 }];
 const talk = B.talk;
 const ui = B.level.uiSoundsMomentaryMaxLufs;
 const uiMean = ui.reduce((a, b) => a + b, 0) / ui.length;
@@ -187,7 +191,8 @@ ${tourSymbols(layers)}
     <h2 id="h-notes">Your sound-design notes, applied to version 2</h2>
     <p>Version 3 is gone: these are version 2's files, exactly. Your notes' main cure for a robotic babble is variation when each syllable plays, so that is what's new, and it changes nothing in the files:</p>
     <ul>
-      <li><b>New: a little variation on every syllable.</b> Each one plays a tiny bit higher or lower (a random ±${PLAY.detuneCents} cents, a tenth of a semitone at most) and a touch louder or softer (±${num(PLAY.gainDb, 1)} dB), drawn fresh every time, so a line never repeats exactly. Use the switch to hear it against plain version 2.</li>
+      <li><b>New: a little variation on every syllable.</b> Each one plays a tiny bit higher or lower (a random ±${PLAY.detuneCents} cents, a tenth of a semitone at most) and a touch louder or softer (±${num(PLAY.gainDb, 1)} dB), drawn fresh every time, so a line never repeats exactly. <b>You approved this:</b> <q>${APPROVED}</q>.</li>
+      <li><b>To try: more variation.</b> You suggested going a bit further, as an experiment. The switch has two bigger settings, ${TRY.map((t) => `±${t.detuneCents} cents and ±${num(t.gainDb, 1)} dB`).join(', and ')}. Past about ±30 cents (a third of a semitone) a voice starts to sound out of tune, so these stop there.</li>
       <li><b>Already in version 2:</b> a soft, warm tone with nothing in the harsh 2–4 kHz band; soft starts and gentle tails; a small set of syllables, never the same one twice running; a syllable on every 3rd or 4th letter, resting at commas and full stops; and babble that lasts as long as the line does.</li>
       <li><b>Not used:</b> recording voices or animal sounds. The app's rule is that every sound is synthesised in SoundCraft, with no samples and never a human voice.</li>
     </ul>
@@ -196,7 +201,7 @@ ${tourSymbols(layers)}
   <div class="bar-top">
     <button class="pill" type="button" id="play-both">Play both lines</button>
     <span class="hint" id="l-vary">Variation</span>
-    <div class="seg" role="group" aria-labelledby="l-vary"><button type="button" id="vary-on" aria-pressed="true">On</button><button type="button" id="vary-off" aria-pressed="false">Off, plain version 2</button></div>
+    <div class="seg" role="group" aria-labelledby="l-vary"><button type="button" data-vary="0" aria-pressed="false">Off</button><button type="button" data-vary="1" aria-pressed="true">±${PLAY.detuneCents}, approved</button>${TRY.map((t, i) => `<button type="button" data-vary="${i + 2}" aria-pressed="false">±${t.detuneCents}, to try</button>`).join('')}</div>
     <span class="hint" id="l-lang">Lines in</span>
     <div class="seg" role="group" aria-labelledby="l-lang"><button type="button" id="lang-en" aria-pressed="true">English</button><button type="button" id="lang-tr" aria-pressed="false">Türkçe</button></div>
     <span class="hint">If you hear nothing on an iPhone, check the ring switch: the app itself will stay quiet on silent.</span>
@@ -238,7 +243,7 @@ ${tourSymbols(layers)}
       <li><b>The voices.</b> Are they soft and pleasant now, and still cute: clearly not a person, Pomo higher and bouncier, Doro lower and rounder? Should either be softer still, lower, slower or a different pitch?</li>
       <li><b>The level.</b> Is the babble at the right loudness next to focus start, or should it sit higher or lower?</li>
       <li><b>The pace.</b> Is ${num(1000 / talk.charMs, 1)} characters a second right for the write-on, or should it be faster or slower?</li>
-      <li><b>The variation.</b> Keep it on, or plain version 2? Your notes also suggest the babble change with the mood. Pomo &amp; Doro already change face, so it could follow them: a little higher when happy or excited, and higher still when surprised. Want that tried?</li>
+      <li><b>The variation.</b> Keep the approved ±${PLAY.detuneCents} cents, or does ${TRY.map((t) => `±${t.detuneCents}`).join(' or ')} sound better? Your notes also suggest the babble change with the mood. Pomo &amp; Doro already change face, so it could follow them: a little higher when happy or excited, and higher still when surprised. Want that tried?</li>
     </ol>
   </section>
 
@@ -295,8 +300,9 @@ ${read('scripts/art/tour-motion.js')}
   }
   // The playback variation (sounds.json babble.playback): a pitch shift in cents, made with the
   // playback rate (2^(cents/1200), which also stretches the syllable by under 0.6 %), and a gain in dB.
-  const PLAY = ${JSON.stringify({ detuneCents: PLAY.detuneCents, gainDb: PLAY.gainDb })};
-  let vary = true;
+  // The levels: off, the approved one, then the ones to try.
+  const LEVELS = ${JSON.stringify([null, { detuneCents: PLAY.detuneCents, gainDb: PLAY.gainDb }, ...TRY])};
+  let vary = LEVELS[1];
   const spread = (x) => (Math.random() * 2 - 1) * x;
   function play(id, when, { cents = 0, gainDb = 0 } = {}) {
     const node = ctx.createBufferSource();
@@ -339,7 +345,7 @@ ${read('scripts/art/tour-motion.js')}
     const list = VOICES[who];
     const body = list.filter((s) => !s.role);
     const picks = w.syllables.map((syl, i) => (i === w.syllables.length - 1 ? list.find((s) => s.role === syl.end) : body[ORDER[i % ORDER.length]]));
-    await Promise.all(picks.map((p, i) => play(p.id, whenAudio + w.syllables[i].t / 1000, vary ? { cents: spread(PLAY.detuneCents), gainDb: spread(PLAY.gainDb) } : {})));
+    await Promise.all(picks.map((p, i) => play(p.id, whenAudio + w.syllables[i].t / 1000, vary ? { cents: spread(vary.detuneCents), gainDb: spread(vary.gainDb) } : {})));
     const startPage = performance.now() + (whenAudio - ctx.currentTime) * 1000;
     timers.push(setTimeout(() => {
       const now = performance.now();
@@ -385,13 +391,10 @@ ${read('scripts/art/tour-motion.js')}
       document.getElementById('play-both').textContent = 'This browser could not play them';
     }
   }
-  function setVary(v) {
-    vary = v;
-    document.getElementById('vary-on').setAttribute('aria-pressed', String(v));
-    document.getElementById('vary-off').setAttribute('aria-pressed', String(!v));
-  }
-  document.getElementById('vary-on').addEventListener('click', () => setVary(true));
-  document.getElementById('vary-off').addEventListener('click', () => setVary(false));
+  document.querySelectorAll('[data-vary]').forEach((b) => b.addEventListener('click', () => {
+    vary = LEVELS[Number(b.dataset.vary)];
+    document.querySelectorAll('[data-vary]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+  }));
   document.getElementById('play-both').addEventListener('click', () => run(['pomo', 'doro']));
   document.getElementById('play-level').addEventListener('click', () => run(['focus-start', 'pomo', 'doro']));
   document.querySelectorAll('[data-line]').forEach((b) => b.addEventListener('click', () => run([b.dataset.line])));

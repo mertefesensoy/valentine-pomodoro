@@ -1,7 +1,7 @@
 ---
 id: IMPL-2026-11-01-phase1-d5-assets
 title: "Phase 1 D5, the assets: Pomo & Doro's tour expressions and their babble"
-status: in-progress
+status: done
 date: 2026-11-01
 owner: Mert Efe Şensoy
 related: [IMPL-2026-11-01-phase1-d5-tutorial, IMPL-2026-10-30-phase1-d4-sounds]
@@ -9,14 +9,14 @@ related: [IMPL-2026-11-01-phase1-d5-tutorial, IMPL-2026-10-30-phase1-d4-sounds]
 
 # 2026-11-01 — Phase 1 D5, the assets: Pomo & Doro's tour expressions and their babble
 
-**Status:** In progress. Both pieces are built, committed and checked, and both pages are published for the owner.
-- **The voices are approved:** version 2 with a small random pitch and volume variation on every syllable at playback. The owner's words: "version 2 with variation is the way to go" (§7). They sent version 1 back as too high-pitched and version 3 back as "much worse" (§3.6).
-- **Open on the voices:** the owner suggested trying more variation, "experimental". The listening page offers ±20 and ±30 cents beside the approved ±10 (§3.7).
-- **Waiting on:** the owner's approval of the pose sheet, and their pick of a variation level (§7).
+**Status:** **Done, 2026-11-01.** Both pieces are approved by the owner in their words (§7), committed, and rebuilt byte for byte by every `--check`.
+- **The pose sheet is approved, with the nubs:** "Approve, keep nubs".
+- **The voices are approved:** version 2, with a small random pitch and volume variation on every syllable at playback. The owner's words: "version 2 with variation is the way to go". They sent version 1 back as too high-pitched and version 3 as "much worse" (§3.6).
+- **Open, by the owner's choice:** a trial of more variation, which they called "experimental". The listening page offers ±20 and ±30 cents beside the approved ±10 (§3.7). Until they pick, the approved numbers stand.
 
 Nothing is wired into the app.
 
-**Branch:** `phase1/d5-assets`, worktree `C:\vp\stage-d5`, cut from `phase1/stage-d` at `2fb8d5a`. Commits use `git commit -- <paths>`. No push, no merge, no EAS.
+**Branch:** `phase1/d5-assets`, worktree `C:\vp\stage-d5`, cut from `phase1/stage-d` at `2fb8d5a`. Commits use `git commit -- <paths>`. No push, no merge, no EAS. The main session fast-forwards `phase1/stage-d` to this branch on the owner's word. This session's own attempt to fast-forward was blocked by its permissions as a change to a shared checkout, and it left the move to the main session.
 **Parent:** [D5 record](2026-11-01-phase1-d5-tutorial.md), step 4 (§0), the owner's round-2 request (§3.4) and the approved direction contract (§3.5; `.impeccable/surfaces/app-tutorial-tsx.md`).
 **Pages,** both private:
 - the pose sheet, [Pomo & Doro Pose Sheet](https://claude.ai/artifact/5VuUpod8BVNbwixWwSBVsp) (`art/review/d5-pose-sheet.html`);
@@ -38,7 +38,7 @@ Nothing is wired into the app.
   - `art/review/d5-*`;
   - this record.
 - **The plan came first.** This record was committed with the plan (§3.1) before any code, as the project's documentation-first rule asks.
-- **For the owner:** the pose sheet asks about the hands (C3's construction had none), the faces and the motion. The listening page asks about the voices, the level, the pace and the variation.
+- **The owner approved both pages** (§7). The pose sheet's open question was the hands, which C3's construction didn't have. The listening page's open questions were the voices, the level, the pace and the variation.
 
 ## 1. Problem / Motivation
 
@@ -176,7 +176,7 @@ That generator rewrites every module. With `core.autocrlf=true`, the 76 existing
 - **the motion table,** and the change drawn to scale;
 - **the kit, layer by layer,** with sizes, the stacking order, the feet and the reach;
 - **the faces at 64 and 44 pt;**
-- **three questions:** the hands, the faces, the motion.
+- **the owner's approval,** where its three questions were (the hands, the faces, the motion).
 
 Each sticker's lift is drawn the way the app's `Sticker` draws it: the silhouette three times, 1 pt right and 2 pt down. The page was checked in the browser pane at desktop width and at 375 pt, in both themes and with Reduce Motion. There were no console errors and no sideways scroll.
 
@@ -481,14 +481,25 @@ node scripts/sound/build.mjs --check
   - every audio file decodes to its exact length;
   - both lines play with the variation on.
 - [x] Both pages regenerate byte-identical to the committed ones from this CRLF checkout.
-- [ ] **The owner's approval of the pose sheet, in their words** (§7).
+- [x] **The owner's approval of the pose sheet, in their words:** "Approve, keep nubs" (§7).
 - [x] **The owner's approval of the voices, in their words:** "version 2 with variation is the way to go" (§7).
-- [ ] The owner's pick of a variation level: the approved ±10 cents, or ±20 or ±30 (§7).
+- [x] Every check run once more after both approvals, all passing: `tour-sources.mjs --check`, `build.mjs --check`, `check-budgets.mjs`, `build-icon-components.mjs --check`, `babble-scripts.mjs --check` and `sound/build.mjs --check`.
+- [ ] Optional, the owner's: a variation level beyond the approved ±10 cents (±20 or ±30, §7).
 - [ ] After the build (main session), on a physical device:
   - the motion;
   - the babble through expo-audio on the phone speaker, with the silent switch and Settings › Sound.
 
 ## 7. The owner's approval
+
+**The pose sheet: approved, 2026-11-01.** The owner's words, verbatim:
+
+> Approve, keep nubs
+
+That was their reply, word for word, to the question "Does the pose sheet look right, with the nub hands for the wave and point?". The other reply offered was "Approve, no hands". It approves:
+- the faces, the motion and the kit as drawn;
+- the small nubs for the wave and the point.
+
+So C3's "no limbs" gives way only for those two gestures: the nubs grow out and go back after, and everywhere else the pair stay limb-free. The page now shows their words where the questions were.
 
 **The voices: approved, 2026-11-01.** The owner's words, verbatim:
 
@@ -501,9 +512,11 @@ The approval covers version 2's twelve files and the playback variation of ±10 
 - version 2: "i like them better but now it is too much robotic…";
 - version 3: "nope that's much worse revert it back to version 2" (§3.6).
 
-**Pending:**
-- **The pose sheet:** the hands (keep the nubs, or go limb-free?), the faces and the motion.
-- **The voices:** the variation level; the level and the pace; and whether the babble should follow the mood (question 4 on the page).
+**Left open, the owner's to take up or not:**
+- a bigger variation, ±20 or ±30 cents (the listening page's switch);
+- babble that follows the mood (question 4 on the page).
+
+Both start from the approved set and change only playback.
 
 ## 8. Findings and follow-ups
 

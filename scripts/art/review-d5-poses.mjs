@@ -20,6 +20,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 // LF whatever the checkout's line endings, so the page is the same from any clone.
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8').replace(/\r\n/g, '\n');
 const KIT = JSON.parse(read('art/src/tour/expressions.json'));
+/** The owner's approval from this page, in their words (the D5 assets record, §7). */
+const APPROVAL = { date: '2026-11-01', words: 'Approve, keep nubs' };
 const palette = JSON.parse(read('src/theme/palette.json'));
 const baloo = /@font-face\{font-family:'Baloo 2 C2';font-weight:600;[^}]*\}/.exec(read('art/review/c2-type-specimen.html'))[0];
 const sm = palette.themes.strawberryMilk.tokens;
@@ -279,12 +281,8 @@ ${SYMBOLS}
   </section>
 
   <section class="ask" aria-labelledby="h-ask">
-    <h2 id="h-ask">For you to decide</h2>
-    <ol>
-      <li><b>The hands.</b> C3 drew Pomo &amp; Doro with no limbs. A wave and a point need something, so this kit adds a small nub in the body's colour that grows out only for those two gestures and goes away after. Keep the nubs? The limb-free way would be a lean towards the control and the eyes looking at it, with the ribbon doing all the pointing.</li>
-      <li><b>The faces.</b> Is each expression right, or should any be redrawn: softer, bigger, a different eye or mouth?</li>
-      <li><b>The motion.</b> Does the squash on each change, the blink and the breath feel right, or too much, or too little?</li>
-    </ol>
+    <h2 id="h-ask">Approved</h2>
+    <p>${APPROVAL.date}, from this page: <q>${APPROVAL.words}</q>. That approves the faces, the motion and the kit as drawn, with the small nubs for the wave and the point. C3 drew Pomo &amp; Doro with no limbs, so the nubs grow out only for those two gestures and go away after; everywhere else the pair stay limb-free. The record has the details.</p>
   </section>
 
   <footer>

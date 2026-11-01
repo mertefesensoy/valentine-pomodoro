@@ -30,7 +30,7 @@ import { getTodayKey } from "../utils/time";
 import { PhaseRing } from "./classic/PhaseRing";
 import { PoseSticker, poseFor } from "./classic/PoseSticker";
 import { SpreadPages } from "./classic/SpreadPages";
-import { TodayStickers, goalCellsLeft } from "./classic/TodayStickers";
+import { TodayStickers, goalCellsLeft, todayLabel } from "./classic/TodayStickers";
 import { ClassicControls } from "./classic/ClassicControls";
 import { useWelcomeGate } from "./welcome/useWelcomeGate";
 import { currentStep, useTourStore } from "./tutorial/tourStore";
@@ -359,17 +359,22 @@ export default function TimerScreen() {
   const presetKey = preset === 'custom'
     ? t('presets.customKey', { focus: custom.focus, rest: custom.shortBreak })
     : t('presets.key');
-  const choosePreset = (choice: PresetChoice) => {
+  // At the tour's first step, pressing a preset is the step's own way on, 900 ms after the last
+  // press, so a comparison isn't cut short (D5 review C-2). VoiceOver's adjusting never moves it on;
+  // Next does (H-3).
+  const presetMoveOn = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (presetMoveOn.current) clearTimeout(presetMoveOn.current);
+  }, []);
+  const choosePreset = (choice: PresetChoice, moveOn = true) => {
     updateSettings(choosePresetPatch(useSettingsStore.getState().settings, choice));
-    // At the tour's first step, pressing a preset is the step's own way on: a beat later, so the
-    // choice is seen first.
     const run = useTourStore.getState().run;
-    if (run && currentStep(run)?.id === 'presets') {
-      setTimeout(() => {
-        const now = useTourStore.getState().run;
-        if (now && currentStep(now)?.id === 'presets') useTourStore.getState().next();
-      }, 600);
-    }
+    if (!moveOn || !run || currentStep(run)?.id !== 'presets') return;
+    if (presetMoveOn.current) clearTimeout(presetMoveOn.current);
+    presetMoveOn.current = setTimeout(() => {
+      const now = useTourStore.getState().run;
+      if (now && currentStep(now)?.id === 'presets') useTourStore.getState().next();
+    }, 900);
   };
 
   // "Break at 10:25": the minute the running phase ends, from its endAt, so it
@@ -528,17 +533,18 @@ export default function TimerScreen() {
     </View>
   ) : null;
 
+  const sessionsToGoal = goalCellsLeft({
+    goalMinutes: goalToday,
+    minutesToday,
+    focusMinutes: settings.durations.focus,
+    goalHit: goalHitToday,
+  });
   const today = (
     <TodayStickers
       tokens={tokens}
       count={todayCount}
       goalHit={goalHitToday}
-      sessionsToGoal={goalCellsLeft({
-        goalMinutes: goalToday,
-        minutesToday,
-        focusMinutes: settings.durations.focus,
-        goalHit: goalHitToday,
-      })}
+      sessionsToGoal={sessionsToGoal}
       goalStreak={goalPopup && focused ? goalPopup.newStreak : null}
       onGoalMomentDone={clearGoalHitPulse}
       animate={focused}
@@ -573,7 +579,7 @@ export default function TimerScreen() {
   const presetIndex = presetSegments.findIndex((s) => s.value === preset);
   const stepPreset = (by: number) => {
     const next = presetSegments[presetIndex + by];
-    if (next) choosePreset(next.value);
+    if (next) choosePreset(next.value, false);
   };
   const tourTargets: Partial<Record<'presets' | 'today' | 'modes' | 'start', TourTargetSpec>> = {
     presets: {
@@ -587,7 +593,7 @@ export default function TimerScreen() {
         onDecrement: () => stepPreset(-1),
       },
     },
-    today: { ref: todayRef, radius: radius.m },
+    today: { ref: todayRef, radius: radius.m, a11y: { label: todayLabel(todayCount, sessionsToGoal), role: 'text' } },
     modes: { ref: modesRef, radius: minTarget / 2, a11y: { label: t('modes.button'), role: 'button', onActivate: () => router.push('/modes') } },
     start: { ref: startRef, radius: 28, a11y: { label: primaryLabel, role: 'button', onActivate: handlePrimaryAction } },
   };

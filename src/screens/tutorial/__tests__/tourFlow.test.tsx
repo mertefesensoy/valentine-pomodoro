@@ -1,5 +1,5 @@
 // covers: NFR-A11Y-003, NFR-A11Y-004, FR-SET-004, NFR-PERF-001
-import { AccessibilityInfo, Dimensions } from 'react-native';
+import { AccessibilityInfo, Dimensions, StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
@@ -15,6 +15,7 @@ import LoveNotesScreen from '../../LoveNotesScreen';
 import SettingsScreen from '../../SettingsScreen';
 import StatsScreen from '../../StatsScreen';
 import TimerScreen from '../../TimerScreen';
+import { StrawberryMilk } from '../../../theme/palette';
 import { currentStep, useTourStore } from '../tourStore';
 import { Opening } from '../TourLayer';
 
@@ -121,6 +122,22 @@ describe('the tour on the Timer', () => {
         expect(createAudioPlayer).toHaveBeenCalledTimes(12);
     });
 
+    // The owner's three answers (review F-1 to F-3), and the motion review's M-1.
+    it('outlines the opening, keeps Next quiet, names Doro in matcha, and shows Pomo\'s hello wave', async () => {
+        await show(<TimerScreen />);
+        const flat = (node: { props: { style?: unknown } }) => StyleSheet.flatten(node.props.style as never) as Record<string, unknown>;
+        expect(screen.getByTestId('tour-outline', hidden)).toBeOnTheScreen();
+        expect(flat(screen.getByTestId('tour-outline', hidden)).borderColor).toBe(StrawberryMilk.tokens.ringFocus);
+        // The wave's nub is drawn at full size from the first beat (it was drawn at zero).
+        expect(flat(screen.getByTestId('tour-hand-wave-right', hidden)).opacity).toBe(1);
+        // Next's pill is the Pressable's one child; its fill is the soft strawberry.
+        const nextPill = screen.getByTestId('tour-next').children[0] as { props: { style?: unknown } };
+        expect(flat(nextPill).backgroundColor).toBe(StrawberryMilk.tokens.primarySoft);
+        await press(screen.getByText('Next'));
+        await settle();
+        expect(flat(screen.getByText('Doro', hidden)).color).toBe(StrawberryMilk.tokens.successInk);
+    });
+
     it('plays its entrance once a run, and holds the page still while it is on it', async () => {
         await show(<TimerScreen />);
         // The ribbon's drop and the pair's landing played here; a layer on the next tab, or after the
@@ -146,7 +163,7 @@ describe('the tour on the Timer', () => {
         await show(<TimerScreen />);
         await press(screen.getByLabelText('50 minutes focus, 10 minutes break', hidden));
         expect(currentStep(useTourStore.getState().run!)!.id).toBe('presets');
-        await settle(400);
+        await settle(500);
         expect(currentStep(useTourStore.getState().run!)!.id).toBe('today');
         expect(screen.getByLabelText("Doro: Every focus you finish puts a sticker here and fills today's goal.")).toBeOnTheScreen();
         await press(screen.getByText('Next'));
@@ -175,7 +192,7 @@ describe('the tour on the Timer', () => {
         await show(<TimerScreen />);
         goTo('invite', 'here');
         await settle();
-        expect(screen.getByLabelText('Doro: Ready for your first focus? Press Start focus when you are.')).toBeOnTheScreen();
+        expect(screen.getByLabelText('Doro: Ready for your first focus? Tap Start focus when you are.')).toBeOnTheScreen();
         expect(screen.queryByTestId('tour-next')).toBeNull();
         expect(screen.getByText('Not now')).toBeOnTheScreen();
         await press(screen.getByText('Start focus', hidden));
@@ -238,6 +255,14 @@ describe('the tour on the Timer', () => {
         expect(button.props.accessibilityRole).toBe('button');
         await act(async () => fireEvent(button, 'accessibilityAction', { nativeEvent: { actionName: 'activate' } }));
         expect(onActivate).toHaveBeenCalledTimes(1);
+        // It takes no touch, so a finger reaches the real control through the hole (review H-2).
+        expect(button.props.pointerEvents).toBe('none');
+
+        // A region is read, not acted on (C-1).
+        await render(<Opening rect={rect} a11y={{ label: '2 stickers today. 1 more for your goal', role: 'text' }} />);
+        const region = screen.getByTestId('tour-opening');
+        expect(region.props.accessibilityRole).toBe('text');
+        expect(region.props.accessibilityActions).toBeUndefined();
     });
 
     it('at AX sizes, gives the bubble the bottom panel and the pair a badge (T-2)', async () => {
@@ -280,7 +305,7 @@ describe('the tour on the other screens', () => {
         goTo('modes', 'here');
         await settle();
         const sheet = await render(<ModeSheet />);
-        expect(screen.getByTestId('tour-modes-bubble').props.accessibilityLabel).toBe("Pomo: Pick Ring or Facing pages here, or Fly. Close it and we'll go on.");
+        expect(screen.getByTestId('tour-modes-bubble').props.accessibilityLabel).toBe('Pomo: Pick Ring or Facing pages here, then swipe down to go on.');
         await act(async () => sheet.unmount());
         const run = useTourStore.getState().run!;
         expect(currentStep(run)!.id).toBe('stats');
@@ -290,7 +315,7 @@ describe('the tour on the other screens', () => {
     it('Settings replays it from the Timer, leaving what was stored alone', async () => {
         await save(STORAGE_KEYS.TUTORIAL, { seen: '1.4' });
         await show(<SettingsScreen />);
-        await press(screen.getByText('Watch the tutorial again'));
+        await press(screen.getByText('Watch the tour again'));
         expect(useTourStore.getState().run?.replay).toBe(true);
         expect(navigate).toHaveBeenCalledWith('/');
         expect(stored()).toEqual({ seen: '1.4' });

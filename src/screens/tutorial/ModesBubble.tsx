@@ -3,7 +3,6 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Sticker } from '../../components/stickers/Sticker';
 import { pomoIdle } from '../../components/stickers/art/pomoIdle';
-import { isFlyModeAvailable } from '../../constants/features';
 import { t } from '../../i18n';
 import { useTheme } from '../../theme/useTheme';
 import { edgeWidth, radius, space } from '../../theme/layout';
@@ -18,7 +17,7 @@ export function useTourAtModes(): boolean {
 /**
  * The Modes sheet's bubble at the Modes step (Phase 1 D5; T-4, accepted in part). The sheet is a
  * native form sheet over everything, the tour's layer included, so it says its own short line:
- * Pomo, still speaking, names the layouts and Fly. One sheet at a time (`sheets.md`): the layer is
+ * Pomo, still speaking, names the two layouts and how to go on. One sheet at a time (`sheets.md`): the layer is
  * no sheet, so nothing stacks.
  *
  * Closing the sheet, however it closes (a swipe, or choosing a mode), moves the tour on to Stats.
@@ -34,7 +33,7 @@ export function ModesBubble() {
         },
         [],
     );
-    const line = MODES_SHEET_LINE(isFlyModeAvailable());
+    const line = MODES_SHEET_LINE;
     const names = Object.fromEntries(Object.entries(line.names ?? {}).map(([k, key]) => [k, t(key)]));
     const name = t('tour.pomo');
     const text = t(line.key, names);

@@ -326,7 +326,7 @@
     "notNow": "Not now",
     "mute": "Mute the voices",
     "unmute": "Turn the voices on",
-    "replay": "Watch the tutorial again",
+    "replay": "Watch the tour again",
     "presetsLabel": "Focus length",
     "presets": {
       "fresh": "Hi, we're Pomo and Doro! First, pick how long you'd like to focus.",
@@ -340,8 +340,7 @@
     "modes": {
       "fly": "Tap {{modes}} to change the layout, or to fly over a map while you focus.",
       "noFly": "Tap {{modes}} to switch between {{ring}} and {{spread}}.",
-      "sheetFly": "Pick {{ring}} or {{spread}} here, or {{fly}}. Close it and we'll go on.",
-      "sheet": "Pick {{ring}} or {{spread}} here. Close it and we'll go on."
+      "sheet": "Pick {{ring}} or {{spread}} here, then swipe down to go on."
     },
     "stats": {
       "lead": "Your week lives in {{tab}}. Tap the tab to see it.",
@@ -355,8 +354,8 @@
     },
     "invite": {
       "lead": "That's the tour! Tap {{tab}} to head back.",
-      "first": "Ready for your first focus? Press {{start}} when you are.",
-      "again": "Ready for a focus? Press {{start}} when you are."
+      "first": "Ready for your first focus? Tap {{start}} when you are.",
+      "again": "Ready for a focus? Tap {{start}} when you are."
     }
   }
 }

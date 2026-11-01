@@ -7,7 +7,6 @@ import Animated, {
     Easing,
     FadeIn,
     FadeOut,
-    useAnimatedProps,
     useAnimatedStyle,
     useReducedMotion,
     useSharedValue,
@@ -47,7 +46,8 @@ export type TourTargetSpec = {
      */
     a11y?: {
         label: string;
-        role: 'button' | 'adjustable';
+        /** `text` for a region (today's row, the week): read, not acted on (review C-1). */
+        role: 'button' | 'adjustable' | 'text';
         value?: string;
         onActivate?: () => void;
         onIncrement?: () => void;
@@ -68,6 +68,8 @@ const PAD = 6;
 const PANEL_FONT_SCALE = 1.6;
 /** Until the bubble lays out: a two-line bubble at the default text size. */
 const BUBBLE_ESTIMATE = 128;
+/** On the entrance the bubble arrives after the pair have landed. */
+const BUBBLE_DELAY_MS = 420;
 /** How long a beat waits for its opening's frame before it goes on with the whole page dimmed. */
 const MEASURE_WAIT_MS = 600;
 const EASE_SHEET = Easing.bezier(0.32, 0.72, 0, 1);
@@ -75,7 +77,11 @@ const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
 const GLIDE_MS = 420;
 const FADE_MS = 150;
 
-const AnimatedPath = Animated.createAnimatedComponent(Path);
+/** The corner masks' drawn size: one quarter of a square less its circle, scaled to each radius. */
+const CORNER = 64;
+const CORNER_PATH = `M0 0 H${CORNER} A${CORNER} ${CORNER} 0 0 0 0 ${CORNER} Z`;
+/** The bubble fades in over this long; the line waits for it (review M-2). */
+const BUBBLE_FADE_MS = 220;
 
 const TAB_ROUTE: Record<TourTab, '/' | '/stats' | '/notes'> = { index: '/', stats: '/stats', notes: '/notes' };
 /** The bar's order (app/(tabs)/_layout.tsx): Timer, Stats, Settings, Notes. */
@@ -117,7 +123,9 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
 
     const [size, setSize] = useState({ W: window.width, H: window.height });
     const [bubbleH, setBubbleH] = useState(BUBBLE_ESTIMATE);
-    const [hole, setHole] = useState<Rect | null>(null);
+    const [hole, setHole] = useState<{ key: string; rect: Rect } | null>(null);
+    // The dock didn't fit: the panel from then on.
+    const [squeezed, setSqueezed] = useState(false);
     const rootRef = useRef<ComponentRef<typeof View>>(null);
     const lineRef = useRef<ComponentRef<typeof View>>(null);
     const mouth = useSharedValue(0);
@@ -150,39 +158,48 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
                     if (!w || !h) return;
                     const r = { x: x - rx - PAD, y: y - ry - PAD, w: w + 2 * PAD, h: h + 2 * PAD };
                     // Bring it clear of the panel (AX) or the screen's edges, once per beat.
-                    const bottomLimit = H - insets.bottom - (panel ? bubbleH + 36 : 12);
+                    const bottomLimit = H - insets.bottom - (panel || squeezed ? bubbleH + 36 : 12);
                     const delta = r.y + r.h > bottomLimit ? r.y + r.h - bottomLimit : r.y < insets.top + 8 ? r.y - insets.top - 8 : 0;
                     if (delta !== 0 && scrollBy && scrolled.current !== beatKey) {
                         scrolled.current = beatKey;
                         scrollBy(delta);
                         timers.push(setTimeout(measure, 420));
                     }
-                    setHole((prev) => (sameRect(prev, r) ? prev : r));
+                    setHole((prev) => (prev && prev.key === beatKey && sameRect(prev.rect, r) ? prev : { key: beatKey, rect: r }));
                 });
             });
         };
         timers.push(setTimeout(measure, 30), setTimeout(measure, 260), setTimeout(measure, 700));
         return () => timers.forEach(clearTimeout);
         // `targets` is a fresh object each host render; the refs inside it are stable.
-    }, [opening, beatKey, W, H, panel, bubbleH]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [opening, beatKey, W, H, panel, squeezed, bubbleH]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const context: LineContext = { audience, replay: !!run?.replay, goalOn, flyAvailable: isFlyModeAvailable(), weekEmpty };
     const line = beat ? beat.line(context) : null;
     const names = Object.fromEntries(Object.entries(line?.names ?? {}).map(([k, key]) => [k, t(key)]));
     const text = line ? t(line.key, names) : '';
     const speaker: Speaker = step?.speaker ?? 'pomo';
-    const speaking = useSpeaking(text, speaker, { instant: screenReader === true, hold: screenReader === null, reduced, mouth, talking });
+    // The line waits until its bubble is seen: after the entrance's landing and the bubble's fade.
+    const [voiced, setVoiced] = useState(false);
+    const speaking = useSpeaking(text, speaker, { instant: screenReader === true, hold: screenReader === null || !voiced, reduced, mouth, talking });
 
     // The pair and the bubble arrive once the opening is found, so they never start somewhere
     // else and slide; a control that can't be measured still gets its beat, the whole page dimmed.
     const [waited, setWaited] = useState<string | null>(null);
     // Once arrived they stay for the layer's life, gliding from beat to beat.
     const [arrived, setArrived] = useState(false);
+    // The last settled placement, held while a new opening is measured.
+    const [held, setHeld] = useState<{ placement: ReturnType<typeof place>; lit: Rect | null; targetX: number; speaker: Speaker } | null>(null);
+    const [heldKey, setHeldKey] = useState('');
     // Whether this layer plays the run's entrance, fixed when it mounts (the run marks it played).
     const [entrance] = useState(() => !useTourStore.getState().run?.introduced);
     useEffect(() => {
-        if (arrived) useTourStore.getState().markIntroduced();
-    }, [arrived]);
+        if (!arrived) return;
+        useTourStore.getState().markIntroduced();
+        const id = setTimeout(() => setVoiced(true), (entrance && !reduced ? BUBBLE_DELAY_MS : 0) + BUBBLE_FADE_MS);
+        return () => clearTimeout(id);
+        // Once, on arrival: the entrance and Reduce Motion are read then.
+    }, [arrived]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         const id = setTimeout(() => setWaited(beatKey), MEASURE_WAIT_MS);
         return () => clearTimeout(id);
@@ -198,15 +215,21 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
     }, [beatKey, screenReader, arrived]);
 
     if (!run || !beat || !step) return null;
-    // A lead has no opening: the whole page dims (a measured hole from the step before is ignored).
-    const lit = opening ? hole : null;
-    const ready = arrived || !opening || lit !== null || waited === beatKey;
+    // This beat's opening, once measured; a lead has none, and the whole page dims.
+    const lit = opening && hole?.key === beatKey ? hole.rect : null;
+    // Until a new opening is found the pair, the bubble, the ribbon and the dim hold where they are,
+    // so nothing sets off towards the last control (review M-6); a control that can't be measured
+    // still gets its beat after MEASURE_WAIT_MS, the whole page dimmed.
+    const pending = !!opening && !lit && waited !== beatKey;
+    const ready = arrived || !pending;
     if (ready && !arrived) setArrived(true);
 
     const atBottom = insets.bottom >= 44;
     const tabX = tab ? tabCentre(W, insets, TAB_INDEX[tab], TAB_COUNT, atBottom) : null;
     const wide = W > H || Math.min(W, H) >= 600;
-    const placement = place({
+    // The dock, unless it can't fit even at half size: then the bottom panel, for good (review H-1).
+    const asPanel = panel || squeezed;
+    const fresh = place({
         W,
         H,
         insets,
@@ -215,11 +238,20 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
         speaker,
         bubbleH,
         wide,
-        panel: panel ? { h: bubbleH } : null,
+        panel: asPanel ? { h: bubbleH } : null,
     });
+    if (fresh.overflow && !squeezed) setSqueezed(true);
     // The pair watch what's being shown: the opening's centre, or the tab.
     const targetX = lit ? lit.x + lit.w / 2 : (tabX ?? W / 2);
-    const lookOf = (who: Speaker) => (targetX < placement.feet[who].x ? 'left' : 'right');
+    const frame = { placement: fresh, lit, targetX, speaker };
+    const frameKey = JSON.stringify(frame);
+    if (!pending && heldKey !== frameKey) {
+        setHeld(frame);
+        setHeldKey(frameKey);
+    }
+    const shown = pending && held ? held : frame;
+    const placement = shown.placement;
+    const lookOf = (who: Speaker) => (shown.targetX < placement.feet[who].x ? 'left' : 'right');
 
     const last = isLastBeat(run);
     const invitation = step.id === 'invite' && run.beat === 'here';
@@ -240,8 +272,8 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
     return (
         <Animated.View
             ref={rootRef}
-            entering={FadeIn.duration(200)}
-            exiting={FadeOut.duration(200)}
+            entering={FadeIn.duration(200).easing(EASE_OUT)}
+            exiting={FadeOut.duration(200).easing(EASE_OUT)}
             style={StyleSheet.absoluteFill}
             pointerEvents="box-none"
             accessibilityViewIsModal
@@ -251,17 +283,28 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
             }}
             testID="tour-layer"
         >
-            <Scrim hole={lit} radius={(spec?.radius ?? 0) + PAD} W={W} H={H} color={raised ? tokens.scrimStrong : tokens.scrim} reduced={reduced} entrance={entrance} />
+            <Scrim
+                hole={shown.lit}
+                radius={(spec?.radius ?? 0) + PAD}
+                W={W}
+                H={H}
+                color={raised ? tokens.scrimStrong : tokens.scrim}
+                outline={tokens.ringFocus}
+                reduced={reduced}
+                entrance={entrance}
+            />
             <Ribbon curve={placement.ribbon} tokens={tokens} reduced={reduced} entrance={entrance} />
-            {screenReader === true && lit && spec?.a11y && <Opening rect={lit} a11y={spec.a11y} />}
+            {/* For VoiceOver, Voice Control and Switch Control alike (review H-2); it takes no touch,
+                so a finger still reaches the real control through the hole. */}
+            {lit && spec?.a11y && <Opening rect={lit} a11y={spec.a11y} />}
             {ready &&
-                !panel &&
+                !asPanel &&
                 (['doro', 'pomo'] as const).map((who) => (
                     <TourCharacter
                         key={who}
                         who={who}
-                        role={who === speaker ? 'speaker' : 'listener'}
-                        pose={who === speaker ? beat.face : 'listen'}
+                        role={who === shown.speaker ? 'speaker' : 'listener'}
+                        pose={who === shown.speaker ? (pending ? 'listen' : beat.face) : 'listen'}
                         look={lookOf(who)}
                         feet={placement.feet[who]}
                         scale={placement.scale}
@@ -274,10 +317,11 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
                     />
                 ))}
             {ready && (
-            <BubbleDock x={placement.bubble.x} y={placement.bubble.y} w={placement.bubble.w} reduced={reduced} delay={entrance ? 420 : 0}>
+            <BubbleDock x={placement.bubble.x} y={placement.bubble.y} w={placement.bubble.w} reduced={reduced} delay={entrance ? BUBBLE_DELAY_MS : 0}>
                 <Bubble
                     tokens={tokens}
                     name={t(`tour.${speaker}`)}
+                    speaker={speaker}
                     chars={Array.from(text)}
                     shown={speaking.shown}
                     onTapLine={speaking.finish}
@@ -285,8 +329,9 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
                     exit={exit}
                     muted={muted}
                     onMute={() => useTourStore.getState().toggleMute()}
-                    tailX={panel ? null : placement.tailX}
-                    panel={panel ? { maxLineHeight: H * 0.3, badge: <Sticker art={BADGE[speaker]} width={36} shadow={tokens.stickerShadow} /> } : null}
+                    tailX={asPanel ? null : placement.tailX}
+                    reduced={reduced}
+                    panel={asPanel ? { maxLineHeight: H * 0.3, badge: <Sticker art={BADGE[speaker]} width={36} shadow={tokens.stickerShadow} /> } : null}
                     lineRef={lineRef}
                     onLayout={(e) => {
                         const h = Math.round(e.nativeEvent.layout.height);
@@ -299,38 +344,67 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
     );
 }
 
-/** The bubble's place: it glides with the dock on the sheet curve, and fades in once (under Reduce Motion, only fades). */
+/**
+ * The bubble's place: it glides with the dock on the sheet curve and fades in once. Under Reduce
+ * Motion a real move dips out and back in on the opening's 150 + 150 ms, moving while hidden, so it
+ * never stands at the next control while the last one is lit (review H-6, M-14).
+ */
 function BubbleDock({ x, y, w, reduced, delay, children }: { x: number; y: number; w: number; reduced: boolean; delay: number; children: ReactNode }) {
+    const reducedRef = useRef(reduced);
+    useEffect(() => {
+        reducedRef.current = reduced;
+    }, [reduced]);
     const px = useSharedValue(x);
     const py = useSharedValue(y);
     const shown = useSharedValue(0);
-    const first = useRef(true);
+    const dip = useSharedValue(1);
+    const was = useRef<{ x: number; y: number } | null>(null);
     useEffect(() => {
-        if (first.current || reduced) {
+        const prev = was.current;
+        was.current = { x, y };
+        if (!prev) {
             px.set(x);
             py.set(y);
-        } else {
+            // On the entrance, after the pair have landed: the bubble is the last to arrive.
+            shown.set(withDelay(reducedRef.current ? 0 : delay, withTiming(1, { duration: BUBBLE_FADE_MS, easing: EASE_OUT })));
+            return;
+        }
+        if (!reducedRef.current) {
             px.set(withTiming(x, { duration: GLIDE_MS, easing: EASE_SHEET }));
             py.set(withTiming(y, { duration: GLIDE_MS, easing: EASE_SHEET }));
+            return;
         }
-        if (first.current) {
-            first.current = false;
-            // On the entrance, after the pair have landed: the bubble is the last to arrive.
-            shown.set(withDelay(reduced ? 0 : delay, withTiming(1, { duration: 220, easing: EASE_OUT })));
+        if (Math.hypot(x - prev.x, y - prev.y) < 24) {
+            px.set(x);
+            py.set(y);
+            return;
         }
-    }, [x, y, px, py, shown, reduced, delay]);
+        const jump = (v: number) => withDelay(FADE_MS, withTiming(v, { duration: 0 }));
+        px.set(jump(x));
+        py.set(jump(y));
+        dip.set(withSequence(withTiming(0, { duration: FADE_MS, easing: EASE_OUT }), withTiming(1, { duration: FADE_MS, easing: EASE_OUT })));
+        // The entrance's delay is read once, at the first placement.
+    }, [x, y, px, py, shown, dip]); // eslint-disable-line react-hooks/exhaustive-deps
     const style = useAnimatedStyle(() => ({
-        opacity: shown.get(),
+        opacity: shown.get() * dip.get(),
         transform: [{ translateX: px.get() }, { translateY: py.get() + (reduced ? 0 : 6 * (1 - shown.get())) }],
     }));
     return <Animated.View style={[styles.dock, { width: w }, style]}>{children}</Animated.View>;
 }
 
 /**
- * The dim: four panels around the opening, which take every touch, with nothing over the hole, and
- * one Svg that rounds the hole's corners (it takes none). The opening glides to the next control
- * on the sheet curve; under Reduce Motion a cover closes the old opening and the new one opens
- * (brief §5). With no opening (a lead), the hole closes and the whole page dims.
+ * The dim: four panels around the opening, which take every touch, with nothing over the hole;
+ * four corner masks that round it; and the opening's own 2 pt `ringFocus` outline, so the lit
+ * control reads however little the dim sets the page back (the owner, review F-1: Midnight Plum's
+ * dim moves a dark control only about 1.2:1).
+ *
+ * - The panels are full-size solid views placed and sized by translate and scale, and the corners
+ *   one static quarter shape scaled to the radius, so a glide is transforms only (review M-3, M-4).
+ *   The outline is the one frame animated: a border can't scale without thickening, and it's a
+ *   single childless, absolutely placed view, which re-lays out nothing else.
+ * - The opening glides to the next control on the sheet curve. Under Reduce Motion a cover closes
+ *   the old opening and the new one opens, the outline fading with it (brief §5).
+ * - A lead has no opening: the hole closes about its own centre (M-9) and the whole page dims.
  */
 function Scrim({
     hole,
@@ -338,6 +412,7 @@ function Scrim({
     W,
     H,
     color,
+    outline,
     reduced,
     entrance,
 }: {
@@ -346,26 +421,43 @@ function Scrim({
     W: number;
     H: number;
     color: string;
+    outline: string;
     reduced: boolean;
     entrance: boolean;
 }) {
-    const closed = { x: W / 2, y: H / 2, w: 0, h: 0 };
-    const target = hole ?? closed;
+    const reducedRef = useRef(reduced);
+    useEffect(() => {
+        reducedRef.current = reduced;
+    }, [reduced]);
+    const last = useRef<Rect>({ x: W / 2, y: H / 2, w: 0, h: 0 });
     const r = hole ? Math.min(radius, hole.w / 2, hole.h / 2) : 0;
-    const x = useSharedValue(target.x);
-    const y = useSharedValue(target.y);
-    const w = useSharedValue(target.w);
-    const h = useSharedValue(target.h);
+    const start = hole ?? { x: W / 2, y: H / 2, w: 0, h: 0 };
+    const x = useSharedValue(start.x);
+    const y = useSharedValue(start.y);
+    const w = useSharedValue(hole ? hole.w : 0);
+    const h = useSharedValue(hole ? hole.h : 0);
     const rr = useSharedValue(r);
     const cover = useSharedValue(0);
     const had = useRef(false);
 
+    const key = hole ? `${hole.x},${hole.y},${hole.w},${hole.h},${r}` : 'none';
     useEffect(() => {
         const opening = hole !== null;
-        if (reduced) {
+        // With no opening, the last one closes about its own centre.
+        const prev = last.current;
+        const target = hole ?? { x: prev.x + prev.w / 2, y: prev.y + prev.h / 2, w: 0, h: 0 };
+        if (hole) last.current = hole;
+        const set = (v: Rect, radius: number) => {
+            x.set(v.x);
+            y.set(v.y);
+            w.set(v.w);
+            h.set(v.h);
+            rr.set(radius);
+        };
+        if (reducedRef.current) {
             if (had.current) {
                 // Close the old opening, move while closed, open the new one.
-                cover.set(withSequence(withTiming(1, { duration: FADE_MS }), withTiming(0, { duration: FADE_MS })));
+                cover.set(withSequence(withTiming(1, { duration: FADE_MS, easing: EASE_OUT }), withTiming(0, { duration: FADE_MS, easing: EASE_OUT })));
                 const jump = (v: number) => withDelay(FADE_MS, withTiming(v, { duration: 0 }));
                 x.set(jump(target.x));
                 y.set(jump(target.y));
@@ -373,31 +465,19 @@ function Scrim({
                 h.set(jump(target.h));
                 rr.set(jump(r));
             } else {
-                x.set(target.x);
-                y.set(target.y);
-                w.set(target.w);
-                h.set(target.h);
-                rr.set(r);
+                set(target, r);
             }
         } else {
             const first = opening && !had.current;
             if (first && !entrance) {
                 // A later screen: the opening is simply there as the layer fades in.
-                x.set(target.x);
-                y.set(target.y);
-                w.set(target.w);
-                h.set(target.h);
-                rr.set(r);
+                set(target, r);
                 had.current = opening;
                 return;
             }
             if (first) {
-                // The first opening grows from its own centre.
-                x.set(target.x + target.w / 2);
-                y.set(target.y + target.h / 2);
-                w.set(0);
-                h.set(0);
-                rr.set(0);
+                // The run's first opening grows from its own centre.
+                set({ x: target.x + target.w / 2, y: target.y + target.h / 2, w: 0, h: 0 }, 0);
             }
             const to = (v: number) => withTiming(v, { duration: first ? 300 : GLIDE_MS, easing: first ? EASE_OUT : EASE_SHEET });
             x.set(to(target.x));
@@ -407,13 +487,55 @@ function Scrim({
             rr.set(to(r));
         }
         had.current = opening;
-    }, [target.x, target.y, target.w, target.h, r, reduced]); // eslint-disable-line react-hooks/exhaustive-deps
+        // `key` stands for the opening's numbers.
+    }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Childless, absolutely placed views: animating their frame re-lays out nothing else (animate-expo §4).
-    const top = useAnimatedStyle(() => ({ left: 0, top: 0, width: W, height: Math.max(0, y.get()) }));
-    const bottom = useAnimatedStyle(() => ({ left: 0, top: y.get() + h.get(), width: W, height: Math.max(0, H - y.get() - h.get()) }));
-    const left = useAnimatedStyle(() => ({ left: 0, top: y.get(), width: Math.max(0, x.get()), height: h.get() }));
-    const right = useAnimatedStyle(() => ({ left: x.get() + w.get(), top: y.get(), width: Math.max(0, W - x.get() - w.get()), height: h.get() }));
+    // Full-size panels, placed and sized by transforms from their top-left corners.
+    const top = useAnimatedStyle(() => ({ transform: [{ translateY: y.get() - H }] }));
+    const bottom = useAnimatedStyle(() => ({ transform: [{ translateY: y.get() + h.get() }] }));
+    const side = (left: boolean) => {
+        'worklet';
+        return {
+            transform: [
+                { translateX: left ? x.get() - W : x.get() + w.get() },
+                { translateY: y.get() },
+                { scaleY: Math.max(h.get() / H, 0.0001) },
+            ],
+        };
+    };
+    const left = useAnimatedStyle(() => side(true));
+    const right = useAnimatedStyle(() => side(false));
+    // The corners: one quarter shape, mirrored onto each corner and scaled to the radius.
+    const corner = (cx: 0 | 1, cy: 0 | 1) => {
+        'worklet';
+        const R = Math.max(0, Math.min(rr.get(), w.get() / 2, h.get() / 2));
+        const k = Math.max(R / CORNER, 0.0001);
+        return {
+            transform: [
+                { translateX: x.get() + cx * w.get() },
+                { translateY: y.get() + cy * h.get() },
+                { scaleX: cx ? -k : k },
+                { scaleY: cy ? -k : k },
+            ],
+        };
+    };
+    const tl = useAnimatedStyle(() => corner(0, 0));
+    const tr = useAnimatedStyle(() => corner(1, 0));
+    const bl = useAnimatedStyle(() => corner(0, 1));
+    const br = useAnimatedStyle(() => corner(1, 1));
+    const ring = useAnimatedStyle(() => {
+        const Wd = w.get();
+        const Ht = h.get();
+        return {
+            left: x.get(),
+            top: y.get(),
+            width: Wd,
+            height: Ht,
+            borderRadius: Math.max(0, Math.min(rr.get(), Wd / 2, Ht / 2)),
+            // Gone once the hole has closed to nothing, and through Reduce Motion's crossfade.
+            opacity: Wd > 4 && Ht > 4 ? 1 - cover.get() : 0,
+        };
+    });
     const coverStyle = useAnimatedStyle(() => ({
         left: x.get(),
         top: y.get(),
@@ -422,45 +544,44 @@ function Scrim({
         borderRadius: rr.get(),
         opacity: cover.get(),
     }));
-    const corners = useAnimatedProps(() => {
-        const X = x.get();
-        const Y = y.get();
-        const Wd = w.get();
-        const Ht = h.get();
-        const R = Math.max(0, Math.min(rr.get(), Wd / 2, Ht / 2));
-        const rect = `M ${X} ${Y} H ${X + Wd} V ${Y + Ht} H ${X} Z`;
-        const round =
-            `M ${X + R} ${Y} H ${X + Wd - R} A ${R} ${R} 0 0 1 ${X + Wd} ${Y + R} V ${Y + Ht - R} ` +
-            `A ${R} ${R} 0 0 1 ${X + Wd - R} ${Y + Ht} H ${X + R} A ${R} ${R} 0 0 1 ${X} ${Y + Ht - R} V ${Y + R} A ${R} ${R} 0 0 1 ${X + R} ${Y} Z`;
-        return { d: `${rect} ${round}` };
-    });
     const block = () => true;
     return (
         <>
             {[top, bottom, left, right].map((s, i) => (
                 <Animated.View
                     key={i}
-                    style={[styles.panel, { backgroundColor: color }, s]}
+                    style={[styles.panel, { width: W, height: H, backgroundColor: color }, s]}
                     onStartShouldSetResponder={block}
                     accessibilityElementsHidden
                     importantForAccessibility="no-hide-descendants"
                     testID="tour-scrim"
                 />
             ))}
-            <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
-                <AnimatedPath animatedProps={corners} fill={color} fillRule="evenodd" />
-            </Svg>
-            <Animated.View style={[styles.panel, { backgroundColor: color }, coverStyle]} pointerEvents="none" />
+            {[tl, tr, bl, br].map((s, i) => (
+                <Animated.View key={`c${i}`} style={[styles.corner, s]} pointerEvents="none">
+                    <Svg width={CORNER} height={CORNER}>
+                        <Path d={CORNER_PATH} fill={color} />
+                    </Svg>
+                </Animated.View>
+            ))}
+            {reduced && <Animated.View style={[styles.cut, { backgroundColor: color }, coverStyle]} pointerEvents="none" />}
+            <Animated.View style={[styles.cut, styles.ring, { borderColor: outline }, ring]} pointerEvents="none" testID="tour-outline" />
         </>
     );
 }
 
-/** With VoiceOver on: the opening as the control itself, with its label and role, acting as it (T-1). */
+/**
+ * The opening as the control itself, with its label and role, acting as it (T-1), for every assistive
+ * client: VoiceOver, Voice Control ("Tap Start focus") and Switch Control. It takes no touch, so a
+ * finger reaches the real control under it. A region's opening is read only.
+ */
 export function Opening({ rect, a11y }: { rect: Rect; a11y: NonNullable<TourTargetSpec['a11y']> }) {
     const actions =
         a11y.role === 'adjustable'
             ? [{ name: 'increment' as const }, { name: 'decrement' as const }]
-            : [{ name: 'activate' as const }];
+            : a11y.role === 'button'
+              ? [{ name: 'activate' as const }]
+              : undefined;
     const onAction = (e: AccessibilityActionEvent) => {
         if (e.nativeEvent.actionName === 'increment') a11y.onIncrement?.();
         else if (e.nativeEvent.actionName === 'decrement') a11y.onDecrement?.();
@@ -476,13 +597,17 @@ export function Opening({ rect, a11y }: { rect: Rect; a11y: NonNullable<TourTarg
             onAccessibilityAction={onAction}
             onAccessibilityTap={a11y.onActivate}
             style={[styles.opening, { left: rect.x, top: rect.y, width: rect.w, height: rect.h }]}
+            pointerEvents="none"
             testID="tour-opening"
         />
     );
 }
 
 const styles = StyleSheet.create({
-    panel: { position: 'absolute' },
+    panel: { position: 'absolute', left: 0, top: 0, transformOrigin: '0% 0%' },
+    corner: { position: 'absolute', left: 0, top: 0, width: CORNER, height: CORNER, transformOrigin: '0% 0%' },
+    cut: { position: 'absolute' },
+    ring: { borderWidth: 2 },
     dock: { position: 'absolute', left: 0, top: 0 },
     opening: { position: 'absolute' },
 });

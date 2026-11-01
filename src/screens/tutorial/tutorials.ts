@@ -151,11 +151,11 @@ export const GENERAL: Tutorial = {
 /** Every tutorial, oldest first. v1.4 ships the general one only. */
 export const TUTORIALS: readonly Tutorial[] = [GENERAL];
 
-/** The Modes sheet's own bubble at the Modes step (T-4): Pomo, still speaking. */
-export const MODES_SHEET_LINE = (flyAvailable: boolean): Line => ({
-    key: flyAvailable ? 'tour.modes.sheetFly' : 'tour.modes.sheet',
-    names: MODES,
-});
+/**
+ * The Modes sheet's own bubble at the Modes step (T-4): Pomo, still speaking. One line: Fly isn't
+ * offered there, since choosing it ends the tour, and the sheet closes by its swipe (review H-4).
+ */
+export const MODES_SHEET_LINE: Line = { key: 'tour.modes.sheet', names: MODES };
 
 /** -1, 0 or 1 as dotted version a is below, equal to or above b ("1.4" < "1.10"). */
 export function compareVersions(a: string, b: string): number {

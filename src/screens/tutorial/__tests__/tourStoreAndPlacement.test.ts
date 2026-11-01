@@ -37,8 +37,9 @@ describe('placement (the contract’s FIRST VIEWPORT)', () => {
         expect(p.ribbon!.ax).toBeGreaterThan(300);
         expect(p.ribbon!.py).toBeLessThan(opening.y);
         inside(p.ribbon!.px, opening.x, opening.x + opening.w);
-        // The tail sits under the speaker.
+        // The tail sits under the speaker; everything fits.
         expect(Math.abs(p.bubble.x + p.tailX - p.feet.pomo.x)).toBeLessThan(1);
+        expect(p.overflow).toBe(false);
     });
 
     it('goes below an opening at the top, with the ribbon hanging straight onto it', () => {
@@ -51,10 +52,23 @@ describe('placement (the contract’s FIRST VIEWPORT)', () => {
     });
 
     it('shrinks the pair on a small phone, never under half size', () => {
-        const p = place(base({ W: 375, H: 667, insets: { top: 20, bottom: 49, left: 0, right: 0 }, opening: { x: 18, y: 300, w: 339, h: 60 }, bubbleH: 200 }));
+        const se = { W: 375, H: 667, insets: { top: 20, bottom: 49, left: 0, right: 0 }, opening: { x: 18, y: 300, w: 339, h: 60 } };
+        const p = place(base({ ...se, bubbleH: 128 }));
         expect(p.scale).toBeLessThan(1);
         expect(p.scale).toBeGreaterThanOrEqual(0.5);
         expect(pairWidth(p.scale)).toBeLessThanOrEqual(375);
+        expect(p.overflow).toBe(false);
+    });
+
+    // covers: NFR-A11Y-003
+    // The HIG review's H-1: a long line on an SE put the bubble's top 3–48 pt above the screen.
+    it('never puts the bubble above the safe area, and asks for the panel when even half size won\'t fit', () => {
+        const se = { W: 375, H: 667, insets: { top: 20, bottom: 49, left: 0, right: 0 }, opening: { x: 18, y: 300, w: 339, h: 60 } };
+        for (const bubbleH of [200, 245]) {
+            const p = place(base({ ...se, bubbleH }));
+            expect(p.bubble.y).toBeGreaterThanOrEqual(se.insets.top);
+            expect(p.overflow).toBe(true);
+        }
     });
 
     it('takes the side away from the control in landscape', () => {

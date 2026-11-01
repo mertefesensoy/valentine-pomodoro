@@ -34,6 +34,11 @@ export type Placement = {
     /** The tail's x inside the bubble, under the speaker. */
     tailX: number;
     ribbon: RibbonCurve | null;
+    /**
+     * The dock can't fit even at half size (a small phone, a long line): the layer switches to the
+     * bottom panel (review H-1).
+     */
+    overflow: boolean;
 };
 
 export const SPEAK = 190;
@@ -150,7 +155,7 @@ export function place(p: PlaceInput): Placement {
             ribbon = { ax: px, ay, c1x: px, c1y: ay + (py - ay) / 3, c2x: px, c2y: ay + (2 * (py - ay)) / 3, px, py };
         }
         const none = { x: 0, y: 0 };
-        return { side: 'panel', scale: 0, bubble: { x, y, w }, feet: { pomo: none, doro: none }, tailX: 0, ribbon };
+        return { side: 'panel', scale: 0, bubble: { x, y, w }, feet: { pomo: none, doro: none }, tailX: 0, ribbon, overflow: false };
     }
 
     if (!opening && tab) {
@@ -159,7 +164,8 @@ export function place(p: PlaceInput): Placement {
         const onRight = rightRoom >= leftRoom;
         const room = onRight ? rightRoom : leftRoom;
         const vertical = H - insets.top - insets.bottom - 2 * MARGIN - GAP - bubbleH - (tab.atBottom ? 0 : 40);
-        const scale = clamp(Math.min(1, room / pairWidth(1), vertical / head), MIN_SCALE, 1);
+        const fit = Math.min(room / pairWidth(1), vertical / head);
+        const scale = clamp(Math.min(1, fit), MIN_SCALE, 1);
         const pw = pairWidth(scale);
         const left = onRight ? tab.x + TAB_CLEAR : tab.x - TAB_CLEAR - pw;
         const bubbleW = Math.min(BUBBLE_MAX, innerW);
@@ -167,7 +173,7 @@ export function place(p: PlaceInput): Placement {
         let bubbleY: number;
         if (tab.atBottom) {
             feetY = H - insets.bottom - GAP;
-            bubbleY = feetY - head * scale - GAP - bubbleH;
+            bubbleY = Math.max(insets.top + 8, feetY - head * scale - GAP - bubbleH);
         } else {
             bubbleY = insets.top + 40;
             feetY = bubbleY + bubbleH + GAP + head * scale;
@@ -181,6 +187,7 @@ export function place(p: PlaceInput): Placement {
             feet,
             tailX: tail(bubbleX, bubbleW, feet, speaker),
             ribbon: ribbonToTab(W, H, insets, tab),
+            overflow: fit < MIN_SCALE,
         };
     }
 
@@ -212,7 +219,8 @@ export function place(p: PlaceInput): Placement {
         dockX = clamp(r.x + r.w / 2 - dockW / 2, insets.left + MARGIN, W - insets.right - MARGIN - dockW);
         if (best.side === 'above') {
             feetY = r.y - GAP;
-            bubbleY = feetY - head * scale - GAP - bubbleH;
+            // Never above the safe area; past half size the panel takes over (`overflow`).
+            bubbleY = Math.max(insets.top + 8, feetY - head * scale - GAP - bubbleH);
         } else {
             bubbleY = r.y + r.h + GAP;
             feetY = bubbleY + bubbleH + GAP + head * scale;
@@ -232,5 +240,6 @@ export function place(p: PlaceInput): Placement {
         feet,
         tailX: tail(bubbleX, bubbleW, feet, speaker),
         ribbon: opening ? ribbonToOpening(W, insets, r) : null,
+        overflow: best.fit < MIN_SCALE,
     };
 }

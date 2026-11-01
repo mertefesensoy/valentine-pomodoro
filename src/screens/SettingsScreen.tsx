@@ -195,6 +195,8 @@ export default function SettingsScreen() {
         if (useUiStore.getState().activeMode === 'fly') useUiStore.getState().setActiveMode('default');
         const slot = useSessionStore.getState().clock.pomodoro;
         const sessionActive = !!slot && (slot.isRunning || slot.pausedRemainingMs !== null);
+        // A first run still waiting on another tab is finished, so the replay starts at once.
+        useTourStore.getState().finish();
         useTourStore.getState().start({ replay: true, sessionActive });
         router.navigate('/');
     };

@@ -146,6 +146,12 @@ type Props = {
     rowRef?: Ref<ComponentRef<typeof View>>;
 };
 
+/** What VoiceOver says for today's row: the stickers so far, and the sessions left for today's goal. The tour's opening on the row says the same (D5). */
+export function todayLabel(count: number, sessionsToGoal: number): string {
+    const spoken = count === 0 ? t('today.a11y_zero') : t('today.a11y', { count });
+    return sessionsToGoal > 0 ? `${spoken}. ${t('today.left', { count: sessionsToGoal })}` : spoken;
+}
+
 /**
  * Today's stickers (Classic brief §3): one per completed focus, packed in whole cells, wrapping to
  * two rows, then "+n". A new one is pressed on with the placement and its burst; the ones already
@@ -169,12 +175,11 @@ export function TodayStickers({ tokens, count, goalHit, sessionsToGoal, goalStre
     const shown = overflow ? capacity - 1 : count;
     // The cells taken: the stickers, plus the "+n" cell once they overflow, which fills the rows.
     const taken = overflow ? capacity : shown;
-    // At 0 with no goal, one dashed cell still shows where the first sticker lands.
-    const empty = Math.max(0, Math.min(sessionsToGoal, capacity - taken)) || (count === 0 ? 1 : 0);
     // The row's cells keep one height through the day: the stickers replace dashed cells one for
     // one, so the Ring, which sizes to the height left, doesn't jump at a completion. It gives a
     // row's height up once, at the completion that first wraps the row onto its second row.
-    const spoken = count === 0 ? t('today.a11y_zero') : t('today.a11y', { count });
+    // At 0 with no goal, one dashed cell still shows where the first sticker lands.
+    const empty = Math.max(0, Math.min(sessionsToGoal, capacity - taken)) || (count === 0 ? 1 : 0);
 
     // NFR-PERF-004's readout: for one second after a placement, the UI thread records each frame's
     // delta and hands them over once, at the end, to B7's hidden panel (`startup/frameProbe`). No render.
@@ -229,7 +234,7 @@ export function TodayStickers({ tokens, count, goalHit, sessionsToGoal, goalStre
             <View
                 style={styles.line}
                 accessible
-                accessibilityLabel={sessionsToGoal > 0 ? `${spoken}. ${t('today.left', { count: sessionsToGoal })}` : spoken}
+                accessibilityLabel={todayLabel(count, sessionsToGoal)}
             >
                 <Text style={[styles.label, { color: tokens.inkSoft }]} maxFontSizeMultiplier={1.4}>
                     {t('today.label')}

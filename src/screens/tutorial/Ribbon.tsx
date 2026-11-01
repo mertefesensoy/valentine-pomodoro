@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import Animated, { Easing, useAnimatedProps, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from 'react-native-reanimated';
+import { scheduleOnUI } from 'react-native-worklets';
 
 import type { ThemeTokens } from '../../theme/palette';
 import type { RibbonCurve } from './placement';
@@ -62,11 +63,32 @@ export function Ribbon({ curve, tokens, reduced, entrance }: { curve: RibbonCurv
     const k = useSharedValue(0);
     const opacity = useSharedValue(curve ? 1 : 0);
     const shown = useRef(false);
+    // Read through a ref: turning Reduce Motion on mid-tour mustn't replay a fade (review M-15).
+    const reducedRef = useRef(reduced);
+    useEffect(() => {
+        reducedRef.current = reduced;
+    }, [reduced]);
+
+    // A new curve, from wherever the ribbon is now, mid-drape included. It reads the animating
+    // values, so it runs on the UI thread in one worklet, not as a synchronous read from here (M-5).
+    const retarget = (target: number[], drape: boolean) => {
+        'worklet';
+        from.set(mix(from.get(), to.get(), k.get()));
+        to.set(target);
+        k.set(0);
+        if (drape) {
+            opacity.set(withTiming(1, { duration: FADE_MS, easing: EASE_OUT }));
+            k.set(withTiming(1, { duration: DRAPE_MS, easing: EASE_SHEET }));
+        } else {
+            opacity.set(withSequence(withTiming(0, { duration: FADE_MS, easing: EASE_OUT }), withTiming(1, { duration: FADE_MS, easing: EASE_OUT })));
+            k.set(withDelay(FADE_MS, withTiming(1, { duration: 0 })));
+        }
+    };
 
     const key = curve ? toG(curve).map((v) => v.toFixed(1)).join(',') : 'none';
     useEffect(() => {
         if (!curve) {
-            opacity.set(withTiming(0, { duration: FADE_MS }));
+            opacity.set(withTiming(0, { duration: FADE_MS, easing: EASE_OUT }));
             return;
         }
         const target = [...toG(curve)];
@@ -75,10 +97,10 @@ export function Ribbon({ curve, tokens, reduced, entrance }: { curve: RibbonCurv
             from.set([...furled(curve)]);
             to.set(target);
             // The drop is the run's entrance; on a later screen the ribbon is already hanging.
-            if (reduced || !entrance) {
+            if (reducedRef.current || !entrance) {
                 k.set(1);
                 opacity.set(0);
-                opacity.set(withTiming(1, { duration: FADE_MS * 2 }));
+                opacity.set(withTiming(1, { duration: FADE_MS * 2, easing: EASE_OUT }));
             } else {
                 k.set(0);
                 opacity.set(1);
@@ -86,19 +108,9 @@ export function Ribbon({ curve, tokens, reduced, entrance }: { curve: RibbonCurv
             }
             return;
         }
-        // From wherever it is now, mid-drape included.
-        from.set(mix(from.get(), to.get(), k.get()));
-        to.set(target);
-        k.set(0);
-        if (reduced) {
-            opacity.set(withSequence(withTiming(0, { duration: FADE_MS }), withTiming(1, { duration: FADE_MS })));
-            k.set(withDelay(FADE_MS, withTiming(1, { duration: 0 })));
-        } else {
-            opacity.set(withTiming(1, { duration: FADE_MS }));
-            k.set(withTiming(1, { duration: DRAPE_MS, easing: EASE_SHEET }));
-        }
+        scheduleOnUI(retarget, target, !reducedRef.current);
         // `key` stands for the curve's numbers: a new curve object with the same points is no change.
-    }, [key, reduced]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const band = useAnimatedProps(() => {
         const [ax, ay, c1x, c1y, c2x, c2y, px, py] = mix(from.get(), to.get(), k.get());

@@ -1,5 +1,6 @@
-import type { ComponentRef, ReactNode, Ref } from 'react';
+import { useEffect, useRef, type ComponentRef, type ReactNode, type Ref } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { Icon } from '../../components/icons/Icon';
 import { sound } from '../../components/icons/art/sound';
@@ -12,6 +13,9 @@ import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
 type Props = {
     tokens: ThemeTokens;
     name: string;
+    /** Who's speaking: the name takes their colour, strawberry for Pomo, leaf for Doro (the owner, F-3). */
+    speaker: 'pomo' | 'doro';
+    reduced: boolean;
     /** The line as characters, and how many show (the write-on). */
     chars: readonly string[];
     shown: number;
@@ -42,7 +46,7 @@ type Props = {
  *   The tree runs in that order; the row draws them mute, Skip tour, then Next on the right.
  * - The text is never capped (T-2): at AX sizes the layer gives it the bottom panel instead.
  */
-export function Bubble({ tokens, name, chars, shown, onTapLine, next, exit, muted, onMute, tailX, panel, lineRef, onLayout }: Props) {
+export function Bubble({ tokens, name, speaker, reduced, chars, shown, onTapLine, next, exit, muted, onMute, tailX, panel, lineRef, onLayout }: Props) {
     const line = chars.join('');
     const text = (
         <Text style={[styles.line, { color: tokens.ink }]}>
@@ -62,7 +66,7 @@ export function Bubble({ tokens, name, chars, shown, onTapLine, next, exit, mute
             >
                 <View style={styles.nameRow}>
                     {panel?.badge}
-                    <Text style={[styles.name, { color: tokens.primaryInk }]}>{name}</Text>
+                    <Text style={[styles.name, { color: speaker === 'doro' ? tokens.successInk : tokens.primaryInk }]}>{name}</Text>
                 </View>
                 {panel ? (
                     <ScrollView style={{ maxHeight: panel.maxLineHeight }} showsVerticalScrollIndicator>
@@ -74,13 +78,13 @@ export function Bubble({ tokens, name, chars, shown, onTapLine, next, exit, mute
             </Pressable>
             <View style={styles.actions}>
                 {next && (
-                    <PressableScale onPress={next.onPress} style={[styles.next, { backgroundColor: tokens.primary }]} testID="tour-next">
-                        <Text style={[styles.nextLabel, { color: tokens.onPrimary }]}>{next.label}</Text>
+                    <PressableScale onPress={next.onPress} style={[styles.next, { backgroundColor: tokens.primarySoft }]} testID="tour-next">
+                        <Text style={[styles.nextLabel, { color: tokens.primaryInk }]}>{next.label}</Text>
                     </PressableScale>
                 )}
                 <View style={styles.spacer} />
                 <View style={styles.quiet}>
-                    <PressableScale onPress={exit.onPress} haptic={false} style={styles.exit} testID="tour-exit">
+                    <PressableScale onPress={exit.onPress} style={styles.exit} testID="tour-exit">
                         <Text style={[styles.exitLabel, { color: tokens.ink }]}>{exit.label}</Text>
                     </PressableScale>
                     <PressableScale
@@ -93,17 +97,29 @@ export function Bubble({ tokens, name, chars, shown, onTapLine, next, exit, mute
                     </PressableScale>
                 </View>
             </View>
-            {tailX !== null && (
-                <View
-                    pointerEvents="none"
-                    style={[styles.tail, { left: tailX - TAIL / 2, backgroundColor: tokens.paper, borderColor: tokens.edge }]}
-                />
-            )}
+            {tailX !== null && <Tail x={tailX} reduced={reduced} tokens={tokens} />}
         </View>
     );
 }
 
 const TAIL = 16;
+const EASE_SHEET = Easing.bezier(0.32, 0.72, 0, 1);
+
+/** The tail, under the speaker: it glides with the dock on the sheet curve when the turn passes (review M-10). */
+function Tail({ x, reduced, tokens }: { x: number; reduced: boolean; tokens: ThemeTokens }) {
+    const tx = useSharedValue(x);
+    const first = useRef(true);
+    useEffect(() => {
+        if (first.current) {
+            first.current = false;
+            return;
+        }
+        tx.set(reduced ? x : withTiming(x, { duration: 420, easing: EASE_SHEET }));
+        // Reduce Motion is read when the speaker changes; turning it on mid-glide changes nothing.
+    }, [x, tx]); // eslint-disable-line react-hooks/exhaustive-deps
+    const style = useAnimatedStyle(() => ({ transform: [{ translateX: tx.get() - TAIL / 2 }, { rotate: '45deg' }] }));
+    return <Animated.View pointerEvents="none" style={[styles.tail, { backgroundColor: tokens.paper, borderColor: tokens.edge }, style]} />;
+}
 
 const styles = StyleSheet.create({
     bubble: {
@@ -123,7 +139,8 @@ const styles = StyleSheet.create({
     // The tree runs Next, Skip tour, mute (VoiceOver's order); row-reverse draws them the other way round.
     actions: { flexDirection: 'row-reverse', alignItems: 'center', flexWrap: 'wrap', minHeight: minTarget },
     spacer: { flex: 1 },
-    quiet: { flexDirection: 'row-reverse', alignItems: 'center' },
+    // 16 pt between Skip tour and the mute: their 8 pt slops meet, never overlap (review H-5).
+    quiet: { flexDirection: 'row-reverse', alignItems: 'center', gap: space.l },
     next: {
         minHeight: minTarget,
         borderRadius: radius.pill,
@@ -138,11 +155,11 @@ const styles = StyleSheet.create({
     // A paper square turned 45°, its two outer sides edged: it covers the bubble's edge where it joins.
     tail: {
         position: 'absolute',
+        left: 0,
         bottom: -TAIL / 2 - 1,
         width: TAIL,
         height: TAIL,
         borderRightWidth: edgeWidth,
         borderBottomWidth: edgeWidth,
-        transform: [{ rotate: '45deg' }],
     },
 });

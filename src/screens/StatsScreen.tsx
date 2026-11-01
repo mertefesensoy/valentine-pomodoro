@@ -315,7 +315,7 @@ export default function StatsScreen() {
             <StatusBarScrim />
             {tourHere && (
                 <Suspense fallback={null}>
-                    <TourLayer screen="stats" targets={{ week: { ref: weekRef, radius: radius.l } }} scrollBy={scrollBy} />
+                    <TourLayer screen="stats" targets={{ week: { ref: weekRef, radius: radius.l, a11y: { label: summary, role: 'text' } } }} scrollBy={scrollBy} />
                 </Suspense>
             )}
             {/* The bottom inset includes the native tab bar (Phase 1 B6); the slot sits above it,

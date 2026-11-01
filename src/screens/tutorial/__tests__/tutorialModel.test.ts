@@ -247,11 +247,8 @@ describe('the tutorials (the owner’s per-version rule)', () => {
                     const l = beat.line(c);
                     lines.set(l.key, l.names ?? {});
                 }
-        for (const fly of [false, true]) {
-            const l = MODES_SHEET_LINE(fly);
-            lines.set(l.key, l.names ?? {});
-        }
-        expect(lines.size).toBe(18);
+        lines.set(MODES_SHEET_LINE.key, MODES_SHEET_LINE.names ?? {});
+        expect(lines.size).toBe(17);
         for (const [tree, budget] of [
             [en, 90],
             [tr, 110],

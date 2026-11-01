@@ -340,8 +340,7 @@
     "modes": {
       "fly": "Düzeni değiştirmek ya da odaklanırken haritada uçmak için {{modes}} düğmesine dokun.",
       "noFly": "{{ring}} ile {{spread}} arasında geçmek için {{modes}} düğmesine dokun.",
-      "sheetFly": "Burada {{ring}} ya da {{spread}} seç, istersen {{fly}}. Kapatınca devam ederiz.",
-      "sheet": "Burada {{ring}} ya da {{spread}} seç. Kapatınca devam ederiz."
+      "sheet": "Burada {{ring}} ya da {{spread}} seç, sonra devam etmek için aşağı kaydır."
     },
     "stats": {
       "lead": "Haftan {{tab}} sekmesinde. Görmek için sekmeye dokun.",
@@ -355,8 +354,8 @@
     },
     "invite": {
       "lead": "Tur bu kadar! Geri dönmek için {{tab}} sekmesine dokun.",
-      "first": "İlk odağına hazır mısın? Hazır olunca {{start}} düğmesine bas.",
-      "again": "Bir odağa hazır mısın? Hazır olunca {{start}} düğmesine bas."
+      "first": "İlk odağına hazır mısın? Hazır olunca {{start}} düğmesine dokun.",
+      "again": "Bir odağa hazır mısın? Hazır olunca {{start}} düğmesine dokun."
     }
   }
 }

@@ -11,6 +11,7 @@ import Animated, {
     withTiming,
     type SharedValue,
 } from 'react-native-reanimated';
+import { scheduleOnUI } from 'react-native-worklets';
 
 import { Sticker } from '../../components/stickers/Sticker';
 import { HANDS, KIT, TALK, recipe, type Hand, type Pose, type Side } from './kit';
@@ -39,10 +40,12 @@ const BOX = SPEAK;
 const UNIT = BOX / 512;
 const EASE_SHEET = Easing.bezier(0.32, 0.72, 0, 1);
 const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
-const EASE_IN_OUT = Easing.bezier(0.77, 0, 0.175, 1);
 const MOVE_MS = 420;
 const ARRIVE_MS = 360;
-const ROLE_MS = 280;
+/** Under Reduce Motion: the opening's crossfade, which a real move of the pair follows. */
+const FADE_MS = 150;
+/** A smaller move than this under Reduce Motion is a jump, not a dip. */
+const REDUCED_JUMP = 24;
 
 type Props = {
     who: Speaker;
@@ -93,111 +96,158 @@ function Layer({ art }: { art: Parameters<typeof Sticker>[0]['art'] }) {
 export function TourCharacter({ who, role, pose, look, feet, scale, mouth, talking, reduced, shadow, arriveDelay, entrance }: Props) {
     const kit = KIT[who];
     const outer: Side = who === 'doro' ? 'left' : 'right';
-    const [faces, setFaces] = useState({ cur: pose, prev: pose, look, prevLook: look });
-    // React's pattern for a prop change: adjust the state during render, once.
-    if (faces.cur !== pose || faces.look !== look) setFaces({ cur: pose, prev: faces.cur, look, prevLook: faces.look });
+    // Effects read Reduce Motion through a ref: turning it on mid-tour must not replay the last
+    // change, the landing or a gesture (review M-15). The worklets read the prop itself.
+    const reducedRef = useRef(reduced);
+    useEffect(() => {
+        reducedRef.current = reduced;
+    }, [reduced]);
+
+    // The pose on show. A new pose waits until the current change has settled (M-7). Only a changed
+    // recipe animates: a change of eyes alone (a glance) swaps them quietly, and a look that changes
+    // no layer changes nothing (M-8). `id` counts the animated changes.
+    const [settled, setSettled] = useState(true);
+    const [faces, setFaces] = useState({ cur: pose, prev: pose, look, prevLook: look, id: 0 });
+    if ((faces.cur !== pose || faces.look !== look) && settled) {
+        const from = recipe(faces.cur, faces.look, outer);
+        const to = recipe(pose, look, outer);
+        const glance = from.mouth === to.mouth && from.hand === to.hand && from.rotate === to.rotate && from.sy === to.sy;
+        if (glance) {
+            setFaces({ cur: pose, prev: pose, look, prevLook: look, id: faces.id });
+        } else {
+            setFaces({ cur: pose, prev: faces.cur, look, prevLook: faces.look, id: faces.id + 1 });
+            setSettled(false);
+        }
+    }
     const cur = recipe(faces.cur, faces.look, outer);
     const prev = recipe(faces.prev, faces.prevLook, outer);
 
     // Milliseconds into the latest change; CHANGE_MS when settled.
     const change = useSharedValue(CHANGE_MS);
-    const changedAt = useRef(0);
-    const first = useRef(true);
     useEffect(() => {
-        if (first.current) {
-            first.current = false;
-            return;
-        }
-        changedAt.current = Date.now();
-        cancelAnimation(change);
-        if (reduced) {
+        if (faces.id === 0) return;
+        const swap = reducedRef.current;
+        if (swap) {
             change.set(CHANGE_MS);
-            return;
+        } else {
+            change.set(0);
+            change.set(withTiming(CHANGE_MS, { duration: CHANGE_MS, easing: Easing.linear }));
         }
-        change.set(0);
-        change.set(withTiming(CHANGE_MS, { duration: CHANGE_MS, easing: Easing.linear }));
-    }, [faces, change, reduced]);
+        const id = setTimeout(() => setSettled(true), swap ? 0 : CHANGE_MS);
+        return () => clearTimeout(id);
+    }, [faces.id, change]);
 
-    // The gesture's clock, after the change: a wave swings, a point nudges.
+    // The gesture's clock: the first pose's wave or point starts once the character has landed; a
+    // change's, once the change is done (M-1).
     const gesture = useSharedValue(0);
     useEffect(() => {
         cancelAnimation(gesture);
         gesture.set(0);
-        if (reduced || !cur.hand) return;
+        if (reducedRef.current || !cur.hand) return;
         const span = cur.hand.startsWith('wave') ? WAVE.periodMs * WAVE.cycles + WAVE.homeMs : POINT.nudgeMs;
-        gesture.set(withDelay(CHANGE_MS, withTiming(span, { duration: span, easing: Easing.linear })));
-    }, [cur.hand, faces, gesture, reduced]);
+        const delay = faces.id === 0 ? (entrance ? arriveDelay + ARRIVE_MS : FADE_MS) : CHANGE_MS;
+        gesture.set(withDelay(delay, withTiming(span, { duration: span, easing: Easing.linear })));
+        // A new id is the only new gesture; the hand and the entrance are fixed with it.
+    }, [faces.id, gesture]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Arriving: a drop of 28 pt and a fade on the strong ease-out, then the landing's squash.
-    const arrive = useSharedValue(0);
+    // Arriving: the run's entrance drops 28 pt and fades on the strong ease-out, then lands with a
+    // squash; under Reduce Motion it fades. A later layer's pair are simply there inside the layer's
+    // own fade, so two fades don't multiply (M-13).
+    const arrive = useSharedValue(entrance ? 0 : 1);
     const land = useSharedValue(CHANGE_MS);
     useEffect(() => {
-        if (reduced || !entrance) {
-            arrive.set(withDelay(reduced ? arriveDelay : 0, withTiming(1, { duration: 200 })));
+        if (!entrance) return;
+        if (reducedRef.current) {
+            arrive.set(withDelay(arriveDelay, withTiming(1, { duration: 200, easing: EASE_OUT })));
             return;
         }
         arrive.set(withDelay(arriveDelay, withTiming(1, { duration: ARRIVE_MS, easing: EASE_OUT })));
         land.set(0);
         land.set(withDelay(arriveDelay + ARRIVE_MS - 60, withTiming(CHANGE_MS, { duration: CHANGE_MS, easing: Easing.linear })));
-        // The entrance is decided when the character mounts; a later change of it changes nothing.
-    }, [arrive, land, arriveDelay, reduced]); // eslint-disable-line react-hooks/exhaustive-deps
+        // The entrance is decided when the character mounts.
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     // The speaker breathes; the listener holds still (T-10). A random phase, so the two never sync.
+    // The retarget reads the phase on the UI thread, in one worklet (M-5).
     const period = BREATH.periodMs[who];
     const [phase0] = useState(() => Math.random() * period);
     const breath = useSharedValue(phase0);
-    useEffect(() => {
-        cancelAnimation(breath);
-        if (reduced || role !== 'speaker') return;
+    const breathe = (p: number) => {
+        'worklet';
         // From the current phase to the period's end, then whole periods: sin is equal at 0 and P,
         // so the wrap shows no jump.
-        const from = breath.get() % period;
+        const from = breath.get() % p;
         breath.set(from);
         breath.set(
             withSequence(
-                withTiming(period, { duration: period - from, easing: Easing.linear }),
-                withRepeat(withSequence(withTiming(0, { duration: 0 }), withTiming(period, { duration: period, easing: Easing.linear })), -1),
+                withTiming(p, { duration: p - from, easing: Easing.linear }),
+                withRepeat(withSequence(withTiming(0, { duration: 0 }), withTiming(p, { duration: p, easing: Easing.linear })), -1),
             ),
         );
-    }, [breath, period, reduced, role]);
+    };
+    useEffect(() => {
+        cancelAnimation(breath);
+        if (reducedRef.current || role !== 'speaker') return;
+        scheduleOnUI(breathe, period);
+    }, [breath, period, role]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // The blink: the eyes swap to closed for 110 ms, now and then, never mid-change.
+    // The blink: the eyes swap to closed for 110 ms, now and then. The worklets show it only
+    // between changes, so a blink never runs into one (M-12).
     const blink = useSharedValue(0);
     useEffect(() => {
         blink.set(0);
-        if (reduced || !cur.blinks) return;
+        if (reducedRef.current || !cur.blinks) return;
         let timer: ReturnType<typeof setTimeout>;
         const schedule = () => {
             const { waitMs, double } = nextBlink(Math.random(), Math.random());
             timer = setTimeout(() => {
-                if (Date.now() - changedAt.current > CHANGE_MS) {
-                    const shut = withSequence(withTiming(1, { duration: 0 }), withDelay(BLINK.closedMs, withTiming(0, { duration: 0 })));
-                    blink.set(double ? withSequence(shut, withDelay(BLINK.doubleGapMs, shut)) : shut);
-                }
+                const shut = withSequence(withTiming(1, { duration: 0 }), withDelay(BLINK.closedMs, withTiming(0, { duration: 0 })));
+                blink.set(double ? withSequence(shut, withDelay(BLINK.doubleGapMs, shut)) : shut);
                 schedule();
             }, waitMs);
         };
         schedule();
         return () => clearTimeout(timer);
-    }, [blink, cur.blinks, reduced]);
+    }, [blink, cur.blinks]);
 
-    // The role: the speaker at full size, the listener at 140/190, about the feet.
+    // The role: the speaker at full size, the listener at 140/190, about the feet, on the same
+    // curve and time as the move, since the size is their product (M-11).
     const roleScale = useSharedValue(role === 'speaker' ? 1 : LISTEN / SPEAK);
     useEffect(() => {
         const target = role === 'speaker' ? 1 : LISTEN / SPEAK;
-        roleScale.set(reduced ? target : withTiming(target, { duration: ROLE_MS, easing: EASE_IN_OUT }));
-    }, [role, roleScale, reduced]);
+        roleScale.set(reducedRef.current ? target : withTiming(target, { duration: MOVE_MS, easing: EASE_SHEET }));
+    }, [role, roleScale]);
 
-    // Where the feet stand, and the pair's scale.
+    // Where the feet stand, and the pair's scale: a glide on the sheet curve. Under Reduce Motion a
+    // real move dips out and back in on the opening's own 150 + 150 ms, moving while hidden (M-14).
     const x = useSharedValue(feet.x);
     const y = useSharedValue(feet.y);
     const k = useSharedValue(scale);
+    const dip = useSharedValue(1);
+    const placed = useRef({ x: feet.x, y: feet.y, k: scale });
     useEffect(() => {
-        const to = (v: number) => (reduced ? v : withTiming(v, { duration: MOVE_MS, easing: EASE_SHEET }));
-        x.set(to(feet.x));
-        y.set(to(feet.y));
-        k.set(to(scale));
-    }, [feet.x, feet.y, scale, x, y, k, reduced]);
+        const was = placed.current;
+        placed.current = { x: feet.x, y: feet.y, k: scale };
+        if (was.x === feet.x && was.y === feet.y && was.k === scale) return;
+        if (!reducedRef.current) {
+            const to = (v: number) => withTiming(v, { duration: MOVE_MS, easing: EASE_SHEET });
+            x.set(to(feet.x));
+            y.set(to(feet.y));
+            k.set(to(scale));
+            return;
+        }
+        if (Math.hypot(feet.x - was.x, feet.y - was.y) < REDUCED_JUMP) {
+            x.set(feet.x);
+            y.set(feet.y);
+            k.set(scale);
+            return;
+        }
+        const jump = (v: number) => withDelay(FADE_MS, withTiming(v, { duration: 0 }));
+        x.set(jump(feet.x));
+        y.set(jump(feet.y));
+        k.set(jump(scale));
+        dip.set(withSequence(withTiming(0, { duration: FADE_MS, easing: EASE_OUT }), withTiming(1, { duration: FADE_MS, easing: EASE_OUT })));
+    }, [feet.x, feet.y, scale, x, y, k, dip]);
 
     const holdFrom = { rotate: prev.rotate, sy: prev.sy };
     const holdTo = { rotate: cur.rotate, sy: cur.sy };
@@ -209,29 +259,37 @@ export function TourCharacter({ who, role, pose, look, feet, scale, mouth, talki
         const holdSy = holdFrom.sy + (holdTo.sy - holdFrom.sy) * h;
         const rotate = holdFrom.rotate + (holdTo.rotate - holdFrom.rotate) * h;
         const b = talks && !reduced ? breathAt(breath.get(), period, talking.get() > 0 ? BREATH.talkingFactor : 1) : 1;
-        const sy = squashAt(t) * squashAt(land.get()) * b * holdSy;
+        // The squash, the landing and the breath keep the area; a held stretch only grows taller,
+        // as on the pose sheet (M-12).
+        const sy = reduced ? 1 : squashAt(t) * squashAt(land.get()) * b;
         const s = roleScale.get() * k.get();
         const a = arrive.get();
         return {
-            opacity: a,
+            opacity: a * dip.get(),
             transform: [
                 { translateX: x.get() - (fx / 512) * BOX },
                 { translateY: y.get() - (fy / 512) * BOX - (reduced || !entrance ? 0 : 28 * (1 - a)) },
                 { rotate: `${rotate}deg` },
                 { scaleX: s / sy },
-                { scaleY: s * sy },
+                { scaleY: s * sy * holdSy },
             ],
         };
     });
     const curFace = useAnimatedStyle(() => ({ opacity: faceInAt(change.get()) }));
     const prevFace = useAnimatedStyle(() => ({ opacity: faceOutAt(change.get()) }));
-    const curEyes = useAnimatedStyle(() => ({ opacity: 1 - blink.get() }));
-    const blinkEyes = useAnimatedStyle(() => ({ opacity: blink.get() }));
+    const shut = () => {
+        'worklet';
+        return !reduced && change.get() >= CHANGE_MS ? blink.get() : 0;
+    };
+    const curEyes = useAnimatedStyle(() => ({ opacity: 1 - shut() }));
+    const blinkEyes = useAnimatedStyle(() => ({ opacity: shut() }));
     const ownMouth = useAnimatedStyle(() => ({ opacity: talks && mouth.get() > 0 ? 0 : 1 }));
     const talk1 = useAnimatedStyle(() => ({ opacity: mouth.get() === 1 ? 1 : 0 }));
     const talk2 = useAnimatedStyle(() => ({ opacity: mouth.get() === 2 ? 1 : 0 }));
     const talk3 = useAnimatedStyle(() => ({ opacity: mouth.get() === 3 ? 1 : 0 }));
     const talkStyles = [talk1, talk2, talk3];
+    // The hand that stays, grows (a new one) or goes back (the one being left).
+    const kept = cur.hand && prev.hand === cur.hand;
 
     return (
         <Animated.View
@@ -245,10 +303,8 @@ export function TourCharacter({ who, role, pose, look, feet, scale, mouth, talki
             <View style={StyleSheet.absoluteFill}>
                 <Sticker art={kit.bodyCut} width={BOX} shadow={shadow} />
             </View>
-            {prev.hand && prev.hand !== cur.hand && (
-                <HandLayer who={who} hand={prev.hand} change={change} gesture={gesture} grow={false} reduced={reduced} />
-            )}
-            {cur.hand && <HandLayer who={who} hand={cur.hand} change={change} gesture={gesture} grow={prev.hand !== cur.hand} reduced={reduced} />}
+            {prev.hand && prev.hand !== cur.hand && <HandLayer who={who} hand={prev.hand} change={change} gesture={gesture} mode="shrink" reduced={reduced} />}
+            {cur.hand && <HandLayer who={who} hand={cur.hand} change={change} gesture={gesture} mode={kept ? 'keep' : 'grow'} reduced={reduced} />}
             <Layer art={kit.bodyFill} />
             <Animated.View style={[StyleSheet.absoluteFill, prevFace]}>
                 <Layer art={kit.eyes[prev.eyes]} />
@@ -279,22 +335,23 @@ export function TourCharacter({ who, role, pose, look, feet, scale, mouth, talki
 }
 
 /**
- * A nub: it grows from its root over the change (or goes back, for the face being left), then
- * waves about its pivot or nudges along its axis. Under Reduce Motion it is simply there or not.
+ * A nub: it grows from its root over the change, stays, or goes back (for the face being left),
+ * and a hand that's there waves about its pivot or nudges along its axis. Under Reduce Motion it
+ * is simply there or not.
  */
 function HandLayer({
     who,
     hand,
     change,
     gesture,
-    grow,
+    mode,
     reduced,
 }: {
     who: Speaker;
     hand: Hand;
     change: SharedValue<number>;
     gesture: SharedValue<number>;
-    grow: boolean;
+    mode: 'grow' | 'keep' | 'shrink';
     reduced: boolean;
 }) {
     const { pivot, axis } = HANDS[who][hand];
@@ -302,17 +359,21 @@ function HandLayer({
     const mirror = hand.endsWith('left') ? -1 : 1;
     const style = useAnimatedStyle(() => {
         const t = change.get();
-        const s = reduced ? (grow ? 1 : 0) : grow ? faceInAt(t) : faceOutAt(t);
+        const s = mode === 'keep' ? 1 : mode === 'shrink' ? (reduced ? 0 : faceOutAt(t)) : reduced ? 1 : faceInAt(t);
         const g = gesture.get();
-        const angle = !grow || reduced ? 0 : wave ? mirror * waveAt(g) : 0;
-        const nudge = !grow || reduced || wave ? 0 : pointAt(g) * UNIT;
+        const moves = mode !== 'shrink' && !reduced;
+        const angle = moves && wave ? mirror * waveAt(g) : 0;
+        const nudge = moves && !wave ? pointAt(g) * UNIT : 0;
         return {
             opacity: s > 0.01 ? 1 : 0,
             transform: [{ translateX: nudge * axis[0] }, { translateY: nudge * axis[1] }, { rotate: `${angle}deg` }, { scale: Math.max(0.01, s) }],
         };
     });
     return (
-        <Animated.View style={[StyleSheet.absoluteFill, { transformOrigin: `${(pivot[0] / 512) * 100}% ${(pivot[1] / 512) * 100}%` }, style]}>
+        <Animated.View
+            style={[StyleSheet.absoluteFill, { transformOrigin: `${(pivot[0] / 512) * 100}% ${(pivot[1] / 512) * 100}%` }, style]}
+            testID={`tour-hand-${hand}`}
+        >
             <Sticker art={KIT[who].hand[hand]} width={BOX} />
         </Animated.View>
     );

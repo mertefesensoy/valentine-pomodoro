@@ -26,7 +26,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 | 1. Shape | **Confirmed** by the owner, 2026-11-01 ("Confirm the brief"); written from their five answers (§3.1) |
 | 2. `/apple-design` on the brief | **Good**, 2026-11-01: no Critical, 2 High, 5 Medium, 4 Low (§3.3). All accepted, T-4 in part; the contract carries them. Spike done alongside (§3.2): the layer lives inside the tab screens |
 | 3. Composition round, then the direction contract | **The round is dealt** (§3.4): the bookmark ribbon (the lead), the washi-tape frame and the comic-strip duet. The owner's pick is next, then the contract, carrying §3.2–3.4 |
-| 4. Assets: the pair's poses (VectorCraft) on a pose sheet, their babble (SoundCraft) on a listening page | Pending; possibly a parallel session, as D4's were |
+| 4. Assets: the pair's poses **and new expressions with their animations** (VectorCraft) on a pose sheet, their babble (SoundCraft) on a listening page | Pending; possibly a parallel session, as D4's were. The expressions are the owner's addition (§3.4, round 2) |
 | 5. Build (`animate-expo`) | Pending |
 | 6. Critique, audit, HIG, `review-animations` | Pending |
 | 7. `break-ui` in Turkish at AX5 | Pending |
@@ -158,7 +158,23 @@ Two lend a discipline to whichever structure wins: one message per bubble, its p
 - **All three use** the cocoa scrim (T-5), Skip tour and Next in the bubble (T-3), and the pair's current poses. Their talking and pointing poses come in the asset step.
 - **Fixed after the first look:** the pair grew to 88 pt for the speaker and 62 for the listener; the ribbon drapes around the clock instead of cutting through it; the comic strip gained room for its buttons.
 
-**The decision page:** a private artifact, [Tutorial Compositions](https://claude.ai/artifact/CMtnJTVezuwuumgEtVUhQa), with the three sketches live (the lead under "The roll") and the declined challengers in a quiet row. **It waits for the owner's pick.**
+**The decision page:** a private artifact, [Tutorial Compositions](https://claude.ai/artifact/CMtnJTVezuwuumgEtVUhQa), with the three sketches live (the lead under "The roll") and the declined challengers in a quiet row.
+
+**Round 2.** The owner, 2026-11-01, instead of picking: "make pomo and doro much more bigger on the screen for the tutorials for better aesthetic and we will comparte them again. Also i want new expressiosn and animations for expressions as well".
+- **The pair, about twice as big:**
+  - the speaker's sticker box is 190 pt (it was 88), the listener's 140 (it was 62);
+  - the speaker wears its celebrating pose and the listener its idle one, both from the shipped art (`art/out/illustration/`, as symbols).
+- **Each composition rearranged around them, with the spotlight still clear:**
+  - **The ribbon:** the bubble floats above, and the pair stand at the ribbon's tip.
+  - **The washi:** the pair stand tall on the note's top edge.
+  - **The comic strip:** grows to 262 pt. It docks at the top when the spotlight is low, as in step 1, and above the tab bar for a tab, since a strip that tall can't share the bottom with the presets.
+- **The decision page is republished** at the same address as version 2, and again waits for the owner's pick.
+
+**New expressions and their animations** (the owner's addition) join the asset step (§0, step 4), beside the new poses:
+- **For each of the pair, a set of expressions,** proposed for the pose sheet: talking (mouth shapes in step with the babble), happy (an eye smile), excited (sparkling eyes), curious (a head tilt), proud, a wink, surprised.
+- **The animations:** a blink every few seconds; the talking mouth while a line writes on; a quick squash and stretch on each change of expression, with the new face crossing in; a soft breath at rest.
+- **Under Reduce Motion,** expressions swap with no squash or loop. Like the welcome's, they're character animation, so they belong in DESIGN.md's "Tutorial (first run)" row, the owner's exception.
+- **The pose sheet** shows the expressions and their motion for the owner's approval before they're built.
 
 ## 4. Mathematical / Statistical Details
 

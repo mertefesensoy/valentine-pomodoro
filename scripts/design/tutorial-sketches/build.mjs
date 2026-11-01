@@ -15,7 +15,14 @@ const SCRIM = 'rgba(74, 44, 41, 0.45)'; // the proposed scrim token (T-5): cocoa
 const d2 = fs.readFileSync(new URL('art/review/d2-stats-postcard-stack.html', ROOT), 'utf8');
 const fontFace = d2.match(/@font-face\{[^}]*\}/)[0];
 const symbol = (id) => d2.match(new RegExp(`<symbol id="${id}"[\\s\\S]*?</symbol>`))[0];
-const SYMBOLS = `<svg width="0" height="0" style="position:absolute">${symbol('pomo')}${symbol('doro')}</svg>`;
+// The owner, round 1: "make pomo and doro much more bigger": the speaker in its celebrating pose, the
+// listener in its idle one, both from the shipped art (art/out/illustration). New expressions and their
+// animations come in D5's asset step.
+const pose = (file) => {
+    const svg = fs.readFileSync(new URL(`art/out/illustration/${file}.svg`, ROOT), 'utf8');
+    return `<symbol id="${file}" viewBox="0 0 512 512">${svg.slice(svg.indexOf('</title>') + 8, svg.lastIndexOf('</svg>'))}</symbol>`;
+};
+const SYMBOLS = `<svg width="0" height="0" style="position:absolute">${symbol('pomo')}${symbol('doro')}${['pomo-celebrating', 'pomo-idle', 'doro-celebrating', 'doro-idle'].map(pose).join('')}</svg>`;
 const sticker = (who, size, style = '') =>
     `<svg class="stk" width="${size}" height="${size}" style="${style}"><use href="#${who}"/></svg>`;
 
@@ -65,41 +72,45 @@ const RIBBON = (d, ex, ey) =>
 const TAPE = (x, y, rot, color) =>
     `<svg class="abs" style="left:${x}px;top:${y}px;transform:rotate(${rot}deg)" width="70" height="22"><defs><pattern id="p${color.slice(1)}" width="8" height="22" patternUnits="userSpaceOnUse"><rect width="8" height="22" fill="${color}" opacity=".85"/><rect width="4" height="22" fill="#fff" opacity=".35"/></pattern></defs><rect width="70" height="22" fill="url(#p${color.slice(1)})"/></svg>`;
 
+const SPEAK = 190; // the speaker's sticker box, pt (its art fills about 77 % of the box)
+const LISTEN = 140; // the listener's
+const smallActs = `<div class="acts mini"><span class="skip">Skip tour</span><span class="next">Next</span></div>`;
+
 const STRUCTURES = [
     {
         id: 'ribbon',
         title: 'The bookmark ribbon',
         kicker: 'THE ROLL',
-        line: 'The diary’s strawberry ribbon, the one on the welcome’s closed diary, drops to whatever the pair are talking about and marks your place. They ride its end and take turns; the bubble hangs beside them.',
-        good: ['One continuous thread from the welcome through every step: the ribbon is the tour.', 'Its tip points without a separate arrow, at a control or down at the tab bar.', 'The pair stay next to the opening, so eyes don’t travel far.'],
+        line: 'The diary’s strawberry ribbon, the one on the welcome’s closed diary, drops to whatever the pair are talking about and marks your place. They stand at its tip, big, taking turns; the bubble floats above them.',
+        good: ['One continuous thread from the welcome through every step: the ribbon is the tour.', 'Its tip points without a separate arrow, at a control or down at the tab bar.', 'The pair stand right beside the opening, big enough to carry the moment.'],
         watch: ['The ribbon crosses the page, so each step needs a clear line to its target.', 'At AX sizes the ribbon shortens to a tab above the bottom panel (T-2).'],
         frames: [
-            () => `${dim(PRESETS)}${RIBBON('M374 -5 C374 160 352 300 352 462', 352, 462)}${sticker('pomo', 88, 'left:262px;top:388px')}${sticker('doro', 62, 'left:330px;top:300px')}${bubble('Pomo', 'Hi, we’re Pomo &amp; Doro! First, pick how long you’d like to focus.', 'left:18px;top:330px;width:236px', '<b class="tail r" style="top:84px"></b>')}`,
-            () => `${dim(null)}${RIBBON('M22 -5 C18 360 151 470 151 732', 151, 732)}${sticker('doro', 88, 'left:58px;top:600px')}${sticker('pomo', 62, 'left:160px;top:640px')}${bubble('Doro', 'Your week lives in Stats. Tap it below to see it.', 'left:172px;top:470px;width:198px', '<b class="tail l" style="top:120px"></b>')}`,
+            () => `${dim(PRESETS)}${RIBBON('M374 -5 C374 160 356 300 356 500', 356, 500)}${sticker('doro-idle', LISTEN, 'left:22px;top:368px')}${sticker('pomo-celebrating', SPEAK, 'left:170px;top:322px')}${bubble('Pomo', 'Hi, we’re Pomo &amp; Doro! First, pick how long you’d like to focus.', 'left:18px;top:128px;width:300px', '<b class="tail b" style="left:220px"></b>')}`,
+            () => `${dim(null)}${RIBBON('M22 -5 C18 360 151 470 151 736', 151, 736)}${sticker('pomo-idle', LISTEN, 'left:6px;top:602px')}${sticker('doro-celebrating', SPEAK, 'left:172px;top:552px')}${bubble('Doro', 'Your week lives in Stats. Tap it below to see it.', 'left:30px;top:388px;width:330px', '<b class="tail b" style="left:244px"></b>')}`,
         ],
     },
     {
         id: 'washi',
         title: 'The washi-tape frame',
         kicker: '',
-        line: 'The opening is taped into the diary like a keepsake, two strips at its corners, and the line is a paper note taped beside it, with the pair standing on its edge.',
-        good: ['The most stationery of the three: tape and a note are the diary’s own way of pointing.', 'The note can sit anywhere there is room, so placements stay flexible.', 'The tape strips make the opening read as “this one” without an arrow.'],
+        line: 'The opening is taped into the diary like a keepsake, two strips at its corners, and the line is a paper note taped beside it, with the pair standing tall on its top edge.',
+        good: ['The most stationery of the three: tape and a note are the diary’s own way of pointing.', 'The pair stand on the note like stickers on a page, large and close to what they say.', 'The tape strips make the opening read as “this one” without an arrow.'],
         watch: ['Tape and a tilted note are two more decorations around the one control (T-10).', 'At the tab step the note needs a drawn arrow, since tape can’t reach the native bar.'],
         frames: [
-            () => `${dim(PRESETS)}${TAPE(2, 520, -32, c.primary)}${TAPE(318, 604, -32, c.success)}<div class="note" style="left:36px;top:362px;width:318px;transform:rotate(-1.5deg)"><div class="who">Pomo</div><p>Hi, we’re Pomo &amp; Doro! First, pick how long you’d like to focus.</p>${actions}</div>${TAPE(160, 352, 3, c.primary)}${sticker('pomo', 86, 'left:34px;top:290px')}${sticker('doro', 62, 'left:292px;top:308px')}`,
-            () => `${dim(null)}<div class="note" style="left:30px;top:606px;width:300px;transform:rotate(1.5deg)"><div class="who">Doro</div><p>Your week lives in Stats. Tap it below to see it.</p>${actions}</div>${TAPE(14, 600, -24, c.success)}${sticker('doro', 86, 'left:246px;top:530px')}${sticker('pomo', 62, 'left:188px;top:556px')}<svg class="abs" style="left:120px;top:720px" width="60" height="48" fill="none" stroke="${c.paper}" stroke-width="2.4" stroke-linecap="round"><path d="M44 4 C40 22 34 32 30 42"/><path d="M22 34 L30 43 L37 33"/></svg>`,
+            () => `${dim(PRESETS)}${TAPE(2, 520, -32, c.primary)}${TAPE(318, 604, -32, c.success)}<div class="note" style="left:30px;top:338px;width:330px;transform:rotate(-1.5deg)"><div class="who">Pomo</div><p>Hi, we’re Pomo &amp; Doro! First, pick how long you’d like to focus.</p>${actions}</div>${TAPE(160, 328, 3, c.primary)}${sticker('pomo-celebrating', SPEAK, 'left:20px;top:168px')}${sticker('doro-idle', LISTEN, 'left:228px;top:214px')}`,
+            () => `${dim(null)}<div class="note" style="left:24px;top:592px;width:300px;transform:rotate(1.5deg)"><div class="who">Doro</div><p>Your week lives in Stats. Tap it below to see it.</p>${actions}</div>${TAPE(10, 586, -24, c.success)}${sticker('pomo-idle', LISTEN, 'left:30px;top:470px')}${sticker('doro-celebrating', SPEAK, 'left:168px;top:424px')}<svg class="abs" style="left:118px;top:712px" width="60" height="54" fill="none" stroke="${c.paper}" stroke-width="2.6" stroke-linecap="round"><path d="M46 4 C42 24 36 36 32 48"/><path d="M23 39 L32 50 L40 39"/></svg>`,
         ],
     },
     {
         id: 'comic',
         title: 'The comic-strip duet',
         kicker: '',
-        line: 'A two-panel strip docks just above the tab bar. The speaker’s panel is wide and lit, the listener’s narrow and quiet, and they swap with each line, so turn-taking is the layout itself.',
-        good: ['Turn-taking is unmistakable: one wide panel for whoever is talking.', 'Always in the same place, so the eye learns where to read; the page above stays clear.', 'It converts most directly to the AX bottom panel (T-2).'],
-        watch: ['It covers the bottom of the page, Start focus and Skip included, until the last step lifts it.', 'The pair live in the strip, further from the control they’re explaining.'],
+        line: 'A tall two-panel strip: the speaker’s panel wide and lit, the listener’s narrow and quiet, swapping with each line. It docks at the top when the spotlight is low on the page, and above the tab bar when it points at a tab.',
+        good: ['Turn-taking is unmistakable: one wide panel for whoever is talking.', 'The pair get the most room of the three, each framed in their own panel.', 'It converts most directly to the AX bottom panel (T-2).'],
+        watch: ['A strip this tall can’t share the bottom with the presets, so it moves between top and bottom with the target.', 'The pair live in the strip, further from the control than in the other two.'],
         frames: [
-            () => `${dim(PRESETS)}<div class="panels" style="top:620px"><div class="panel wide"><div class="who">Pomo</div><p>Hi, we’re Pomo &amp; Doro! First, pick how long you’d like to focus.</p>${sticker('pomo', 70, 'right:4px;bottom:40px')}${actions}<b class="notch up" style="left:120px"></b></div><div class="panel narrow">${sticker('doro', 60, 'left:16px;top:30px;opacity:.9')}</div></div>`,
-            () => `${dim(null)}<div class="panels" style="top:620px"><div class="panel narrow">${sticker('pomo', 60, 'left:16px;top:30px;opacity:.9')}</div><div class="panel wide"><div class="who">Doro</div><p>Your week lives in Stats. Tap it below to see it.</p>${sticker('doro', 70, 'right:4px;bottom:40px')}${actions}</div><b class="notch down" style="left:${151 - 16 - 8}px"></b></div>`,
+            () => `${dim(PRESETS)}<div class="panels" style="top:96px;height:262px"><div class="panel wide"><div class="who">Pomo</div><p>Hi, we’re Pomo &amp; Doro! First, pick how long you’d like to focus.</p>${sticker('pomo-celebrating', 158, 'right:-6px;bottom:2px')}${smallActs}<b class="notch down" style="left:110px"></b></div><div class="panel narrow">${sticker('doro-idle', 112, 'left:-10px;bottom:10px;opacity:.92')}</div></div>`,
+            () => `${dim(null)}<div class="panels" style="top:498px;height:262px"><div class="panel narrow">${sticker('pomo-idle', 112, 'left:-10px;bottom:10px;opacity:.92')}</div><div class="panel wide"><div class="who">Doro</div><p>Your week lives in Stats. Tap it below to see it.</p>${sticker('doro-celebrating', 158, 'right:-6px;bottom:2px')}${smallActs}</div><b class="notch down" style="left:${151 - 16 - 8}px"></b></div>`,
         ],
     },
 ];
@@ -142,10 +153,10 @@ figcaption{font:600 13px/1 -apple-system,sans-serif;color:${c.inkSoft}}
 .acts{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:14px;font-weight:600}
 .skip{color:${c.inkSoft}}.next{background:${c.primary};color:${c.onPrimary};border-radius:16px;padding:7px 16px}
 .tail{position:absolute;width:16px;height:16px;background:${c.paper};border:1.5px solid ${c.edge};transform:rotate(45deg)}
-.tail.r{right:-9px;border-left:0;border-bottom:0}.tail.l{left:-9px;border-right:0;border-top:0}
-.panels{position:absolute;left:16px;width:358px;height:140px;display:flex;gap:8px}
+.tail.r{right:-9px;border-left:0;border-bottom:0}.tail.b{bottom:-9px;border-left:0;border-top:0}.tail.l{left:-9px;border-right:0;border-top:0}
+.panels{position:absolute;left:16px;width:358px;display:flex;gap:8px}
 .panel{position:relative;border-radius:14px;padding:12px 14px 10px}
-.panel.wide{flex:1}.panel.wide p{padding-right:58px}.panel.narrow{width:92px;background:${c.field}}
+.panel.wide{flex:1}.acts.mini{position:absolute;left:14px;bottom:12px;flex-direction:column;align-items:flex-start;gap:10px;margin:0}.panel.narrow{width:92px;background:${c.field}}
 .notch{position:absolute;width:16px;height:16px;background:${c.paper};border:1.5px solid ${c.edge};transform:rotate(45deg)}
 .notch.up{top:-9px;border-right:0;border-bottom:0}.notch.down{bottom:-9px;border-left:0;border-top:0}
 ul{max-width:860px;margin:22px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:6px 28px;font-size:14px;line-height:1.45}

@@ -30,7 +30,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | 4. Critique, audit (≥ 16/20), HIG (no Critical), `review-animations` | First pass: critique 27/32, audit **15/20**, HIG **1 Critical** (day names), motion clean. After the fixes: critique 27/32 (84 %), audit 16/20, no Critical, motion clean (§3.12) | First pass: critique 34/40, audit 17/20, no Critical, motion not clean. After: critique 36/40, audit 18/20, no Critical, motion clean (§3.12) | First pass: **a P0** (rows unstyled in a release build), motion not clean. After: critique 37/40, audit 17/20, no Critical, motion clean (§3.12) | Retired: none |
 | 5. `break-ui` (TR at AX5) | 2 Ugly (the zero-goal summary, the strip at AX5) and the shared number formats: **fixed**; a streak of 0 softened (§3.13) | The number formats: **fixed**; Turkish words wider than a row: accepted (the owner) | 2 Broken (an emoji cut at the cap, the editor header at AX5) and 1 Ugly (line breaks lost): **fixed** | Retired: none |
 | 6. `polish`, `harden`, `clarify` | Done: "Turn on a daily goal" opens Settings at the goal row; Turkish "kaldı" (§3.14). The Turkish copy and the default notes: **reviewed** by the owner, six note changes applied (§3.15) | Done: a failed reminder told from a refusal; "Check for updates" offline; link rejections; "Sound and haptics" (§3.14) | Done (§3.13–3.14) | Retired: none |
-| 7. Device check (the next build, with D1's finish-review fixes) | Build 51 checked (§3.11). **Build 52: passed** (the owner, "pass the first test"); nits 6 and 7 fixed (§3.17) | Build 52: passed; nit 2 fixed | Build 52: passed, the P0 gone; nit 8 fixed | Retired: none |
+| 7. Device check (the next build, with D1's finish-review fixes) | Builds 51–53 checked and fixed (§3.11, §3.17, §3.20). **Build 54: passed** (the owner, 2026-11-01, §3.22) | **Build 54: passed** | **Build 54: passed** | Retired: none |
 | FINISH: the finish review, its verdict, DESIGN.md | — | — | — | — |
 
 **Alongside the screens** (Stage D plan §3.3), D2 also does:
@@ -903,6 +903,15 @@ It carries §3.20's fixes: Classic in landscape and the status-bar band.
 
 The device check is §6 "the next build's device check" (§3.20's items), then D1's remaining captures.
 
+### 3.22 The build 54 device check: passed
+
+**The owner, 2026-11-01:** "nice everything passes the checks good job".
+- Build 54 carries everything D2 built and fixed: §3.6–3.9, §3.11, §3.12–3.15, and §3.17–3.20.
+- The owner's checks pass on it, so step 7 is done for every D2 screen.
+- No screenshots came with this check. D1's verdict pass still needs four captures from build 54 or later: Facing Pages in light, the shadows in light, and the Modes sheet over Classic and over Fly. Its other captures came with builds 52–53 (§3.20).
+
+**What remains of D2:** FINISH. The finish reviewer's verdict on the built screens against their direction contracts, using the owner's device captures from builds 51–54, then the documenter's DESIGN.md (shared with D1's, after D1's verdict pass).
+
 ## 4. Mathematical / Statistical Details
 
 None yet. The week's sticker capacity and the goal counts will reuse D1's rules (D1 record §4.3) when Stats is built.
@@ -952,7 +961,7 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
      - Judge how long notes read at the largest size (the owner kept the full text).
 - [x] **The owner's copy review** on the copy proof page (§3.14, done: §3.15): every Turkish string (D1's and D2's) and the 21 default notes in both languages, and the two tab-title questions. The marks are read back and applied before build 52.
 - [x] **The device check, build 53** (the owner, 2026-11-01: the fixes hold; two new problems fixed in §3.20). Its list was: §3.18's notifications first. Start a focus and lock the phone: nothing arrives at the start. At its end, "Focus complete 💗 · Time for a sweet break". At the break's end, "Break's over 💘 · Back to your goals". With the app open, the banner comes at the end too. Fly's "Landed!" comes on landing. Then the eight nits of §3.17. The stickers lift with a soft shadow and no square, in both themes. "Custom" sits level in its pill. Fly's peeked sheet shows its mode line above the bar; its timer is in ink; "From" and "To" align. No empty band on Stats. "Best n" on its own line. Restore adds no near-duplicates. Then D1's six captures for its verdict pass.
-- [ ] **The device check, build 54** (submitted, §3.21): §3.20. Classic in landscape, both layouts: the face fills the left half at full height with no empty area; the phase line and Modes button head the right column; the partner line shows; today's cells sit in two rows; nothing runs under the tab bar. Scrolled tabs (Classic, Stats, Settings, Notes) never run under the clock. Then D1's remaining captures: Facing Pages in light, the shadows in light, the Modes sheet over Classic and over Fly.
+- [x] **The device check, build 54** (the owner, 2026-11-01: "nice everything passes the checks good job"; §3.22): §3.20. Classic in landscape, both layouts: the face fills the left half at full height with no empty area; the phase line and Modes button head the right column; the partner line shows; today's cells sit in two rows; nothing runs under the tab bar. Scrolled tabs (Classic, Stats, Settings, Notes) never run under the clock. Then D1's remaining captures: Facing Pages in light, the shadows in light, the Modes sheet over Classic and over Fly.
 - [ ] B2's notes tests stay green: Bengisu's install keeps its notes.
 - [ ] The emoji check (`src/__tests__/noEmojiIcons.test.ts`) passes.
 - [ ] **The device check, build 51** (needs a physical device). It goes with the D1 record's §6 "build 51" list, for D1's finish fixes and the six recaptures.

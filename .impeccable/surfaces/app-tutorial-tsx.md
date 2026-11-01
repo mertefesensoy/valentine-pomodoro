@@ -144,3 +144,73 @@ Surface brief from `/impeccable shape`, Phase 1 D5 (Stage D plan §3.9), 2026-11
   - Budgets: NFR-PERF-005 (an illustration ≤ 30 KB, a UI sound ≤ 25 KB).
 - **Every line** is a key in English and Turkish and goes through the copy review. The babble carries no language.
 - **The per-version rule:** the store and the layer serve a list of tutorials keyed by version, so a later version tutorial needs content only, not a new engine.
+
+## Decided since the brief (D5 record §3.2–3.4)
+
+- **Where it lives (the spike, §3.2):** inside the tab screens (Timer, Stats, Notes), never a root route.
+  - NativeTabs is iOS's own tab bar controller, so the bar stays on top, lit and tappable, and a tap on a tab is the real one.
+  - An opening on an in-screen control is a four-panel dim with nothing over the hole, so the tap reaches the real control.
+  - At the Modes step, the Modes sheet hosts its own bubble.
+- **Six steps (T-11):**
+  1. hello and the presets;
+  2. today's row;
+  3. the Modes button;
+  4. Stats;
+  5. Notes;
+  6. back on the Timer, the invitation.
+- **The last step (T-3):** no Next, and "Not now" takes Skip's place. The tour's exit reads "Skip tour" / "Turu atla". Updaters and replays get their own last line, and nothing says "together". The layer closes before a session starts.
+- **The Modes step (T-4, in part):** pressing the Modes button opens its sheet with a short bubble, and closing it continues. Next moves on without opening it.
+- **VoiceOver (T-1):**
+  - With a screen reader on: the whole line at once, no babble.
+  - The bubble is one element ("Pomo: …"), then Next, then Skip tour.
+  - The layer is modal to VoiceOver. An opening is its own element with the control's label and role, and acts as it.
+  - The pair are hidden from VoiceOver.
+  - Each step sets VoiceOver's focus.
+- **AX sizes (T-2):** from font scale 1.6, a bottom panel whose text scrolls, with Next and Skip tour pinned, and the pair as a badge. Text size is never capped. Lines are budgeted to 90 characters in English, 110 in Turkish.
+- **The scrim (T-5):** a token per theme, checked for contrast.
+- **Lines per state (T-6):** an empty week, the goal off, updater or new install.
+- **Replay during a session (T-7):** the steps before the invitation, ending on "Done".
+- **Interruptions and quiet:**
+  - a mute for the babble (T-8);
+  - a killed tour resumes at its step, once (T-9);
+  - the listener holds one still pose (T-10).
+- **The pair, about twice as big (the owner, round 2):** a 190 pt box for the speaker and 140 pt for the listener.
+- **New expressions and their animations (the owner, round 2):**
+  - the expressions: talking, happy, excited, curious, proud, a wink, surprised;
+  - the motion: a blink, the talking mouth, a squash and stretch on each change, a soft breath at rest;
+  - all shown on the pose sheet before they're built.
+
+## Direction contract
+
+THESIS: The timer's own colon steps out and shows you around. Pomo & Doro, big, stand as stickers on the real pages and mark your place with the diary's strawberry ribbon, the one on the welcome's closed diary. It refuses the category default: a carousel of feature screens before the app, or grey coach marks with arrows and "1 of 6" dots over a dimmed screen. Here the tour is the app itself, the ribbon is the pointer, and the pair talk.
+
+OWN-WORLD: The Sticker Diary, unchanged.
+- The bubble is a `paper` field with radius 22 and the `edge` stroke, no shadow, set in the system face at body size. Baloo 2 stays the timer's.
+- **New: the `scrim` token,** cocoa `#4A2C29` in Strawberry Milk and deep plum `#0D070F` in Midnight Plum, at 45 %. It's raised under Reduce Transparency and Increase Contrast, and `check:contrast` covers it.
+- **The ribbon:** `primary` with a `ringFocus` edge and a swallowtail tip.
+- **The pair:** sticker art, with the die-cut edge and the three-layer shadow. They are the only things that lift.
+
+STORY: Right after the welcome's Start, the ribbon drops from the top of the page and the pair arrive at its tip.
+- **Each step:**
+  - The ribbon drapes to one control, whose opening is lit and live.
+  - The speaker talks: its babble plays and the line writes on. The listener watches the opening.
+  - You press the real control, or Next does it for you.
+- **The signature interaction** is the ribbon's drape from one control to the next.
+- **The end:** the ribbon rests on Start focus and the pair ask whether you're ready for your first focus.
+  - Start focus starts it and ends the tour; "Not now" ends the tour.
+  - Skip tour and the mute are on every step.
+
+FIRST VIEWPORT: iPhone portrait, the Timer idle on 25/5, step 1.
+- The page is dimmed under the scrim, with one rounded opening on the presets row and its key.
+- The ribbon drapes from the page's top-right edge, clear of the ring, its tip just above the opening.
+- Pomo, speaking (190 pt), stands at the ribbon's tip with Doro, listening (140 pt), beside him, both above the opening and never over it.
+- Pomo's bubble floats above them: his name, the line, then Skip tour and Next.
+- The native tab bar is lit on top.
+
+On the tab steps, the whole page dims and the ribbon drapes around the clock to just above the tab it names, with the pair beside its tip.
+
+At AX sizes, the bubble becomes the bottom panel, the pair a badge and the ribbon a short tab, and the page scrolls so the control clears the panel. In landscape and on iPad, the pair and the bubble take the side away from the control.
+
+FORM: The bookmark ribbon, structure 7 of 7 and the dealt lead, chosen by the owner on 2026-11-01 after round 2. The washi-tape frame (4) and the comic-strip duet (3) are kept as sketches, not chosen. From the declined challengers it keeps two disciplines: one message per bubble, its pointer fixed to the edge facing the control; and the spotlit control stays lit until it's pressed. seed:48a753d9bc4e6da9
+
+FINISH: unreviewed and undocumented is unfinished. This build ends with the finish review, the verdict, and DESIGN.md's "Tutorial (first run)" motion row, an owner-approved exception like "Welcome (once)". Every new pose, expression and voice carries its provenance: its VectorCraft or SoundCraft source committed, and rebuilt byte for byte by `--check`.

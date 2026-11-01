@@ -25,7 +25,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 |---|---|
 | 1. Shape | **Confirmed** by the owner, 2026-11-01 ("Confirm the brief"); written from their five answers (§3.1) |
 | 2. `/apple-design` on the brief | **Good**, 2026-11-01: no Critical, 2 High, 5 Medium, 4 Low (§3.3). All accepted, T-4 in part; the contract carries them. Spike done alongside (§3.2): the layer lives inside the tab screens |
-| 3. Composition round, then the direction contract | **The round is dealt** (§3.4): the bookmark ribbon (the lead), the washi-tape frame and the comic-strip duet. The owner's pick is next, then the contract, carrying §3.2–3.4 |
+| 3. Composition round, then the direction contract | **The bookmark ribbon**, the owner's pick, 2026-11-01, after two rounds (§3.4). **The contract is written** (§3.5) and waits for the owner's approval |
 | 4. Assets: the pair's poses **and new expressions with their animations** (VectorCraft) on a pose sheet, their babble (SoundCraft) on a listening page | Pending; possibly a parallel session, as D4's were. The expressions are the owner's addition (§3.4, round 2) |
 | 5. Build (`animate-expo`) | Pending |
 | 6. Critique, audit, HIG, `review-animations` | Pending |
@@ -176,6 +176,24 @@ Two lend a discipline to whichever structure wins: one message per bubble, its p
 - **The animations:** a blink every few seconds; the talking mouth while a line writes on; a quick squash and stretch on each change of expression, with the new face crossing in; a soft breath at rest.
 - **Under Reduce Motion,** expressions swap with no squash or loop. Like the welcome's, they're character animation, so they belong in DESIGN.md's "Tutorial (first run)" row, the owner's exception.
 - **The pose sheet** shows the expressions and their motion for the owner's approval before they're built.
+
+### 3.5 The pick and the direction contract
+
+**The owner, 2026-11-01: "The bookmark ribbon",** the dealt lead, after round 2 and the curl fix. It was reported to the roll as `concept-seed --kind assigned` ("choice recorded").
+
+**The sketches are kept** in `art/review/`:
+- `d5-tutorial-ribbon.html`, the locked composition;
+- `d5-tutorial-washi-not-chosen.html`;
+- `d5-tutorial-comic-not-chosen.html`.
+
+**The direction contract** is written into the brief (`.impeccable/surfaces/app-tutorial-tsx.md`) through `impeccable surface-brief write`, under `## Direction contract`.
+- **It has all six blocks:** THESIS, OWN-WORLD, STORY, FIRST VIEWPORT, FORM and FINISH, with the seed reference `seed:48a753d9bc4e6da9`.
+- **A new section, "Decided since the brief",** gathers what §3.2–3.4 settled, so the builder invents none of it:
+  - the spike;
+  - every HIG finding's outcome;
+  - the pair's size;
+  - the new expressions and their motion.
+- **The contract waits for the owner's approval.**
 
 ## 4. Mathematical / Statistical Details
 

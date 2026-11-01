@@ -1,5 +1,5 @@
 import { Suspense, lazy, useRef, useState, type ComponentRef } from 'react';
-import { AccessibilityInfo, Alert, FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { AccessibilityInfo, Alert, FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
@@ -18,7 +18,7 @@ import type { ThemeTokens } from '../theme/palette';
 import { useTheme } from '../theme/useTheme';
 import { PoseSticker } from './classic/PoseSticker';
 import { useScreenFocused } from '../hooks/useScreenFocus';
-import { useTourBeatHere, useTourReach } from './tutorial/useTour';
+import { useTourBeatHere, useTourReach, useTourScroll } from './tutorial/useTour';
 
 // The tour's layer (Phase 1 D5), evaluated when a tour first reaches Notes (tutorial brief §4).
 const TourLayer = lazy(() => import('./tutorial/TourLayer'));
@@ -149,14 +149,7 @@ export default function LoveNotesScreen() {
     const tourHere = useTourBeatHere('notes') && focused;
     const addRef = useRef<ComponentRef<typeof View>>(null);
     const listRef = useRef<FlatList<string>>(null);
-    const scrollY = useRef(0);
-    const trackScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-        scrollY.current = e.nativeEvent.contentOffset.y;
-    };
-    const scrollBy = (dy: number) => {
-        scrollY.current = Math.max(0, scrollY.current + dy);
-        listRef.current?.scrollToOffset({ offset: scrollY.current, animated: true });
-    };
+    const { track: trackScroll, scrollBy } = useTourScroll(tourHere, (y) => listRef.current?.scrollToOffset({ offset: y, animated: true }));
     const preview = () => {
         useLoveNoteSheet.getState().open(pickRandomNote(null));
         router.push('/love-note');

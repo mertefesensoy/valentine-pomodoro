@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { AccessibilityInfo, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 
 import { runAfterInteractive } from '../../startup/deferredStartup';
 import { useUiStore } from '../../stores/uiStore';
@@ -61,6 +61,38 @@ export function useTourReach(screen: TourScreen, focused: boolean): void {
     useEffect(() => {
         if (focused) useTourStore.getState().reachScreen(screen);
     }, [focused, screen]);
+}
+
+/**
+ * A host's scrolling while the tour is on it (D5 review H-1, third pass).
+ *
+ * Contract
+ *   in : `tourHere`, and `scrollTo(y)`, the host's own (a ScrollView's or a FlatList's).
+ *   out: `track`, for the host's `onScroll` while the tour is here; `scrollBy(dy)`, for the layer,
+ *        to bring an opening clear of the bubble; and, when the tour leaves, the page scrolled back
+ *        by what the tour moved it, never past the top.
+ */
+export function useTourScroll(tourHere: boolean, scrollTo: (y: number) => void) {
+    const y = useRef(0);
+    const moved = useRef(0);
+    const track = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        y.current = e.nativeEvent.contentOffset.y;
+    };
+    const scrollBy = (dy: number) => {
+        const to = Math.max(0, y.current + dy);
+        moved.current += to - y.current;
+        y.current = to;
+        scrollTo(to);
+    };
+    useEffect(() => {
+        if (tourHere || moved.current === 0) return;
+        const back = Math.max(0, y.current - moved.current);
+        moved.current = 0;
+        y.current = back;
+        scrollTo(back);
+        // Only the tour's leaving matters; the host's scrollTo is the same function each time in effect.
+    }, [tourHere]); // eslint-disable-line react-hooks/exhaustive-deps
+    return { track, scrollBy };
 }
 
 /** Whether VoiceOver is running, following it as it turns on or off (T-1); null until the first answer. */

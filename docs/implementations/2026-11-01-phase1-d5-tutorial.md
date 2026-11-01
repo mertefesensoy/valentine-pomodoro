@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-d1-classic, IMP
 
 # 2026-11-01 — Phase 1 D5: the general tutorial
 
-**Status:** In progress. The brief is confirmed, the direction contract approved, the assets are on this branch, and the tutorial is built (2026-11-01, §3.8): every guard is green, and nothing is seen on a device yet. The reviews are next (step 6).
+**Status:** In progress. The brief is confirmed, the direction contract approved, the assets are on this branch, the tutorial is built (§3.8) and its four reviews pass (§3.9), all 2026-11-01. Nothing is seen on a device yet. `break-ui` in Turkish at AX5 is next (step 7).
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.9, added by the owner on 2026-11-01. This record holds what happens: each step's output, the owner's gates and the measurements.
 
@@ -28,7 +28,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 | 3. Composition round, then the direction contract | **The bookmark ribbon**, the owner's pick, 2026-11-01, after two rounds (§3.4). **The contract is approved** by the owner, 2026-11-01 (§3.5) |
 | 4. Assets: the pair's poses **and new expressions with their animations** (VectorCraft) on a pose sheet, their babble (SoundCraft) on a listening page | **Done**, 2026-11-01, in a parallel session; its own [assets record](2026-11-01-phase1-d5-assets.md). Both pages approved by the owner ("Approve, keep nubs"; "version 2 with variation is the way to go"). Fast-forwarded onto this branch on the owner's word (§3.6) |
 | 5. Build (`animate-expo`) | **Built**, 2026-11-01, from its plan (§3.7, committed before any code): §3.8. Every guard green, 481 tests; not yet seen on a device |
-| 6. Critique, audit, HIG, `review-animations` | **First pass**, 2026-11-01: critique 32/40, audit 15/20, HIG Good (no Critical), motion not clean. The fix batch, all accepted by the owner, is §3.9 |
+| 6. Critique, audit, HIG, `review-animations` | **Done**, 2026-11-01, after three passes and three batches (§3.9): critique 32 → **35/40**, audit 15 → **18/20**, HIG Good → **Excellent**, motion not clean → **clean** |
 | 7. `break-ui` in Turkish at AX5 | Pending |
 | 8. Polish, then the copy review | Pending |
 | 9. Device check | Pending |
@@ -443,6 +443,78 @@ Changed:
 
 The fixes follow this record. The four reviews run again once they're in.
 
+**The first batch** is `576c7b2`: every row above, with tests for the wave, the outline, the quieter Next, Doro's colour, the panel fallback and the acting openings.
+
+**Second pass.** The two sub-agents re-checked their own findings against `576c7b2`; the critique and the audit were re-scored here.
+- **`/apple-design`: Excellent.** Seven of eight fixed; H-1 partly fixed. Three new items:
+  - **Medium:** the fallback panel can now appear below font scale 1.6, where the hosts gave no room to scroll the opening clear of it.
+  - **Low:** "swipe down" in the Modes sheet's line doesn't work for VoiceOver, and the sheet had no button.
+  - **Low:** the speakers' names borrowed `primaryInk` (links) and `successInk` (goals reached).
+- **The owner's three answers pass:**
+  - the outline at 3.84 (light) and 8.06 (dark) against the lit side;
+  - Next's label at 5.10 and 6.22;
+  - Doro's name at 5.70 and 8.75.
+- **`review-animations`: not clean, narrowly.** Nine rows fixed. Five were partly fixed:
+  - **6:** a lead's new bubble height arrived after its glide began, and the line wrote on under the old name while held.
+  - **8:** a "glance" could swallow a real change of pose.
+  - **13:** later layers' pair popped in.
+  - **14:** under Reduce Motion, the role scale and the tail moved before the dip.
+  - **New with H-1:** the pair unmounted with no exit when the panel took over.
+
+**The second batch** (`a2e1553`):
+- a beat holds, with its line and name, until both its opening and its bubble's height are known (the bubble's within 120 ms);
+- a glance needs the same pose;
+- later layers' pair fade in over 150 ms;
+- under Reduce Motion the role scale and the tail change while dipped;
+- the pair fade out to the panel;
+- the scroll room whenever the tour is on a screen;
+- a Continue button in the Modes sheet's bubble ("…then tap Continue.");
+- `pomoInk` and `doroInk` as roles of their own, aliasing the same values, with their contrast pairs.
+
+**Third pass.**
+- **`/apple-design`: Excellent, all three fixed.** One Low device-check note: removing `contentInset` doesn't move the offset, so a page the tour scrolled could stay up over blank space.
+- **`review-animations`: clean, approve.** It noted three edge cases below a finding. One of them: under VoiceOver, with an opening that can't be measured, a line could be read under the last speaker's name.
+
+**The last batch:**
+- **`useTourScroll`,** one hook for the three hosts, scrolls the page back by what the tour moved it when the tour leaves.
+- **VoiceOver's focus** moves only once a beat has settled.
+- **A held line** shows nothing.
+
+**Where it stands.** The second critique's snapshot is `.impeccable/critique/2026-11-01T14-25-35Z__app-tutorial-tsx.md`; the trend is 32 → 35.
+
+| Review | First pass | Final | Gate |
+|---|---|---|---|
+| Critique | 32/40 | **35/40 (88 %)** | ≥ 80 %: met |
+| Native audit (A, P, T, C, Ad) | 15/20 | **18/20** (4, 3, 4, 4, 3) | ≥ 16: met |
+| `/apple-design` | Good, 2 High | **Excellent**, nothing above Low | No Critical: met |
+| `review-animations` | Not clean, block | **Clean, approve** | Clean: met |
+
+**Kept, with reasons:**
+- No way back to a skipped line (critique P2): a fourth action in the bubble would cost more than it gives; the replay covers it.
+- The wrong tab stays silent (§3.7).
+- The dim covers the status bar band.
+
+**Owed to the device check,** besides §3.8's list:
+- **Cost and seams:**
+  - what the ribbon's full-screen Svg costs per frame;
+  - hairline seams where the transformed panels meet the corner masks mid-glide;
+  - the corner masks' edge when scaled down.
+- **Timing:** how the 120 ms hold feels.
+- **Assistive and large-text checks:**
+  - Voice Control's "Tap Start focus" through the opening that takes no touch;
+  - the fallback panel on an SE at xxxLarge;
+  - the page scrolling back.
+- **Placement:** the outline in landscape and on iPad.
+
+**Measured after the last batch, 2026-11-01:**
+- `npx jest`: 64 suites, 484 tests.
+- `npx tsc --noEmit`: clean.
+- `npm run lint`: 0 errors, 29 warnings (unchanged).
+- `node scripts/react-compiler-report.js`: 100 compiled, 5 skipped; no file's worklet count changes.
+- `npx reassure --branch`: Timer 13, Stats 1, Settings 1, Notes 1, leaf 12, settings-only 1 (unchanged).
+- `npm run check:contrast`: 60 checks in two themes, all pass.
+- The raw-text and emoji checks: clean.
+
 ## 4. Mathematical / Statistical Details
 
 ### 4.1 Speaking (`speech.ts`; assets record §3.4)
@@ -526,7 +598,8 @@ The dimmed colour is c = α·scrim + (1 − α)·lit per 8-bit channel; the rati
 - [x] The assets approved in their record and fast-forwarded here, every guard green (§3.6).
 - [x] The build plan committed before any code (§3.7).
 - [x] The build: `npx jest` (64 suites, 481 tests), `npx tsc --noEmit`, `npm run lint`, `node scripts/react-compiler-report.js`, `npx reassure --branch`, `npm run check:contrast`, `node scripts/i18n/check-raw-text.mjs`, `node scripts/design/check-emoji.mjs`, `node scripts/art/build.mjs --check`, `node scripts/sound/build.mjs --check`, all green (§3.8).
-- [ ] The remaining steps of §0, the device check's list in §3.8 among them.
+- [x] The four reviews pass their gates after three passes (§3.9): critique 35/40, audit 18/20, HIG Excellent, motion clean; 484 tests.
+- [ ] The remaining steps of §0, the device check's lists in §3.8 and §3.9 among them.
 
 ## 7. Related Docs
 

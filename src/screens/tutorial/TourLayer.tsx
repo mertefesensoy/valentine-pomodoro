@@ -218,14 +218,15 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
         };
     }, [beatKey]);
 
-    // Each beat moves VoiceOver's focus to the bubble (iOS has no live regions).
+    // Each beat moves VoiceOver's focus to the bubble (iOS has no live regions), once the beat has
+    // settled, so the line is read under its own speaker's name.
     useEffect(() => {
-        if (!screenReader) return;
+        if (!screenReader || pendingNow) return;
         const id = setTimeout(() => {
             if (lineRef.current) AccessibilityInfo.sendAccessibilityEvent(lineRef.current, 'focus');
         }, 150);
         return () => clearTimeout(id);
-    }, [beatKey, screenReader, arrived]);
+    }, [beatKey, screenReader, arrived, pendingNow]);
 
     if (!run || !beat || !step) return null;
     // This beat's opening, once measured; a lead has none, and the whole page dims.

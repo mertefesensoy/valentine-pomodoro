@@ -91,7 +91,7 @@ export function useSpeaking(line: string, who: Speaker, { instant, hold, reduced
         mouth.set(0);
         setState({ line, who, shown: total });
     };
-    // With VoiceOver on, the whole line at once (T-1), however far the clock had got.
-    const shown = instant ? total : state.line === line ? state.shown : 0;
+    // Held, nothing yet; with VoiceOver on, the whole line at once (T-1), however far the clock had got.
+    const shown = hold ? 0 : instant ? total : state.line === line ? state.shown : 0;
     return { shown, done: shown >= total, finish };
 }

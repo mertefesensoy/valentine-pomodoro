@@ -3,7 +3,10 @@ import { resetStorage } from '../../../__fixtures__/storage/resetStorage';
 import { loadSync, save, STORAGE_KEYS } from '../../../utils/storage';
 import { ensureMigrated } from '../../../utils/storageMigration';
 import { HEAD, SPEAK, pairWidth, place, tabCentre, type Insets, type PlaceInput } from '../placement';
+import { act, renderHook } from '@testing-library/react-native';
+
 import { currentBeat, currentStep, isLastBeat, useTourStore } from '../tourStore';
+import { useTourScroll } from '../useTour';
 
 // A 390 × 844 iPhone in portrait inside a tab (the bottom inset includes the tab bar).
 const PHONE: Insets = { top: 47, bottom: 83, left: 0, right: 0 };
@@ -211,5 +214,25 @@ describe('the tour store (brief §4; T-7, T-9)', () => {
         useTourStore.getState().finish();
         useTourStore.getState().start({ replay: true });
         expect(useTourStore.getState().muted).toBe(false);
+    });
+});
+
+// The HIG review's third pass: removing contentInset doesn't move the offset, so a page the tour
+// pushed up would stay up over blank space once it left.
+describe("a host’s scroll while the tour is on it", () => {
+    it('scrolls the page by what the tour asks, and back by the same when it leaves, never past the top', async () => {
+        const scrollTo = jest.fn();
+        const { result, rerender } = await renderHook(({ here }: { here: boolean }) => useTourScroll(here, scrollTo), { initialProps: { here: true } });
+        await act(async () => result.current.track({ nativeEvent: { contentOffset: { x: 0, y: 40 } } } as never));
+        await act(async () => result.current.scrollBy(120));
+        expect(scrollTo).toHaveBeenLastCalledWith(160);
+        await act(async () => result.current.scrollBy(-500));
+        expect(scrollTo).toHaveBeenLastCalledWith(0);
+        await act(async () => result.current.scrollBy(90));
+        await act(async () => {
+            await rerender({ here: false });
+        });
+        // Moved +120, −160 (stopped at the top), +90: back by 50, from 90 to 40.
+        expect(scrollTo).toHaveBeenLastCalledWith(40);
     });
 });

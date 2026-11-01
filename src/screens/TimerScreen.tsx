@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator, useWindowDimensions, type LayoutChangeEvent, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
+import { View, Text, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator, useWindowDimensions, type LayoutChangeEvent } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ComponentRef } from "react";
 import { router } from "expo-router";
@@ -34,7 +34,7 @@ import { TodayStickers, goalCellsLeft, todayLabel } from "./classic/TodaySticker
 import { ClassicControls } from "./classic/ClassicControls";
 import { useWelcomeGate } from "./welcome/useWelcomeGate";
 import { currentStep, useTourStore } from "./tutorial/tourStore";
-import { useTourBeatHere, useTourGate, useTourReach } from "./tutorial/useTour";
+import { useTourBeatHere, useTourGate, useTourReach, useTourScroll } from "./tutorial/useTour";
 import type { TourTargetSpec } from "./tutorial/TourLayer";
 
 // Fly Mode is split out (Phase 1 task B1): FlyModeScreen and everything only it
@@ -458,14 +458,7 @@ export default function TimerScreen() {
   const modesRef = useRef<ComponentRef<typeof View>>(null);
   const startRef = useRef<ComponentRef<typeof View>>(null);
   const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
-  const scrollY = useRef(0);
-  const trackScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    scrollY.current = e.nativeEvent.contentOffset.y;
-  };
-  const scrollBy = (dy: number) => {
-    scrollY.current = Math.max(0, scrollY.current + dy);
-    scrollRef.current?.scrollTo({ y: scrollY.current, animated: true });
-  };
+  const { track: trackScroll, scrollBy } = useTourScroll(tourHere, (y) => scrollRef.current?.scrollTo({ y, animated: true }));
   const rows = useRef({ visible: 0, top: 0, partner: 0, today: 0, controls: 0 });
   const [ringRoom, setRingRoom] = useState<number | null>(null);
   // Called from the rows' onLayout only, never during render.

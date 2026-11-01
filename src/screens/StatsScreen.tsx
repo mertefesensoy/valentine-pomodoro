@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View, useWindowDimensions, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -22,7 +22,7 @@ import { edgeWidth, radius, space } from '../theme/layout';
 import { useTheme } from '../theme/useTheme';
 import { goalCellsLeft } from './classic/TodayStickers';
 import { DayEdge, TodayCard, todayCellsPerRow, type Metric } from './stats/WeekStack';
-import { useTourBeatHere, useTourReach } from './tutorial/useTour';
+import { useTourBeatHere, useTourReach, useTourScroll } from './tutorial/useTour';
 
 // The tour's layer (Phase 1 D5), evaluated when a tour first reaches Stats (tutorial brief §4).
 const TourLayer = lazy(() => import('./tutorial/TourLayer'));
@@ -83,14 +83,7 @@ export default function StatsScreen() {
     const tourHere = useTourBeatHere('stats') && focused;
     const weekRef = useRef<React.ComponentRef<typeof View>>(null);
     const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
-    const scrollY = useRef(0);
-    const trackScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-        scrollY.current = e.nativeEvent.contentOffset.y;
-    };
-    const scrollBy = (dy: number) => {
-        scrollY.current = Math.max(0, scrollY.current + dy);
-        scrollRef.current?.scrollTo({ y: scrollY.current, animated: true });
-    };
+    const { track: trackScroll, scrollBy } = useTourScroll(tourHere, (y) => scrollRef.current?.scrollTo({ y, animated: true }));
     const measureBannerBox = useCallback(() => {
         if (!focused) return;
         bannerBoxRef.current?.measureInWindow((_x, y, _w, h) => noteBannerLayout(y + h, height - insets.bottom, h));

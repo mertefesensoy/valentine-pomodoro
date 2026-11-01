@@ -24,8 +24,8 @@ DESIGN-WORKFLOW §2, as every new surface:
 | Step | State |
 |---|---|
 | 1. Shape | **Confirmed** by the owner, 2026-11-01 ("Confirm the brief"); written from their five answers (§3.1) |
-| 2. `/apple-design` on the brief | Running, 2026-11-01. Spike done alongside (§3.2): the layer lives inside the tab screens |
-| 3. Composition round, then the direction contract | Pending: the dock, the bubble's placement, the opening, the Modes step, the motion row |
+| 2. `/apple-design` on the brief | **Good**, 2026-11-01: no Critical, 2 High, 5 Medium, 4 Low (§3.3). All accepted, T-4 in part; the contract carries them. Spike done alongside (§3.2): the layer lives inside the tab screens |
+| 3. Composition round, then the direction contract | Next: the dock, the bubble's placement, the opening's look and the speaker and listener, as sketches for the owner; the contract carries §3.2–3.3 |
 | 4. Assets: the pair's poses (VectorCraft) on a pose sheet, their babble (SoundCraft) on a listening page | Pending; possibly a parallel session, as D4's were |
 | 5. Build (`animate-expo`) | Pending |
 | 6. Critique, audit, HIG, `review-animations` | Pending |
@@ -99,6 +99,34 @@ The brief left open how the opening's tap acts as the control, since NativeTabs 
 - **The Modes sheet** is a native form sheet over everything, the layer included. At that step, the sheet's own route (`app/modes.tsx`) shows the bubble.
 - **What the layer can't do:** dim the tab bar or stop a tap on another tab. Mid-tour someone could go to Settings, so the contract decides what the layer says there (a gentle "come back", or waiting).
 - **Positions** come from each control's own layout (`measureInWindow`), in the same window as the layer. Nothing is fixed.
+
+### 3.3 `/apple-design` on the brief: Good
+
+A subagent ran the skill on the confirmed brief and checked it against the live code. It opened 18 references, among them `onboarding.md`, `voiceover.md`, `modality.md`, `tab-bars.md`, `playing-audio.md` and `offering-help.md`.
+
+**Rating: Good.** No Critical, 2 High, 5 Medium, 4 Low.
+- **What works:** Skip at every step, with a replay; about a minute; teaching by doing on the real controls; D4's ambient session for the babble; no haptic per line; a tap finishes a line.
+- **Checked here before deciding:**
+  - Midnight Plum's `ink` is `#FFF3EE` (`palette.json`), so T-5 holds.
+  - The first Start asks for notification permission (`useNotifications.ts:25`), so T-3's last point holds.
+- **The review predates the spike.** Its platform notes assume a root route. The spike's layer inside the tab screens settles three of them:
+  - **The tab bar is never dimmed,** and the bubble names the tab it points at, so there's no computed opening over the bar.
+  - **No route closes when the tab changes.**
+  - **A tap on a tab is the real one,** so the bar's own haptic (`tabPressHaptic`) fires.
+
+| # | Finding | Disposition |
+|---|---|---|
+| T-1 High | VoiceOver: a write-on read half-way, and a modal layer hiding the real controls | **Accept.** With a screen reader on, the whole line shows at once and the babble stays silent. The bubble is one element, "Pomo: …", then Next, then Skip tour. The layer is `accessibilityViewIsModal`. An opening on an in-screen control is its own element, with the control's label and role, and acts as it, so Voice Control's "Tap Start focus" works. The tab bar is outside the layer, so VoiceOver reaches the real tab. The pair are hidden from VoiceOver. Each step sets VoiceOver's focus (`setAccessibilityFocus`; iOS has no live regions), and the layer follows the screen reader turning on or off |
+| T-2 High | No room budget at AX sizes; a scrolled Timer can hide the control | **Accept.** From the app's AX switch (font scale 1.6), the bubble becomes a bottom panel whose text scrolls, with Next and Skip tour pinned under it, and the pair shrink to a badge beside the speaker's name. The text size isn't capped. The real page scrolls so the control clears the panel before it's measured. Each line has a budget (EN ≤ 90, TR ≤ 110 characters: three lines at the default size). The contract gives placements for landscape and iPad |
+| T-3 Medium | The last step: Next would start a session; three ways out; "your first one" is wrong for updaters; "together" reads as the partner | **Accept.** The last step has no Next, and "Not now" takes Skip's place. The tour's own exit reads "Skip tour" / "Turu atla", never the Timer's Skip. Updaters and replays get their own last line, and no line says "together". The layer closes before the session starts, so the first Start's notification-permission alert lands on the Timer |
+| T-4 Medium | Settle the Modes step: explain it and move on | **Accept in part.** The step is settled, but the owner's "you press" stays (§3.1). The Modes button's opening is pressable. The Modes sheet, its own route, shows a short bubble (Ring, Facing pages, Fly) while the tour is at this step, and closing it continues to Stats. Next moves on without opening the sheet. The layer isn't a presented sheet, so no second sheet stacks on it (`sheets.md`: one at a time) |
+| T-5 Medium | The dim works backwards in Midnight Plum | **Accept.** A `scrim` token per theme: cocoa `#4A2C29` in Strawberry Milk, deep plum `#0D070F` in Midnight Plum. Its opacity is stated in the contract, raised under Reduce Transparency and Increase Contrast, and checked by `check:contrast` |
+| T-6 Medium | Lines must match the screen: an empty week, the goal off | **Accept.** Lines per state: a new install's empty week ("fills as you focus"); the goal off (spotlight the "Turn on a daily goal" row, or drop the clause); updater or new install |
+| T-7 Medium | Replay while a session runs | **Accept.** The replay switches to the Timer first. With a session running, it plays the steps before the invitation and ends on "Done", leaving the session alone. The row is never disabled without saying why |
+| T-8 Low | No sound control inside the tour | **Accept.** A mute beside Skip tour silences the babble for the rest of the tour. Settings › Sound is left alone |
+| T-9 Low | A tour killed half-way restarts from step 1 | **Accept.** The step is saved, and a relaunch resumes there, once. This amends the brief's "from the start" |
+| T-10 Low | Four moving things; the listener's reactions | **Accept.** The listener holds one still pose, looking at the opening. Under Reduce Motion the talking loop stops too |
+| T-11 Low | Seven steps for "about six"; the hello teaches nothing | **Accept.** The hello folds into the presets step, so there are six: (1) hello and the presets, (2) today's row, (3) the Modes button, (4) Stats, (5) Notes, (6) back on the Timer, the invitation |
 
 ## 4. Mathematical / Statistical Details
 

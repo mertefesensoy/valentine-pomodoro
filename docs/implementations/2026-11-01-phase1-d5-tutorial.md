@@ -25,7 +25,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 |---|---|
 | 1. Shape | **Confirmed** by the owner, 2026-11-01 ("Confirm the brief"); written from their five answers (§3.1) |
 | 2. `/apple-design` on the brief | **Good**, 2026-11-01: no Critical, 2 High, 5 Medium, 4 Low (§3.3). All accepted, T-4 in part; the contract carries them. Spike done alongside (§3.2): the layer lives inside the tab screens |
-| 3. Composition round, then the direction contract | Next: the dock, the bubble's placement, the opening's look and the speaker and listener, as sketches for the owner; the contract carries §3.2–3.3 |
+| 3. Composition round, then the direction contract | **The round is dealt** (§3.4): the bookmark ribbon (the lead), the washi-tape frame and the comic-strip duet. The owner's pick is next, then the contract, carrying §3.2–3.4 |
 | 4. Assets: the pair's poses (VectorCraft) on a pose sheet, their babble (SoundCraft) on a listening page | Pending; possibly a parallel session, as D4's were |
 | 5. Build (`animate-expo`) | Pending |
 | 6. Critique, audit, HIG, `review-animations` | Pending |
@@ -127,6 +127,38 @@ A subagent ran the skill on the confirmed brief and checked it against the live 
 | T-9 Low | A tour killed half-way restarts from step 1 | **Accept.** The step is saved, and a relaunch resumes there, once. This amends the brief's "from the start" |
 | T-10 Low | Four moving things; the listener's reactions | **Accept.** The listener holds one still pose, looking at the opening. Under Reduce Motion the talking loop stops too |
 | T-11 Low | Seven steps for "about six"; the hello teaches nothing | **Accept.** The hello folds into the presets step, so there are six: (1) hello and the presets, (2) today's row, (3) the Modes button, (4) Stats, (5) Notes, (6) back on the Timer, the invitation |
+
+### 3.4 The composition round (new-work §3: a whole surface inside an established world)
+
+**The owner, 2026-11-01:** "Start the round".
+
+**The ranked structures,** seven, ordered by resonance before the roll. Each fits the spike (§3.2): the layer inside the tab screens, a four-panel dim, the tab bar lit.
+1. the margin notes: the pair as doodles in the diary's margin, a margin note with a drawn arrow;
+2. peeking from the page's edge: half-stuck stickers above the tab bar, the bubble rising from them;
+3. the comic-strip duet: a two-panel strip, one panel each, in turns;
+4. the washi-tape frame: tape strips frame the opening, the note taped beside it;
+5. the sticky note: the bubble a sticky note, the pair on its corner;
+6. the puppet stage: a paper stage strip at the bottom, the rest dimmed like a theatre;
+7. the bookmark ribbon: the pair ride the diary's ribbon down to the control.
+
+**The roll:** `concept-seed --scope surface --mode operate` dealt **7, 4 and 3**, with 7 leading (key `48a753d9bc4e6da9fed319f4d709c6f1`).
+
+**The six catalog challengers were declined** on audience identification and product clarity. A challenger may change the layout, never the pinned Sticker Diary look, and none beats the dealt lead for a kawaii couple learning their study timer.
+- airport wayfinding signs;
+- a boarding pass and gate board;
+- a split-flap departures board;
+- a dance notation score;
+- a design annual's plates;
+- a gridded type specimen.
+
+Two lend a discipline to whichever structure wins: one message per bubble, its pointer fixed to the edge facing the control (the signs); and the spotlit control stays lit until it's pressed (the boarding pass).
+
+**The sketches** are coded, since an Operate surface is code-led. `scripts/design/tutorial-sketches/build.mjs` builds them from the repo's tokens, the pair's art and Baloo 2 into `.impeccable/mocks/decision/tutorial-*.html` (git-ignored until the round resolves).
+- **Each shows two frames over a replica of the real Timer at 390 × 844:** step 1 (hello and the presets, an opening on the presets row) and step 4 (on to Stats: the page dimmed, the tab bar lit).
+- **All three use** the cocoa scrim (T-5), Skip tour and Next in the bubble (T-3), and the pair's current poses. Their talking and pointing poses come in the asset step.
+- **Fixed after the first look:** the pair grew to 88 pt for the speaker and 62 for the listener; the ribbon drapes around the clock instead of cutting through it; the comic strip gained room for its buttons.
+
+**The decision page:** a private artifact, [Tutorial Compositions](https://claude.ai/artifact/CMtnJTVezuwuumgEtVUhQa), with the three sketches live (the lead under "The roll") and the declined challengers in a quiet row. **It waits for the owner's pick.**
 
 ## 4. Mathematical / Statistical Details
 

@@ -520,5 +520,6 @@ node scripts/docs/check-docs.mjs --write && node scripts/docs/check-docs.mjs
 - [2026-10-29 — Phase 1 (v1.4): design system and local re-architecture, plan](2026-10-29-phase1-plan.md)
 - ["Phase 1 D1: Classic rebuilt in the Sticker Diary design, with the v1.4 welcome screen"](2026-10-30-phase1-d1-classic.md)
 - ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](2026-10-30-phase1-stage-d.md)
+- ["Phase 1 D5, the assets: Pomo & Doro's tour expressions and their babble"](2026-11-01-phase1-d5-assets.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

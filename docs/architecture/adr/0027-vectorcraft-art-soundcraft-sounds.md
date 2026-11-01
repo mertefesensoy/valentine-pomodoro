@@ -63,4 +63,5 @@ Both are owner decisions from 2026-10-29.
 - ["Phase 1 Stage C (C1–C4): the Sticker Diary design system, display face, Classic brief and art"](../../implementations/2026-10-30-phase1-stage-c-design.md)
 - ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](../../implementations/2026-10-30-phase1-stage-d.md)
 - ["Phase 1 D4, wired in: D4's sounds merged into Stage D and played by Classic"](../../implementations/2026-11-01-phase1-d4-wiring.md)
+- ["Phase 1 D5, the assets: Pomo & Doro's tour expressions and their babble"](../../implementations/2026-11-01-phase1-d5-assets.md)
 <!-- backlinks:end -->

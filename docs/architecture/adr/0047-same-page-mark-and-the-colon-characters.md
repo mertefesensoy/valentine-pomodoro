@@ -55,5 +55,6 @@ The owner's words (2026-10-30): "We will use the logo of the Same Page and the m
 - [2026-10-29 — v2 Couples Rehaul: Plan](../../implementations/2026-10-29-couples-rehaul-plan.md)
 - ["Phase 1 Stage C (C1–C4): the Sticker Diary design system, display face, Classic brief and art"](../../implementations/2026-10-30-phase1-stage-c-design.md)
 - ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](../../implementations/2026-10-30-phase1-stage-d.md)
+- ["Phase 1 D5, the assets: Pomo & Doro's tour expressions and their babble"](../../implementations/2026-11-01-phase1-d5-assets.md)
 - [Requirements traceability (generated)](../../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

@@ -31,7 +31,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 | 6. Critique, audit, HIG, `review-animations` | **Done**, 2026-11-01, after three passes and three batches (§3.9): critique 32 → **35/40**, audit 15 → **18/20**, HIG Good → **Excellent**, motion not clean → **clean** |
 | 7. `break-ui` in Turkish at AX5 | **Done**, 2026-11-01 (§3.10): 3 Broken and 1 Ugly, all fixed with the owner's two choices (a break line; the Turkish rephrased). The worst case is a Jest fixture, `tourWorstCase.test.tsx` |
 | 8. Polish, then the copy review | **Done**, 2026-11-01 (§3.11): polish found nothing to change; the copy review passed 76 of 77, with the owner's one change applied |
-| 9. Device check | **Build 57** (`v1.4.0-tf.57`, EAS `3fabdef6`), 2026-11-01, uploaded to TestFlight; the owner's check is pending (§3.12) |
+| 9. Device check | **Build 57** (2026-11-01): stuck on the Stats step, under the ad banner; fixed in `03e86ea`. **Build 58** (`v1.4.0-tf.58`, EAS `0bdc6591`) is on TestFlight; the check continues (§3.12) |
 | FINISH: the finish review, its verdict, DESIGN.md's "Tutorial (first run)" row | Pending |
 
 ## 1. Problem / Motivation
@@ -730,6 +730,14 @@ Items 7, 11, 13, 14 and 15 also make up E2's v1.4 checklist (dark mode, the larg
   - **The regression test** replays the capture's numbers. The week overflows; today's postcard takes the pair above it at full size; a panel ends above a 70 pt banner.
   - **Checks:** `npx jest` 65 suites, 494 tests; lint, `tsc`, the raw-text check and Reassure unchanged.
   - **Not yet on a phone:** the fix needs the next build. On build 57 the Stats step can't be passed by touch.
+
+**Build 58,** on the owner's word ("Yes, build 58"), in reply to an ask that named the push, the tag and the TestFlight build:
+- **Before it,** every guard ran green at `03e86ea`: 494 tests, lint, `tsc`, the compiler report, the raw-text and emoji checks, contrast, the art and sound rebuilds, the budgets and the docs check.
+- **The push:** `git push origin 03e86ea:refs/heads/phase1/stage-d` (`38b9f51..03e86ea`).
+- **EAS production build** `0bdc6591-8212-44c3-8798-59ca42ea0c32`, iOS build 58, from `03e86ea`: queued 19:17:05Z, finished 19:24:10Z. Submission `2162c61d-be8b-4f8c-bd85-9a63bb5ca60e`; the `submit-ios.yaml` run `01a19891` succeeded.
+- **The IPA:** 21,615,727 B (+369 B on build 57).
+- **The tag:** annotated `v1.4.0-tf.58` on `03e86ea`, pushed.
+- **The device check** carries on from build 57's list, the Stats step first.
 
 ## 4. Mathematical / Statistical Details
 

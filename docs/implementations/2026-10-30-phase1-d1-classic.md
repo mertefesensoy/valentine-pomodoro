@@ -29,7 +29,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-stage-c-design,
 | 7. Device check, build 48 | Build 48 on EAS from `61fd06e` (§3.15). The owner's check, 2026-10-30: four findings (F1–F4, §3.16), fixed for build 49 | The same build. The owner asked for a livelier morph (F5, §3.16), rebuilt for build 49 |
 | 7. Device check, build 49 | Build 49 on EAS from `9f0de71`, submitted to TestFlight, tag `v1.4.0-tf.49` pushed (§3.17). The owner's check, 2026-10-31: "All well" except one finding (F6, §3.18): Fly's Modes button belongs at the top right, where the compass was. Fixed in build 50 | The same build: "All well" |
 | 7. Device check, build 50 | Build 50 on EAS from `98f6a1f`, submitted to TestFlight, tag `v1.4.0-tf.50` pushed (§3.19). The owner's check, 2026-10-31: every check passed, "all well" (§6) | The same build; no welcome change since build 49 |
-| FINISH (both contracts): the finish review, its verdict, DESIGN.md | **In progress** (§3.20–3.21). Round 1: recapture (no iPad capture; the owner has no iPad and accepted the gap). Round 2: fix; the eight fixes built (`3fd834a`). The verdict pass, 2026-11-01, on captures from builds 52–55: **fix**. Seven fixes resolved; fix 7 partial: the Ring overflows an 852 pt iPhone at the default text size, so Skip is behind the bar while a session runs (§3.21). The Ring's height is rebuilt (§3.22) and waits for its device check; DESIGN.md follows | **Captures waived by the owner** (§3.20). The verdict is the owner's device checks. DESIGN.md's welcome exception is still to be written |
+| FINISH (both contracts): the finish review, its verdict, DESIGN.md | **Ship**, 2026-11-01 (§3.23). Round 1: recapture (no iPad). Round 2: fix, eight fixes (`3fd834a`). The verdict pass: fix 7 open (§3.21), rebuilt (§3.22), and resolved on build 56: the Ring is 275 pt and Skip clears the bar by 16 pt. DESIGN.md is next | **Captures waived by the owner** (§3.20). The verdict is the owner's device checks. DESIGN.md's welcome exception is still to be written |
 
 **FINISH is not yet discharged.** Each direction contract ends with "this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance". That waits for evidence this machine can't make:
 - After the device check, a fresh `impeccable-finish-reviewer` gets both contracts and the owner's screenshots, labelled as hardware evidence.
@@ -852,6 +852,27 @@ The reviewer suggested measuring each sibling instead. That comes to the same nu
 
 The device check is §6 "The Ring's height".
 
+### 3.23 The verdict on build 56: ship
+
+**The evidence:** the owner's build 56 captures, 2026-11-01. Three Ring captures in English (idle, running, paused) and two in Turkish (running, paused), with Turkish Facing Pages, all at 1179 × 2556 (3 px/pt).
+
+**The same reviewer, resumed, re-scored fix 7: resolved.** Measured from the pixels:
+- **The ring:** 825 px, or 275.0 pt, in every state and both languages, and a true circle (x 177–1001 at y 794; y 382–1206 at x 590). That's below the 297 pt cap, at 70 % of the 393 pt width.
+- **Nothing scrolls:** the phase line's glyphs sit at y 260–282 and the ring's top at y 382, as on build 50's unscrolled page.
+- **Skip clears the bar by 16.0 pt:** its bottom is at y 2258 and the bar's outline starts at y 2307. My 18 pt reading had counted the bar's faint outer band.
+- **Every control shows in every state:** the presets, Start focus and Skip; the cycle dots, Pause and Skip; Resume, Skip and End session.
+- **Turkish:** "Duraklatıldı" fits inside the ring; Facing Pages' line wraps to three lines with no sticker covered; "Atla" clears the bar by the same 16 pt.
+- **Not seen:** today's row on two lines. The arithmetic (§4.4) leaves the ring at about 241 pt there, above the 200 pt floor.
+
+**Fixes 1–6 and 8** still hold. **Regressions:** none. The band between today's row and the cycle dots while running is the presets' reserved height, by design.
+
+**Disposition: ship,** for the eight scored fixes.
+- Still unseen by capture: iPad's regular width (accepted by the owner), the two-line today row, the accessibility sizes and Classic in landscape. Those were judged from code and the owner's device checks.
+
+**The keep list, amended for the documenter:** §3.21's list, plus the Ring's sizing rule. The Ring sizes from the height its neighbours leave, clamped between 200 pt and `ringCap` (275 pt on a 393 × 852 pt iPhone). Below the AX sizes the page never scrolls, and Skip sits about 16 pt above the tab bar.
+
+**Next:** the documenter writes DESIGN.md, from both verdicts (D1's and D2's), with the "Welcome (once)" row.
+
 ## 4. Mathematical / Statistical Details
 
 The numeric rules D1 implements are in the [Stage D plan §4](2026-10-30-phase1-stage-d.md#4-mathematical--statistical-details): contrast, tabular digits, the font build, the sticker spring, "Break at" and bytecode.
@@ -1065,7 +1086,7 @@ When r ≥ R_min, the page's height t + P + (the rows) + D is at most V, so noth
   5. **The Modes sheet over Classic and over Fly** (`phone-modes-sheet-over-spread-dark`, `phone-modes-sheet-over-fly-dark`): the title is set in the system face. With Fly selected, Fly's icon keeps a paper tile.
   6. **Fly running** (`phone-fly-dark-running`): unchanged; the Modes button stays at the top right.
   7. Not captured, worth a glance: The Ring while focus runs ("Break at …" inside the ring), and both layouts in landscape (Facing Pages may scroll there now; record it if it does).
-- [ ] **The Ring's height** (§3.21; rebuilt in §3.22), on build 56 (`v1.4.0-tf.56`, D3 record §3.5): the Ring idle with the presets, running and paused, dark, at the default text size. Skip clears the bar by about 16 pt, the phase line sits at its normal height, and nothing scrolls.
+- [x] **The Ring's height** (§3.21; rebuilt in §3.22; **passed**, §3.23), on build 56 (`v1.4.0-tf.56`, D3 record §3.5): the Ring idle with the presets, running and paused, dark, at the default text size. Skip clears the bar by about 16 pt, the phase line sits at its normal height, and nothing scrolls.
 
 ## 7. Related Docs
 

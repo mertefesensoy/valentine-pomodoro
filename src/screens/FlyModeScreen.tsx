@@ -1181,7 +1181,6 @@ const styles = StyleSheet.create({
     modeIndicatorText: {
         fontSize: 12,
         fontWeight: '500',
-        textTransform: 'capitalize',
         letterSpacing: 0.5,
     },
     controls: {

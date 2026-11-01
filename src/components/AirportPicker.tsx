@@ -6,6 +6,7 @@ import {
 import { ValentineSpec } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 import { t } from '../i18n';
+import { upper } from '../i18n/casing';
 
 export interface Airport {
     iata: string;
@@ -61,7 +62,8 @@ export default function AirportPicker({ label, title, airports, selected, onSele
     return (
         <>
             <View style={styles.wrapper}>
-                <Text style={[styles.label, { color: tokens.ink }]}>{label}</Text>
+                {/* Upper case through the language's own rules (İ/ı), never the style's (D3, NFR-I18N-001). */}
+                <Text style={[styles.label, { color: tokens.ink }]}>{upper(label)}</Text>
                 <Pressable
                     style={[styles.button, {
                         backgroundColor: tokens.paper,
@@ -171,7 +173,6 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 11,
         fontWeight: '600',
-        textTransform: 'uppercase',
         letterSpacing: 0.8,
         marginBottom: 6,
     },

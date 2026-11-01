@@ -94,7 +94,7 @@ None here. The sounds' level, size, loudness, framing and Fly's loop seam are th
 - [x] `node scripts/sound/build.mjs --check` byte-identical after the merge.
 - [x] After §3.1: Jest 60 suites, 427 tests, all passing.
 - [x] Jest 59 suites, 426 tests (+1 suite, +9 tests); lint 0 errors, 29 warnings; tsc clean; React Compiler 81 compiled, 5 skipped; the raw-text and emoji checks clean; Reassure unchanged (Timer 13, Stats 1, Settings 1, Notes 1, leaf 12, settings-only 1).
-- [ ] **Device check, on build 56** (`v1.4.0-tf.56`, D3 record §3.5; needs a physical device):
+- [x] **Device check, on build 56** (`v1.4.0-tf.56`, D3 record §3.5–3.6). **Passed**, the owner, 2026-11-01: "5 and 6 is workinf very well"; the daily reminder arrived in Turkish:
   - Start focus chimes up and Start break chimes down; a finished focus pops as its sticker lands.
   - With the silent switch on, none of them sounds.
   - With music playing, they play over it and the music keeps going.

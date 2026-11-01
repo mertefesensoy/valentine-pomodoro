@@ -11,7 +11,9 @@
  *   - string and template literals in the props people read or hear: `accessibilityLabel`,
  *     `accessibilityHint`, `placeholder`, `title` and `label`;
  *   - literal first and second arguments to `Alert.alert`, and literal `text` in its buttons;
- *   - literal `title`, `subtitle` and `body` properties (notification content, screen titles).
+ *   - literal `title`, `subtitle` and `body` properties (notification content, screen titles);
+ *   - `textTransform: 'uppercase'` or `'capitalize'` in a style: the platform's casing turns a Turkish
+ *     i into I, not İ, so upper case goes through `upper()` in `src/i18n/casing.ts` (NFR-I18N-001).
  * A literal counts when it holds two or more letters. Calls aren't looked into, since `t('fly.start')`
  * passes a key, not text, and neither are comparisons (`phase === 'focus'`).
  *
@@ -99,7 +101,7 @@ function isAlertAlert(callee) {
     );
 }
 
-function check(rel, source) {
+export function check(rel, source) {
     const ast = parse(source, { sourceType: 'module', plugins: ['typescript', 'jsx'], errorRecovery: true });
     const hits = [];
     const report = (node, kind, text) =>
@@ -141,6 +143,9 @@ function check(rel, source) {
                 break;
             case 'ObjectProperty':
                 if (CONTENT_KEYS.has(keyName(node.key))) reportAll(node.value, `${keyName(node.key)} property`);
+                if (keyName(node.key) === 'textTransform' && node.value.type === 'StringLiteral' && /^(uppercase|capitalize)$/.test(node.value.value)) {
+                    report(node, 'casing style', `textTransform: ${node.value.value}`);
+                }
                 break;
             default:
                 break;

@@ -208,14 +208,15 @@ describe('the babble (assets record §3.5, §3.7)', () => {
 });
 
 // break-ui #4 (the owner's choice): at AX5 a 375 pt iPhone's panel holds about 11 letters a line, so
-// no Turkish word in the tour runs past 10. The tab's own name, "Zamanlayıcı", is the one exception.
+// no Turkish word in the tour runs past 10. Two exceptions: the Timer tab's own name, "Zamanlayıcı",
+// and "Odaklandığın" in the empty week's line, the owner's own wording in the copy review (D5 §3.11).
 describe('the tour’s Turkish at AX5', () => {
-    it('has no word past 10 letters but the Timer tab’s own name', () => {
+    it('has no word past 10 letters but the Timer tab’s own name and the owner’s “Odaklandığın”', () => {
         const strings = (o: unknown): string[] => (typeof o === 'string' ? [o] : Object.values(o as object).flatMap(strings));
         const long = strings(tr.tour)
             .flatMap((line) => line.replace(/\{\{\w+\}\}/g, ' ').split(/[\s,.!?:]+/))
             .filter((word) => Array.from(word).length > 10);
-        expect(long).toEqual([]);
+        expect(long).toEqual(['Odaklandığın']);
         expect(Array.from(tr.tabs.timer).length).toBe(11);
     });
 });

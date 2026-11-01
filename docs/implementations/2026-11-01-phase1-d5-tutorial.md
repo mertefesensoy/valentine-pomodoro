@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-d1-classic, IMP
 
 # 2026-11-01 — Phase 1 D5: the general tutorial
 
-**Status:** In progress. The brief is confirmed, the direction contract approved, the assets are on this branch, the tutorial is built (§3.8) and its four reviews pass (§3.9) and `break-ui`'s breaks are fixed (§3.10), all 2026-11-01. Nothing is seen on a device yet. Polish and the copy review are next (step 8).
+**Status:** In progress. The brief is confirmed, the direction contract approved, the assets are on this branch, the tutorial is built (§3.8) and its four reviews pass (§3.9) `break-ui`'s breaks are fixed (§3.10), and polish and the copy review are done (§3.11), all 2026-11-01. Nothing is seen on a device yet. The device check is next (step 9).
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.9, added by the owner on 2026-11-01. This record holds what happens: each step's output, the owner's gates and the measurements.
 
@@ -30,7 +30,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 | 5. Build (`animate-expo`) | **Built**, 2026-11-01, from its plan (§3.7, committed before any code): §3.8. Every guard green, 481 tests; not yet seen on a device |
 | 6. Critique, audit, HIG, `review-animations` | **Done**, 2026-11-01, after three passes and three batches (§3.9): critique 32 → **35/40**, audit 15 → **18/20**, HIG Good → **Excellent**, motion not clean → **clean** |
 | 7. `break-ui` in Turkish at AX5 | **Done**, 2026-11-01 (§3.10): 3 Broken and 1 Ugly, all fixed with the owner's two choices (a break line; the Turkish rephrased). The worst case is a Jest fixture, `tourWorstCase.test.tsx` |
-| 8. Polish, then the copy review | **Polish done**, 2026-11-01: nothing to change (§3.11). **The copy review is open:** copy proof v5, with D3's 46 strings and the tour's 30, awaits the owner's marks |
+| 8. Polish, then the copy review | **Done**, 2026-11-01 (§3.11): polish found nothing to change; the copy review passed 76 of 77, with the owner's one change applied |
 | 9. Device check | Pending |
 | FINISH: the finish review, its verdict, DESIGN.md's "Tutorial (first run)" row | Pending |
 
@@ -562,7 +562,7 @@ The fixes follow this record. The four reviews run again once they're in.
 | 1 | **A break line.** The invitation names the button that's lit. With a break up next (`breakNext`, the session's phase), it says "A break is next. Tap Start break when you're ready." / "Sırada bir mola var. Hazır olunca Molayı başlat düğmesine dokun." (`tour.invite.break`, naming `controls.startBreak`). Rendered and asserted |
 | 2 | **The buttons stop growing at 1.6×,** as every other button in the app does (`BUTTON_MAX_SCALE`: Next, Skip tour, Not now, Continue), and the group wraps. "Şimdi değil" and the mute now come to about 221 pt in the 319 pt column. The line is still never capped (T-2) |
 | 3 | **In a compact height** (under 500 pt, Classic's rule), the AX panel takes the half away from the opening (`panelFrame`). Everywhere, the panel is never taller than the screen between its insets, with the line shrinking and scrolling inside it. A side panel needs no scroll for its opening |
-| 4 | **The Turkish rephrased,** no word past 10 letters. The updater's hello says "Önce odak süreni seç.", the replay's "Odak süreni buradan seçersin." Modes says "Düzen seçmek ya da odak sırasında haritada uçmak için…", the week without a goal "Günlük hedefi aşağıdan açarsın.", the empty week "Odak yaptığın her gün burada bir kartpostal olur…". The Timer tab's own "Zamanlayıcı" stays. The model test now holds every Turkish line to 10 letters a word. The new and changed lines join the copy review (step 8) |
+| 4 | **The Turkish rephrased,** no word past 10 letters. The updater's hello says "Önce odak süreni seç.", the replay's "Odak süreni buradan seçersin." Modes says "Düzen seçmek ya da odak sırasında haritada uçmak için…", the week without a goal "Günlük hedefi aşağıdan açarsın.", the empty week "Odak yaptığın her gün burada bir kartpostal olur…" (the owner later chose "Odaklandığın" in the copy review, §3.11). The Timer tab's own "Zamanlayıcı" stays. The model test now holds every Turkish line to 10 letters a word. The new and changed lines join the copy review (step 8) |
 
 **Measured after the fixes, 2026-11-01:**
 - `npx jest`: 65 suites, 493 tests.
@@ -626,7 +626,14 @@ Found consistent, with nothing to change:
 - **It holds 307 items:** 265 strings and 21 default-note pairs.
 - **Still to review:** D3's 46 strings (unmarked since v4) and the tour's 30 strings, Pomo & Doro's lines with the bubble's words and the replay row.
 - **No marks since v4:** the `verdicts` db had none dated after 2026-11-01T11:15Z.
-- **Next:** read the owner's marks back from the `verdicts` db and apply them before build 57.
+- **The owner's marks, read back 2026-11-01:** 77 marks dated after v4.
+  - **76 "Looks right":** all of D3's 46 and 29 of the tour's 30, plus a re-mark of `stats.best`.
+  - **One change:** `tour.stats.empty`, back to "Odaklandığın her gün burada bir kartpostal olur, bugünkü en önde durur."
+- **The rule:** "Odaklandığın" is 12 letters, against §3.10's 10-letter rule, so it breaks mid-word at AX5 on a 375 pt iPhone.
+  - Asked, the owner chose it: "Use mine".
+  - It is the rule's second exception, after the tab's "Zamanlayıcı", and the model test names it.
+  - Two Settings words were accepted the same way in D2.
+- **Applied,** and the proof republished at the same link (version 6): the page shows the current text. **The copy review is complete.**
 
 ## 4. Mathematical / Statistical Details
 
@@ -713,6 +720,7 @@ The dimmed colour is c = α·scrim + (1 − α)·lit per 8-bit channel; the rati
 - [x] The build: `npx jest` (64 suites, 481 tests), `npx tsc --noEmit`, `npm run lint`, `node scripts/react-compiler-report.js`, `npx reassure --branch`, `npm run check:contrast`, `node scripts/i18n/check-raw-text.mjs`, `node scripts/design/check-emoji.mjs`, `node scripts/art/build.mjs --check`, `node scripts/sound/build.mjs --check`, all green (§3.8).
 - [x] The four reviews pass their gates after three passes (§3.9): critique 35/40, audit 18/20, HIG Excellent, motion clean; 484 tests.
 - [x] `break-ui` in Turkish at AX5: 3 Broken and 1 Ugly fixed, each pinned by a test (§3.10); 493 tests.
+- [x] Polish and the copy review: copy proof v5, 76 of 77 marks "Looks right", the one change applied (§3.11).
 - [ ] The remaining steps of §0, the device check's lists in §3.8 and §3.9 among them.
 
 ## 7. Related Docs

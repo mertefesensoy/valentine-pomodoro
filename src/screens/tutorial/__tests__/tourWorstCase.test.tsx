@@ -152,7 +152,7 @@ describe('the tour in Turkish at AX5 on an iPhone SE', () => {
             goTo('stats', 'here');
         });
         await settle();
-        expect(screen.getByLabelText('Doro: Odak yaptığın her gün burada bir kartpostal olur, bugünkü en önde durur.')).toBeOnTheScreen();
+        expect(screen.getByLabelText('Doro: Odaklandığın her gün burada bir kartpostal olur, bugünkü en önde durur.')).toBeOnTheScreen();
     });
 
     it('gives the Modes sheet its Turkish line and a Continue', async () => {

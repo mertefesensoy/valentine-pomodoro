@@ -169,6 +169,7 @@ Two lend a discipline to whichever structure wins: one message per bubble, its p
   - **The washi:** the pair stand tall on the note's top edge.
   - **The comic strip:** grows to 262 pt. It docks at the top when the spotlight is low, as in step 1, and above the tab bar for a tab, since a strip that tall can't share the bottom with the presets.
 - **The decision page is republished** at the same address as version 2, and again waits for the owner's pick.
+- **Fixed, the owner:** "the Pomo's top part get's cut". Pomo's celebrating art reaches 26 units above its 512 box (its curl and sparkles), and an inline SVG clips to its box. The sketches' symbols now draw outside it (`overflow="visible"`); the app's own sticker component isn't affected. The page is republished as version 3.
 
 **New expressions and their animations** (the owner's addition) join the asset step (§0, step 4), beside the new poses:
 - **For each of the pair, a set of expressions,** proposed for the pose sheet: talking (mouth shapes in step with the babble), happy (an eye smile), excited (sparkling eyes), curious (a head tilt), proud, a wink, surprised.

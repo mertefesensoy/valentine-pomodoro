@@ -20,11 +20,12 @@ const symbol = (id) => d2.match(new RegExp(`<symbol id="${id}"[\\s\\S]*?</symbol
 // animations come in D5's asset step.
 const pose = (file) => {
     const svg = fs.readFileSync(new URL(`art/out/illustration/${file}.svg`, ROOT), 'utf8');
-    return `<symbol id="${file}" viewBox="0 0 512 512">${svg.slice(svg.indexOf('</title>') + 8, svg.lastIndexOf('</svg>'))}</symbol>`;
+    // Pomo's celebrating curl and sparkles reach above the 512 box (y −26), so nothing is clipped to it.
+    return `<symbol id="${file}" viewBox="0 0 512 512" overflow="visible">${svg.slice(svg.indexOf('</title>') + 8, svg.lastIndexOf('</svg>'))}</symbol>`;
 };
 const SYMBOLS = `<svg width="0" height="0" style="position:absolute">${symbol('pomo')}${symbol('doro')}${['pomo-celebrating', 'pomo-idle', 'doro-celebrating', 'doro-idle'].map(pose).join('')}</svg>`;
 const sticker = (who, size, style = '') =>
-    `<svg class="stk" width="${size}" height="${size}" style="${style}"><use href="#${who}"/></svg>`;
+    `<svg class="stk" width="${size}" height="${size}" overflow="visible" style="overflow:visible;${style}"><use href="#${who}"/></svg>`;
 
 const W = 390;
 const H = 844;

@@ -94,6 +94,18 @@ Each step names who acts. Every push, merge, EAS build, TestFlight submission, s
 
 Filled in at E3: the bytecode's size against NFR-PERF-002's ceiling, as (size − 3,856,208) / 3,856,208, and the Reassure counts against the baseline.
 
+**E3, the bytecode, measured first (2026-11-01, at `eaf9e2a`; the code is build 58's):** `npx expo export --platform ios --platform android --dump-sourcemap`.
+
+| | Hermes bytecode | Against the ceiling (3,856,208 B) | Against build 56 (4,139,364 B) |
+|---|---|---|---|
+| iOS | **4,287,144 B** | +430,936 B, **+11.18 %** | +147,780 B (+3.57 %) |
+| Android | 4,286,828 B | | |
+
+- **The growth since build 56 is D5:** the tour's code and its 44 art modules, vector paths held as JavaScript strings. They're evaluated only when a tour starts (`lazy()`), but Hermes still ships them in the one bundle.
+- **The owner's decision at E3,** with the cold-start TTI in hand:
+  - accept, amending NFR-PERF-002, as B6's overage was accepted on 2026-10-30;
+  - or trim. The tour's art can leave the bytecode as a data asset read when the tour starts, as B1b moved `airports.json`.
+
 ## 5. Design Decisions
 
 | Decision | Alternatives considered | Why this one |

@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
+import { t } from "../i18n";
 
 export function useNotifications() {
     const ensurePermissions = useCallback(async (): Promise<boolean> => {
@@ -70,8 +71,8 @@ export function useNotifications() {
  * the emoji check (`scripts/design/check-emoji.mjs`) allows this file.
  */
 export const flightLandedContent = {
-    title: '✈️ Landed!',
-    body: 'Your flight focus session is complete 💗',
+    title: `✈️ ${t('notifications.landed.title')}`,
+    body: `${t('notifications.landed.body')} 💗`,
 } as const;
 
 /**
@@ -80,13 +81,13 @@ export const flightLandedContent = {
 export function getNotificationContent(phase: 'focus' | 'shortBreak' | 'longBreak'): { title: string; body: string } {
     if (phase === 'focus') {
         return {
-            title: 'Focus complete 💗',
-            body: 'Time for a sweet break',
+            title: `${t('notifications.focusDone.title')} 💗`,
+            body: t('notifications.focusDone.body'),
         };
     } else {
         return {
-            title: "Break's over 💘",
-            body: 'Back to your goals',
+            title: `${t('notifications.breakOver.title')} 💘`,
+            body: t('notifications.breakOver.body'),
         };
     }
 }

@@ -40,7 +40,7 @@ import { ValentineSpec } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 import AirportPicker, { Airport } from '../components/AirportPicker';
 import {
-    haversineDistance, flightDurationToSeconds, formatFlightDuration,
+    haversineDistance, flightDurationToSeconds,
     generateGreatCircleWaypoints, calculateBearing, findNearestAirport, LatLng,
     interpolateAlongPath,
 } from '../utils/geoMath';
@@ -68,7 +68,7 @@ import { modes as modesGlyph } from '../components/icons/art/modes';
 import { route as routeGlyph } from '../components/icons/art/route';
 import { PressableScale } from '../components/ui/PressableScale';
 import { edgeWidth, minTarget } from '../theme/layout';
-import { t } from '../i18n';
+import { formatNumber, t } from '../i18n';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import type { CameraMode } from '../types';
@@ -120,12 +120,16 @@ const CAMERA_ICON: Record<CameraMode, Glyph> = {
     route: routeGlyph,
     free: handGlyph,
 };
-const MODE_LABEL: Record<CameraMode, string> = {
-    followPlane: 'Following',
-    route: 'Route',
-    free: 'Free',
-};
 const VALID_MODES: CameraMode[] = ['followPlane', 'route', 'free'];
+
+/** A flight's focus length as the app's language writes it: "54 min" or "1h 5m"; "54 dk" or "1 sa 5 dk". */
+function flightDuration(seconds: number): string {
+    const total = Math.round(seconds / 60);
+    if (total < 60) return t('fly.duration.minutes', { m: total });
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    return m > 0 ? t('fly.duration.hoursMinutes', { h, m }) : t('fly.duration.hours', { h });
+}
 
 // ─── Plane animation constants ───────────────────────────────────────────────
 
@@ -908,7 +912,7 @@ export default function FlyModeScreen() {
                         borderColor: `${ValentineSpec.accentPrimary}30`,
                     }]}
                     onPress={handleNorthUp}
-                    accessibilityLabel="Reset map to north"
+                    accessibilityLabel={t('fly.resetNorth')}
                     accessibilityRole="button"
                 >
                     <CompassRose heading={mapHeading} />
@@ -922,7 +926,7 @@ export default function FlyModeScreen() {
                             borderColor: `${ValentineSpec.accentPrimary}30`,
                         }]}
                         onPress={cycleCameraMode}
-                        accessibilityLabel={`Camera mode: ${cameraMode}. Tap to cycle.`}
+                        accessibilityLabel={t('fly.cameraMode', { mode: t(`fly.camera.${cameraMode}`) })}
                         accessibilityRole="button"
                     >
                         <Icon glyph={CAMERA_ICON[cameraMode]} size={22} color={tokens.ink} />
@@ -943,13 +947,13 @@ export default function FlyModeScreen() {
                         pointerEvents="none"
                     >
                         <Text style={styles.mapHintText}>
-                            {!origin ? 'Tap an airport dot to pick the origin' : 'Tap an airport dot to pick the destination'}
+                            {t(!origin ? 'fly.hintOrigin' : 'fly.hintDestination')}
                         </Text>
                     </View>
                 ) : (
                     <Animated.View style={[styles.mapHint, mapHintAnimatedStyle]} pointerEvents="none">
                         <Text style={styles.mapHintText}>
-                            {!origin ? 'Tap an airport dot to pick the origin' : 'Tap an airport dot to pick the destination'}
+                            {t(!origin ? 'fly.hintOrigin' : 'fly.hintDestination')}
                         </Text>
                     </Animated.View>
                 )
@@ -982,11 +986,11 @@ export default function FlyModeScreen() {
                             backgroundColor: isDark ? 'rgba(45,45,45,0.95)' : 'rgba(247,243,240,0.95)',
                             borderColor: `${ValentineSpec.accentPrimary}30`,
                         }]}
-                        accessibilityLabel={isGlobe ? 'Switch to flat map' : 'Switch to globe map'}
+                        accessibilityLabel={t(isGlobe ? 'fly.toFlat' : 'fly.toGlobe')}
                     >
                         <Icon glyph={isGlobe ? mapGlyph : globeGlyph} size={14} color={isDark ? '#EEE' : '#222'} />
                         <Text style={[styles.globeToggleText, { color: isDark ? '#EEE' : '#222' }]}>
-                            {isGlobe ? 'Flat' : 'Globe'}
+                            {t(isGlobe ? 'fly.flat' : 'fly.globe')}
                         </Text>
                     </Pressable>
                 }
@@ -996,7 +1000,7 @@ export default function FlyModeScreen() {
                     {flightComplete && !timerRunning ? (
                         <View style={styles.iconRow}>
                             <Icon glyph={landedGlyph} size={32} color={ValentineSpec.accentPrimary} />
-                            <Text style={styles.landedText}>Landed!</Text>
+                            <Text style={styles.landedText}>{t('fly.landed')}</Text>
                         </View>
                     ) : (
                         <TimerText kind="fly" idleMs={idleMs} style={[styles.timerDigits, { color: tokens.ink }]} />
@@ -1006,7 +1010,7 @@ export default function FlyModeScreen() {
                 {/* Camera mode label — visible at peek snap */}
                 <View style={styles.modeIndicatorStrip}>
                     <Text style={[styles.modeIndicatorText, { color: tokens.inkSoft }]}>
-                        {MODE_LABEL[cameraMode]}{isGlobe ? ' · Globe' : ''}
+                        {t(`fly.camera.${cameraMode}`)}{isGlobe ? ` · ${t('fly.globe')}` : ''}
                     </Text>
                 </View>
 
@@ -1014,7 +1018,8 @@ export default function FlyModeScreen() {
                 <Animated.View style={pickerAnimatedStyle}>
                     <View style={styles.pickerRow}>
                         <AirportPicker
-                            label="From"
+                            label={t('fly.from')}
+                            title={t('fly.fromTitle')}
                             airports={airports}
                             selected={origin}
                             onSelect={setOrigin}
@@ -1023,7 +1028,8 @@ export default function FlyModeScreen() {
                             <Text style={styles.arrow}>→</Text>
                         </View>
                         <AirportPicker
-                            label="To"
+                            label={t('fly.to')}
+                            title={t('fly.toTitle')}
                             airports={airports}
                             selected={destination}
                             onSelect={setDestination}
@@ -1033,9 +1039,10 @@ export default function FlyModeScreen() {
                     {flightData && (
                         <View style={styles.flightInfo}>
                             <Text style={[styles.flightInfoText, { color: tokens.inkSoft }]}>
-                                {Math.round(flightData.distanceKm).toLocaleString()} km
-                                {'  ·  '}
-                                {formatFlightDuration(flightData.totalSeconds)} focus
+                                {t('fly.routeLine', {
+                                    km: formatNumber(flightData.distanceKm),
+                                    duration: flightDuration(flightData.totalSeconds),
+                                })}
                             </Text>
                         </View>
                     )}
@@ -1051,27 +1058,27 @@ export default function FlyModeScreen() {
                         >
                             <View style={styles.iconRow}>
                                 <Icon glyph={flyGlyph} size={18} color="#FFFFFF" />
-                                <Text style={styles.primaryButtonText}>Start flight</Text>
+                                <Text style={styles.primaryButtonText}>{t('fly.start')}</Text>
                             </View>
                         </Pressable>
                     )}
                     {timerRunning && !paused && (
                         <View style={styles.buttonRow}>
                             <Pressable style={styles.secondaryButton} onPress={handlePause}>
-                                <Text style={styles.secondaryButtonText}>Pause</Text>
+                                <Text style={styles.secondaryButtonText}>{t('controls.pause')}</Text>
                             </Pressable>
                             <Pressable style={styles.ghostButton} onPress={handleReset}>
-                                <Text style={[styles.ghostButtonText, { color: tokens.ink }]}>Reset</Text>
+                                <Text style={[styles.ghostButtonText, { color: tokens.ink }]}>{t('fly.reset')}</Text>
                             </Pressable>
                         </View>
                     )}
                     {paused && (
                         <View style={styles.buttonRow}>
                             <Pressable style={styles.primaryButton} onPress={handleResume}>
-                                <Text style={styles.primaryButtonText}>Resume</Text>
+                                <Text style={styles.primaryButtonText}>{t('controls.resume')}</Text>
                             </Pressable>
                             <Pressable style={styles.ghostButton} onPress={handleReset}>
-                                <Text style={[styles.ghostButtonText, { color: tokens.ink }]}>Reset</Text>
+                                <Text style={[styles.ghostButtonText, { color: tokens.ink }]}>{t('fly.reset')}</Text>
                             </Pressable>
                         </View>
                     )}

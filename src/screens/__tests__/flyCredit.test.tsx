@@ -35,7 +35,8 @@ async function press(element: Parameters<typeof fireEvent.press>[0]) {
 
 // The same steps as the A1 Fly guard: open the picker, search, tap the row.
 async function pickAirport(label: 'From' | 'To', city: string, iata: string) {
-    await press(screen.getByLabelText(`Select ${label} airport`));
+    // Each picker is named in full for VoiceOver (D3 record §3.3).
+    await press(screen.getByLabelText(label === 'From' ? 'Departure airport' : 'Arrival airport'));
     await act(async () => {
         await fireEvent.changeText(screen.getByPlaceholderText('Search airports…'), city);
     });

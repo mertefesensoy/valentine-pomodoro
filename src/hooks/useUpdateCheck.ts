@@ -97,21 +97,18 @@ export function useUpdateCheck(updateJsonUrl: string) {
 
             if (!isNewer) {
                 if (force) {
-                    Alert.alert(
-                        "You're up to date",
-                        `You have the latest version (${current}).`
-                    );
+                    Alert.alert(t('updates.upToDateTitle'), t('updates.upToDateMessage', { version: current }));
                 }
                 return;
             }
 
             Alert.alert(
-                'Update available',
-                `Version ${latest.version} is available on the App Store with the latest improvements and fixes.`,
+                t('updates.availableTitle'),
+                t('updates.availableMessage', { version: latest.version }),
                 [
-                    { text: 'Not now', style: 'cancel' },
+                    { text: t('updates.notNow'), style: 'cancel' },
                     {
-                        text: 'Update',
+                        text: t('updates.update'),
                         onPress: () => void Linking.openURL(latest!.storeUrl),
                     },
                 ],

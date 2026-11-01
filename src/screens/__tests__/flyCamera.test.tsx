@@ -29,7 +29,8 @@ async function press(element: Parameters<typeof fireEvent.press>[0]) {
 }
 
 async function pickAirport(label: 'From' | 'To', city: string, iata: string) {
-    await press(screen.getByLabelText(`Select ${label} airport`));
+    // Each picker is named in full for VoiceOver (D3 record §3.3).
+    await press(screen.getByLabelText(label === 'From' ? 'Departure airport' : 'Arrival airport'));
     await act(async () => {
         await fireEvent.changeText(screen.getByPlaceholderText('Search airports…'), city);
     });
@@ -65,28 +66,28 @@ describe("Fly's camera mode during a flight (build 51 device check)", () => {
         await press(screen.getByText('Start flight'));
         await act(() => jest.advanceTimersByTime(3_000));
 
-        expect(camera()).toMatch(/followPlane/);
+        expect(camera()).toMatch(/Following/);
         // Fly following the plane moves the camera itself: the mode stays.
         await mapEvent('regionChange', REGION);
-        expect(camera()).toMatch(/followPlane/);
+        expect(camera()).toMatch(/Following/);
 
         // The button cycles to the whole route, and Fly fitting the route keeps it.
         await press(screen.getByLabelText(/^Camera mode:/));
-        expect(camera()).toMatch(/route/);
+        expect(camera()).toMatch(/Route/);
         await mapEvent('regionChange', REGION);
-        expect(camera()).toMatch(/route/);
+        expect(camera()).toMatch(/Route/);
 
         // The user's own pan enters free mode.
         await mapEvent('touchStart');
         await mapEvent('regionChange', REGION);
-        expect(camera()).toMatch(/free/);
+        expect(camera()).toMatch(/Free/);
         await mapEvent('touchEnd');
 
         // After the flick settles, the button brings the camera back, and it stays.
         await act(() => jest.advanceTimersByTime(1_000));
         await press(screen.getByLabelText(/^Camera mode:/));
-        expect(camera()).toMatch(/followPlane/);
+        expect(camera()).toMatch(/Following/);
         await mapEvent('regionChange', REGION);
-        expect(camera()).toMatch(/followPlane/);
+        expect(camera()).toMatch(/Following/);
     });
 });

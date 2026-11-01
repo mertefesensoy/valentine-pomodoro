@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { ValentineSpec } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
+import { t } from '../i18n';
 
 export interface Airport {
     iata: string;
@@ -22,12 +23,14 @@ const ITEM_HEIGHT = 68;
 
 interface AirportPickerProps {
     label: string;
+    /** The picker's name in full ("Departure airport"): its sheet's title and its VoiceOver label. */
+    title: string;
     airports: Airport[];
     selected: Airport | null;
     onSelect: (airport: Airport) => void;
 }
 
-export default function AirportPicker({ label, airports, selected, onSelect }: AirportPickerProps) {
+export default function AirportPicker({ label, title, airports, selected, onSelect }: AirportPickerProps) {
     const { tokens, isDark } = useTheme();
     const [modalVisible, setModalVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -66,7 +69,7 @@ export default function AirportPicker({ label, airports, selected, onSelect }: A
                     }]}
                     onPress={() => setModalVisible(true)}
                     accessibilityRole="button"
-                    accessibilityLabel={`Select ${label} airport`}
+                    accessibilityLabel={title}
                 >
                     {selected ? (
                         <>
@@ -74,7 +77,7 @@ export default function AirportPicker({ label, airports, selected, onSelect }: A
                             <Text style={[styles.city, { color: tokens.ink }]}>{selected.city}</Text>
                         </>
                     ) : (
-                        <Text style={[styles.placeholder, { color: `${tokens.ink}70` }]}>Select airport</Text>
+                        <Text style={[styles.placeholder, { color: `${tokens.ink}70` }]}>{t('airportPicker.placeholder')}</Text>
                     )}
                     <Text style={styles.chevron}>›</Text>
                 </Pressable>
@@ -91,9 +94,9 @@ export default function AirportPicker({ label, airports, selected, onSelect }: A
                         backgroundColor: isDark ? tokens.paper : ValentineSpec.backgroundSecondary,
                         borderBottomColor: `${ValentineSpec.accentPrimary}30`,
                     }]}>
-                        <Text style={[styles.modalTitle, { color: tokens.ink }]}>Select {label}</Text>
+                        <Text style={[styles.modalTitle, { color: tokens.ink }]}>{title}</Text>
                         <Pressable onPress={() => { setSearchQuery(''); setModalVisible(false); }} style={styles.closeButton}>
-                            <Text style={styles.closeText}>Done</Text>
+                            <Text style={styles.closeText}>{t('airportPicker.done')}</Text>
                         </Pressable>
                     </View>
 
@@ -108,7 +111,7 @@ export default function AirportPicker({ label, airports, selected, onSelect }: A
                             }]}
                             value={searchQuery}
                             onChangeText={setSearchQuery}
-                            placeholder="Search airports…"
+                            placeholder={t('airportPicker.search')}
                             placeholderTextColor={`${tokens.ink}60`}
                             autoCorrect={false}
                             clearButtonMode="while-editing"

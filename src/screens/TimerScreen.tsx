@@ -46,7 +46,7 @@ function FlyModePlaceholder() {
   return (
     <View
       style={[styles.flyPlaceholder, { backgroundColor: tokens.page }]}
-      accessibilityLabel="Loading Fly Mode"
+      accessibilityLabel={t('fly.loading')}
     >
       <ActivityIndicator color={tokens.primaryInk} />
     </View>

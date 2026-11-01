@@ -47,5 +47,6 @@ FR-SET-005 and NFR-I18N-001 need the app in English and Turkish, with every stri
 <!-- backlinks:start -->
 - ["Phase 1 D1: Classic rebuilt in the Sticker Diary design, with the v1.4 welcome screen"](../../implementations/2026-10-30-phase1-d1-classic.md)
 - ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](../../implementations/2026-10-30-phase1-stage-d.md)
+- ["Phase 1 D3: every string in English and Turkish, a raw-text check, and the in-app language choice"](../../implementations/2026-11-01-phase1-d3-en-tr.md)
 - [Requirements traceability (generated)](../../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

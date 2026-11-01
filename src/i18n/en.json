@@ -246,6 +246,67 @@
   },
   "updates": {
     "failedTitle": "Couldn't check for updates",
-    "failedMessage": "Check your connection and try again."
+    "failedMessage": "Check your connection and try again.",
+    "upToDateTitle": "You're up to date",
+    "upToDateMessage": "You have the latest version ({{version}}).",
+    "availableTitle": "Update available",
+    "availableMessage": "Version {{version}} is available on the App Store with the latest improvements and fixes.",
+    "notNow": "Not now",
+    "update": "Update"
+  },
+  "fly": {
+    "loading": "Loading Fly Mode",
+    "resetNorth": "Reset map to north",
+    "cameraMode": "Camera mode: {{mode}}. Tap to cycle.",
+    "camera": {
+      "followPlane": "Following",
+      "route": "Route",
+      "free": "Free"
+    },
+    "hintOrigin": "Tap an airport dot to pick the origin",
+    "hintDestination": "Tap an airport dot to pick the destination",
+    "toFlat": "Switch to flat map",
+    "toGlobe": "Switch to globe map",
+    "flat": "Flat",
+    "globe": "Globe",
+    "landed": "Landed!",
+    "from": "From",
+    "to": "To",
+    "fromTitle": "Departure airport",
+    "toTitle": "Arrival airport",
+    "routeLine": "{{km}} km  ·  {{duration}} focus",
+    "duration": {
+      "minutes": "{{m}} min",
+      "hours": "{{h}}h",
+      "hoursMinutes": "{{h}}h {{m}}m"
+    },
+    "start": "Start flight",
+    "reset": "Reset"
+  },
+  "airportPicker": {
+    "placeholder": "Select airport",
+    "search": "Search airports…",
+    "done": "Done"
+  },
+  "notifications": {
+    "focusDone": {
+      "title": "Focus complete",
+      "body": "Time for a sweet break"
+    },
+    "breakOver": {
+      "title": "Break's over",
+      "body": "Back to your goals"
+    },
+    "landed": {
+      "title": "Landed!",
+      "body": "Your flight focus session is complete"
+    },
+    "reminder": {
+      "title": "Valentine Pomodoro",
+      "body": "A little focus session today?"
+    }
+  },
+  "notFound": {
+    "home": "Go to Home"
   }
 }

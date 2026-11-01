@@ -246,6 +246,67 @@
   },
   "updates": {
     "failedTitle": "Güncellemeler denetlenemedi",
-    "failedMessage": "Bağlantını kontrol edip yeniden dene."
+    "failedMessage": "Bağlantını kontrol edip yeniden dene.",
+    "upToDateTitle": "Güncelsin",
+    "upToDateMessage": "En son sürüm sende ({{version}}).",
+    "availableTitle": "Güncelleme var",
+    "availableMessage": "{{version}} sürümü, en son iyileştirmeler ve düzeltmelerle App Store'da.",
+    "notNow": "Şimdi değil",
+    "update": "Güncelle"
+  },
+  "fly": {
+    "loading": "Uçuş modu yükleniyor",
+    "resetNorth": "Haritayı kuzeye çevir",
+    "cameraMode": "Kamera modu: {{mode}}. Değiştirmek için dokun.",
+    "camera": {
+      "followPlane": "Takip",
+      "route": "Rota",
+      "free": "Serbest"
+    },
+    "hintOrigin": "Kalkış için bir havalimanı noktasına dokun",
+    "hintDestination": "Varış için bir havalimanı noktasına dokun",
+    "toFlat": "Düz haritaya geç",
+    "toGlobe": "Küre haritaya geç",
+    "flat": "Düz",
+    "globe": "Küre",
+    "landed": "İniş yaptık!",
+    "from": "Nereden",
+    "to": "Nereye",
+    "fromTitle": "Kalkış havalimanı",
+    "toTitle": "Varış havalimanı",
+    "routeLine": "{{km}} km  ·  {{duration}} odak",
+    "duration": {
+      "minutes": "{{m}} dk",
+      "hours": "{{h}} sa",
+      "hoursMinutes": "{{h}} sa {{m}} dk"
+    },
+    "start": "Uçuşu başlat",
+    "reset": "Sıfırla"
+  },
+  "airportPicker": {
+    "placeholder": "Havalimanı seç",
+    "search": "Havalimanı ara…",
+    "done": "Bitti"
+  },
+  "notifications": {
+    "focusDone": {
+      "title": "Odak tamam",
+      "body": "Tatlı bir mola zamanı"
+    },
+    "breakOver": {
+      "title": "Mola bitti",
+      "body": "Hedeflerine dönme zamanı"
+    },
+    "landed": {
+      "title": "İniş yaptık!",
+      "body": "Uçuş odak oturumun tamamlandı"
+    },
+    "reminder": {
+      "title": "Valentine Pomodoro",
+      "body": "Bugün küçük bir odak oturumu?"
+    }
+  },
+  "notFound": {
+    "home": "Ana sayfaya dön"
   }
 }

@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useTheme } from '../theme/useTheme';
 import { Icon } from './icons/Icon';
 import { heart } from './icons/art/heart';
+import { t } from '../i18n';
 
 interface LoveNoteCardProps {
     note: string;
@@ -63,7 +64,7 @@ export default function LoveNoteCard({ note, onDismiss }: LoveNoteCardProps) {
                 </View>
                 <Text style={[styles.noteText, { color: tokens.ink }]}>{note}</Text>
                 <TouchableOpacity style={styles.closeButton} onPress={onDismiss}>
-                    <Text style={styles.closeButtonText}>Close</Text>
+                    <Text style={styles.closeButtonText}>{t('loveNote.close')}</Text>
                 </TouchableOpacity>
             </Animated.View>
         </Animated.View>

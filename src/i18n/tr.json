@@ -131,7 +131,7 @@
       "quiet": "Sessiz saatler",
       "quietStart": "Başlangıç",
       "quietEnd": "Bitiş",
-      "footer": "Oturum uyarıları, telefonun kilitliyken bile bir odak ya da mola bittiğinde haber verir. Sessiz saatler, günlük hatırlatıcıyı bu saatlerin dışına taşır.",
+      "footer": "Oturum uyarıları, telefon kilitliyken bile bir odak ya da mola bittiğinde haber verir. Sessiz saatler, günlük hatırlatıcıyı bu saatlerin dışına taşır.",
       "denied": "Bu uygulamanın bildirimleri iOS Ayarları'nda kapalı, bu yüzden hatırlatıcı kurulamıyor.",
       "failed": "Hatırlatıcı kurulamadı. Birazdan yeniden dene.",
       "openSettings": "iOS Ayarları'nı aç"

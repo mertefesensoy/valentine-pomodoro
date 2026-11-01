@@ -279,6 +279,18 @@ describe('Love notes (D2 Notes contract)', () => {
         }
     });
 
+    // The build 56 device check (D3 record §3.8): the defaults stayed in the language they were kept
+    // in. The list shows them in the app's language, and the editor opens them that way.
+    it('shows default notes in the app’s language, whatever language they were kept in', async () => {
+        await show(<LoveNotesScreen />);
+        await act(async () => useNotesStore.setState({ notes: [DEFAULT_LOVE_NOTES_TR[0], 'Benim notum'] }));
+        expect(screen.getByText(DEFAULT_LOVE_NOTES[0])).toBeOnTheScreen();
+        expect(screen.queryByText(DEFAULT_LOVE_NOTES_TR[0])).toBeNull();
+        expect(screen.getByText('Benim notum')).toBeOnTheScreen();
+        // What's kept is unchanged.
+        expect(useNotesStore.getState().notes[0]).toBe(DEFAULT_LOVE_NOTES_TR[0]);
+    });
+
     it('invites a first note when the list is empty', async () => {
         // An empty stored list hydrates as the defaults (B3), so the list empties in the session.
         await show(<LoveNotesScreen />);

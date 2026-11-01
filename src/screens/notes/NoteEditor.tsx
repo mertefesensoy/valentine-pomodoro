@@ -4,7 +4,7 @@ import { router, useLocalSearchParams, usePreventRemove } from 'expo-router';
 
 import { ButtonRow, ListGroup } from '../../components/settings/SettingsList';
 import { t } from '../../i18n';
-import { NOTE_MAX_LENGTH, useNotesStore } from '../../stores/notesStore';
+import { NOTE_MAX_LENGTH, noteInLanguage, useNotesStore } from '../../stores/notesStore';
 import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
 import { useTheme } from '../../theme/useTheme';
 
@@ -56,7 +56,8 @@ export function NoteEditor() {
 
     const at = index === undefined ? -1 : Number(index);
     const editing = Number.isInteger(at) && at >= 0 && at < notes.length;
-    const original = editing ? notes[at] : '';
+    // A default note opens as the list shows it, in the app's language (D3).
+    const original = editing ? noteInLanguage(notes[at]) : '';
     const [text, setText] = useState(original);
     const max = Math.max(NOTE_MAX_LENGTH, original.length);
     const dirty = text.trim() !== original.trim();

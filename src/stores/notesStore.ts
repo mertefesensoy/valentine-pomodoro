@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { LoveNotes } from '../types';
 import { defaultLoveNotes, fallbackLoveNote } from '../constants/defaults';
-import { language } from '../i18n';
+import { language, type Language } from '../i18n';
 import { loadSync, saveSync, STORAGE_KEYS } from '../utils/storage';
 
 /** A note's most characters (the owner, D2): longer notes already kept are never cut. */
@@ -28,6 +28,43 @@ export function normalizeNote(input: string) {
 /** A note's letters and digits, lower-cased: what Restore compares, so punctuation and emoji don't count. */
 function noteKey(note: string) {
     return note.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+}
+
+// The default notes and the fallback, by language, with each note's position in the list, keyed by
+// its letters and digits. The two languages' lists are the same notes in the same order.
+const DEFAULT_NOTES: Record<Language, string[]> = {
+    en: [...defaultLoveNotes('en'), fallbackLoveNote('en')],
+    tr: [...defaultLoveNotes('tr'), fallbackLoveNote('tr')],
+};
+/** Each note's first position: the fallback is also the first default, and must not hide it. */
+function positions(notes: string[]): Map<string, number> {
+    const map = new Map<string, number>();
+    notes.forEach((note, i) => {
+        if (!map.has(noteKey(note))) map.set(noteKey(note), i);
+    });
+    return map;
+}
+const DEFAULT_POSITION: Record<Language, Map<string, number>> = { en: positions(DEFAULT_NOTES.en), tr: positions(DEFAULT_NOTES.tr) };
+
+/** A note's place among the default notes in either language, or undefined for any other note. */
+function defaultPosition(note: string): number | undefined {
+    const key = noteKey(note);
+    return DEFAULT_POSITION.en.get(key) ?? DEFAULT_POSITION.tr.get(key);
+}
+
+/**
+ * A note as `lang` shows it (D3; the owner, build 56: "the default notes did not turn into
+ * turkish"). A note that is one of the default notes in the other language, in letters and digits,
+ * so v1.3.1's notes that are the same sentence count too, shows as that default in `lang`. Every
+ * other note shows as kept: the person's own, an edited default, a v1.3.1 note with no Turkish
+ * version, and a default already in `lang` (so v1.3.1's punctuation and emoji survive in English).
+ * Only the showing changes, never what's stored, so switching back loses nothing.
+ */
+export function noteInLanguage(note: string, lang: Language = language): string {
+    const key = noteKey(note);
+    if (DEFAULT_POSITION[lang].has(key)) return note;
+    const i = DEFAULT_POSITION[lang === 'en' ? 'tr' : 'en'].get(key);
+    return i === undefined ? note : DEFAULT_NOTES[lang][i];
 }
 
 /** A stored value is used only if it is a non-empty array of strings. */
@@ -116,15 +153,17 @@ export const useNotesStore = create<NotesStore>()((set, get) => {
             const prev = get().notes;
             // A default counts as present when a note matches it in letters and digits alone, so
             // a v1 note that differs only in punctuation, case or emoji ("Your effort is the cutest
-            // thing" beside "…thing.") isn't added again (build 52 device check, D2 record §3.17).
-            const present = new Set(prev.map(noteKey));
-            const missing = defaults.filter((note) => !present.has(noteKey(note)));
+            // thing" beside "…thing.") isn't added again (build 52 device check, D2 record §3.17),
+            // and in either language, so Turkish Restore never adds a default kept in English (D3).
+            const present = new Set(prev.map(defaultPosition));
+            const missing = defaults.filter((_, i) => !present.has(i));
             if (missing.length > 0) commit([...prev, ...missing]);
             return missing.length;
         },
 
         pickRandomNote(last) {
-            const { notes } = get();
+            // In the app's language, as the list shows them (D3).
+            const notes = get().notes.map((note) => noteInLanguage(note));
             if (notes.length === 0) return fallbackLoveNote(language);
             if (notes.length === 1) return notes[0];
 

@@ -11,7 +11,7 @@ import { PressableScale } from '../components/ui/PressableScale';
 import { StatusBarScrim } from '../components/ui/StatusBarScrim';
 import { t } from '../i18n';
 import { useLoveNoteSheet } from '../stores/loveNoteSheetStore';
-import { useNotesStore } from '../stores/notesStore';
+import { noteInLanguage, useNotesStore } from '../stores/notesStore';
 import { fonts } from '../theme/type';
 import { edgeWidth, minTarget, radius, space } from '../theme/layout';
 import type { ThemeTokens } from '../theme/palette';
@@ -236,7 +236,7 @@ export default function LoveNotesScreen() {
             keyExtractor={(note, index) => `${index}:${note}`}
             renderItem={({ item, index }) => (
                 <NoteRow
-                    note={item}
+                    note={noteInLanguage(item)}
                     index={index}
                     first={index === 0}
                     last={index === notes.length - 1}

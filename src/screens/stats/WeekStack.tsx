@@ -84,7 +84,7 @@ function MinutesFill({ minutes, goal, tokens }: { minutes: number; goal: number;
  * `dayWidth`, which the caller grows with the text size; in the list (AX sizes) it takes a line of
  * its own. The goal flag is `flag` points, grown like the stickers.
  */
-export function DayEdge({ day, metric, goal, height, sticker, flag, dayWidth, tilt, stacked, tokens }: {
+export function DayEdge({ day, metric, goal, height, sticker, flag, dayWidth, countWidth, tilt, stacked, closed, tokens }: {
     day: Day;
     metric: Metric;
     goal: number;
@@ -92,8 +92,12 @@ export function DayEdge({ day, metric, goal, height, sticker, flag, dayWidth, ti
     sticker: number;
     flag: number;
     dayWidth: number;
+    /** The count column's width, the same on every edge, so the Minutes tracks end together. */
+    countWidth: number;
     tilt: number;
     stacked: boolean;
+    /** The stack's last edge with nothing in front of it (landscape): it closes its own bottom. */
+    closed?: boolean;
     tokens: ThemeTokens;
 }) {
     const { focusSessions, focusMinutes, goalHit } = day.stats;
@@ -104,6 +108,7 @@ export function DayEdge({ day, metric, goal, height, sticker, flag, dayWidth, ti
             style={[
                 styles.edge,
                 stacked ? styles.edgeStacked : styles.edgeList,
+                closed && styles.edgeClosed,
                 { minHeight: height, backgroundColor: tokens.paper, borderColor: tokens.edge, transform: [{ rotate: `${tilt}deg` }] },
             ]}
             accessible
@@ -122,7 +127,7 @@ export function DayEdge({ day, metric, goal, height, sticker, flag, dayWidth, ti
                 )}
             </View>
             {focusSessions > 0 && (
-                <Text style={[styles.edgeCount, { color: tokens.ink }]}>
+                <Text style={[styles.edgeCount, { minWidth: countWidth, color: tokens.ink }]}>
                     {metric === 'sessions' ? focusSessions : formatNumber(focusMinutes)}
                 </Text>
             )}
@@ -190,6 +195,13 @@ const styles = StyleSheet.create({
     // In the stack each edge is a postcard's top, tucked under the next; as a list (AX sizes) each
     // is a whole slip.
     edgeStacked: { borderTopLeftRadius: radius.m, borderTopRightRadius: radius.m, borderBottomWidth: 0, marginBottom: -space.s },
+    edgeClosed: {
+        borderBottomWidth: edgeWidth,
+        borderBottomLeftRadius: radius.m,
+        borderBottomRightRadius: radius.m,
+        paddingBottom: space.s,
+        marginBottom: 0,
+    },
     edgeList: { borderRadius: radius.m, paddingBottom: space.s, flexWrap: 'wrap' },
     edgeDay: { fontSize: 13, fontWeight: '600' },
     edgeDayLine: { flexBasis: '100%' },

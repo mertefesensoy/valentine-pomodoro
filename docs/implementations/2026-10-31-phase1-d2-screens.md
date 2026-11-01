@@ -31,7 +31,7 @@ Each screen follows DESIGN-WORKFLOW §2, as Classic did in D1.
 | 5. `break-ui` (TR at AX5) | 2 Ugly (the zero-goal summary, the strip at AX5) and the shared number formats: **fixed**; a streak of 0 softened (§3.13) | The number formats: **fixed**; Turkish words wider than a row: accepted (the owner) | 2 Broken (an emoji cut at the cap, the editor header at AX5) and 1 Ugly (line breaks lost): **fixed** | Retired: none |
 | 6. `polish`, `harden`, `clarify` | Done: "Turn on a daily goal" opens Settings at the goal row; Turkish "kaldı" (§3.14). The Turkish copy and the default notes: **reviewed** by the owner, six note changes applied (§3.15) | Done: a failed reminder told from a refusal; "Check for updates" offline; link rejections; "Sound and haptics" (§3.14) | Done (§3.13–3.14) | Retired: none |
 | 7. Device check (the next build, with D1's finish-review fixes) | Builds 51–53 checked and fixed (§3.11, §3.17, §3.20). **Build 54: passed** (the owner, 2026-11-01, §3.22) | **Build 54: passed** | **Build 54: passed** | Retired: none |
-| FINISH: the finish review, its verdict, DESIGN.md | Round 1: **fix**, 3 fixes (§3.23) | Round 1: faithful; iPad width shared (§3.23) | Round 1: faithful; iPad width fix (§3.23) | Retired: none |
+| FINISH: the finish review, its verdict, DESIGN.md | Round 1: **fix**; fixes 1–3 built (§3.23); round 2 waits for captures | Round 1: faithful | Round 1: faithful; fix 4 built (§3.23) | Retired: none |
 
 **Alongside the screens** (Stage D plan §3.3), D2 also does:
 - the emoji check;
@@ -942,6 +942,40 @@ The device check is §6 "the next build's device check" (§3.20's items), then D
 - **iPad remains unreviewed by capture,** as D1's is (D1 record §3.20, round 2, the owner: "No iPad"). There's no Simulator on this machine. The reviewer counts that against `ship`, not against this `fix`.
 - **The light theme** is judged from the tokens. The captures for D1's verdict pass include light.
 
+**The fixes as built** (the owner, 2026-11-01: "Apply them"):
+
+| # | Change |
+|---|---|
+| 1 | `StatsScreen.tsx`: in compact height the column is `width − insets.left − insets.right − 2 × 16`; elsewhere it stays `min(width, 560) − 32`. Today's card and the stack each take half, so today's line no longer wraps. |
+| 2 | `WeekStack.tsx`: `DayEdge` takes `closed`. In compact height, outside the AX list, the last earlier edge closes itself: a bottom border, 14 pt bottom corners, 8 pt bottom padding, no negative margin. In portrait it stays tucked under today's card. |
+| 3 | `StatsScreen.tsx` and `WeekStack.tsx`: `DayEdge` takes `countWidth`, 36 pt × the font scale (from 1): "1,440" in 13 pt semibold tabular figures. Every count has that minimum width, so every Minutes track ends at the same x. |
+| 4 | `LoveNotesScreen.tsx`: the list pads to `max(16, (width − 560) / 2 + 16)`, so its content is `min(width, 560) − 32`, the same column as Stats and Settings: 528 pt on an iPad, unchanged on a phone. |
+
+**Tests:**
+- `stats.test.tsx`:
+  - the column is 820 pt on an 852 × 393 window;
+  - the last edge closes there and stays open in portrait;
+  - every count in the Minutes view has its 36 pt minimum.
+- `notes.test.tsx`: on a 1024 × 1366 iPad, the content is 528 pt.
+- Each asserts a value the old code didn't produce.
+
+**Guards:**
+
+| Guard | Result |
+|---|---|
+| Jest | 56 suites, 405 tests, all passing |
+| Lint | 0 errors, 29 warnings |
+| tsc | Clean |
+| React Compiler | 81 compiled, 5 skipped |
+| The emoji check | Clean |
+| Reassure | Unchanged: Timer 13, Stats 1, Settings 1, Notes 1, leaf 12, settings-only 1 |
+
+**Round 2** is the reviewer's verdict on these fixes. It needs captures from the next build:
+- Stats in landscape, in Sessions and in Minutes;
+- Stats in portrait, in Minutes.
+
+The same round takes D1's remaining four captures (§3.22), so one build serves both verdict passes.
+
 ## 4. Mathematical / Statistical Details
 
 None yet. The week's sticker capacity and the goal counts will reuse D1's rules (D1 record §4.3) when Stats is built.
@@ -992,6 +1026,7 @@ None yet. The week's sticker capacity and the goal counts will reuse D1's rules 
 - [x] **The owner's copy review** on the copy proof page (§3.14, done: §3.15): every Turkish string (D1's and D2's) and the 21 default notes in both languages, and the two tab-title questions. The marks are read back and applied before build 52.
 - [x] **The device check, build 53** (the owner, 2026-11-01: the fixes hold; two new problems fixed in §3.20). Its list was: §3.18's notifications first. Start a focus and lock the phone: nothing arrives at the start. At its end, "Focus complete 💗 · Time for a sweet break". At the break's end, "Break's over 💘 · Back to your goals". With the app open, the banner comes at the end too. Fly's "Landed!" comes on landing. Then the eight nits of §3.17. The stickers lift with a soft shadow and no square, in both themes. "Custom" sits level in its pill. Fly's peeked sheet shows its mode line above the bar; its timer is in ink; "From" and "To" align. No empty band on Stats. "Best n" on its own line. Restore adds no near-duplicates. Then D1's six captures for its verdict pass.
 - [x] **The device check, build 54** (the owner, 2026-11-01: "nice everything passes the checks good job"; §3.22): §3.20. Classic in landscape, both layouts: the face fills the left half at full height with no empty area; the phase line and Modes button head the right column; the partner line shows; today's cells sit in two rows; nothing runs under the tab bar. Scrolled tabs (Classic, Stats, Settings, Notes) never run under the clock. Then D1's remaining captures: Facing Pages in light, the shadows in light, the Modes sheet over Classic and over Fly.
+- [ ] **The next build's captures for the finish reviews' second rounds:** Stats in landscape (Sessions and Minutes) and in portrait (Minutes), for D2 (§3.23). Facing Pages in light, the shadows in light, and the Modes sheet over Classic and over Fly, for D1 (§3.22).
 - [ ] B2's notes tests stay green: Bengisu's install keeps its notes.
 - [ ] The emoji check (`src/__tests__/noEmojiIcons.test.ts`) passes.
 - [ ] **The device check, build 51** (needs a physical device). It goes with the D1 record's §6 "build 51" list, for D1's finish fixes and the six recaptures.

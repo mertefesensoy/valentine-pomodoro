@@ -183,6 +183,59 @@ async function atTextSize(fontScale: number, run: () => Promise<void>) {
     }
 }
 
+/** A window of the given size at the default text size, restored after. */
+async function inWindow(size: { width: number; height: number }, run: () => Promise<void>) {
+    const jestWindow = Dimensions.get('window');
+    const window = { ...size, scale: 3, fontScale: 1 };
+    try {
+        await act(async () => Dimensions.set({ window, screen: window }));
+        await run();
+    } finally {
+        await act(async () => Dimensions.set({ window: jestWindow, screen: jestWindow }));
+    }
+}
+
+// covers: FR-STA-003
+// The finish review, round 1 (D2 record §3.23): in landscape the week kept the readable cap, its
+// stack's last edge ended open, and the Minutes tracks ended where each count's digits left them.
+describe('Stats after the finish review', () => {
+    const yesterday = /, 4 sessions, 100 minutes, goal reached$/;
+
+    it('spans the width between the side insets in landscape (fix 1)', async () => {
+        await inWindow({ width: 852, height: 393 }, async () => {
+            await showWeek();
+            // 852 less the 16 pt gutters (Jest's side insets are 0).
+            expect(screen.getByRole('header', { name: 'Stats' }).parent!).toHaveStyle({ width: 852 - 32 });
+        });
+    });
+
+    it("closes the stack's last edge in landscape, where nothing sits in front of it (fix 2)", async () => {
+        await inWindow({ width: 852, height: 393 }, async () => {
+            await showWeek();
+            expect(screen.getByLabelText(yesterday)).toHaveStyle({ borderBottomWidth: 1.5, marginBottom: 0 });
+        });
+    });
+
+    it("leaves it open in portrait, tucked under today's card", async () => {
+        await inWindow({ width: 393, height: 852 }, async () => {
+            await showWeek();
+            expect(screen.getByLabelText(yesterday)).toHaveStyle({ borderBottomWidth: 0, marginBottom: -8 });
+        });
+    });
+
+    it('gives every count the same width, so the Minutes tracks end together (fix 3)', async () => {
+        await inWindow({ width: 393, height: 852 }, async () => {
+            await showWeek();
+            await act(async () => {
+                await fireEvent.press(screen.getByLabelText('Minutes'));
+            });
+            const counts = screen.getAllByText(/^\d+$/);
+            expect(counts.length).toBeGreaterThan(2);
+            for (const count of counts) expect(count).toHaveStyle({ minWidth: 36 });
+        });
+    });
+});
+
 /** An edge's visible day name, as DayEdge writes it. */
 function edgeName(daysAgo: number): string {
     const date = dateOfKey(keyOf(daysAgo));

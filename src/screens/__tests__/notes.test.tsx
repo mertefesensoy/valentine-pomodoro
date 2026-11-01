@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { AccessibilityInfo, ActionSheetIOS, Alert, StyleSheet } from 'react-native';
+import { AccessibilityInfo, ActionSheetIOS, Alert, Dimensions, StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -259,6 +259,24 @@ describe('Love notes (D2 Notes contract)', () => {
         // Different words are a different note.
         expect(notes).toContain('One step closer to your dreams.');
         expect(notes).toHaveLength(3 + DEFAULT_LOVE_NOTES.length - 2);
+    });
+
+    // The finish review, round 1 (D2 record §3.23, fix 4): on an iPad Notes was 560 pt of content
+    // while Stats and Settings were 528, so the page's edges moved between tabs.
+    it('centres on an iPad at the same 528 pt column as Stats and Settings', async () => {
+        const jestWindow = Dimensions.get('window');
+        const ipad = { width: 1024, height: 1366, scale: 2, fontScale: 1 };
+        try {
+            await act(async () => Dimensions.set({ window: ipad, screen: ipad }));
+            await show(<LoveNotesScreen />);
+            // The list's scroll view carries the padding in its content container's style.
+            let node = screen.getByRole('header', { name: 'Love notes' }).parent;
+            while (node && node.props.contentContainerStyle === undefined) node = node.parent;
+            const padding = StyleSheet.flatten(node!.props.contentContainerStyle).paddingHorizontal as number;
+            expect(1024 - padding * 2).toBe(560 - 32);
+        } finally {
+            await act(async () => Dimensions.set({ window: jestWindow, screen: jestWindow }));
+        }
     });
 
     it('invites a first note when the list is empty', async () => {

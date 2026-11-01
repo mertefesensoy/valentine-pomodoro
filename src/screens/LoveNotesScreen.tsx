@@ -227,7 +227,9 @@ export default function LoveNotesScreen() {
                 {
                     paddingTop: insets.top + space.s,
                     paddingBottom: insets.bottom + space.xl,
-                    paddingHorizontal: Math.max(space.l, (width - READABLE_WIDTH) / 2),
+                    // The same column as Stats and Settings, 560 less the 16 pt gutters, so the
+                    // page's edges hold still across tabs on an iPad (finish review fix 4).
+                    paddingHorizontal: Math.max(space.l, (width - READABLE_WIDTH) / 2 + space.l),
                 },
             ]}
             data={notes}

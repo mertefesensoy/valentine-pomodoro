@@ -36,6 +36,10 @@ const SHORT_HEIGHT = 700;
 const TODAY_CELLS = 8;
 // An edge's day column at the default text size: "Wed 29" in 13 pt semibold, with room to spare.
 const DAY_COLUMN = 56;
+// An edge's count column at the default text size: "1,440" (a day's most minutes) in 13 pt
+// semibold tabular figures. A fixed width ends every Minutes track at the same x, so a full bar
+// and a 2 % bar share the goal's length (finish review fix 3; they ended 9 pt apart).
+const COUNT_COLUMN = 36;
 
 /**
  * Stats (D2 Stats contract): the week as a stack of day postcards, today in front.
@@ -115,6 +119,7 @@ export default function StatsScreen() {
     // The day's name grows with the text size, uncapped, up to where the list takes over; the
     // fixed 56 pt cut "Wed 29" to "Wed…" from xxLarge (HIG S-1).
     const dayWidth = DAY_COLUMN * Math.max(fontScale, 1);
+    const countWidth = COUNT_COLUMN * Math.max(fontScale, 1);
     const todayGoal = today.goalMinutes ?? goalMinutes;
     const cellsLeft = Math.max(
         0,
@@ -167,8 +172,12 @@ export default function StatsScreen() {
             sticker={(short ? 16 : 18) * grow}
             flag={14 * grow}
             dayWidth={dayWidth}
+            countWidth={countWidth}
             tilt={list ? 0 : i % 2 ? 0.6 : -0.6}
             stacked={!list}
+            // In landscape today's card sits in the other column, so the stack's last edge closes
+            // itself instead of ending open (finish review fix 2).
+            closed={compact && !list && i === week.earlier.length - 1}
             tokens={tokens}
         />
     ));
@@ -195,7 +204,18 @@ export default function StatsScreen() {
             <ScrollView
                 contentContainerStyle={[styles.page, { paddingTop: insets.top + space.s }]}
             >
-                <View style={[styles.column, { width: Math.min(width, READABLE_WIDTH) - space.l * 2 }]}>
+                {/* In landscape the week spans the width between the side insets (the brief; finish
+                    review fix 1); the readable cap is for portrait and iPad. */}
+                <View
+                    style={[
+                        styles.column,
+                        {
+                            width: compact
+                                ? width - insets.left - insets.right - space.l * 2
+                                : Math.min(width, READABLE_WIDTH) - space.l * 2,
+                        },
+                    ]}
+                >
                     <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header" maxFontSizeMultiplier={1.4}>
                         {t('stats.title')}
                     </Text>

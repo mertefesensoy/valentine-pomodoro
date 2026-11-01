@@ -2,7 +2,7 @@
 import { resetStorage } from '../../../__fixtures__/storage/resetStorage';
 import { loadSync, save, STORAGE_KEYS } from '../../../utils/storage';
 import { ensureMigrated } from '../../../utils/storageMigration';
-import { HEAD, SPEAK, pairWidth, place, tabCentre, type Insets, type PlaceInput } from '../placement';
+import { HEAD, SPEAK, pairWidth, panelFrame, place, tabCentre, type Insets, type PlaceInput } from '../placement';
 import { act, renderHook } from '@testing-library/react-native';
 
 import { currentBeat, currentStep, isLastBeat, useTourStore } from '../tourStore';
@@ -91,6 +91,19 @@ describe('placement (the contract’s FIRST VIEWPORT)', () => {
         // Stats is the second of four tabs: the pair stand to its right, clear of the tip.
         expect(p.feet.doro.x - (SPEAK * p.scale) / 2).toBeGreaterThan(x);
         expect(p.feet.doro.y).toBeLessThanOrEqual(844 - PHONE.bottom);
+    });
+
+    // break-ui #3: in landscape at AX sizes the bottom panel was taller than the room above the bar.
+    it('gives the AX panel the half away from the opening in landscape, never taller than the screen', () => {
+        const landscape = { W: 667, H: 375, insets: { top: 0, bottom: 53, left: 0, right: 0 }, panel: { h: 420 } };
+        const right = place(base({ ...landscape, opening: { x: 360, y: 200, w: 280, h: 60 } }));
+        expect(right.side).toBe('panel');
+        expect(right.bubble.x + right.bubble.w).toBeLessThanOrEqual(667 / 2);
+        expect(right.bubble.y).toBeGreaterThanOrEqual(0);
+        const left = place(base({ ...landscape, opening: { x: 20, y: 120, w: 280, h: 60 } }));
+        expect(left.bubble.x).toBeGreaterThanOrEqual(667 / 2);
+        expect(panelFrame(667, 375, landscape.insets, null)).toMatchObject({ side: true, maxHeight: 375 - 53 - 24 });
+        expect(panelFrame(390, 844, PHONE, null).side).toBe(false);
     });
 
     it('gives the AX panel the bottom, full width, and the ribbon a short tab', () => {

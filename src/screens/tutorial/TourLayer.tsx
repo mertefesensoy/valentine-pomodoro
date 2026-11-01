@@ -20,13 +20,14 @@ import { doroIdle } from '../../components/stickers/art/doroIdle';
 import { pomoIdle } from '../../components/stickers/art/pomoIdle';
 import { isFlyModeAvailable } from '../../constants/features';
 import { t } from '../../i18n';
+import { useSessionStore } from '../../stores/sessionStore';
 import { useStatsStore } from '../../stores/statsStore';
 import { useUiStore } from '../../stores/uiStore';
 import { useTheme } from '../../theme/useTheme';
 import { diffDays, getTodayKey } from '../../utils/time';
 import { loadBabble } from './babble';
 import { Bubble } from './Bubble';
-import { place, tabCentre, type Rect } from './placement';
+import { COMPACT_HEIGHT, panelFrame, place, tabCentre, type Rect } from './placement';
 import { Ribbon } from './Ribbon';
 import { TourCharacter } from './TourCharacter';
 import { currentBeat, currentStep, isLastBeat, useTourStore } from './tourStore';
@@ -116,6 +117,7 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
     const raised = useRaisedScrim();
     const audience = useUiStore((s) => s.welcomeAudience);
     const goalOn = useStatsStore((s) => s.goalMinutes > 0);
+    const breakNext = useSessionStore((s) => s.pomodoro.phase !== 'focus');
     const weekEmpty = useStatsStore((s) => {
         const today = getTodayKey();
         return !Object.entries(s.days).some(([key, day]) => day.focusSessions > 0 && diffDays(today, key) >= 0 && diffDays(today, key) < 7);
@@ -164,7 +166,9 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
                     if (!w || !h) return;
                     const r = { x: x - rx - PAD, y: y - ry - PAD, w: w + 2 * PAD, h: h + 2 * PAD };
                     // Bring it clear of the panel (AX) or the screen's edges, once per beat.
-                    const bottomLimit = H - insets.bottom - (panel || squeezed ? bubbleH + 36 : 12);
+                    // A bottom panel needs the opening above it; a side panel (landscape) stands beside it.
+                    const bottomPanel = (panel || squeezed) && H >= COMPACT_HEIGHT;
+                    const bottomLimit = H - insets.bottom - (bottomPanel ? bubbleH + 36 : 12);
                     const delta = r.y + r.h > bottomLimit ? r.y + r.h - bottomLimit : r.y < insets.top + 8 ? r.y - insets.top - 8 : 0;
                     if (delta !== 0 && scrollBy && scrolled.current !== beatKey) {
                         scrolled.current = beatKey;
@@ -180,7 +184,7 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
         // `targets` is a fresh object each host render; the refs inside it are stable.
     }, [opening, beatKey, W, H, panel, squeezed, bubbleH]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const context: LineContext = { audience, replay: !!run?.replay, goalOn, flyAvailable: isFlyModeAvailable(), weekEmpty };
+    const context: LineContext = { audience, replay: !!run?.replay, goalOn, flyAvailable: isFlyModeAvailable(), weekEmpty, breakNext };
     const line = beat ? beat.line(context) : null;
     const names = Object.fromEntries(Object.entries(line?.names ?? {}).map(([k, key]) => [k, t(key)]));
     const text = line ? t(line.key, names) : '';
@@ -255,6 +259,9 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
         panel: asPanel ? { h: bubbleH } : null,
     });
     if (fresh.overflow && !squeezed) setSqueezed(true);
+    // The panel's own room; beside the opening in landscape, where the page needn't scroll for it.
+    const frameNow = panelFrame(W, H, insets, lit);
+    const sidePanel = asPanel && frameNow.side;
     // The pair watch what's being shown: the opening's centre, or the tab.
     const targetX = lit ? lit.x + lit.w / 2 : (tabX ?? W / 2);
     const frame = { placement: fresh, lit, targetX, speaker };
@@ -345,7 +352,7 @@ export default function TourLayer({ screen, targets, scrollBy }: Props) {
                     onMute={() => useTourStore.getState().toggleMute()}
                     tailX={asPanel ? null : placement.tailX}
                     reduced={reduced}
-                    panel={asPanel ? { maxLineHeight: H * 0.3, badge: <Sticker art={BADGE[shown.speaker]} width={36} shadow={tokens.stickerShadow} /> } : null}
+                    panel={asPanel ? { maxLineHeight: sidePanel ? frameNow.maxHeight : H * 0.3, maxHeight: frameNow.maxHeight, badge: <Sticker art={BADGE[shown.speaker]} width={36} shadow={tokens.stickerShadow} /> } : null}
                     lineRef={lineRef}
                     onLayout={(e) => {
                         const h = Math.round(e.nativeEvent.layout.height);

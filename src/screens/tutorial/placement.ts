@@ -77,6 +77,20 @@ export type PlaceInput = {
     panel: { h: number } | null;
 };
 
+/** A compact height (an iPhone in landscape, as Classic's): there the AX panel takes a side, not the bottom. */
+export const COMPACT_HEIGHT = 500;
+
+/** The AX panel's own room: the bottom in portrait; in a compact height, the half away from the opening. */
+export function panelFrame(W: number, H: number, insets: Insets, opening: Rect | null): { x: number; w: number; maxHeight: number; side: boolean } {
+    const room = H - insets.top - insets.bottom - 2 * PANEL_MARGIN;
+    if (H >= COMPACT_HEIGHT) {
+        return { x: insets.left + PANEL_MARGIN, w: W - insets.left - insets.right - 2 * PANEL_MARGIN, maxHeight: room, side: false };
+    }
+    const half = (W - insets.left - insets.right) / 2 - PANEL_MARGIN * 1.5;
+    const onLeft = opening ? opening.x + opening.w / 2 > W / 2 : true;
+    return { x: onLeft ? insets.left + PANEL_MARGIN : W / 2 + PANEL_MARGIN / 2, w: half, maxHeight: room, side: true };
+}
+
 const clamp = (v: number, lo: number, hi: number) => (hi < lo ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, v)));
 
 /** The pair's width at a scale: the speaker's 190 box and the listener's 140 box, overlapping. */
@@ -144,9 +158,11 @@ export function place(p: PlaceInput): Placement {
     const head = HEAD * SPEAK;
 
     if (panel) {
-        const w = W - insets.left - insets.right - 2 * PANEL_MARGIN;
-        const x = insets.left + PANEL_MARGIN;
-        const y = H - insets.bottom - PANEL_MARGIN - panel.h;
+        // At the bottom in portrait; beside the opening in landscape, never taller than the screen (break-ui #3).
+        const frame = panelFrame(W, H, insets, opening);
+        const w = frame.w;
+        const x = frame.x;
+        const y = Math.max(insets.top + PANEL_MARGIN, H - insets.bottom - PANEL_MARGIN - Math.min(panel.h, frame.maxHeight));
         let ribbon: RibbonCurve | null = null;
         if (opening) {
             const px = clamp(opening.x + opening.w - 28, opening.x + 16, opening.x + opening.w - 16);

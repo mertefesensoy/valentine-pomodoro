@@ -101,7 +101,7 @@ describe('the tour in Turkish at AX5 on an iPhone SE', () => {
     it('greets a v1.3.1 updater with its own line', async () => {
         await save(STORAGE_KEYS.GIFT_MODE, { hasSeenGiftMode: true });
         await show(<TimerScreen />);
-        expect(screen.getByLabelText(/^Pomo: Yeniden merhaba! Günlükte pek çok yenilik var\./)).toBeOnTheScreen();
+        expect(screen.getByLabelText('Pomo: Yeniden merhaba! Günlükte pek çok yenilik var. Önce odak süreni seç.')).toBeOnTheScreen();
     });
 
     it('drops the goal from the today line when the goal is off, and invites with Not now and no Next', async () => {
@@ -115,6 +115,19 @@ describe('the tour in Turkish at AX5 on an iPhone SE', () => {
         expect(screen.getByLabelText('Doro: İlk odağına hazır mısın? Hazır olunca Odağı başlat düğmesine dokun.')).toBeOnTheScreen();
         expect(screen.getByText('Şimdi değil')).toBeOnTheScreen();
         expect(screen.queryByTestId('tour-next')).toBeNull();
+        // break-ui #2: the buttons stop growing at 1.6×, as the app's others do; the line never does.
+        expect(screen.getByText('Şimdi değil').props.maxFontSizeMultiplier).toBe(1.6);
+    });
+
+    // break-ui #1 (the owner's choice): with a break up next, the button reads Start break, and so
+    // does the line.
+    it('invites the break that’s next by its own button’s name', async () => {
+        await show(<TimerScreen />);
+        await act(async () => useSessionStore.setState({ pomodoro: { phase: 'shortBreak', completedFocusCountInCycle: 1, lastLoveNote: null } }));
+        goTo('invite', 'here');
+        await settle();
+        expect(screen.getByLabelText('Doro: Sırada bir mola var. Hazır olunca Molayı başlat düğmesine dokun.')).toBeOnTheScreen();
+        expect(screen.getByText('Molayı başlat', hidden)).toBeOnTheScreen();
     });
 
     it('replays mid-session from today’s row and ends on Bitti at Notes', async () => {
@@ -139,7 +152,7 @@ describe('the tour in Turkish at AX5 on an iPhone SE', () => {
             goTo('stats', 'here');
         });
         await settle();
-        expect(screen.getByLabelText('Doro: Odaklandığın her gün burada bir kartpostala dönüşür, bugünkü en önde durur.')).toBeOnTheScreen();
+        expect(screen.getByLabelText('Doro: Odak yaptığın her gün burada bir kartpostal olur, bugünkü en önde durur.')).toBeOnTheScreen();
     });
 
     it('gives the Modes sheet its Turkish line and a Continue', async () => {
@@ -149,5 +162,6 @@ describe('the tour in Turkish at AX5 on an iPhone SE', () => {
         await render(<ModeSheet />);
         expect(screen.getByTestId('tour-modes-line').props.accessibilityLabel).toBe('Pomo: Burada Halka ya da Karşılıklı sayfalar seç, sonra Devam düğmesine dokun.');
         expect(screen.getByText('Devam')).toBeOnTheScreen();
+        expect(screen.getByText('Devam').props.maxFontSizeMultiplier).toBe(1.6);
     });
 });

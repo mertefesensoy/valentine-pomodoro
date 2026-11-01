@@ -32,6 +32,8 @@ export type LineContext = {
     flyAvailable: boolean;
     /** No focus in the last seven days: the week's postcards are still blank. */
     weekEmpty: boolean;
+    /** The Timer's next phase is a break, so its button reads Start break (break-ui #1). */
+    breakNext: boolean;
 };
 
 /** An i18n key, and the controls' own labels it names (keys, so Turkish follows the control). */
@@ -142,7 +144,12 @@ export const GENERAL: Tutorial = {
                 screen: 'timer',
                 target: { opening: 'start' },
                 face: 'excited',
-                line: (c) => ({ key: !c.replay && c.audience === 'fresh' ? 'tour.invite.first' : 'tour.invite.again', names: { start: 'controls.startFocus' } }),
+                // The line names the button that's lit: with a break up next it reads Start break, and the
+                // line says so (break-ui #1, the owner's choice).
+                line: (c) =>
+                    c.breakNext
+                        ? { key: 'tour.invite.break', names: { start: 'controls.startBreak' } }
+                        : { key: !c.replay && c.audience === 'fresh' ? 'tour.invite.first' : 'tour.invite.again', names: { start: 'controls.startFocus' } },
             },
         },
     ],

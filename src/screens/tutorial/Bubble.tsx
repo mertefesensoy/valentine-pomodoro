@@ -29,8 +29,11 @@ type Props = {
     onMute: () => void;
     /** The tail's x, under the speaker; null for the AX panel, which has none. */
     tailX: number | null;
-    /** The AX panel (T-2): the badge beside the name, the line scrolling, the actions pinned. */
-    panel: { maxLineHeight: number; badge: ReactNode } | null;
+    /**
+     * The AX panel (T-2): the badge beside the name, the line scrolling, the actions pinned. `maxHeight`
+     * bounds the whole panel; the line shrinks to fit inside it (break-ui #3).
+     */
+    panel: { maxLineHeight: number; maxHeight: number; badge: ReactNode } | null;
     lineRef?: Ref<ComponentRef<typeof View>>;
     onLayout?: (e: LayoutChangeEvent) => void;
 };
@@ -55,21 +58,24 @@ export function Bubble({ tokens, name, speaker, reduced, chars, shown, onTapLine
         </Text>
     );
     return (
-        <View style={[styles.bubble, panel && styles.panel, { backgroundColor: tokens.paper, borderColor: tokens.edge }]} onLayout={onLayout}>
+        <View
+            style={[styles.bubble, panel && styles.panel, panel && { maxHeight: panel.maxHeight }, { backgroundColor: tokens.paper, borderColor: tokens.edge }]}
+            onLayout={onLayout}
+        >
             <Pressable
                 ref={lineRef}
                 onPress={onTapLine}
                 accessible
                 accessibilityRole="text"
                 accessibilityLabel={t('tour.says', { name, line })}
-                style={styles.lineBlock}
+                style={[styles.lineBlock, panel && styles.lineShrink]}
             >
                 <View style={styles.nameRow}>
                     {panel?.badge}
                     <Text style={[styles.name, { color: speaker === 'doro' ? tokens.doroInk : tokens.pomoInk }]}>{name}</Text>
                 </View>
                 {panel ? (
-                    <ScrollView style={{ maxHeight: panel.maxLineHeight }} showsVerticalScrollIndicator>
+                    <ScrollView style={[styles.lineShrink, { maxHeight: panel.maxLineHeight }]} showsVerticalScrollIndicator>
                         {text}
                     </ScrollView>
                 ) : (
@@ -79,13 +85,17 @@ export function Bubble({ tokens, name, speaker, reduced, chars, shown, onTapLine
             <View style={styles.actions}>
                 {next && (
                     <PressableScale onPress={next.onPress} style={[styles.next, { backgroundColor: tokens.primarySoft }]} testID="tour-next">
-                        <Text style={[styles.nextLabel, { color: tokens.primaryInk }]}>{next.label}</Text>
+                        <Text style={[styles.nextLabel, { color: tokens.primaryInk }]} maxFontSizeMultiplier={BUTTON_MAX_SCALE}>
+                            {next.label}
+                        </Text>
                     </PressableScale>
                 )}
                 <View style={styles.spacer} />
                 <View style={styles.quiet}>
                     <PressableScale onPress={exit.onPress} style={styles.exit} testID="tour-exit">
-                        <Text style={[styles.exitLabel, { color: tokens.ink }]}>{exit.label}</Text>
+                        <Text style={[styles.exitLabel, { color: tokens.ink }]} maxFontSizeMultiplier={BUTTON_MAX_SCALE}>
+                            {exit.label}
+                        </Text>
                     </PressableScale>
                     <PressableScale
                         onPress={onMute}
@@ -103,6 +113,12 @@ export function Bubble({ tokens, name, speaker, reduced, chars, shown, onTapLine
 }
 
 const TAIL = 16;
+/**
+ * The bubble's buttons stop growing at 1.6×, as every button in the app does (ClassicControls,
+ * the welcome's Start). At AX5 in Turkish, "Şimdi değil" and the mute came to 357 pt in a 319 pt
+ * column (break-ui #2). The line itself is never capped (T-2).
+ */
+export const BUTTON_MAX_SCALE = 1.6;
 const EASE_SHEET = Easing.bezier(0.32, 0.72, 0, 1);
 
 /** The tail, under the speaker: it glides with the dock on the sheet curve when the turn passes (review M-10). */
@@ -133,6 +149,7 @@ const styles = StyleSheet.create({
     },
     panel: { paddingTop: space.l },
     lineBlock: { gap: space.xs },
+    lineShrink: { flexShrink: 1 },
     nameRow: { flexDirection: 'row', alignItems: 'center', gap: space.s },
     name: { fontSize: 13, fontWeight: '600' },
     line: { fontSize: 17, lineHeight: 23 },
@@ -141,7 +158,7 @@ const styles = StyleSheet.create({
     actions: { flexDirection: 'row-reverse', alignItems: 'center', flexWrap: 'wrap', minHeight: minTarget },
     spacer: { flex: 1 },
     // 16 pt between Skip tour and the mute: their 8 pt slops meet, never overlap (review H-5).
-    quiet: { flexDirection: 'row-reverse', alignItems: 'center', gap: space.l },
+    quiet: { flexDirection: 'row-reverse', flexWrap: 'wrap', alignItems: 'center', gap: space.l },
     next: {
         minHeight: minTarget,
         borderRadius: radius.pill,

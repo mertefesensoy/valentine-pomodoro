@@ -207,6 +207,19 @@ describe('the babble (assets record §3.5, §3.7)', () => {
     });
 });
 
+// break-ui #4 (the owner's choice): at AX5 a 375 pt iPhone's panel holds about 11 letters a line, so
+// no Turkish word in the tour runs past 10. The tab's own name, "Zamanlayıcı", is the one exception.
+describe('the tour’s Turkish at AX5', () => {
+    it('has no word past 10 letters but the Timer tab’s own name', () => {
+        const strings = (o: unknown): string[] => (typeof o === 'string' ? [o] : Object.values(o as object).flatMap(strings));
+        const long = strings(tr.tour)
+            .flatMap((line) => line.replace(/\{\{\w+\}\}/g, ' ').split(/[\s,.!?:]+/))
+            .filter((word) => Array.from(word).length > 10);
+        expect(long).toEqual([]);
+        expect(Array.from(tr.tabs.timer).length).toBe(11);
+    });
+});
+
 describe('the tutorials (the owner’s per-version rule)', () => {
     it('shows the general tour to anyone who has seen none, and nothing after it in v1.4', () => {
         expect(dueTutorial(null)?.id).toBe('general');
@@ -238,7 +251,9 @@ describe('the tutorials (the owner’s per-version rule)', () => {
         for (const audience of ['fresh', 'updated'] as const)
             for (const replay of [false, true])
                 for (const goalOn of [false, true])
-                    for (const flyAvailable of [false, true]) for (const weekEmpty of [false, true]) contexts.push({ audience, replay, goalOn, flyAvailable, weekEmpty });
+                    for (const flyAvailable of [false, true])
+                        for (const weekEmpty of [false, true])
+                            for (const breakNext of [false, true]) contexts.push({ audience, replay, goalOn, flyAvailable, weekEmpty, breakNext });
         const lines = new Map<string, Record<string, string>>();
         for (const s of GENERAL.steps)
             for (const beat of [s.lead, s.here])
@@ -248,7 +263,7 @@ describe('the tutorials (the owner’s per-version rule)', () => {
                     lines.set(l.key, l.names ?? {});
                 }
         lines.set(MODES_SHEET_LINE.key, MODES_SHEET_LINE.names ?? {});
-        expect(lines.size).toBe(17);
+        expect(lines.size).toBe(18);
         for (const [tree, budget] of [
             [en, 90],
             [tr, 110],

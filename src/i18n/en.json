@@ -356,7 +356,8 @@
     "invite": {
       "lead": "That's the tour! Tap {{tab}} to head back.",
       "first": "Ready for your first focus? Tap {{start}} when you are.",
-      "again": "Ready for a focus? Tap {{start}} when you are."
+      "again": "Ready for a focus? Tap {{start}} when you are.",
+      "break": "A break is next. Tap {{start}} when you're ready."
     }
   }
 }

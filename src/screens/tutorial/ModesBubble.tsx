@@ -8,6 +8,7 @@ import { pomoIdle } from '../../components/stickers/art/pomoIdle';
 import { t } from '../../i18n';
 import { useTheme } from '../../theme/useTheme';
 import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
+import { BUTTON_MAX_SCALE } from './Bubble';
 import { currentStep, useTourStore } from './tourStore';
 import { MODES_SHEET_LINE } from './tutorials';
 
@@ -50,7 +51,9 @@ export function ModesBubble() {
             </View>
             {/* The sheet closes by its swipe, or here: VoiceOver has no swipe down (HIG second pass). */}
             <PressableScale onPress={() => router.canGoBack() && router.back()} style={[styles.continue, { backgroundColor: tokens.primarySoft }]}>
-                <Text style={[styles.continueLabel, { color: tokens.primaryInk }]}>{t('tour.continue')}</Text>
+                <Text style={[styles.continueLabel, { color: tokens.primaryInk }]} maxFontSizeMultiplier={BUTTON_MAX_SCALE}>
+                    {t('tour.continue')}
+                </Text>
             </PressableScale>
         </View>
     );

@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-d1-classic, IMP
 
 # 2026-11-01 — Phase 1 D5: the general tutorial
 
-**Status:** In progress. The brief is confirmed, the direction contract approved, the assets are on this branch, the tutorial is built (§3.8) and its four reviews pass (§3.9), all 2026-11-01. Nothing is seen on a device yet. `break-ui` in Turkish at AX5 is next (step 7).
+**Status:** In progress. The brief is confirmed, the direction contract approved, the assets are on this branch, the tutorial is built (§3.8) and its four reviews pass (§3.9) and `break-ui`'s breaks are fixed (§3.10), all 2026-11-01. Nothing is seen on a device yet. Polish and the copy review are next (step 8).
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.9, added by the owner on 2026-11-01. This record holds what happens: each step's output, the owner's gates and the measurements.
 
@@ -29,7 +29,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 | 4. Assets: the pair's poses **and new expressions with their animations** (VectorCraft) on a pose sheet, their babble (SoundCraft) on a listening page | **Done**, 2026-11-01, in a parallel session; its own [assets record](2026-11-01-phase1-d5-assets.md). Both pages approved by the owner ("Approve, keep nubs"; "version 2 with variation is the way to go"). Fast-forwarded onto this branch on the owner's word (§3.6) |
 | 5. Build (`animate-expo`) | **Built**, 2026-11-01, from its plan (§3.7, committed before any code): §3.8. Every guard green, 481 tests; not yet seen on a device |
 | 6. Critique, audit, HIG, `review-animations` | **Done**, 2026-11-01, after three passes and three batches (§3.9): critique 32 → **35/40**, audit 15 → **18/20**, HIG Good → **Excellent**, motion not clean → **clean** |
-| 7. `break-ui` in Turkish at AX5 | **First pass**, 2026-11-01 (§3.10): 3 Broken, 1 Ugly; two decisions for the owner. The worst case is a Jest fixture, `tourWorstCase.test.tsx` |
+| 7. `break-ui` in Turkish at AX5 | **Done**, 2026-11-01 (§3.10): 3 Broken and 1 Ugly, all fixed with the owner's two choices (a break line; the Turkish rephrased). The worst case is a Jest fixture, `tourWorstCase.test.tsx` |
 | 8. Polish, then the copy review | Pending |
 | 9. Device check | Pending |
 | FINISH: the finish review, its verdict, DESIGN.md's "Tutorial (first run)" row | Pending |
@@ -553,6 +553,27 @@ The fixes follow this record. The four reviews run again once they're in.
   - **Recommended:** rephrase. These are the tour's own lines, and the copy review sees them in step 8. The tab's own "Zamanlayıcı" stays.
   - **The alternative:** accept, as D2 did for Settings' rows ("Güncellemeleri", "Geliştiricinin").
 
+**The owner, 2026-11-01:** "Okay let's fix all of them. We will do your both recommendations for #1 and #4".
+
+**The fixes** (every break now has its assertion in `tourWorstCase.test.tsx`, the model test or the placement test):
+
+| # | Fixed by |
+|---|---|
+| 1 | **A break line.** The invitation names the button that's lit. With a break up next (`breakNext`, the session's phase), it says "A break is next. Tap Start break when you're ready." / "Sırada bir mola var. Hazır olunca Molayı başlat düğmesine dokun." (`tour.invite.break`, naming `controls.startBreak`). Rendered and asserted |
+| 2 | **The buttons stop growing at 1.6×,** as every other button in the app does (`BUTTON_MAX_SCALE`: Next, Skip tour, Not now, Continue), and the group wraps. "Şimdi değil" and the mute now come to about 221 pt in the 319 pt column. The line is still never capped (T-2) |
+| 3 | **In a compact height** (under 500 pt, Classic's rule), the AX panel takes the half away from the opening (`panelFrame`). Everywhere, the panel is never taller than the screen between its insets, with the line shrinking and scrolling inside it. A side panel needs no scroll for its opening |
+| 4 | **The Turkish rephrased,** no word past 10 letters. The updater's hello says "Önce odak süreni seç.", the replay's "Odak süreni buradan seçersin." Modes says "Düzen seçmek ya da odak sırasında haritada uçmak için…", the week without a goal "Günlük hedefi aşağıdan açarsın.", the empty week "Odak yaptığın her gün burada bir kartpostal olur…". The Timer tab's own "Zamanlayıcı" stays. The model test now holds every Turkish line to 10 letters a word. The new and changed lines join the copy review (step 8) |
+
+**Measured after the fixes, 2026-11-01:**
+- `npx jest`: 65 suites, 493 tests.
+- `npx tsc --noEmit`: clean.
+- `npm run lint`: 0 errors, 29 warnings (unchanged).
+- `node scripts/react-compiler-report.js`: 100 compiled, 5 skipped.
+- Reassure: unchanged.
+- `check:contrast`: 60 checks, all pass.
+- The raw-text and emoji checks: clean.
+- The layout ones are still for the device check.
+
 **What held up:**
 - **Every line fits its budget** in both languages, with the controls' Turkish names filled in.
 - **AX5 on an SE:**
@@ -654,6 +675,7 @@ The dimmed colour is c = α·scrim + (1 − α)·lit per 8-bit channel; the rati
 - [x] The build plan committed before any code (§3.7).
 - [x] The build: `npx jest` (64 suites, 481 tests), `npx tsc --noEmit`, `npm run lint`, `node scripts/react-compiler-report.js`, `npx reassure --branch`, `npm run check:contrast`, `node scripts/i18n/check-raw-text.mjs`, `node scripts/design/check-emoji.mjs`, `node scripts/art/build.mjs --check`, `node scripts/sound/build.mjs --check`, all green (§3.8).
 - [x] The four reviews pass their gates after three passes (§3.9): critique 35/40, audit 18/20, HIG Excellent, motion clean; 484 tests.
+- [x] `break-ui` in Turkish at AX5: 3 Broken and 1 Ugly fixed, each pinned by a test (§3.10); 493 tests.
 - [ ] The remaining steps of §0, the device check's lists in §3.8 and §3.9 among them.
 
 ## 7. Related Docs

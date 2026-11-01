@@ -217,11 +217,10 @@ const EXPRESSIONS = [
 // numbers and the record (§4) derives them; the tutorial's builder copies them.
 const MOTION = {
     blink: { closedMs: 110, intervalMs: [2800, 5200], doubleChance: 0.2, doubleGapMs: 140 },
-    // The write-on (scripts/art/tour-speech.js): one character every 45 ms (22.2 a second, about
-    // adult reading pace), a pause after a comma or a stop inside the line; a babble syllable on each
-    // syllable of the text, at least 110 ms apart for Pomo and 150 ms for Doro; the mouth open for the
-    // first 60 % of each syllable's slot.
-    talk: { charMs: 45, pauseMs: { comma: 150, stop: 300 }, minGapMs: { pomo: 110, doro: 150 }, openShare: 0.6 },
+    // The write-on: one character every 45 ms (22.2 a second, about adult reading pace), a pause
+    // after a comma or a stop inside the line, a babble syllable on every 3rd letter for Pomo and
+    // every 4th for Doro, and the mouth open for the first 60 % of each syllable's slot.
+    talk: { charMs: 45, pauseMs: { comma: 150, stop: 300 }, lettersPerSyllable: { pomo: 3, doro: 4 }, openShare: 0.6 },
     change: {
         totalMs: 280,
         keys: [

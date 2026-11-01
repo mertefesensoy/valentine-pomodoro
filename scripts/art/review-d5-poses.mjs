@@ -54,7 +54,7 @@ const reach = layers.reduce((r, l) => [Math.min(r[0], l.bounds[0]), Math.min(r[1
 const M = KIT.motion;
 const CARDS = [
     { expr: 'rest', name: 'At rest', note: 'The face the pair come back to. Blinks and breathes.', pomo: {}, doro: {} },
-    { expr: 'talking', name: 'Talking', note: 'Three mouth shapes in step with the babble, each shaped by the vowel it speaks, the smile between.', pomo: {}, doro: {} },
+    { expr: 'talking', name: 'Talking', note: 'Three mouth shapes in step with the babble, the smile between syllables.', pomo: {}, doro: {} },
     { expr: 'listening', name: 'Listening', note: 'The listener holds still, eyes on the opening (here, on each other).', pomo: { expr: 'listening-right' }, doro: { expr: 'listening-left' } },
     { expr: 'happy', name: 'Happy', note: 'An eye smile and the open grin.', pomo: {}, doro: {} },
     { expr: 'excited', name: 'Excited', note: 'Sparkling eyes: a four-point glint in each. Held 2 % taller.', pomo: {}, doro: {} },
@@ -247,7 +247,7 @@ ${SYMBOLS}
       <thead><tr><th scope="col">Motion</th><th scope="col">How</th><th scope="col">Under Reduce Motion</th></tr></thead>
       <tbody>
         <tr><td>Blink</td><td>Eyes closed for ${M.blink.closedMs} ms, every ${num(M.blink.intervalMs[0] / 1000, 1)} to ${num(M.blink.intervalMs[1] / 1000, 1)} s at random; one blink in ${num(1 / M.blink.doubleChance)} is a double, ${M.blink.doubleGapMs} ms apart. Only on open-eyed faces, never mid-change.</td><td>None</td></tr>
-        <tr><td>Talking</td><td>The line writes on at one character every ${M.talk.charMs} ms (${num(1000 / M.talk.charMs, 1)} a second), pausing ${M.talk.pauseMs.comma} ms after a comma and ${M.talk.pauseMs.stop} ms after a stop inside the line. A babble syllable starts on each syllable of the text, at least ${M.talk.minGapMs.pomo} ms apart for Pomo and ${M.talk.minGapMs.doro} ms for Doro, so the rhythm follows the words. The mouth opens for the first ${num(M.talk.openShare * 100)} % of each syllable's slot, in the shape of its vowel (wide for "a", small for "e" and "i", round for "o" and "u"); the smile between.</td><td>The mouth stays on the face's own smile</td></tr>
+        <tr><td>Talking</td><td>The line writes on at one character every ${M.talk.charMs} ms (${num(1000 / M.talk.charMs, 1)} a second), pausing ${M.talk.pauseMs.comma} ms after a comma and ${M.talk.pauseMs.stop} ms after a stop inside the line. A babble syllable starts on every ${M.talk.lettersPerSyllable.pomo}rd letter for Pomo and every ${M.talk.lettersPerSyllable.doro}th for Doro, and the mouth opens for the first ${num(M.talk.openShare * 100)} % of each syllable's slot in one of three shapes, never the same twice running; the smile between.</td><td>The mouth stays on the face's own smile</td></tr>
         <tr><td>A change</td><td>${M.change.totalMs} ms: the height dips to ${num(M.change.keys[1].sy * 100)} % at ${num(M.change.keys[1].at * M.change.totalMs)} ms, rises to ${num(M.change.keys[2].sy * 100)} % at ${num(M.change.keys[2].at * M.change.totalMs)} ms and settles at ${M.change.totalMs} ms, easing in and out between the keys. The old face fades out as the new one fades in, crossing at the bottom of the squash. A held tilt or stretch eases in over ${M.hold.ms} ms.</td><td>An instant swap, the held tilt or stretch at once</td></tr>
         <tr><td>Breath</td><td>Height ±${num(M.breath.amplitude * 100, 1)} % on a sine, Pomo every ${num(M.breath.periodMs.pomo / 1000, 1)} s and Doro every ${num(M.breath.periodMs.doro / 1000, 1)} s, so they never breathe in step; half as much while talking.</td><td>None</td></tr>
         <tr><td>Wave</td><td>The nub grows from its root over the change, then turns about the root between ${M.wave.degrees[0]}° and +${M.wave.degrees[1]}°, ${num(M.wave.cycles, 1)} swings of ${M.wave.periodMs} ms, and comes home.</td><td>The nub is there, still</td></tr>
@@ -292,7 +292,6 @@ ${SYMBOLS}
 </div>
 <script>
 const KIT = ${JSON.stringify(KIT)};
-${read('scripts/art/tour-speech.js')}
 ${read('scripts/art/tour-motion.js')}
 </script>
 <script>

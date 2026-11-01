@@ -222,9 +222,9 @@
     "comma": 150,
     "stop": 300
    },
-   "minGapMs": {
-    "pomo": 110,
-    "doro": 150
+   "lettersPerSyllable": {
+    "pomo": 3,
+    "doro": 4
    },
    "openShare": 0.6
   },

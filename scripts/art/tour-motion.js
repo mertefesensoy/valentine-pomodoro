@@ -1,7 +1,7 @@
 // tour-motion.js — the tour kit's motion, as the D5 review pages play it (Phase 1 D5 assets).
 //
 // A browser script, inlined by scripts/art/review-d5-poses.mjs and scripts/sound/review-d5-voices.mjs
-// right after `const KIT = <art/src/tour/expressions.json>;` and tour-speech.js, beside an inline <svg> of <symbol>s:
+// right after `const KIT = <art/src/tour/expressions.json>;`, beside an inline <svg> of <symbol>s:
 // one per layer (id = the layer's id) and, for the die-cut edge and the hands, a shadow copy
 // drawn in currentColor (id + '-s'). It defines window.TourMotion.
 //
@@ -19,6 +19,7 @@
     const inWindow = (p, [a, b]) => clamp((p - a) / (b - a), 0, 1);
     const hold = (e) => ({ rotate: e?.hold?.rotate ?? 0, sx: e?.hold?.sx ?? 1, sy: e?.hold?.sy ?? 1 });
     const rand = ([a, b]) => a + Math.random() * (b - a);
+    const TALK_MOUTHS = ['talk-small', 'talk-wide', 'talk-round'];
 
     /** The change's height scale at progress p (0–1): smoothstep between M.change.keys. */
     function squash(p) {
@@ -40,8 +41,33 @@
         return lerp(mid, 0, smooth(clamp((t - length) / 160, 0, 1)));
     }
 
-    /** The write-on and the syllables of a line: tour-speech.js's rule, with the kit's talk numbers. */
-    const writeOn = (text, who) => TourSpeech.writeOn(text, M.talk, who);
+    /**
+     * The write-on of `text` for `who`: when each character shows, and when each babble syllable
+     * starts. One character every charMs; a pause after a comma, or after a stop that isn't the
+     * last character; a syllable on the 1st letter and every k-th letter after it, the count
+     * starting again after each pause. The last syllable is the line's end: 'up' for a question,
+     * 'down' otherwise.
+     */
+    function writeOn(text, who) {
+        const t = M.talk;
+        const k = t.lettersPerSyllable[who];
+        const chars = [];
+        const syllables = [];
+        let clock = 0;
+        let letters = 0;
+        [...text].forEach((c, i, all) => {
+            chars.push(clock);
+            if (/\p{L}/u.test(c)) {
+                if (letters % k === 0) syllables.push({ t: clock, slot: k * t.charMs });
+                letters++;
+            }
+            clock += t.charMs;
+            if (/[,;:]/.test(c)) { clock += t.pauseMs.comma; letters = 0; }
+            else if (/[.!?…]/.test(c) && i < all.length - 1) { clock += t.pauseMs.stop; letters = 0; }
+        });
+        if (syllables.length) syllables[syllables.length - 1].end = /\?\s*$/.test(text) ? 'up' : 'down';
+        return { chars, syllables, length: clock };
+    }
 
     let reduce = false;
     const stickers = new Set();
@@ -116,13 +142,16 @@
         if (id !== 'talking') s.talk = null;
     }
 
-    /**
-     * Starts the talking loop for a line. Each syllable's mouth is `mouths[i]` when given (the
-     * syllable that plays), else the one for its vowel (TourSpeech.MOUTH).
-     */
+    /** Starts the talking loop for a line; `mouths` (optional) gives each syllable's mouth. */
     function say(s, text, now = performance.now(), mouths) {
         const w = writeOn(text, s.who);
-        s.talk = { start: now, syllables: w.syllables.map((syl, i) => ({ ...syl, mouth: mouths?.[i] ?? TourSpeech.MOUTH[syl.cls] })), length: w.length };
+        let last = '';
+        const shapes = w.syllables.map((syl, i) => {
+            if (mouths?.[i]) return (last = mouths[i]);
+            const pool = TALK_MOUTHS.filter((m) => m !== last);
+            return (last = pool[Math.floor(Math.random() * pool.length)]);
+        });
+        s.talk = { start: now, syllables: w.syllables.map((syl, i) => ({ ...syl, mouth: shapes[i] })), length: w.length };
         return w;
     }
 

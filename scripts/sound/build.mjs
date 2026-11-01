@@ -40,7 +40,6 @@ import crypto from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { Buffer } from 'node:buffer';
 import { fileURLToPath } from 'node:url';
-import vm from 'node:vm';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const CLI = process.env.SOUNDCRAFT_CLI ?? 'C:/Program Files/SoundCraft/soundcraft-cli.exe';
@@ -407,29 +406,42 @@ function momentaryMax(wavFile) {
 }
 
 /**
- * The tutorial's speaking rule, scripts/art/tour-speech.js, run in a node:vm context so the build
- * renders a line exactly as the review pages and the tutorial will: its writeOn() (when each
- * syllable falls) and pick() (which syllable plays).
+ * The tutorial's write-on of one line (the same rule as scripts/art/tour-motion.js writeOn): one
+ * character every charMs, a pause after a comma or after a stop inside the line, a syllable on the
+ * 1st letter and every k-th letter after it, the count starting again after each pause. Returns
+ * each syllable's start in ms; the last is the line's end, 'up' for a question, 'down' otherwise.
  */
-function loadSpeech(rel) {
-    const context = {};
-    vm.runInNewContext(fs.readFileSync(path.join(ROOT, rel), 'utf8'), context);
-    return context.TourSpeech;
+function writeOn(text, talk, k) {
+    const starts = [];
+    let clock = 0;
+    let letters = 0;
+    const chars = [...text];
+    chars.forEach((c, i) => {
+        if (/\p{L}/u.test(c)) {
+            if (letters % k === 0) starts.push(clock);
+            letters++;
+        }
+        clock += talk.charMs;
+        if (/[,;:]/.test(c)) { clock += talk.pauseMs.comma; letters = 0; }
+        else if (/[.!?…]/.test(c) && i < chars.length - 1) { clock += talk.pauseMs.stop; letters = 0; }
+    });
+    return { starts, end: /\?\s*$/.test(text) ? 'up' : 'down', ms: clock };
 }
 
 /**
- * A voice's sample line as one mono signal: its syllables summed where the speaking rule puts
- * them, each the one the rule picks. `sounds` maps each syllable id to its samples; `list` is the
- * voice's entries in sounds.json.
+ * A voice's sample line as one mono signal: its syllables summed at their write-on starts, the
+ * body syllables taken in `order`, the last slot the line-end syllable. `sounds` maps each
+ * syllable id to its samples; `list` is the voice's entries in sounds.json.
  */
-function renderLine(speech, who, text, list, sounds, talk) {
-    const { syllables } = speech.writeOn(text, talk, who);
-    const picks = speech.pick(syllables, list, `${who}|${text}`);
-    const at = syllables.map((s) => Math.round((s.t / 1000) * 48000));
+function renderLine(text, list, sounds, talk, k, order) {
+    const { starts, end } = writeOn(text, talk, k);
+    const body = list.filter((s) => !s.role);
+    const picks = starts.map((_, i) => (i === starts.length - 1 ? list.find((s) => s.role === end) : body[order[i % order.length]]));
+    const at = starts.map((t) => Math.round((t / 1000) * 48000));
     const length = Math.max(...at.map((a, i) => a + sounds[picks[i].id].length));
     const out = new Float32Array(length);
     at.forEach((a, i) => sounds[picks[i].id].forEach((v, j) => { out[a + j] += v; }));
-    return { samples: out, syllables: picks.map((s, i) => ({ id: s.id, ms: syllables[i].t })) };
+    return { samples: out, syllables: picks.map((s, i) => ({ id: s.id, ms: starts[i] })) };
 }
 
 /** A radix-2 FFT of a real signal, Hann-windowed and zero-padded; returns the power per bin. */
@@ -494,14 +506,15 @@ function pitchAt(x, rate, ms, windowMs = 20) {
  * voice's sample line meets the level target; encoded, measured and checked. Returns the voice's
  * report entry.
  */
-function buildVoice(who, list, group, talk, speech) {
+function buildVoice(who, list, group, talk) {
+    const k = talk.lettersPerSyllable[who];
     const target = group.level.streamMomentaryLufs;
     const made = Object.fromEntries(list.map((s) => [s.id, bounceMono(s.id, s.script, s.seconds)]));
     // Step 3: each syllable to the same loudness (−20 LUFS here; step 4 sets the voice's level).
     const toCommon = Object.fromEntries(list.map((s) => [s.id, -20 - syllableLufs(made[s.id].mono, 48000)]));
     const scaled = Object.fromEntries(list.map((s) => [s.id, made[s.id].mono.map((v) => v * 10 ** (toCommon[s.id] / 20))]));
     // Step 4: the voice's gain, from its line at the common loudness.
-    const before = renderLine(speech, who, group.lines[who], list, scaled, talk);
+    const before = renderLine(group.lines[who], list, scaled, talk, k, group.order);
     writeFloatWav(`${WORK}/${who}-line.wav`, before.samples, 48000);
     const voiceGain = target - momentaryMax(`${WORK}/${who}-line.wav`);
 
@@ -538,8 +551,6 @@ function buildVoice(who, list, group, talk, speech) {
         const entry = {
             id: s.id,
             ...(s.role ? { role: s.role } : {}),
-            vowel: s.vowel,
-            ...(s.level ? { level: s.level } : {}),
             mouth: s.mouth,
             file: `src/assets/sounds/babble/${s.id}.m4a`,
             session: `art/sound/babble/${s.id}.scraft`,
@@ -566,19 +577,18 @@ function buildVoice(who, list, group, talk, speech) {
         if (db(tail / p) > b.tailDb) fail(`${s.id}: the last 10 ms are only ${db(tail / p).toFixed(1)} dB below the peak; the bounce cuts the tail`);
         if (entry.above4kPercent >= b.above4kPercent) fail(`${s.id}: ${entry.above4kPercent} % of its energy is above 4 kHz`);
         if (numbers.channels !== 1 || numbers.codec !== 'aac LC') fail(`${s.id}: not mono AAC-LC`);
-        if (s.mouth !== speech.MOUTH[s.vowel]) fail(`${s.id}: its mouth ${s.mouth} isn't the ${s.vowel} mouth, ${speech.MOUTH[s.vowel]}`);
         return entry;
     });
 
     // The line again, from the decoded files: what the tutorial will play.
-    const after = renderLine(speech, who, group.lines[who], list, decoded, talk);
+    const after = renderLine(group.lines[who], list, decoded, talk, k, group.order);
     writeFloatWav(`${WORK}/${who}-line.wav`, after.samples, 48000);
     const lineLufs = momentaryMax(`${WORK}/${who}-line.wav`);
     if (Math.abs(lineLufs - target) > group.level.toleranceLu) fail(`${who}: the sample line is at ${lineLufs} LUFS, not ${target} ± ${group.level.toleranceLu}`);
     return {
         line: {
             text: group.lines[who],
-            minGapMs: talk.minGapMs[who],
+            lettersPerSyllable: k,
             syllables: after.syllables,
             seconds: round(after.samples.length / 48000, 3),
             momentaryMaxLufs: lineLufs,
@@ -627,11 +637,10 @@ for (const loop of JOB.loops) {
 if (JOB.babble) {
     const group = JOB.babble;
     const talk = JSON.parse(fs.readFileSync(path.join(ROOT, group.talk), 'utf8')).motion.talk;
-    const speech = loadSpeech(group.speech);
     const ui = report.sounds.map((s) => s.momentaryMaxLufs);
     report.babble = { budget: group.budget, level: { ...group.level, uiSoundsMomentaryMaxLufs: ui }, talk, voices: {} };
     for (const [who, list] of Object.entries(group.voices)) {
-        const voice = buildVoice(who, list, group, talk, speech);
+        const voice = buildVoice(who, list, group, talk);
         voice.line.belowUiSoundsLu = round(ui.reduce((a, b) => a + b, 0) / ui.length - voice.line.momentaryMaxLufs, 2);
         report.babble.voices[who] = voice;
         for (const s of voice.syllables) {

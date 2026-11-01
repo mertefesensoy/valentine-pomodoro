@@ -9,7 +9,7 @@ related: [IMPL-2026-11-01-phase1-stage-e, IMPL-2026-11-01-phase1-d5-tutorial, IM
 
 # 2026-11-01 — v1.4 App Store screenshots: a Pomo & Doro triptych, drawn in VectorCraft
 
-**Status:** Plan, written before any art. The brief is confirmed by the owner (§3.1); the composition round is next.
+**Status:** In progress. The brief is confirmed (§3.1) and the composition chosen, "Morning to night" (§3.3); the direction contract waits for the owner's approval.
 **Branch:** `phase1/app-store-shots`, worktree `C:\vp\stage-shots`, cut from `phase1/stage-d` at `aabc4e1`. Commits use `git commit -- <paths>`. No push, no merge, no EAS build and no App Store Connect action without the owner's explicit word.
 **Parent:** the Stage E record's step R2, "screenshots of the redesign" ([Stage E](2026-11-01-phase1-stage-e.md) §3.4).
 
@@ -21,9 +21,9 @@ related: [IMPL-2026-11-01-phase1-stage-e, IMPL-2026-11-01-phase1-d5-tutorial, IM
 |---|------|-------|
 | 1 | Orientation: the pipeline probe (§3.2) | Done |
 | 2 | Shape the brief: panels, captions, devices, how screens are made | **Confirmed by the owner, 2026-11-01** ("Confirm the brief") |
-| 3 | This plan, committed before any art | This commit |
-| 4 | Composition round: `concept-seed --scope surface --mode persuade`, a decision page of strip sketches, the owner's pick | Next |
-| 5 | The direction contract in the surface brief, approved by the owner | |
+| 3 | This plan, committed before any art | Done, `54d5e8c` |
+| 4 | Composition round: `concept-seed --scope surface --mode persuade`, a decision page of strip sketches, the owner's pick | **"Morning to night"**, the owner's pick, 2026-11-01 (§3.3) |
+| 5 | The direction contract in the surface brief, approved by the owner | Written (`.impeccable/surfaces/scripts-art-store-sources-py.md`); awaiting the owner |
 | 6 | The build: the generator, the strip sources, `build.mjs` crops, the PNGs | |
 | 7 | The preview page (the carousel as the store shows it), the finish review, the owner's approval of the final set | |
 | 8 | Commit the sources and PNGs; this record and memory brought up to date | |
@@ -54,7 +54,7 @@ Planned; the table becomes the record of what changed as the build lands.
 | `scripts/art/build.mjs` | A `crops` option: export named rectangles of the artboard as PNGs at a given pixel width. Backward compatible: jobs without it produce identical steps |
 | `art/vc/store-*.vectorcraft`, `art/steps/store-*.steps.json`, `art/out/store/*` (new) | The pipeline's outputs: the editable sources, the command lists, the strips' SVGs and the panel PNGs |
 | `art/review/store-preview.html` (new) | The preview page: the set as search results and the product page show it, in both languages |
-| `.impeccable/surfaces/<store>.md` (new) | The surface brief: the brief, then the direction contract |
+| `.impeccable/surfaces/scripts-art-store-sources-py.md` (new) | The surface brief: the brief, the direction contract and its build pins |
 | `docs/implementations/2026-11-01-app-store-screenshots.md` (new) | This record |
 
 ## 3. Implementation Approach
@@ -85,7 +85,18 @@ A throwaway probe (deleted, never committed) settled what the build can rely on:
 - **Text.** Baloo 2 isn't installed in VectorCraft, so the generator outlines it with HarfBuzz (`uharfbuzz 0.57.0`, `fontTools 4.61.0`) from the committed `assets/fonts/Baloo2-SemiBold.ttf` and `Baloo2-Medium.ttf`: kerning and Turkish letters shaped properly, paths written into the source. The app's system face (SF Pro) isn't on this machine; **Inter**, which VectorCraft bundles in Regular, Medium and SemiBold (SF Pro's three weights in the app), stands in for it as live text that VectorCraft sets. The owner chose drawn screens with this substitution stated.
 - **Sizes** (Apple's "Screenshot specifications" page, read 2026-11-01): "iPhone with Dynamic Island (large display)" takes 1320 × 2868; the page names "Dynamic Island (medium display)" (1206 × 2622) as the required iPhone set; iPad 13" (2064 × 2752) is required because the app supports iPad (`supportsTablet: true`). PNG or JPEG, no alpha, up to 10 per size. The owner confirms in App Store Connect's upload page.
 
-### 3.3 The build (to be written at step 6)
+### 3.3 The composition round and the pick (2026-11-01)
+
+A whole surface inside an established world (Impeccable new-work §3): the Sticker Diary is fixed, so the round chose a structure, not a world.
+
+- **Seven structures, by resonance:** 1 the bookmark ribbon, 2 the concertina diary, 3 the giant colon, 4 the sticker sheet, 5 morning to night, 6 the desk from above, 7 the washi timeline.
+- **The roll** (`concept-seed --scope surface --mode persuade`, `seed:c914bb69c48d1a45`) dealt 5, 4 and 2, with 5 leading. My own first choice, the ribbon, wasn't dealt; that is the roll's purpose.
+- **The decision page** showed the three as sketches of the whole strip in its real coordinates (five 1320 × 2868 panels, the store's gaps), drawn with the shipped poses and Baloo 2 and rendered by VectorCraft. The page's thumbnails stayed blank in the browser pane; its expand button opened each sketch full size, and the owner also had the three side by side as an image.
+- **The owner, 2026-11-01: "Morning to night"**, the dealt lead. Recorded on the page and reported to the roll (`--kind assigned`, "choice already recorded"). Build path: code-led.
+
+**Morning to night.** The strip is one study day: the ground steps through five flat cut-paper tones from Strawberry Milk morning to Midnight Plum night, each change entering on a sweeping cut that crosses a seam; a paper hill runs the length of the strip; Pomo & Doro live the day in their own poses (waving, celebrating, on a break, asleep). The screens follow the hour: Strawberry Milk by day, Midnight Plum at night. The full contract and its build pins are in the surface brief.
+
+### 3.4 The build (to be written at step 6)
 
 - **The generator** (`scripts/art/store-sources.py`, Python because HarfBuzz is there) is a pure function of its constants, the tokens in `src/theme/palette.json`, the fonts and the shipped art files, so `--check` is byte-exact. It reuses the shipped kit by inlining it: Pomo & Doro's poses (`art/src/mascots/`), the tour kit's 44 layers (`art/src/tour/`, stacked in `expressions.json`'s order with the three-layer lift drawn from the body-cut), the Same Page mark, and the bookmark ribbon (rebuilt from `Ribbon.tsx`'s band, edge and swallowtail).
 - **The screens** are drawn from the shipped tokens and layouts (DESIGN.md; the owner's device captures in `.impeccable/review/` serve only as references for geometry).

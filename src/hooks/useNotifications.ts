@@ -39,7 +39,10 @@ export function useNotifications() {
                 content: {
                     title,
                     body,
-                    sound: false, // We handle sound separately via expo-audio
+                    // The system's own sound, so a locked phone hears a phase end (the owner, D4
+                    // wiring). With the app open the handler (App.tsx) plays none: Classic's own
+                    // sounds do (src/audio/uiSounds.ts).
+                    sound: 'default',
                 },
                 trigger: {
                     type: Notifications.SchedulableTriggerInputTypes.DATE,

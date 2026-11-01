@@ -97,7 +97,8 @@ export async function scheduleDailyReminder(opts: {
         content: {
             title: `${t('notifications.reminder.title')} 💗`,
             body: t('notifications.reminder.body'),
-            sound: false,
+            // The system's own sound (the owner, D4 wiring), as the session-end notification has.
+            sound: 'default',
             ...(Platform.OS === 'android' ? { channelId: 'daily-reminder' } : {}),
         },
         trigger: {

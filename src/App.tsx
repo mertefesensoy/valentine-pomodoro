@@ -27,7 +27,9 @@ const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/upda
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
-    shouldPlaySound: false, // We handle sound separately
+    // With the app open, the app's own sounds play (D4, src/audio/uiSounds.ts); the system
+    // sound the notifications carry is for a locked or backgrounded phone.
+    shouldPlaySound: false,
     shouldSetBadge: false,
     shouldShowBanner: true,  // SDK 54 requires this
     shouldShowList: true,     // SDK 54 requires this

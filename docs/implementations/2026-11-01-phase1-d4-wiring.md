@@ -32,6 +32,9 @@ related: [IMPL-2026-10-30-phase1-d4-sounds, IMPL-2026-10-30-phase1-stage-d, IMPL
 | `jest.setup.ts` | expo-audio's stub gains `createAudioPlayer` |
 | `src/audio/__tests__/uiSounds.test.ts` (new), `classic.test.tsx` | The module on its own (load once, play from the top, silent with Sound off, never throws, the session's mode) and the three moments in Classic, with the return from Fly |
 | [Stage D plan](2026-10-30-phase1-stage-d.md) | §2's D4 rows, §6's D4 line and §9's shared-doc updates, from the D4 record's §10 |
+| `src/hooks/useNotifications.ts`, `src/utils/notifications.ts` | The session-end and daily-reminder notifications carry the system's sound (§3.1) |
+| `src/App.tsx` | The notification handler's comment says why it plays no sound with the app open |
+| `useNotifications.test.tsx`, `src/utils/__tests__/dailyReminder.test.ts` (new) | The session-end notification's sound; the reminder's words and sound, and its daily trigger |
 
 ## 3. Implementation Approach
 
@@ -62,6 +65,16 @@ related: [IMPL-2026-10-30-phase1-d4-sounds, IMPL-2026-10-30-phase1-stage-d, IMPL
 - **Coming back from Fly,** in the same effect that switches the session clock back, Classic sets the UI mode.
 - **At launch,** the deferred task sets it too, unless the app opened straight into Fly.
 
+### 3.1 The notifications' sound
+
+**The owner, 2026-11-01:** "We can add this i would want that".
+
+- **Before:** the session-end and daily-reminder notifications were scheduled with `sound: false`, under the comment "We handle sound separately via expo-audio", written when nothing played. So a locked phone got a silent banner at a phase's end, and iOS ties vibration to the sound.
+- **Now:** both carry `sound: 'default'`, the system's notification sound, and with it the vibration.
+- **D4's files can't be used here:** an iOS notification sound must be Linear PCM, IMA4, µ-law or a-law in a `.caf`, `.aiff` or `.wav` file, not AAC in `.m4a`.
+- **With the app open,** the handler (`App.tsx`) still plays no sound: Classic's own sounds play instead, so a completion never sounds twice.
+- **Android** keeps its channels' own sound settings; nothing there changed.
+
 ## 4. Mathematical / Statistical Details
 
 None here. The sounds' level, size, loudness, framing and Fly's loop seam are the D4 record's §4.
@@ -79,6 +92,7 @@ None here. The sounds' level, size, loudness, framing and Fly's loop seam are th
 ## 6. Verification
 
 - [x] `node scripts/sound/build.mjs --check` byte-identical after the merge.
+- [x] After §3.1: Jest 60 suites, 427 tests, all passing.
 - [x] Jest 59 suites, 426 tests (+1 suite, +9 tests); lint 0 errors, 29 warnings; tsc clean; React Compiler 81 compiled, 5 skipped; the raw-text and emoji checks clean; Reassure unchanged (Timer 13, Stats 1, Settings 1, Notes 1, leaf 12, settings-only 1).
 - [ ] **Device check** (needs a physical device):
   - Start focus chimes up and Start break chimes down; a finished focus pops as its sticker lands.
@@ -87,6 +101,7 @@ None here. The sounds' level, size, loudness, framing and Fly's loop seam are th
   - Settings › Sound off silences them.
   - After visiting Fly and coming back, the silent switch still silences them.
   - Fly's loop has no gap at its seam (expo-audio restarts a loop by seeking; D4 record §8).
+  - With the phone locked, a phase's end and the daily reminder sound and vibrate. With the app open, a completion plays only the pop, no second sound.
 
 ## 7. Related Docs
 

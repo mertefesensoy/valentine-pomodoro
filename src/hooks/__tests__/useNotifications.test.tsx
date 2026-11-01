@@ -36,6 +36,8 @@ describe("a session's end notification", () => {
         // What expo-notifications hands to iOS: a date trigger at the end, never null ("now").
         expect(parseTrigger(request.trigger)).toEqual({ type: 'date', timestamp: endAt, channelId: 'timer' });
         expect(request.content).toMatchObject({ title: 'Focus complete 💗', body: 'Time for a sweet break' });
+        // The system's sound, so a locked phone hears it (the owner, D4 wiring).
+        expect(request.content.sound).toBe('default');
     });
 
     it('is not scheduled for an end that has already passed', async () => {

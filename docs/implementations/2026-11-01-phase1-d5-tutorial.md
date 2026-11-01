@@ -31,7 +31,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 | 6. Critique, audit, HIG, `review-animations` | **Done**, 2026-11-01, after three passes and three batches (§3.9): critique 32 → **35/40**, audit 15 → **18/20**, HIG Good → **Excellent**, motion not clean → **clean** |
 | 7. `break-ui` in Turkish at AX5 | **Done**, 2026-11-01 (§3.10): 3 Broken and 1 Ugly, all fixed with the owner's two choices (a break line; the Turkish rephrased). The worst case is a Jest fixture, `tourWorstCase.test.tsx` |
 | 8. Polish, then the copy review | **Done**, 2026-11-01 (§3.11): polish found nothing to change; the copy review passed 76 of 77, with the owner's one change applied |
-| 9. Device check | Pending |
+| 9. Device check | **Build 57** (`v1.4.0-tf.57`, EAS `3fabdef6`), 2026-11-01, uploaded to TestFlight; the owner's check is pending (§3.12) |
 | FINISH: the finish review, its verdict, DESIGN.md's "Tutorial (first run)" row | Pending |
 
 ## 1. Problem / Motivation
@@ -634,6 +634,88 @@ Found consistent, with nothing to change:
   - It is the rule's second exception, after the tab's "Zamanlayıcı", and the model test names it.
   - Two Settings words were accepted the same way in D2.
 - **Applied,** and the proof republished at the same link (version 6): the page shows the current text. **The copy review is complete.**
+
+### 3.12 Build 57 (step 9's build)
+
+**The owner, 2026-11-01: "Yes, build 57"**, in reply to the build ask, which named the steps:
+- pushing `phase1/stage-d` by commit `38b9f51`;
+- tagging and pushing `v1.4.0-tf.57`;
+- the EAS build with TestFlight submission.
+
+**Before the build,** every guard ran green at `38b9f51`:
+- `npx jest`: 65 suites, 493 tests;
+- lint (0 errors, 29 warnings), `tsc`, and the React Compiler report (100 compiled, 5 skipped);
+- the raw-text and emoji checks, and `check:contrast`;
+- the art and sound rebuilds, the asset budgets (133 assets) and the docs check.
+
+**The build:**
+- **The push:** `git push origin 38b9f51:refs/heads/phase1/stage-d` (`36319de..38b9f51`).
+- **EAS production build** `3fabdef6-6810-4868-808f-4c1f517cb73d`, v1.4.0, iOS build 57, from `38b9f51`, with submission `da7cb4ee-10a2-49b9-b144-27a94454cc86` attached.
+- **Finished** 2026-11-01T18:46:29Z, about seven minutes after it was queued at 18:39:53Z. The submission workflow `submit-ios.yaml` ran `SUCCESS` (run `01a1986f`, 18:46:30–18:46:45Z).
+- **The IPA: 21,615,358 B,** +166,797 B (+0.78 %) on build 56 (21,448,561 B): the tour's code, its 44 art modules and its 12 voices.
+- **The tag:** annotated `v1.4.0-tf.57` on `38b9f51`, pushed as `refs/tags/v1.4.0-tf.57`.
+- **E3's bytecode measurement** is still owed (the pinned `expo export`).
+
+**What the device check covers.** It is one phone session for the tour (step 9) and for the checks earlier steps still owe.
+
+*The tour.* A tester who has seen the welcome gets the tour at the next calm launch after installing, since no tutorial has been seen. Settings › About › "Watch the tour again" replays it.
+
+**Arrival and the steps:**
+1. **The entrance.** The ribbon drops, the pair land and Pomo waves. The bubble arrives, the line writes on with the babble, and the presets are lit and outlined. A preset tap moves on a beat after the last tap.
+2. **Every opening sits on its control,** in the Ring and in Facing pages:
+   - the presets, today's row, Modes and Start focus;
+   - the week on Stats, and Add on Notes.
+3. **The Modes step.** Tapping Modes opens the sheet with Pomo's bubble and Continue; Continue closes it and goes on to Stats.
+4. **The tab steps.** The ribbon's tip stands over the right tab. Tapping the real tab moves on, and so does Next.
+5. **The invitation.** There's no Next, and Not now ends the tour. Start focus starts a focus, and the tour is gone before the notification prompt. With a break up next, the line names Start break.
+6. **Interruptions.**
+   - Skip tour ends the tour mid-way.
+   - Killed mid-tour, it resumes at its step on the next launch, once.
+   - A replay with a session running starts at today's row and ends on "Bitti" (Done) at Notes.
+
+**Looks and motion:**
+
+7. **Midnight Plum:** the dim, and the outlined opening.
+8. **The faces:**
+   - the change of face, including the faint moment at the crossing (§4.2);
+   - the blink, the breath, and the wave on step 1.
+9. **Smoothness:**
+   - any stutter as the ribbon drapes from step to step;
+   - hairline seams in the dim around the opening;
+   - the corner masks' edges;
+   - how the brief hold before a new step feels.
+
+**Sound:**
+
+10. **The babble:**
+    - its level against the UI sounds;
+    - the silent switch, Settings › Sound and the tour's mute each silence it.
+
+**Accessibility and sizes:**
+
+11. **VoiceOver:**
+    - each step reads "Pomo: …", then Next, Skip tour and the mute, with no babble;
+    - the presets adjust, and Modes and Start focus act from their openings.
+12. **Voice Control:** "Tap Start focus" at the invitation.
+13. **Reduce Motion:** no squash, breath, blink or talking; the opening crossfades; the bubble and the pair dip out and in.
+14. **The largest text size (AX5) in Turkish:**
+    - the bottom panel, its line scrolling, and the buttons fitting;
+    - in landscape, the panel on the side away from the control;
+    - the empty-week line's "Odaklandığın", the accepted mid-word break.
+15. **Other screens:**
+    - landscape at the default size: the dock on the side away from the control;
+    - an iPad, if there is one: the tab bar at the top, and the ribbon's tab under it.
+
+*Owed by earlier steps.*
+
+16. **D3:** every screen in Turkish at the largest text size, nothing clipped. Build 56 passed it only at the default size.
+17. **D4:** the three sounds (focus start, break start, completion):
+    - the silent switch silences them;
+    - music keeps playing under them;
+    - the Sound switch silences them.
+18. **D1 and D2:** the Ring idle, running and paused, and the Stats captures.
+
+Items 7, 11, 13, 14 and 15 also make up E2's v1.4 checklist (dark mode, the largest text size, Turkish, Reduce Motion, landscape, iPad).
 
 ## 4. Mathematical / Statistical Details
 

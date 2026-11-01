@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-stage-d, IMPL-2026-10-30-phase1-d1-classic, IMP
 
 # 2026-11-01 — Phase 1 D5: the general tutorial
 
-**Status:** In progress. The brief is confirmed by the owner (2026-11-01, "Confirm the brief"); `/apple-design` reviews it next.
+**Status:** In progress. The brief is confirmed and the direction contract approved by the owner (2026-11-01). The asset step is next.
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.9, added by the owner on 2026-11-01. This record holds what happens: each step's output, the owner's gates and the measurements.
 
@@ -25,7 +25,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 |---|---|
 | 1. Shape | **Confirmed** by the owner, 2026-11-01 ("Confirm the brief"); written from their five answers (§3.1) |
 | 2. `/apple-design` on the brief | **Good**, 2026-11-01: no Critical, 2 High, 5 Medium, 4 Low (§3.3). All accepted, T-4 in part; the contract carries them. Spike done alongside (§3.2): the layer lives inside the tab screens |
-| 3. Composition round, then the direction contract | **The bookmark ribbon**, the owner's pick, 2026-11-01, after two rounds (§3.4). **The contract is written** (§3.5) and waits for the owner's approval |
+| 3. Composition round, then the direction contract | **The bookmark ribbon**, the owner's pick, 2026-11-01, after two rounds (§3.4). **The contract is approved** by the owner, 2026-11-01 (§3.5) |
 | 4. Assets: the pair's poses **and new expressions with their animations** (VectorCraft) on a pose sheet, their babble (SoundCraft) on a listening page | Pending; possibly a parallel session, as D4's were. The expressions are the owner's addition (§3.4, round 2) |
 | 5. Build (`animate-expo`) | Pending |
 | 6. Critique, audit, HIG, `review-animations` | Pending |
@@ -193,7 +193,7 @@ Two lend a discipline to whichever structure wins: one message per bubble, its p
   - every HIG finding's outcome;
   - the pair's size;
   - the new expressions and their motion.
-- **The contract waits for the owner's approval.**
+- **Approved by the owner, 2026-11-01:** "Approve the contract".
 
 ## 4. Mathematical / Statistical Details
 

@@ -9,7 +9,7 @@ related: [IMPL-2026-10-30-phase1-d4-sounds, IMPL-2026-10-30-phase1-stage-d, IMPL
 
 # 2026-11-01 — Phase 1 D4, wired in
 
-**Status:** Wired; waits for the device check. The owner, 2026-11-01: "We can also add the already done D4 work."
+**Status:** Done. Wired, and its device check passed: on build 56 ("5 and 6 is workinf very well") and again on build 58 ("Yes, sounds passed", D5 record §3.12). The owner, 2026-11-01: "We can also add the already done D4 work."
 **Branch:** `phase1/stage-d` (worktree `C:\vp\stage-d`).
 **Plan:** [Stage D plan](2026-10-30-phase1-stage-d.md) §3.5: D4's sounds were made in a parallel session ([D4 record](2026-10-30-phase1-d4-sounds.md), approved by the owner on 2026-10-30, "All approved, seamless"); this session merges that branch and wires the sounds in.
 

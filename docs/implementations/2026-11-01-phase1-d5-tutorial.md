@@ -28,7 +28,7 @@ DESIGN-WORKFLOW §2, as every new surface:
 | 3. Composition round, then the direction contract | **The bookmark ribbon**, the owner's pick, 2026-11-01, after two rounds (§3.4). **The contract is approved** by the owner, 2026-11-01 (§3.5) |
 | 4. Assets: the pair's poses **and new expressions with their animations** (VectorCraft) on a pose sheet, their babble (SoundCraft) on a listening page | **Done**, 2026-11-01, in a parallel session; its own [assets record](2026-11-01-phase1-d5-assets.md). Both pages approved by the owner ("Approve, keep nubs"; "version 2 with variation is the way to go"). Fast-forwarded onto this branch on the owner's word (§3.6) |
 | 5. Build (`animate-expo`) | **Built**, 2026-11-01, from its plan (§3.7, committed before any code): §3.8. Every guard green, 481 tests; not yet seen on a device |
-| 6. Critique, audit, HIG, `review-animations` | Pending |
+| 6. Critique, audit, HIG, `review-animations` | **First pass**, 2026-11-01: critique 32/40, audit 15/20, HIG Good (no Critical), motion not clean. The fix batch, all accepted by the owner, is §3.9 |
 | 7. `break-ui` in Turkish at AX5 | Pending |
 | 8. Polish, then the copy review | Pending |
 | 9. Device check | Pending |
@@ -380,6 +380,68 @@ Changed:
 - the babble's level against the UI sounds;
 - VoiceOver's order and the acting openings;
 - the AX panel.
+
+### 3.9 The four reviews, and the fix batch (step 6)
+
+**The owner, 2026-11-01: "Start the reviews".**
+
+**How they ran.** As D2's did (D2 record §3.12):
+- **The critique and the native audit** ran in this context, from source, against the direction contract. On a native platform the critique is Impeccable's design review alone, with no degraded banner. There's no Simulator here.
+- **`/apple-design` (a code audit) and `review-animations`** each ran in a sub-agent briefed with the code, the contract and the owner's settled decisions, so neither read was anchored on the critique.
+- **`review-animations`** is installed in the worktree but isn't offered as a skill, so its sub-agent applied `SKILL.md` and `STANDARDS.md` by hand, as D1's did.
+- **The gates are D2's:** the audit ≥ 16/20 (NFR-UX-003), the critique ≥ 80 %, HIG with no Critical, the motion clean.
+
+**First pass.** The critique's snapshot is `.impeccable/critique/2026-11-01T13-49-32Z__app-tutorial-tsx.md`.
+
+| Review | Result | Gate |
+|---|---|---|
+| Critique | 32/40 (80 %), Good | Met |
+| Native audit (A, P, T, C, Ad) | **15/20** (3, 3, 3, 4, **2**) | **Not met**: the small-phone overflow (H-1) |
+| `/apple-design` | Good: no Critical, 2 High, 2 Medium, 4 Low; T-1 to T-11 built, except Voice Control under T-1 | Met |
+| `review-animations` | **Not clean: block**, 15 findings | **Not met** |
+
+**The owner's answers, 2026-11-01** (each the recommended option):
+- **The opening:** "Outline it, both themes".
+- **Next:** "Quieter Next".
+- **Doro's name:** "Matcha for Doro".
+- **The scope:** "Everything".
+
+**The fix batch: every finding, dispositioned.** All are accepted unless the row says otherwise.
+
+| # | Finding (source) | The fix |
+|---|---|---|
+| F-1 | The opening barely reads in Midnight Plum: about 1.1–1.4:1 around dark controls (critique P1) | A 2 pt `ringFocus` line traced on the opening's edge, in both themes (the owner) |
+| F-2 | Next, a filled strawberry pill, outranks the lit control (critique P2) | `primarySoft` fill with a `primaryInk` label (the owner) |
+| F-3 | Both speakers' names are strawberry (critique P3) | Doro's in `successInk` (the owner) |
+| H-1 | On an SE with a long line the bubble's top is 3–48 pt above the screen (HIG High; reproduced) | `place()` flags an overflow when even half size can't fit; the layer then switches to the bottom panel for good. Above and below, the bubble's top is clamped to the safe area. The test asserts it |
+| H-2 | Voice Control can't reach a lit control: the acting opening exists only under VoiceOver (HIG High) | The opening element is always there, with `pointerEvents="none"`, so a finger still reaches the real control |
+| H-3 | VoiceOver's swipe on the presets moves the tour on before the value is read (HIG Medium) | Adjusting from VoiceOver never moves the step on; Next does |
+| H-4 | The Modes sheet's line mentions Fly (which now ends the tour) and says "Close it", with no close button (HIG Medium) | One line: "Pick Ring or Facing pages here, then swipe down to go on." |
+| H-5 | Skip tour's and the mute's tap areas overlap (HIG Low) | 16 pt between them, so their 8 pt slops meet but don't overlap |
+| H-6 | Under Reduce Motion the bubble and pair jump while the opening crossfades (HIG Low; motion 14) | They dip out and in on the opening's 150 + 150 ms, moving while hidden |
+| H-7 | "Watch the tutorial again" against "Skip tour"; "Press" against "Tap" (HIG Low) | "Watch the tour again"; "Tap" throughout ("dokun" in Turkish) |
+| H-8 | A replay while a run waits on another tab shows nothing (HIG Low) | The waiting run finishes first, then the replay starts |
+| C-1 | VoiceOver can't explore today's row or the week at their steps (critique P2) | Their openings are elements too, read-only, with the region's own words (today's summary; Stats' summary line) |
+| C-2 | A preset press moves on 600 ms after the first press, cutting a comparison short (critique P2) | The wait restarts with each press, at 900 ms |
+| C-3 | Skip tour alone has no press haptic (critique minor) | The default haptic |
+| M-1 | Pomo's hello wave never shows: at mount the hand is drawn at zero size, Reduce Motion too (motion) | The hand grows, stays or goes back; the first wave starts after the landing |
+| M-2 | The voice starts about 10 characters before the bubble is seen (motion) | The line holds until the bubble has faded in |
+| M-3 | The dim's four panels animate their frames (motion, Std 7) | Solid panels placed and sized by translate and scale; the cover mounts only under Reduce Motion |
+| M-4 | Two full-screen Svgs repaint every frame during a move (motion, Std 7) | The corners become four static quarter masks moved by transforms. The ribbon keeps its Svg: its cost is measured on the device first |
+| M-5 | Retargets read animating shared values from JavaScript, a synchronous UI round trip (motion) | Each retarget runs in one UI-thread worklet |
+| M-6 | For the first frames of a beat the pair and bubble head for the previous opening (motion, Std 6) | The opening is keyed to its beat, and everything holds its place until the new one is measured (600 ms fallback) |
+| M-7 | A change inside 280 ms snaps the size, face and tilt (motion, Std 6) | A new pose waits until the current change settles |
+| M-8 | A look flip that changes no layer still squashes; the listener squashes when its eyes turn (motion) | Only a changed recipe animates; a change of eyes alone swaps them quietly |
+| M-9 | A lead closes the hole towards the screen's centre (motion, Std 5) | It closes about its own centre |
+| M-10 | The bubble's tail jumps while the dock glides (motion) | The tail glides with the dock |
+| M-11 | The role's scale runs 280 ms on another curve than the 420 ms position (motion) | The sheet curve and 420 ms, as the rest |
+| M-12 | Proud is 2.9 % narrower than on the pose sheet; a blink can run into a change (motion) | The width ignores the held stretch, as the sheet does; the blink shows only between changes |
+| M-13 | Fades on the default curve; on later layers two fades multiply (motion, Std 3) | The strong ease-out; a later layer's pair appear at once inside the layer's own fade |
+| M-15 | Turning Reduce Motion on mid-tour replays the last animation (motion, Std 8) | The effects read Reduce Motion through a ref |
+| — | A wrong tab leaves that screen bare (critique, a persona) | **Kept as decided** (§3.7): the tour waits, and the bar's own tab is the way back |
+| — | The dim covers the status bar band (critique, minor) | **Kept**: the clock stays the system's, on the dimmed band |
+
+The fixes follow this record. The four reviews run again once they're in.
 
 ## 4. Mathematical / Statistical Details
 

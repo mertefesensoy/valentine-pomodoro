@@ -31,6 +31,10 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-stage-d, IMPL-2026
   - the SRS's release-scope row brought up to date.
   
   `app.json` and `package.json` say 1.4.0, and EAS numbers the build remotely (`appVersionSource: remote`, `autoIncrement`).
+- **R1 done** (2026-11-02): build 59, the release candidate (§3.8).
+  - It went to TestFlight automatically.
+  - Tagged `v1.4.0-tf.59` on `bce65cc`, and the tag is pushed.
+  - On it, E2's checklist, the cold-start TTI and the light splash are the owner's to check.
 - **E1: accepted by the owner** without a fresh run. 1.3.1's data has already survived the update on a real iPhone twice: A0 on build 42, and B2's MMKV migration on build 43 (the Phase 1 plan, Stage A and B2). The migration code was last changed in B3 (`71d836f`), before builds 44–58, and no install the owner tests holds data worth comparing.
 
 The plan below was written before any of its steps. The owner, 2026-11-01: "wonderful everything is looking just like how i want it. All visual tests are passed. I think it is time to prepare the app for shipping."
@@ -156,6 +160,19 @@ The owner: "do it". Built in a temporary worktree at `rehaul/v2` (`618fbf5`), so
   - the art, sound and icon checks, budgets (133 assets);
   - Jest, 65 suites and 494 tests;
   - `check-docs`.
+
+### 3.8 R1: the release candidate, build 59 (2026-11-02)
+
+The owner: "go for it". Built from `rehaul/v2`'s head, `bce65cc` (Stage D merged, M2 and E4 applied).
+
+| | |
+|---|---|
+| EAS build | `328a9fba-6834-40cd-a25a-b1217b8dc1fa`, iOS build 59, version 1.4.0, created 2026-11-02T04:49:59Z, finished 04:56:04Z |
+| Submission | `59c969f6-1cbd-48f3-82d9-5090441749be`; `submit-ios.yaml` succeeded |
+| Tag | `v1.4.0-tf.59` on `bce65cc`, pushed (`refs/tags/v1.4.0-tf.59`) |
+| IPA | **21,618,068 B**, +2,341 B on build 58 (21,615,727 B): the choice-C mark and the light splash |
+
+**What the owner checks on it:** E2's checklist (§3.3); the cold-start TTI from the hidden panel (a 1.5 s long-press on Settings › About's credit line), for E3's bytecode decision; and the light splash, now the choice-C mark (§3.6).
 
 ### 3.7 Phase 1's exit criteria
 

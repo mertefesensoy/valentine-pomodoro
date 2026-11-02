@@ -111,6 +111,12 @@ The v2 rehaul's Phase 1. Each bullet names its theme: Phase 0 (the foundation), 
 
 - **Phase 0:** `nanoid` 3.3.11 → 3.3.20, the only package with an `npm audit` advisory that ships in the app bundle. React Navigation uses it for fixed-size keys, so its advisories couldn't be triggered here (65c1d34). After the SDK 58 upgrade, `npm audit` reports 16 advisories, down from 39; the three high-severity ones come from `zod` inside `@expo/cli`, build tooling that contributes no code to the app (befaf99).
 
+## [1.4.0-tf.59] - 2026-11-02
+
+*iOS TestFlight build 59, the release candidate, a pre-release and not a store release, source bce65cc. Built with EAS (build 328a9fba) and uploaded to App Store Connect for TestFlight (submission 59c969f6); device check on a physical iPhone: E2's checklist, pending.*
+
+Its changes are listed under [1.4.0]. This build is build 58's app merged with `rehaul/v2`'s licence and brand work, so the colour mark is the owner's choice C (the Modes sheet's light mark and the light splash); everything else since build 58 is documentation.
+
 ## [1.4.0-tf.58] - 2026-11-01
 
 *iOS TestFlight build 58, a pre-release and not a store release, source 03e86ea. Built with EAS (build 0bdc6591) and uploaded to App Store Connect for TestFlight (submission 2162c61d); device check on a physical iPhone, 2026-11-01: passed, visual and sound, as reported by the owner.*
@@ -445,6 +451,7 @@ Two later fixes on the same branch were never built: functional state updates fo
 
 [Unreleased]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0...rehaul/v2
 [1.4.0]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.3.1...v1.4.0
+[1.4.0-tf.59]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.58...v1.4.0-tf.59
 [1.4.0-tf.58]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.57...v1.4.0-tf.58
 [1.4.0-tf.57]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.56...v1.4.0-tf.57
 [1.4.0-tf.56]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.55...v1.4.0-tf.56

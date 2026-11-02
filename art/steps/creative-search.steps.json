@@ -1,0 +1,46 @@
+[
+ {
+  "command": "select.all",
+  "params": {}
+ },
+ {
+  "command": "object.expand",
+  "params": {
+   "object": true,
+   "fill": true,
+   "stroke": true
+  }
+ },
+ {
+  "command": "document.save",
+  "params": {
+   "path": "C:/vp-art/art/vc/creative-search.vectorcraft"
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/creative/creative-search.svg",
+   "format": "svg",
+   "decimals": 2,
+   "outlineText": true,
+   "minify": true,
+   "objectIds": "minimal",
+   "metadata": false
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/creative/creative-search-3840x2560.png",
+   "format": "png",
+   "rect": [
+    0,
+    0,
+    3840,
+    2560
+   ],
+   "scale": 1
+  }
+ }
+]

@@ -235,6 +235,29 @@ The evidence is `.impeccable/review/store/ipad-foot.png` and `ipad-04-sheet.png`
 
 No generation prompt exists, and nothing is embedded in the PNGs: a metadata chunk would break the byte-for-byte check.
 
+### 3.9 Design system check (2026-11-02)
+
+The documenter compared the finished set against the incumbent DESIGN.md and `palette.json`. It found the set **consistent**: an ordinary extension of the Sticker Diary world.
+- **Tokens:** every colour comes from `palette.json`.
+- **Type:** the captions are Baloo 2. The system face is drawn as Inter.
+- **Shapes and depth:** the screens keep the 1.5 pt edge and the 8, 14, 22 and pill radii. Stickers keep the three-layer lift.
+- **Craft floor:** no banned element.
+
+DESIGN.md and `.impeccable/design.json` are unchanged. Another session regenerates them at its release step.
+
+The surface brief's "Design system check" section carries the evidence and two proposals for that step:
+- a marketing caption role (Baloo 2 SemiBold headline, Baloo 2 Medium subline);
+- the cut-paper scene as the Persuade-surface idiom.
+
+It also lists what is not canonized:
+- the device frame;
+- the black sheet dims;
+- the Modes rows' 20 pt radius, where the app uses 14.
+
+And it lists two pre-existing gaps in DESIGN.md:
+- the love note title's display type;
+- the four D5 palette roles.
+
 ## 4. Mathematical / Statistical Details
 
 **Panel crops.** A strip has N = 5 panels of width W = 1320 and height H = 2868 (iPhone), separated by a gutter g (fixed by the contract). Panel i (0-based) is the rectangle x_i = i · (W + g), y = 0, width W, height H, exported at scale 1.

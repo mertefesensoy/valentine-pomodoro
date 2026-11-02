@@ -66,3 +66,27 @@ Surface brief, 2026-11-01. **Mode: Persuade.** The App Store's screenshot carous
 - **Target:** `scripts/art/store-sources.py` writes `art/src/store/*.svg` and `art/jobs/store.json`; `build.mjs` crops the panels. Reviewed on `art/review/store-preview.html`.
 - **Untouched:** app code, shared docs, the shipped art (reused by inlining, never edited).
 - **Open for the owner:** the Turkish captions' proof pass (at this contract); the iPad screens can't be checked against a device capture (none exists), so they're flagged at the first look.
+
+## Design system check (2026-11-02)
+
+**Consistent with the incumbent DESIGN.md; DESIGN.md and `.impeccable/design.json` are left unchanged.** This set extends the Sticker Diary world as an ordinary surface. It does not start a new world.
+- **Tokens:** every scene and screen colour comes from `src/theme/palette.json` (`LIGHT` and `DARK` in the generator). The grounds are the contract's five tones. The hills are `paper` and `field` with an `edge` line. The sun, moon and stars are token paper discs. The paper bits use `TodayStickers.tsx`'s four colours. There are no gradients, blurs or filters. The record's §6 pixel samples and §4 contrast table are the evidence.
+- **Type:** the captions are Baloo 2 SemiBold (headline) and Medium (subline), outlined from the committed subset, with no casing by style. The screens use Inter for SF Pro at the app's 400, 500 and 600 weights, and Baloo 2 only where the app sets it.
+- **Shapes and depth:** the screens use the 1.5 pt edge and the 8, 14, 22 and pill radii. Stickers carry the three-layer `stickerShadow` lift with the `stickerEdge` die-cut. The offset sticker shadow is the world's own device, not a hard shadow.
+- **Floor:** there is no kicker or eyebrow (a headline and one subline only), no glyph or emoji icon (the VectorCraft set only), and no system display face.
+
+**Proposals for DESIGN.md's owner.** These are not edits: another session regenerates DESIGN.md at its release step.
+1. A marketing caption role: Baloo 2 SemiBold headline (136 px on a 1320 px panel), with a Baloo 2 Medium subline (54 px) in `inkSoft`, or `ink` where `inkSoft` fails 4.5:1. This is Baloo2-Medium's first use: `type.ts` embeds it, but no app component sets it.
+2. The cut-paper scene as the idiom for Persuade surfaces. It uses flat token grounds that enter on sweeping cuts across seams, a paper hill with a crisp `edge`, and token paper discs for the sky. Scene stickers lift with one point equal to size / 48. It would sit outside the app's Exact Ground Rule, which governs screens.
+
+**Not canonized:**
+- The device frame's hexes (`#8A6A64`, `#3B2421`, `#120B0C`, `#0B0708`, `#2A1D22`) are a hardware prop.
+- `#000000` at 12 % and 32 % stands in for iOS's own sheet dim. It is not the `scrim` token.
+- Inter as SF Pro is a stated substitution.
+- Panel 3's subline in `ink` is a legibility exception.
+- The tab-bar rule (Build pins) stays local to this surface.
+- The drawn Modes sheet's rows use a 20 pt radius, where the app uses `radius.m` (14) in `ModeSheet.tsx`. This is a small fidelity drift in an approved set and has not been repaired.
+
+**Pre-existing system drift, reported and not repaired:**
+- DESIGN.md's list of where display type may appear (the One Large Number Rule, last Don't) omits the love note sheet's title. `LoveNoteSheet.tsx` sets it in Baloo 2 SemiBold 22.
+- DESIGN.md counts 25 roles. `palette.json` has 29: the D5 roles `scrim`, `scrimStrong`, `pomoInk` and `doroInk` are not yet recorded.

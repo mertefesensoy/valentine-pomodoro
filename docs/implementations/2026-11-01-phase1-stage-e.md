@@ -36,6 +36,13 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-stage-d, IMPL-2026
   - Tagged `v1.4.0-tf.59` on `bce65cc`, and the tag is pushed.
   - On it, E2's checklist, the cold-start TTI and the light splash are the owner's to check.
 - **`rehaul/v2` pushed** (2026-11-02, the owner: "Yes, push it"): `git push origin 5620d33:refs/heads/rehaul/v2`, a fast-forward from `3aba394` (151 commits). CI run 41393398703 passed: typecheck, lint, unit tests, the contrast check and the docs check.
+- **R2 grows (2026-11-02):** the owner asked for the App Store's creative assets as well, a Header and a Search Results asset, which show on iOS 27 and iPadOS 27 and later. Their answers:
+  - format: "Looping videos" (a 21:9 header loop and a 3:2 search loop cut from one scene; Apple has no video that serves both, and the 16:9 universal asset is still-only);
+  - text: "No text", so one set serves English and Turkish;
+  - search: "The timer in use", since the asset replaces the screenshots in search results;
+  - timing: "Hold 1.4.0 for them", so R3 waits for both videos.
+
+  The screenshot session makes them on `phase1/app-store-shots`, composition round first; the 30 screenshots there are upload-ready at `8b12e2b` (panel 5's Modes rows now at the app's 14-pt corners).
 - **E1: accepted by the owner** without a fresh run. 1.3.1's data has already survived the update on a real iPhone twice: A0 on build 42, and B2's MMKV migration on build 43 (the Phase 1 plan, Stage A and B2). The migration code was last changed in B3 (`71d836f`), before builds 44–58, and no install the owner tests holds data worth comparing.
 
 The plan below was written before any of its steps. The owner, 2026-11-01: "wonderful everything is looking just like how i want it. All visual tests are passed. I think it is time to prepare the app for shipping."
@@ -108,7 +115,7 @@ Each step names who acts. Every push, merge, EAS build, TestFlight submission, s
 | # | Step | Who |
 |---|------|-----|
 | R1 | **The release candidate:** an EAS production build from `rehaul/v2`'s head with TestFlight submission, tagged `v1.4.0-tf.<n>`; E1 and E2 run on it | **The owner's go-ahead**, then Claude; the owner checks |
-| R2 | **The store listing:** "What's New" in English and Turkish (drafted from the CHANGELOG by Claude), screenshots of the redesign, the privacy labels (v1.4 adds no data collection, to be confirmed), notes for App Review | Claude drafts; the owner sets them in App Store Connect |
+| R2 | **The store listing:** "What's New" in English and Turkish (drafted from the CHANGELOG by Claude), screenshots of the redesign, the privacy labels (v1.4 adds no data collection, to be confirmed), notes for App Review, and the Header and Search Results videos (added 2026-11-02; R3 waits for them) | Claude drafts; the owner sets them in App Store Connect |
 | R3 | **Submit for App Store review,** choosing the release candidate's build | The owner |
 | R4 | **On approval:** `master` fast-forwards to `rehaul/v2`; `v1.4.0` is tagged on the released commit and pushed; a GitHub Release with the CHANGELOG section as notes | **The owner's go-ahead**, then Claude |
 | R5 | **The update prompt:** `latestVersion` in `update.json` on `gh-pages` set to 1.4.0, and the served file checked | **The owner's go-ahead**, then Claude |

@@ -20,6 +20,17 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-stage-d, IMPL-2026
   - the listing: "yes walk me through that".
 - **S2 and S3 done** (2026-11-02): DESIGN.md and `.impeccable/design.json` record D3–D5 (the tour's motion row, its four tokens and its components; the sounds; the language choice), and every Stage D record says Done.
 - **M1 done** (2026-11-02): `phase1/stage-d` merged into `rehaul/v2` as `96ce9dd`, with `rehaul/v2` as first parent (§3.6).
+- **M2 done** (2026-11-02, `ad86dc3`): the Stage D plan's §9 and the D4 record's §10 applied to the shared docs, each brought to its final state. SRS 1.1 adds FR-ONB-001 and FR-ONB-002 (implemented for v1.4) and marks FR-SET-002, FR-SET-004, FR-SET-005, FR-NTE-002, NFR-UX-003 and NFR-I18N-001 implemented.
+- **E3, in part** (2026-11-02): Reassure meets F1's criterion, settings-only 14 → 1 (§4); the bytecode is measured (§4). The cold-start TTI waits for the release candidate, and the bytecode decision is the owner's, with it.
+- **E4 done** (2026-11-02):
+  - CHANGELOG: `[1.4.0] - 2026-11-02`, opening with a list for users, then the engineering record and entries for TestFlight builds 48–58;
+  - DECISIONS.md: Q1–Q3 closed;
+  - the Phase 1 exit criteria checked in the [Phase 1 plan](2026-10-29-phase1-plan.md);
+  - DESIGN.md current (`0194c8a`);
+  - the ROADMAP's stale Stage C row closed;
+  - the SRS's release-scope row brought up to date.
+  
+  `app.json` and `package.json` say 1.4.0, and EAS numbers the build remotely (`appVersionSource: remote`, `autoIncrement`).
 - **E1: accepted by the owner** without a fresh run. 1.3.1's data has already survived the update on a real iPhone twice: A0 on build 42, and B2's MMKV migration on build 43 (the Phase 1 plan, Stage A and B2). The migration code was last changed in B3 (`71d836f`), before builds 44–58, and no install the owner tests holds data worth comparing.
 
 The plan below was written before any of its steps. The owner, 2026-11-01: "wonderful everything is looking just like how i want it. All visual tests are passed. I think it is time to prepare the app for shipping."
@@ -46,6 +57,10 @@ Stage D's screens are built and seen on the phone: D1–D3 on builds 48–56, D4
 | File | Change |
 |------|--------|
 | This record (new) | The shipping plan, then what each step found |
+| Stage D's records, its plan, DESIGN.md, `.impeccable/design.json` | S1–S3: closed (`faa141d`, `0194c8a`) |
+| `.gitattributes`, generated backlinks and TRACEABILITY, `src/components/stickers/art/markColour.ts` | M1: the merge's resolutions and the regenerated mark (`96ce9dd`, `d3f62be`) |
+| SRS, ROADMAP, CHANGELOG, ARCHITECTURE, ADR index, ADR-0027, ADR-0048, DECISIONS.md, DESIGN-WORKFLOW, TEST-STRATEGY, docs/README, the rehaul plan | M2: Stage D's shared-doc updates (`ad86dc3`) |
+| CHANGELOG, DECISIONS.md, ROADMAP, SRS §2.6, the Phase 1 plan | E4: the release section, Q2 and Q3, the exit criteria |
 
 ## 3. Implementation Approach: the ordered steps
 
@@ -169,6 +184,17 @@ Filled in at E3: the bytecode's size against NFR-PERF-002's ceiling, as (size �
 - **The owner's decision at E3,** with the cold-start TTI in hand:
   - accept, amending NFR-PERF-002, as B6's overage was accepted on 2026-10-30;
   - or trim. The tour's art can leave the bytecode as a data asset read when the tour starts, as B1b moved `airports.json`.
+
+**E3, Reassure (2026-11-02, on `d3f62be`, the merge):** `npx reassure`, three runs each, the counts identical across runs. The baseline is A2's (Phase 1 plan, A2 GATE; 2026-10-29). No baseline file is kept in `.reassure/`, so the comparison is with the recorded counts.
+
+| Scenario, a 10 s running session | Baseline renders | Now | Change |
+|---|---|---|---|
+| settings-only consumer (finding F1) | 14 | **1** | −13; the exit criterion is ≤ 2 |
+| Stats screen | 14 | 1 | −13 |
+| Settings screen | 15 | 1 | −14 |
+| Notes screen | 14 | 1 | −13 |
+| Timer screen (Classic) | 14 | 13 | −1: the seconds repaint, through the `<TimerText>` leaf only (B4) |
+| `TimerText`-sized leaf | 14 | 12 | −2: one render per displayed second |
 
 ## 5. Design Decisions
 

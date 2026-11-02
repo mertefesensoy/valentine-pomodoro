@@ -1212,6 +1212,7 @@ Every string build 48 carries in Turkish, beside its English (generated from `sr
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Valentine Pomodoro - Design Decisions Log](../../DECISIONS.md)
 - [Documentation map](../README.md)
 - [Load Fly Mode lazily](../architecture/adr/0031-lazy-fly-mode.md)
 - [An in-house translator over i18next, for English and Turkish](../architecture/adr/0048-in-house-translator.md)

@@ -239,7 +239,7 @@
 ---
 
 ### Q2: Gift Mode Animation
-**Status**: Pending user input  
+**Status**: Closed 2026-11-02 by Phase 1 D2: moot. The first-launch gift screen is retired; the one-time v1.4 welcome, where Pomo & Doro become the Same Page mark, is the only first-run screen ([D1 record](docs/implementations/2026-10-30-phase1-d1-classic.md), [D2 record](docs/implementations/2026-10-31-phase1-d2-screens.md)).  
 **Question**: Simple hearts animation (React Native Animated) or complex particle system?
 
 **Options**:
@@ -251,7 +251,7 @@
 ---
 
 ### Q3: Chart Granularity
-**Status**: Pending user input  
+**Status**: Closed 2026-11-02 by Phase 1 D2: both. Stats shows the last seven days as a stack of day postcards, switchable between a sessions view and a minutes view (SRS FR-STA-003; [D2 record](docs/implementations/2026-10-31-phase1-d2-screens.md)).  
 **Question**: Should the 7-day chart show session count or focus minutes on Y-axis?
 
 **Options**:

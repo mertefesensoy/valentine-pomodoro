@@ -4,9 +4,31 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [Unreleased]
 
-*Branch `rehaul/v2` at 659b352, 118 commits after 1.3.1, working toward 1.4.0 for iOS. Not released. TestFlight builds 42–47 were cut from this branch: [1.4.0-tf.42] at a12ced4, [1.4.0-tf.43] at 9c5b0ce, [1.4.0-tf.44] at 1e2316b, [1.4.0-tf.45] at 6eaeb50, [1.4.0-tf.46] at 3369418 and [1.4.0-tf.47] at 659b352.*
+*Nothing since 1.4.0.*
 
-The v2 rehaul, in progress. Each bullet names its theme: Phase 0 (the foundation), SDK 58, CNG, Android, iOS-first, Stage A (the Phase 1 safety nets), Stage B (the first Phase 1 changes), Docs (the 2026-10-30 documentation system and what followed it), Design (the design-skill stack), Brand (the brand kit), Licence and Stage D (the Phase 1 screens, D1–D5).
+## [1.4.0] - 2026-11-02
+
+*The iOS release of the v2 rehaul's Phase 1, from `rehaul/v2`. The release candidate is TestFlight build 59; this section is dated by its EAS production build (UTC), as every version here is. Android stays on 1.3.1 (iOS-first, below).*
+
+**What's new for you**
+
+- **Pomo & Doro**, the two little faces of your timer, show you around on your first visit and take turns explaining each screen in their own babble. Settings › About › Watch the tour again replays it.
+- **A new look, the Sticker Diary:** Strawberry Milk by day and Midnight Plum by night, following your iPhone, with a new app icon.
+- **Pick a length in one tap:** 25/5, 50/10, 90/20, or Custom with your own durations.
+- **Two timer layouts:** the Ring, or Facing Pages.
+- **Every focus you finish presses a sticker onto today's page**, toward a daily goal you set.
+- **Stats is a stack of postcards,** one per day, switchable between sessions and minutes, with your goal and your love streak.
+- **Love notes:** write your own, edit them in a full-height sheet, swipe to delete; restoring the defaults never removes yours.
+- **English and Turkish** throughout, with a language choice in Settings.
+- **Soft sounds** when a focus or a break starts and when you finish, which respect the silent switch and the Sound switch.
+- **Settings** is a native list, with every number set on a wheel.
+- Fly over the map as before. Everything you had in 1.3 comes with you.
+
+**The engineering record**, by theme, follows.
+
+*TestFlight builds 42–58 were cut on the way, each listed below with its source and device check: 42–47 from `rehaul/v2`, 48–58 from `phase1/stage-d`, which merged into `rehaul/v2` on 2026-11-02 (`96ce9dd`).*
+
+The v2 rehaul's Phase 1. Each bullet names its theme: Phase 0 (the foundation), SDK 58, CNG, Android, iOS-first, Stage A (the Phase 1 safety nets), Stage B (the first Phase 1 changes), Docs (the 2026-10-30 documentation system and what followed it), Design (the design-skill stack), Brand (the brand kit), Licence and Stage D (the Phase 1 screens, D1–D5).
 
 ### Added
 
@@ -89,41 +111,107 @@ The v2 rehaul, in progress. Each bullet names its theme: Phase 0 (the foundation
 
 - **Phase 0:** `nanoid` 3.3.11 → 3.3.20, the only package with an `npm audit` advisory that ships in the app bundle. React Navigation uses it for fixed-size keys, so its advisories couldn't be triggered here (65c1d34). After the SDK 58 upgrade, `npm audit` reports 16 advisories, down from 39; the three high-severity ones come from `zod` inside `@expo/cli`, build tooling that contributes no code to the app (befaf99).
 
+## [1.4.0-tf.58] - 2026-11-01
+
+*iOS TestFlight build 58, a pre-release and not a store release, source 03e86ea. Built with EAS (build 0bdc6591) and uploaded to App Store Connect for TestFlight (submission 2162c61d); device check on a physical iPhone, 2026-11-01: passed, visual and sound, as reported by the owner.*
+
+Its changes are listed under [1.4.0]. This build is build 57 with the fix from its device check: the tour keeps clear of Stats' ad banner, and its Stats step lights today's postcard (D5 record §3.12).
+
+## [1.4.0-tf.57] - 2026-11-01
+
+*iOS TestFlight build 57, a pre-release and not a store release, source 38b9f51. Built with EAS (build 3fabdef6) and uploaded to App Store Connect for TestFlight (submission da7cb4ee); device check on a physical iPhone, 2026-11-01: the tour stuck on its Stats step, under the ad banner, fixed in build 58.*
+
+Its changes are listed under [1.4.0]. This build adds D5, the general tutorial: Pomo & Doro show you around in six steps over the real Timer, Stats and Notes (D5 record §3.8–3.11).
+
+## [1.4.0-tf.56] - 2026-11-01
+
+*iOS TestFlight build 56, a pre-release and not a store release, source 95f4d4b. Built with EAS (build dbf1152e) and uploaded to App Store Connect for TestFlight (submission aeb714e8); device check on a physical iPhone, 2026-11-01: passed at the default text size, and the sounds passed, as reported by the owner; the largest text size was seen on build 58.*
+
+Its changes are listed under [1.4.0]. This build adds D3, every string in English and Turkish with Settings › Language, and D4's sounds wired in, with the Ring and Stats' today card resized (D1 record §3.22, D2 record §3.26, D3 record §3.6).
+
+## [1.4.0-tf.55] - 2026-11-01
+
+*iOS TestFlight build 55, a pre-release and not a store release, source 0441d3a. Built with EAS (build 894ddd56) and uploaded to App Store Connect for TestFlight (submission 8550bfd2); built for the finish reviews' captures, which the owner sent on 2026-11-01; D1's and D2's finish reviews returned ship.*
+
+Its changes are listed under [1.4.0]. This build adds D2's finish-review fixes: Stats spans the width in landscape, the Minutes tracks end together, and Notes takes the same column as Stats and Settings on an iPad (D2 record §3.23).
+
+## [1.4.0-tf.54] - 2026-11-01
+
+*iOS TestFlight build 54, a pre-release and not a store release, source e6ff419. Built with EAS (build 46da142f) and uploaded to App Store Connect for TestFlight (submission 152deda0); device check on a physical iPhone, 2026-11-01: passed, as reported by the owner.*
+
+Its changes are listed under [1.4.0]. This build adds build 53's fixes: Classic in landscape spans the width with the face at full height, and a page-coloured band sits under the status bar on the scrolling tabs (D2 record §3.20).
+
+## [1.4.0-tf.53] - 2026-11-01
+
+*iOS TestFlight build 53, a pre-release and not a store release, source 2ba4867. Built with EAS (build 116880a7) and uploaded to App Store Connect for TestFlight (submission 9de50124); device check on a physical iPhone, 2026-11-01: Classic in landscape and the status bar's band, fixed in build 54.*
+
+Its changes are listed under [1.4.0]. This build adds the session notifications' fix (each phase's end message had arrived as the phase began) and build 52's eight device-check nits (D2 record §3.17–3.18).
+
+## [1.4.0-tf.52] - 2026-10-31
+
+*iOS TestFlight build 52, a pre-release and not a store release, source 3f24c41. Built with EAS (build 9222d622) and uploaded to App Store Connect for TestFlight (submission e7baeb2f); device check on a physical iPhone: eight nits and the notifications' timing, fixed in build 53.*
+
+Its changes are listed under [1.4.0]. This build adds build 51's fixes and D2's review round, break-ui fixes and copy review (D2 record §3.11–3.15).
+
+## [1.4.0-tf.51] - 2026-10-31
+
+*iOS TestFlight build 51, a pre-release and not a store release, source d96eb7c. Built with EAS (build 1c2a4c52) and uploaded to App Store Connect for TestFlight (submission f432937f); device check on a physical iPhone: three findings (the Notes rows, Fly's camera button, the goal presets), fixed in build 52.*
+
+Its changes are listed under [1.4.0]. This build adds D1's finish-review fixes and D2: Settings as a native grouped list, the theme following the phone, the gift screen retired, Notes with a full-height editor and Stats as a stack of postcards (D1 record §3.20, D2 record §3.6–3.9).
+
+## [1.4.0-tf.50] - 2026-10-31
+
+*iOS TestFlight build 50, a pre-release and not a store release, source 98f6a1f. Built with EAS (build 5ff314d5) and uploaded to App Store Connect for TestFlight (submission 9a02ba7c); device check on a physical iPhone, 2026-10-31: passed, as reported by the owner.*
+
+Its changes are listed under [1.4.0]. This build moves Fly's Modes button to the top right, where the compass was (D1 record §3.18).
+
+## [1.4.0-tf.49] - 2026-10-31
+
+*iOS TestFlight build 49, a pre-release and not a store release, source 9f0de71. Built with EAS (build 2fe5428c) and uploaded to App Store Connect for TestFlight (submission c2a26f6b); device check on a physical iPhone, 2026-10-31: one finding, Fly's Modes button, fixed in build 50.*
+
+Its changes are listed under [1.4.0]. This build adds the fixes from build 48's device check and the reanimated one-time welcome, with the presets 25/5, 50/10, 90/20 and Custom (D1 record §3.16–3.17).
+
+## [1.4.0-tf.48] - 2026-10-30
+
+*iOS TestFlight build 48, a pre-release and not a store release, source 61fd06e. Built with EAS (build 59a5248c) and uploaded to App Store Connect for TestFlight (submission 72b11e9c); device check on a physical iPhone: five findings, fixed in build 49.*
+
+Its changes are listed under [1.4.0]. This build adds D1: Classic rebuilt in the Sticker Diary design, the one-time v1.4 welcome, the new app icon and splash, and the English and Turkish groundwork (D1 record).
+
 ## [1.4.0-tf.47] - 2026-10-30
 
 *iOS TestFlight build 47, a pre-release and not a store release, source 659b352. Built with EAS (build cf42f8a6) and uploaded to App Store Connect for TestFlight (submission f8557f2b); device check on a physical iPhone, 2026-10-30: passed, as reported by the owner. Tab switches no longer flicker, the Notes tab bar stays light, the Stats banner shows again, and the Settings number pad can be closed.*
 
-Its changes are listed under [Unreleased], which covers the whole branch. This build contains everything there up to 659b352: build 46's, plus the fix for its tab flicker and Stats banner (B6, 63f1db2) and the Settings keyboard fix (DEF-008, b3c16b7).
+Its changes are listed under [1.4.0]. This build contains everything there up to 659b352: build 46's, plus the fix for its tab flicker and Stats banner (B6, 63f1db2) and the Settings keyboard fix (DEF-008, b3c16b7).
 
 ## [1.4.0-tf.46] - 2026-10-30
 
 *iOS TestFlight build 46, a pre-release and not a store release, source 3369418. Built with EAS (build bf625f5c) and uploaded to App Store Connect for TestFlight (submission a4695d2b); device check on a physical iPhone, 2026-10-30: B7's passed; B6's failed two items. Switching tabs flickers, and the tab bar turns dark on Notes in light mode.*
 
-Its changes are listed under [Unreleased], which covers the whole branch. This build contains everything there up to 3369418, through B6 and B7.
+Its changes are listed under [1.4.0]. This build contains everything there up to 3369418, through B6 and B7.
 
 ## [1.4.0-tf.45] - 2026-10-30
 
 *iOS TestFlight build 45, a pre-release and not a store release, source 6eaeb50, whose app code is identical to 758881b. Built with EAS (build 0eb8ca72) and uploaded to App Store Connect for TestFlight (submission 844c25a5); passed the B4 and B5 device check on a physical iPhone (d7f46d2).*
 
-Its changes are listed under [Unreleased], which covers the whole branch. This build contains everything there up to 6eaeb50, through B5. Only docs came after it.
+Its changes are listed under [1.4.0]. This build contains everything there up to 6eaeb50, through B5. Only docs came after it.
 
 ## [1.4.0-tf.44] - 2026-10-30
 
 *iOS TestFlight build 44, a pre-release and not a store release, source 1e2316b. Built with EAS (build 7fcac2fb) and uploaded to App Store Connect for TestFlight (submission 977f92f0, 1bdcff8); passed its device check on a physical iPhone, including sessions that ended while the app was killed (d3fe740).*
 
-Its changes are listed under [Unreleased]. This build contains everything there up to 1e2316b: B1, B1b, B2 and B3, with DEF-001–004 and DEF-007's haptics fixed. It does not contain B4, B5 or the design-skill stack.
+Its changes are listed under [1.4.0]. This build contains everything there up to 1e2316b: B1, B1b, B2 and B3, with DEF-001–004 and DEF-007's haptics fixed. It does not contain B4, B5 or the design-skill stack.
 
 ## [1.4.0-tf.43] - 2026-10-29
 
 *iOS TestFlight build 43, a pre-release and not a store release, source 9c5b0ce, whose app code is identical to dd1e894. Built with EAS (build 73ad1446) at 21:43 UTC, already 30 October in local time, and uploaded to App Store Connect for TestFlight (submission b145e4cd, de8d4cb); passed its device check on a physical iPhone (97c48b7). It has DEF-004, found afterwards in B3 (c77037d).*
 
-Its changes are listed under [Unreleased]. This build contains everything there up to 9c5b0ce: B1, B1b and B2. It does not contain B3 or anything after it.
+Its changes are listed under [1.4.0]. This build contains everything there up to 9c5b0ce: B1, B1b and B2. It does not contain B3 or anything after it.
 
 ## [1.4.0-tf.42] - 2026-10-29
 
 *iOS TestFlight build 42, a pre-release and not a store release, source a12ced4. Built with EAS and uploaded to App Store Connect for TestFlight (33036e4); passed the A0 device check on a physical iPhone (229298d).*
 
-Its changes are listed under [Unreleased], which covers the whole branch. This build contains everything there up to a12ced4. It does not contain what came after: the A2 and A3 test baselines, the `ascAppId` setting, and Stage B from B1 on.
+Its changes are listed under [1.4.0]. This build contains everything there up to a12ced4. It does not contain what came after: the A2 and A3 test baselines, the `ascAppId` setting, and Stage B from B1 on.
 
 ## [1.3.1] - 2026-05-05
 
@@ -355,7 +443,19 @@ Two later fixes on the same branch were never built: functional state updates fo
 - A circular progress ring, haptics and button animations (d836c0a).
 - The app icon, splash screen and EAS build configuration, on Expo SDK 54 with React Native 0.81.5 (42409bf, adc5bb3, 40489e2, 4278bd6).
 
-[Unreleased]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.3.1...rehaul/v2
+[Unreleased]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0...rehaul/v2
+[1.4.0]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.3.1...v1.4.0
+[1.4.0-tf.58]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.57...v1.4.0-tf.58
+[1.4.0-tf.57]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.56...v1.4.0-tf.57
+[1.4.0-tf.56]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.55...v1.4.0-tf.56
+[1.4.0-tf.55]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.54...v1.4.0-tf.55
+[1.4.0-tf.54]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.53...v1.4.0-tf.54
+[1.4.0-tf.53]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.52...v1.4.0-tf.53
+[1.4.0-tf.52]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.51...v1.4.0-tf.52
+[1.4.0-tf.51]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.50...v1.4.0-tf.51
+[1.4.0-tf.50]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.49...v1.4.0-tf.50
+[1.4.0-tf.49]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.48...v1.4.0-tf.49
+[1.4.0-tf.48]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.47...v1.4.0-tf.48
 [1.4.0-tf.47]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.46...v1.4.0-tf.47
 [1.4.0-tf.46]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.45...v1.4.0-tf.46
 [1.4.0-tf.45]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.44...v1.4.0-tf.45

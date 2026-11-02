@@ -150,7 +150,7 @@ These were rejected in the [rehaul plan §3.5](../implementations/2026-10-29-cou
 | Release | Phase | Content | Status |
 |---------|-------|---------|--------|
 | v1.3.1 | — | The current App Store version | Released 2026-05-11 |
-| **v1.4.0** | 1 | The design system, local re-architecture (MMKV, stores, re-render fix, Expo Router), the Classic redesign, presets, EN/TR, sounds. iOS only | In progress (Stages A and B1 done) |
+| **v1.4.0** | 1 | The design system, local re-architecture (MMKV, stores, re-render fix, Expo Router), the Classic redesign, presets, EN/TR, sounds. iOS only | In progress: Stages A–D done; Stage E, the release candidate, from 2026-11-02 |
 | v1.5+ | 2–6 | Accounts and pairing, shared room and presence, modes, Plus, web. The version per phase is TBD | Planned |
 | v2.0.0 | 7 | Public launch under the new name and brand | Planned |
 | Android | 3b | All `deferred` requirements | Deferred |

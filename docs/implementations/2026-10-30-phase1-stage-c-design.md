@@ -523,5 +523,6 @@ node scripts/docs/check-docs.mjs --write && node scripts/docs/check-docs.mjs
 - ["Phase 1 D1: Classic rebuilt in the Sticker Diary design, with the v1.4 welcome screen"](2026-10-30-phase1-d1-classic.md)
 - ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](2026-10-30-phase1-stage-d.md)
 - ["Phase 1 D5, the assets: Pomo & Doro's tour expressions and their babble"](2026-11-01-phase1-d5-assets.md)
+- [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

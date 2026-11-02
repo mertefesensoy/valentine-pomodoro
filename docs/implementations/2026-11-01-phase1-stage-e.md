@@ -143,6 +143,12 @@ Drafted 2026-11-01 from what v1.4 ships, in the app's own names for each feature
 > • Odak ya da mola başlarken ve bitirdiğinde yumuşak sesler. Sessiz moda uyarlar.
 > • Haritada uçuş eskisi gibi. 1.3'teki her şey seninle gelir.
 
+**App Review notes** (drafted 2026-11-02, from the code at `3ea0b4c`):
+
+> No account or sign-in is needed. On the first launch, a short tour with the two characters, Pomo & Doro, opens over the Timer, Stats and Notes tabs. It can be skipped at any step ("Skip tour") and replayed from Settings › About › "Watch the tour again". The Modes button on the Timer opens Fly mode, a flight on Apple Maps that lasts as long as the focus session; it asks for no location permission. Notifications are local only: a session's end and an optional daily reminder. Ads are Google AdMob, non-personalised: a banner on Stats and an interstitial after the second completed session. The app is in English and Turkish (Settings › Language, applied at the next launch).
+
+**The privacy labels:** v1.4 adds no SDK that collects data. Since 1.3.1 the new runtime dependencies are on-device only: MMKV, Zustand, Expo Router, expo-localization, expo-file-system, the picker, and expo-application. Google Mobile Ads (non-personalised, `requestNonPersonalizedAdsOnly`) and the update check of `update.json` were already in 1.3.1. The app shows no tracking prompt and declares no usage descriptions. So the existing labels stand, for the owner to confirm in App Store Connect.
+
 ### 3.6 M1: the merge (2026-11-02)
 
 The owner: "do it". Built in a temporary worktree at `rehaul/v2` (`618fbf5`), so neither checkout switched branches, then fast-forwarded into `phase1/stage-d` for the guards and into `rehaul/v2` in the main checkout once they were green.

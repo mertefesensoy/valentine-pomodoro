@@ -38,8 +38,8 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-stage-d, IMPL-2026
 - **`rehaul/v2` pushed** (2026-11-02, the owner: "Yes, push it"): `git push origin 5620d33:refs/heads/rehaul/v2`, a fast-forward from `3aba394` (151 commits). CI run 41393398703 passed: typecheck, lint, unit tests, the contrast check and the docs check.
 - **R2 grows (2026-11-02):** the owner asked for the App Store's creative assets as well, a Header and a Search Results asset, which show on iOS 27 and iPadOS 27 and later. Their answers:
   - format: "Looping videos" (a 21:9 header loop and a 3:2 search loop cut from one scene; Apple has no video that serves both, and the 16:9 universal asset is still-only);
-  - text: "No text", so one set serves English and Turkish;
-  - search: "The timer in use", since the asset replaces the screenshots in search results;
+  - text: "No text", then, after Apple's header examples, the brand kit's wordmark on the header only ("Header only"); the name reads the same in both languages, so one set still serves English and Turkish;
+  - search: first "The timer in use", since the asset replaces the screenshots in search results. Then, on Apple's examples: "they are not the screen itself so why should we". So neither asset shows a screen. Search makes the purpose plain through the scene: the Ring as an illustrated object, a sticker pressing on, Pomo & Doro;
   - timing: "Hold 1.4.0 for them", so R3 waits for both videos.
 
   The screenshot session makes them on `phase1/app-store-shots`, composition round first; the 30 screenshots there are upload-ready at `8b12e2b` (panel 5's Modes rows now at the app's 14-pt corners).

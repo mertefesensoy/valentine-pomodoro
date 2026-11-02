@@ -9,6 +9,8 @@ related_targets: ["art/src/store","art/jobs/store.json"]
 
 Surface brief, 2026-11-01. **Mode: Persuade.** The App Store's screenshot carousel for v1.4, in English and Turkish, iPhone and iPad. A whole surface inside the established Sticker Diary world (DESIGN.md is fixed). Build path: code-led (no image generation; every vector is VectorCraft's, through `scripts/art/build.mjs`). Record: `docs/implementations/2026-11-01-app-store-screenshots.md`.
 
+**Finished, 2026-11-02:** finish review **fix**, eight fixes applied; two verdict passes; the owner approved the final set ("Approve the set") and chose "Keep today's row visible" for the iPad column (record §3.8).
+
 **The owner's answers (2026-11-01):** 5 panels, triptych + 2; "Pair, stickers, week" leads; iPhone 6.9" and 6.3", plus iPad 13"; screens drawn in VectorCraft; "Confirm the brief"; composition: **"Morning to night"**, the dealt lead.
 
 ## 1. Job and audience
@@ -48,8 +50,13 @@ Surface brief, 2026-11-01. **Mode: Persuade.** The App Store's screenshot carous
 
 - **Strip geometry:** iPhone panels 1320 × 2868 with a 60 px gutter (0.045 of a panel, the product page's gap; search results show a wider one). Nothing that matters within 70 px of a panel corner, which the store rounds. The 6.3" set is the same strip cropped at 1206 × 2622. iPad panels 2064 × 2752 get their own layout of the same story, not a scaled phone strip.
 - **Poses:** seam 1|2 the hero pair from the tour kit (body-cut, wave hand, body-fill, eyes, mouth, in `expressions.json`'s order); seam 2|3 celebrating; seam 3|4 on a break with their mugs; panel 5 asleep. Inside the screens, the app's own poses for each state.
+  - *Amended by the finish review's fix batch, 2026-11-02 (record §3.8):* every sticker stays whole inside its own panel, and where it stands in front of a phone it covers a tab item completely or not at all, never the selected tab.
+  - So the celebrating pair became panel 3's excited pair (the tour kit's sparkle eyes) flanking the Stats phone, and the break pair stands wholly in panel 4.
+  - The hero pair still meet across seam 1|2, one on each side.
 - **Day or night is a decision:** panels 1–4 show Strawberry Milk screens (panel 4's at dusk), panel 5 Midnight Plum.
-- **Panel 2 proves the signature move:** one sticker mid-drop (about scale 1.2, −8°) with its paper bits, two already placed, two dashed cells still owed.
+- **Panel 2 proves the signature move:** today's sticker mid-drop (about scale 1.2, −8°) with its paper bits, with the cells before it placed and the rest dashed, still owed.
+  - *Amended 2026-11-02:* panel 2 is session 3 of 4, so two placed, Pomo's third landing, one owed.
+  - The same sticker breaks out over the screen's edge at about four times its cell, so the move reads at search size.
 - **Demo data is consistent and real-stringed:** the status-bar time follows the day (8:30, 10:45, 13:20, 18:05, 22:40) and every "Break at" time is that time plus the timer; the week's counts add up to the week line; the goal flags match a 100-minute goal; only strings from `src/i18n/*.json` and the default notes (emoji left out). Synthetic, and said so in the record.
 - **Contrast:** captions in `ink` on the day tones and plum `ink` at night; any sub-caption on `primary` is checked (large text, 3:1) or set in `ink`.
 - **Type:** Baloo 2 outlined by HarfBuzz from the committed subset; the system face as Inter, set by VectorCraft. Turkish strings hard-wrapped and checked for overflow.

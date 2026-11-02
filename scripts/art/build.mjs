@@ -14,6 +14,10 @@
  *   art/vc/<id>.vectorcraft         the editable source of truth
  *   art/out/<kind>/<id>.svg         the shipped vector (2 decimals, outlined text, minified)
  *   art/out/<kind>/<id>-<px>.png    each raster size the job asks for
+ *   art/out/<kind>/<id>-<name>.png  each named crop the job asks for: a rectangle of the artboard
+ *                                   ([x, y, w, h] in points, which may reach past the artboard's
+ *                                   edge) exported `px` wide, so one long artboard yields every
+ *                                   panel of a strip at every size (the App Store screenshots)
  *
  * Exports are deterministic (checked 2026-10-30: two runs, identical bytes), which is what makes
  * --check a reproducibility test. Environment: VECTORCRAFT_CLI (default the Windows install),
@@ -50,6 +54,7 @@ function outputs(asset) {
         vc: `art/vc/${asset.id}.vectorcraft`,
         svg: `art/out/${kind}/${asset.id}.svg`,
         png: (asset.png ?? []).map((px) => ({ px, file: `art/out/${kind}/${asset.id}-${px}.png` })),
+        crops: (asset.crops ?? []).map(({ name, rect, px }) => ({ rect, px, file: `art/out/${kind}/${asset.id}-${name}.png` })),
     };
 }
 
@@ -65,6 +70,7 @@ function steps(asset, width, expandable) {
         { command: 'document.save', params: { path: w(o.vc) } },
         { command: 'document.export', params: { path: w(o.svg), format: 'svg', decimals: 2, outlineText: true, minify: true, objectIds: 'minimal', metadata: false } },
         ...o.png.map(({ px, file }) => ({ command: 'document.export', params: { path: w(file), format: 'png', scale: px / width } })),
+        ...o.crops.map(({ rect, px, file }) => ({ command: 'document.export', params: { path: w(file), format: 'png', rect, scale: px / rect[2] } })),
     ];
 }
 
@@ -86,7 +92,9 @@ function normalise(file) {
         }
         fs.writeFileSync(file, Buffer.concat(parts));
     } else if (file.endsWith('.vectorcraft')) {
-        fs.writeFileSync(file, b.toString('utf8').replace(/"(created|modified)": \d+/g, '"$1": 0'));
+        // Large documents are written as compact JSON ("created":123), small ones pretty ("created": 123);
+        // the spacing is kept as found, so only the time changes.
+        fs.writeFileSync(file, b.toString('utf8').replace(/"(created|modified)":(\s*)\d+/g, (_, key, space) => `"${key}":${space}0`));
     }
 }
 
@@ -138,7 +146,7 @@ for (const job of jobs) {
     for (const asset of job.assets) {
         run(asset);
         const o = outputs(asset);
-        for (const rel of [o.vc, o.svg, ...o.png.map((p) => p.file)]) {
+        for (const rel of [o.vc, o.svg, ...o.png.map((p) => p.file), ...o.crops.map((c) => c.file)]) {
             normalise(path.join(WORK, rel));
             const built = fs.readFileSync(path.join(WORK, rel));
             const repo = path.join(ROOT, rel);

@@ -1,0 +1,59 @@
+{
+ "about": "v1.4's App Store creative assets' stills (docs/implementations/2026-11-02-app-store-creative-assets.md), written by scripts/art/creative-sources.py: the header (21:9) and search (3:2) poster frames and the universal 16:9 still. The loops are rendered and encoded by scripts/art/creative-build.py.",
+ "assets": [
+  {
+   "id": "creative-header",
+   "src": "art/src/creative/creative-header.svg",
+   "kind": "creative",
+   "png": [],
+   "crops": [
+    {
+     "name": "3840x1646",
+     "rect": [
+      0,
+      0,
+      3840,
+      1646
+     ],
+     "px": 3840
+    }
+   ]
+  },
+  {
+   "id": "creative-search",
+   "src": "art/src/creative/creative-search.svg",
+   "kind": "creative",
+   "png": [],
+   "crops": [
+    {
+     "name": "3840x2560",
+     "rect": [
+      0,
+      0,
+      3840,
+      2560
+     ],
+     "px": 3840
+    }
+   ]
+  },
+  {
+   "id": "creative-universal",
+   "src": "art/src/creative/creative-universal.svg",
+   "kind": "creative",
+   "png": [],
+   "crops": [
+    {
+     "name": "5244x2950",
+     "rect": [
+      0,
+      0,
+      5244,
+      2950
+     ],
+     "px": 5244
+    }
+   ]
+  }
+ ]
+}

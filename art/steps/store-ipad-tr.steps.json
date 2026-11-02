@@ -1,0 +1,110 @@
+[
+ {
+  "command": "select.all",
+  "params": {}
+ },
+ {
+  "command": "object.expand",
+  "params": {
+   "object": true,
+   "fill": true,
+   "stroke": true
+  }
+ },
+ {
+  "command": "document.save",
+  "params": {
+   "path": "C:/vp-art/art/vc/store-ipad-tr.vectorcraft"
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-ipad-tr.svg",
+   "format": "svg",
+   "decimals": 2,
+   "outlineText": true,
+   "minify": true,
+   "objectIds": "minimal",
+   "metadata": false
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-ipad-tr-2138.png",
+   "format": "png",
+   "scale": 0.2000374251497006
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-ipad-tr-01-2064x2752.png",
+   "format": "png",
+   "rect": [
+    0,
+    0,
+    2064,
+    2752
+   ],
+   "scale": 1
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-ipad-tr-02-2064x2752.png",
+   "format": "png",
+   "rect": [
+    2156,
+    0,
+    2064,
+    2752
+   ],
+   "scale": 1
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-ipad-tr-03-2064x2752.png",
+   "format": "png",
+   "rect": [
+    4312,
+    0,
+    2064,
+    2752
+   ],
+   "scale": 1
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-ipad-tr-04-2064x2752.png",
+   "format": "png",
+   "rect": [
+    6468,
+    0,
+    2064,
+    2752
+   ],
+   "scale": 1
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-ipad-tr-05-2064x2752.png",
+   "format": "png",
+   "rect": [
+    8624,
+    0,
+    2064,
+    2752
+   ],
+   "scale": 1
+  }
+ }
+]

@@ -1,0 +1,180 @@
+[
+ {
+  "command": "select.all",
+  "params": {}
+ },
+ {
+  "command": "object.expand",
+  "params": {
+   "object": true,
+   "fill": true,
+   "stroke": true
+  }
+ },
+ {
+  "command": "document.save",
+  "params": {
+   "path": "C:/vp-art/art/vc/store-iphone-tr.vectorcraft"
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-iphone-tr.svg",
+   "format": "svg",
+   "decimals": 2,
+   "outlineText": true,
+   "minify": true,
+   "objectIds": "minimal",
+   "metadata": false
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-iphone-tr-1368.png",
+   "format": "png",
+   "scale": 0.2
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-iphone-tr-01-1320x2868.png",
+   "format": "png",
+   "rect": [
+    0,
+    0,
+    1320,
+    2868
+   ],
+   "scale": 1
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-iphone-tr-01-1206x2622.png",
+   "format": "png",
+   "rect": [
+    0,
+    -0.925,
+    1320,
+    2869.851
+   ],
+   "scale": 0.9136363636363637
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-iphone-tr-02-1320x2868.png",
+   "format": "png",
+   "rect": [
+    1380,
+    0,
+    1320,
+    2868
+   ],
+   "scale": 1
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-iphone-tr-02-1206x2622.png",
+   "format": "png",
+   "rect": [
+    1380,
+    -0.925,
+    1320,
+    2869.851
+   ],
+   "scale": 0.9136363636363637
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-iphone-tr-03-1320x2868.png",
+   "format": "png",
+   "rect": [
+    2760,
+    0,
+    1320,
+    2868
+   ],
+   "scale": 1
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-iphone-tr-03-1206x2622.png",
+   "format": "png",
+   "rect": [
+    2760,
+    -0.925,
+    1320,
+    2869.851
+   ],
+   "scale": 0.9136363636363637
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-iphone-tr-04-1320x2868.png",
+   "format": "png",
+   "rect": [
+    4140,
+    0,
+    1320,
+    2868
+   ],
+   "scale": 1
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-iphone-tr-04-1206x2622.png",
+   "format": "png",
+   "rect": [
+    4140,
+    -0.925,
+    1320,
+    2869.851
+   ],
+   "scale": 0.9136363636363637
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-iphone-tr-05-1320x2868.png",
+   "format": "png",
+   "rect": [
+    5520,
+    0,
+    1320,
+    2868
+   ],
+   "scale": 1
+  }
+ },
+ {
+  "command": "document.export",
+  "params": {
+   "path": "C:/vp-art/art/out/store/store-iphone-tr-05-1206x2622.png",
+   "format": "png",
+   "rect": [
+    5520,
+    -0.925,
+    1320,
+    2869.851
+   ],
+   "scale": 0.9136363636363637
+  }
+ }
+]

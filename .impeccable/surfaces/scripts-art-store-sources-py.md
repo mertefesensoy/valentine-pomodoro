@@ -85,7 +85,7 @@ Surface brief, 2026-11-01. **Mode: Persuade.** The App Store's screenshot carous
 - Inter as SF Pro is a stated substitution.
 - Panel 3's subline in `ink` is a legibility exception.
 - The tab-bar rule (Build pins) stays local to this surface.
-- The drawn Modes sheet's rows use a 20 pt radius, where the app uses `radius.m` (14) in `ModeSheet.tsx`. This is a small fidelity drift in an approved set and has not been repaired.
+- The drawn Modes sheet's rows used a 20 pt radius, where the app uses `radius.m` (14) in `ModeSheet.tsx`. Repaired on the owner's word, 2026-11-02: the rows, the 44-pt Fly badge and the 22-pt check now follow `ModeSheet.tsx` (record §3.9).
 
 **Pre-existing system drift, reported and not repaired:**
 - DESIGN.md's list of where display type may appear (the One Large Number Rule, last Don't) omits the love note sheet's title. `LoveNoteSheet.tsx` sets it in Baloo 2 SemiBold 22.

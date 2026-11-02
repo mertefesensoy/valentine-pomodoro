@@ -254,6 +254,14 @@ It also lists what is not canonized:
 - the black sheet dims;
 - the Modes rows' 20 pt radius, where the app uses 14.
 
+The Modes rows' radius is now fixed. On the owner's word ("Yes, fix it", 2026-11-02), panel 5's Modes sheet is drawn as `ModeSheet.tsx` draws it:
+- rows at `radius.m` (14 pt) with the 1.5 pt edge (`primaryInk` on the selected row);
+- 12 pt of padding around a 44 pt head;
+- the Fly badge at 44 × 44 pt with 14 pt corners;
+- a 22 pt check.
+
+Only panel 5 changed, in all four sets. The Fly row still clears the sleepers.
+
 And it lists two pre-existing gaps in DESIGN.md:
 - the love note title's display type;
 - the four D5 palette roles.

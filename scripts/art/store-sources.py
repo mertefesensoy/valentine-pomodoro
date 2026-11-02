@@ -713,18 +713,20 @@ class Screen:
         cx0, cw = sx + 23.5, sw - 47
         self.add(inter(self.s('modes.title'), cx0, st + 50, 22, t['ink'], 600))
         ky = st + 64
-        self.add(f'<rect x="{f(cx0 + 1)}" y="{f(ky + 1)}" width="{f(cw - 2)}" height="145" rx="20" fill="{t["primarySoft"]}" stroke="{t["primaryInk"]}" stroke-width="2"/>')
+        # The rows as ModeSheet.tsx draws them: radius.m (14) with the 1.5-pt edge (primaryInk when selected),
+        # 12 pt of padding around a 44-pt head (the 44-pt icon, a 12-pt gap, the label), a 22-pt check.
+        self.add(f'<rect x="{f(cx0 + 0.75)}" y="{f(ky + 0.75)}" width="{f(cw - 1.5)}" height="143.5" rx="14" fill="{t["primarySoft"]}" stroke="{t["primaryInk"]}" stroke-width="1.5"/>')
         mark = art('art/out/logo/mark-single-cocoa.svg')
-        self.add(f'<g transform="translate({f(cx0 + 12)} {f(ky + 17)}) scale({f(44 / 784)})">{paths_svg(mark, fill=t["ink"])}</g>')
-        self.add(inter(self.s('modes.classic'), cx0 + 67, ky + 40, 17, t['ink'], 600))
-        self.add(glyph('check', cx0 + cw - 23, ky + 34, 24, t['primaryInk']))
-        self.add(inter(self.s('modes.layout'), cx0 + 13, ky + 75, 15, t['inkSoft'], 500))
-        self.segmented([self.s('modes.ring'), self.s('modes.spread')], 0, cx0 + 13, ky + 85, cw - 26)
-        fy = ky + 164
-        self.add(f'<rect x="{f(cx0 + 0.75)}" y="{f(fy + 0.75)}" width="{f(cw - 1.5)}" height="65.5" rx="20" fill="{t["paper"]}" stroke="{t["edge"]}" stroke-width="1.5"/>')
-        self.add(f'<rect x="{f(cx0 + 13)}" y="{f(fy + 12)}" width="42" height="42" rx="11" fill="{t["primarySoft"]}"/>')
-        self.add(glyph('fly', cx0 + 34, fy + 33, 24, t['primaryInk']))
-        self.add(inter(self.s('modes.fly'), cx0 + 67, fy + 39, 17, t['ink'], 600))
+        self.add(f'<g transform="translate({f(cx0 + 13.5)} {f(ky + 19.3)}) scale({f(44 / 784)})">{paths_svg(mark, fill=t["ink"])}</g>')
+        self.add(inter(self.s('modes.classic'), cx0 + 69.5, ky + 41.5, 17, t['ink'], 600))
+        self.add(glyph('check', cx0 + cw - 24.5, ky + 35.5, 22, t['primaryInk']))
+        self.add(inter(self.s('modes.layout'), cx0 + 13.5, ky + 76, 15, t['inkSoft'], 500))
+        self.segmented([self.s('modes.ring'), self.s('modes.spread')], 0, cx0 + 13.5, ky + 85, cw - 27)
+        fy = ky + 160
+        self.add(f'<rect x="{f(cx0 + 0.75)}" y="{f(fy + 0.75)}" width="{f(cw - 1.5)}" height="69.5" rx="14" fill="{t["paper"]}" stroke="{t["edge"]}" stroke-width="1.5"/>')
+        self.add(f'<rect x="{f(cx0 + 13.5)}" y="{f(fy + 13.5)}" width="44" height="44" rx="14" fill="{t["primarySoft"]}"/>')
+        self.add(glyph('fly', cx0 + 35.5, fy + 35.5, 24, t['primaryInk']))
+        self.add(inter(self.s('modes.fly'), cx0 + 69.5, fy + 41.5, 17, t['ink'], 600))
 
 
 def page_path(x, y, w, h, outer):

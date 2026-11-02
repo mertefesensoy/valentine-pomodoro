@@ -36,6 +36,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-stage-d, IMPL-2026
   - Tagged `v1.4.0-tf.59` on `bce65cc`, and the tag is pushed.
   - On it, E2's checklist, the cold-start TTI and the light splash are the owner's to check.
 - **`rehaul/v2` pushed** (2026-11-02, the owner: "Yes, push it"): `git push origin 5620d33:refs/heads/rehaul/v2`, a fast-forward from `3aba394` (151 commits). CI run 41393398703 passed: typecheck, lint, unit tests, the contrast check and the docs check.
+- **E2 done** (2026-11-02): build 59's device check passed. The owner's answer to "Has build 59's device check passed, so 1.4.0 can be submitted on it?" was "Yes, it passed". That covers E2's checklist (§3.3) and the choice-C light splash (§3.6) on the build that ships. The cold-start TTI from the hidden panel isn't recorded yet, and E3's bytecode decision waits for it: submitting build 59 ships the bytecode at 4,287,144 B unless the owner chooses to trim it first.
 - **R2 grows (2026-11-02):** the owner asked for the App Store's creative assets as well, a Header and a Search Results asset, which show on iOS 27 and iPadOS 27 and later. Their answers:
   - format: "Looping videos" (a 21:9 header loop and a 3:2 search loop cut from one scene; Apple has no video that serves both, and the 16:9 universal asset is still-only);
   - text: "No text", then, after Apple's header examples, the brand kit's wordmark on the header only ("Header only"); the name reads the same in both languages, so one set still serves English and Turkish;

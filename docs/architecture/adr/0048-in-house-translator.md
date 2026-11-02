@@ -33,6 +33,7 @@ FR-SET-005 and NFR-I18N-001 need the app in English and Turkish, with every stri
 **Negative**
 - Features beyond the contract (nesting, context, namespaces, formatting) aren't there; each would be added deliberately.
 - One more module to test: `src/i18n/__tests__/i18n.test.ts` pins parity, placeholders, plurals (with and without `Intl`), missing keys and casing.
+- The in-app language choice (D3) is read once, when the translator loads, so the language stays fixed for a process.
 
 ## Alternatives considered
 
@@ -45,6 +46,8 @@ FR-SET-005 and NFR-I18N-001 need the app in English and Turkish, with every stri
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Architecture — Valentine Pomodoro (as built, and the v2 target)](../ARCHITECTURE.md)
+- [Architecture decision records](README.md)
 - ["Phase 1 D1: Classic rebuilt in the Sticker Diary design, with the v1.4 welcome screen"](../../implementations/2026-10-30-phase1-d1-classic.md)
 - ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](../../implementations/2026-10-30-phase1-stage-d.md)
 - ["Phase 1 D3: every string in English and Turkish, a raw-text check, and the in-app language choice"](../../implementations/2026-11-01-phase1-d3-en-tr.md)

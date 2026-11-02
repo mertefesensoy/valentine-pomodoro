@@ -491,6 +491,8 @@ From D1: `python -P art/type/build-fonts.py --check`. From D4: `node scripts/sou
 
 ## 9. Shared-doc updates to apply at merge
 
+**Applied at the merge, 2026-11-02**, with each item brought to its final state ([Stage E](2026-11-01-phase1-stage-e.md) M2).
+
 Kept current in the same commit as each piece of work, and applied at the merge into `rehaul/v2` with the owner's OK.
 
 **`docs/README.md`**, the plans table, after the Phase 1 plan row:
@@ -634,7 +636,10 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Documentation map](../README.md)
+- [Architecture — Valentine Pomodoro (as built, and the v2 target)](../architecture/ARCHITECTURE.md)
 - [An in-house translator over i18next, for English and Turkish](../architecture/adr/0048-in-house-translator.md)
+- [2026-10-29 — v2 Couples Rehaul: Plan](2026-10-29-couples-rehaul-plan.md)
 - ["Phase 1 D1: Classic rebuilt in the Sticker Diary design, with the v1.4 welcome screen"](2026-10-30-phase1-d1-classic.md)
 - ["Phase 1 D4: the SoundCraft sound set, and Fly's loop re-encoded"](2026-10-30-phase1-d4-sounds.md)
 - ["Phase 1 D2: Stats, Settings and Notes rebuilt in the Sticker Diary design, the gift screen retired"](2026-10-31-phase1-d2-screens.md)
@@ -642,5 +647,7 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 - ["Phase 1 D4, wired in: D4's sounds merged into Stage D and played by Classic"](2026-11-01-phase1-d4-wiring.md)
 - ["Phase 1 D5: the general tutorial, Pomo & Doro show you around"](2026-11-01-phase1-d5-tutorial.md)
 - ["Phase 1 Stage E: verify and ship v1.4.0"](2026-11-01-phase1-stage-e.md)
+- [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
+- [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

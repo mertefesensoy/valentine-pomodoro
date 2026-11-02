@@ -43,6 +43,7 @@ Native modules have no Node implementation; [`jest.setup.ts`](../../jest.setup.t
 - **Jest compiles app code with the React Compiler exactly when `app.json` does** (`jest.babelTransformer.js`, B5; [ADR-0041](../architecture/adr/0041-react-compiler-on.md)). Test files, fixtures, mocks and `jest.setup.ts` are not compiled. Reanimated's mock returns a new `useDerivedValue` object each render, so a compiled screen can re-render a child in Jest that it would skip on a phone: counts under Jest are an upper bound.
 - **Every mock carries a comment saying why.** Workarounds for upstream bugs (the Reanimated 4.7.1 `setCSSEventHandler` stub) say to remove them on the next upgrade.
 - Time is faked with modern fake timers, which also fake `Date.now()`, so clock math and intervals move together. RNTL 14's `render`, `renderHook` and `act` are async and always awaited.
+- **The tour (Phase 1 D5):** the tour's model tests run the pose sheet's own `scripts/art/tour-motion.js` in a sandbox and hold the app's write-on to it, line for line. Jest's native views report no frame, so the tour's openings are verified on the device.
 
 ## 4. The guards that protect the riskiest code
 

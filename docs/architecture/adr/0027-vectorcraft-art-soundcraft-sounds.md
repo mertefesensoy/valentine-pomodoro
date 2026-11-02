@@ -9,7 +9,7 @@ related: [ADR-0003, ADR-0012, ADR-0013, ADR-0026]
 
 # ADR-0027: VectorCraft for all vector art; SoundCraft for all app sounds
 
-> **Status note:** VectorCraft is 0.18.0 as of 2026-10-30, not 0.16. The art pipeline is built as `scripts/art/build.mjs`: one `steps.json` per asset, run headless in `C:/vp-art`, with byte-identical rebuilds checked by `--check` ([Stage C record](../../implementations/2026-10-30-phase1-stage-c-design.md) §2.3).
+> **Status note:** VectorCraft is 0.18.0 as of 2026-10-30, not 0.16. The art pipeline is built as `scripts/art/build.mjs`: one `steps.json` per asset, run headless in `C:/vp-art`, with byte-identical rebuilds checked by `--check` ([Stage C record](../../implementations/2026-10-30-phase1-stage-c-design.md) §2.3). SoundCraft is 0.14.0, as planned (`soundcraft-cli --version`, 2026-10-30). The sound pipeline is built as `scripts/sound/build.mjs`: one path-free `soundcraft-cli` script per sound under `art/sound/`, saved as a `.scraft` session, bounced with `file.bounce_mix`, then folded to mono, scaled to −1 dBFS and encoded by ffmpeg 8.1.1, with byte-identical rebuilds checked by `--check` ([D4 record](../../implementations/2026-10-30-phase1-d4-sounds.md)). SoundCraft's built-in plate reverb is used with the two synths; the sampler is not. Fly's ambient loop is a 2023 phone recording, not a SoundCraft sound, so "every app sound" holds for the UI sounds only, until Fly's loop is replaced or its origin is recorded.
 
 ## Context
 
@@ -56,6 +56,7 @@ Both are owner decisions from 2026-10-29.
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Valentine Pomodoro - Design Decisions Log](../../../DECISIONS.md)
 - [expo-audio for sound, not expo-av](0003-expo-audio.md)
 - [The Same Page mark, Pomo & Doro as The Colon's two round characters, and no tomato anywhere](0047-same-page-mark-and-the-colon-characters.md)
 - [Architecture decision records](README.md)

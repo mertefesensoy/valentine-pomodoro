@@ -10,7 +10,7 @@ related: [ARCHITECTURE, ROADMAP, TEST-STRATEGY, IMPL-2026-10-29-couples-rehaul-p
 # Software Requirements Specification
 
 **Product:** Valentine Pomodoro (working name; the v2 public name is TBD, see §6), bundle id `com.bengisu.valentinepomodoro`.
-**Version of this document:** 1.0, 2026-10-30. The change history is in §7.
+**Version of this document:** 1.1, 2026-11-02. The change history is in §7.
 **Structure:** follows ISO/IEC/IEEE 29148:2018 (software requirements specification), trimmed to what a two-person product needs.
 
 This document says **what** the product must do, testably. It does not say **how**: that is in the [architecture](../architecture/ARCHITECTURE.md) and its [decision records](../architecture/adr/README.md). It also does not say **when**: that is in the [roadmap](../roadmap/ROADMAP.md). Every requirement still carries a target phase, so the two can be cross-checked.
@@ -193,6 +193,7 @@ These were rejected in the [rehaul plan §3.5](../implementations/2026-10-29-cou
 | Monetization | `MON` |
 | Web | `WEB` |
 | Navigation and deep links | `NAV` |
+| Onboarding | `ONB` |
 
 NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PORT`.
 
@@ -293,12 +294,12 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 **Verify:** I: `SettingsScreen.tsx` validation · **Source:** code
 
 #### FR-TMR-010
-**Statement:** The user shall be able to pick a session preset: Classic 25/5, 50/10, 52/17 or 90/20.
-**Pri:** Should · **Target:** Phase 1 (D1) · **Status:** planned
+**Statement:** The user shall be able to pick a session preset on Classic: 25/5, 50/10 or 90/20, or Custom, which uses the durations set in Settings.
+**Pri:** Should · **Target:** Phase 1 (D1) · **Status:** implemented
 **Accept:**
-- Choosing a preset sets the focus and short-break lengths.
-- Custom values still work.
-**Verify:** T (to be written) · **Source:** PLAN-REHAUL §3.5 #8, PLAN-PHASE1 D1
+- Choosing a preset sets the focus, short-break and long-break lengths (25/5/15, 50/10/30, 90/20/20).
+- Choosing Custom applies the durations typed in Settings, which no preset overwrites; editing one in Settings selects Custom.
+**Verify:** T: `src/constants/__tests__/presets.test.tsx`, `src/screens/__tests__/classic.test.tsx`, `src/screens/__tests__/settingsKeyboard.test.tsx` · **Source:** the owner, 2026-10-30 (build 48 device check)
 
 #### 3.2.2 Notifications and reminders (NTF)
 
@@ -350,7 +351,7 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 **Verify:** T: `src/stores/__tests__/statsCredit.test.tsx`, `src/screens/__tests__/flyCredit.test.tsx` · **Source:** code
 
 #### FR-STA-003
-**Statement:** The Stats screen shall show today, all-time and a 7-day chart, switchable between sessions and minutes.
+**Statement:** The Stats screen shall show today, the all-time totals and the last seven days, each day with its sessions and minutes, switchable between a sessions view and a minutes view, under one summary line of the week.
 **Pri:** Must · **Target:** v1 · **Status:** implemented · **Verify:** D
 
 #### FR-STA-004
@@ -386,8 +387,8 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 
 #### FR-NTE-002
 **Statement:** Fresh installs shall get name-free default notes. Existing installs keep their notes, including the Bengisu-era defaults when the user never edited them.
-**Pri:** Must · **Target:** Phase 1 (B2, D2) · **Status:** planned
-**Verify:** T: B2 migration tests over the `v131` fixtures · **Source:** PLAN-PHASE1 §0, B2
+**Pri:** Must · **Target:** Phase 1 (B2, D2) · **Status:** implemented (D2: 20 name-free defaults per language, `defaults.ts`; existing installs keep theirs)
+**Verify:** T: `src/screens/__tests__/notes.test.tsx` (the defaults), `src/utils/__tests__/storageMigration.test.ts` (B2's migration over the `v131` fixtures); D: the device checks through TestFlight build 58 · **Source:** PLAN-PHASE1 §0, B2
 
 #### FR-NTE-003
 **Statement:** Notes written by a partner shall be delivered to the other partner and shown after **their** focus sessions.
@@ -396,17 +397,18 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 #### 3.2.5 Settings and personalisation (SET)
 
 #### FR-SET-001
-**Statement:** The settings shall persist across restarts: durations, notifications, sound, haptics, love notes on or off, theme mode (system, light or dark), background animations, and the Fly ambient sound.
+**Statement:** The settings shall persist across restarts: durations, notifications, sound, haptics, love notes on or off, theme mode (system, light or dark), background animations, the Fly ambient sound, the Timer's preset and Custom's durations (`presetChoice`, `customDurations`; optional, derived from `durations` when absent), and the app's language (System, English or Türkçe; under its own key, `language_choice`, outside the settings blob; applied at the next launch).
 **Pri:** Must · **Target:** v1 · **Status:** implemented
-**Known deviation:** DEF-007 (the haptics half fixed in Phase 1 B3, `ca21ef0`; the sound half open until D4) and DEF-008 (fixed 2026-10-30); see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
+**Known deviation:** DEF-007 (the haptics half fixed in Phase 1 B3, `ca21ef0`; the sound half fixed in D4: the Sound switch plays and silences the three UI sounds, `0e70b1a`) and DEF-008 (fixed 2026-10-30, reopened by the build 48 device check and fixed again in `cec4319`, then closed in D2 by the number wheel); see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
 **Accept:**
 - The defaults are those in `src/constants/defaults.ts`.
 - New fields merge into saved settings without loss.
-**Verify:** T: `src/__fixtures__/storage/__tests__/v131.test.tsx` (shapes); T: `src/screens/__tests__/settingsKeyboard.test.tsx` (the number fields can be left, DEF-008) · **Source:** code
+**Verify:** T: `src/__fixtures__/storage/__tests__/v131.test.tsx` (shapes); T: `src/screens/__tests__/settingsKeyboard.test.tsx` (no number opens a keyboard: Settings sets them on the system wheel, DEF-008) · **Source:** code
 
 #### FR-SET-002
 **Statement:** The app shall offer the Strawberry Milk (light) and Midnight Plum (dark) themes, generated from tokens whose text and background pairs meet the contrast floor ([NFR-A11Y-001](#nfr-a11y-001)).
-**Pri:** Must · **Target:** Phase 1 (C1) · **Status:** planned · **Source:** DESIGN.md, PLAN-PHASE1 C1
+**Pri:** Must · **Target:** Phase 1 (C1, D1) · **Status:** implemented (D1, `46a5b00`: `useTheme` returns Strawberry Milk or Midnight Plum from `palette.ts`. Light and dark follow the system appearance; v1's in-app switch is retired (D2, the owner).)
+**Verify:** T: `src/theme/__tests__/contrast.test.ts`, `src/__tests__/router.test.tsx`; D: the D1 device check, and the device checks through TestFlight build 58 · **Source:** DESIGN.md, PLAN-PHASE1 C1
 
 #### FR-SET-003
 **Statement:** Plus shall unlock further themes: Matcha Latte, Peach Soda and the seasonal themes.
@@ -414,11 +416,13 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 
 #### FR-SET-004
 **Statement:** Focus start, break start and completion shall play short sounds (each ≤ 1.5 s and ≤ 25 KB), which respect the silent switch and a Settings toggle.
-**Pri:** Should · **Target:** Phase 1 (D4) · **Status:** planned · **Source:** PLAN-PHASE1 D4; closes DECISIONS.md Q1
+**Pri:** Should · **Target:** Phase 1 (D4) · **Status:** implemented (D4 made the three sounds, approved by the owner on 2026-10-30; the D4 wiring plays them in Classic, `0e70b1a`. The device check passed on TestFlight builds 56 and 58: the silent switch, the music mix and the Sound switch.)
+**Verify:** T: `src/audio/__tests__/uiSounds.test.ts`, `src/screens/__tests__/classic.test.tsx` ("Classic's sounds"); D: the device check on builds 56 and 58 (the silent switch, the music mix and the Sound switch) · **Source:** PLAN-PHASE1 D4; closes DECISIONS.md Q1
 
 #### FR-SET-005
-**Statement:** The app shall be available in English and Turkish, following the device language, with the UI copy reviewed in both.
-**Pri:** Must · **Target:** Phase 1 (D3) · **Status:** planned · **Source:** PLAN-PHASE1 D3
+**Statement:** The app shall be available in English and Turkish, following the device language unless the person chooses English or Türkçe in Settings, which applies the next time the app opens, with the UI copy reviewed in both.
+**Pri:** Must · **Target:** Phase 1 (D3) · **Status:** implemented (D3: every string in English and Turkish, the copy review applied; the device check passed on TestFlight build 56 at the default text size and on build 58 at the largest)
+**Verify:** T: `src/i18n/__tests__/i18n.test.ts`, `src/__tests__/noRawText.test.ts`, `src/screens/__tests__/settings.test.tsx` (the Language row); D: the D3 device check, builds 56 and 58 · **Source:** PLAN-PHASE1 D3; the owner, 2026-10-31 (the in-app choice) and 2026-11-01 (applied at the next launch)
 
 #### 3.2.6 Fly Mode (FLY)
 
@@ -645,6 +649,18 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 **Pri:** Should · **Target:** Phase 1 (B6) · **Status:** implemented (B6, `a736b22`, merged as `1b7a8d7`; the deep links passed on TestFlight build 46, `v1.4.0-tf.46`, 2026-10-30; the fix for its tab flicker, merged as `63f1db2`, passed on build 47, `v1.4.0-tf.47`)
 **Verify:** T: `src/__tests__/router.test.tsx` (each URL cold and warm, through the router's own URL parsing); D: [B6 §6.6](../implementations/2026-10-30-phase1-b6-expo-router.md), item 6 · **Source:** PLAN-PHASE1 B6, [ADR-0028](../architecture/adr/0028-expo-router.md)
 
+#### 3.2.18 Onboarding (ONB)
+
+#### FR-ONB-001
+**Statement:** On a new install's first launch, the app shall offer a guided tutorial in which Pomo & Doro take turns explaining the app in speech bubbles, with their own non-human babble voices; it can be skipped at any step and replayed later.
+**Pri:** Must · **Target:** Phase 1 (D5) · **Status:** implemented (D5, 2026-11-01; the device check passed on TestFlight build 58, `v1.4.0-tf.58`)
+**Verify:** T: `src/screens/tutorial/__tests__/tourFlow.test.tsx`, `src/screens/tutorial/__tests__/tutorialModel.test.ts`, `src/screens/tutorial/__tests__/tourStoreAndPlacement.test.ts`, `src/screens/tutorial/__tests__/tourWorstCase.test.tsx`; D: the build 58 device check · **Source:** the owner, 2026-11-01; [D5 record](../implementations/2026-11-01-phase1-d5-tutorial.md)
+
+#### FR-ONB-002
+**Statement:** On the first launch after an update, the app shall show existing users a short tutorial of that version's new features, once; a new install sees the general tutorial (FR-ONB-001) instead. v1.4, the first version with any onboarding, shows its updaters the general tutorial.
+**Pri:** Must · **Target:** every version that adds features, from Phase 1 (D5) · **Status:** implemented for v1.4 (updaters from 1.3.1 see the general tutorial once: `dueTutorial` in `src/screens/tutorial/tutorials.ts` returns it when no tutorial has been seen). Every later version that adds features must add its own version tutorial to that list.
+**Verify:** T: `src/screens/tutorial/__tests__/tutorialModel.test.ts` (`dueTutorial`), `src/screens/tutorial/__tests__/tourStoreAndPlacement.test.ts`; D: the build 58 device check · **Source:** the owner, 2026-11-01; [D5 record](../implementations/2026-11-01-phase1-d5-tutorial.md)
+
 ### 3.3 Non-functional requirements
 
 #### NFR-PERF-001
@@ -653,7 +669,7 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 
 #### NFR-PERF-002
 **Statement:** The startup JavaScript (Hermes bytecode) shall be smaller than the SDK 58 baseline: iOS 3,856,208 B, measured with `npx expo export --platform ios --platform android --dump-sourcemap`.
-**Target:** Phase 1 · **Status:** implemented (met by B1b `0d63145`, held after B2 `dd1e894`: iOS 3,430,632 B, −11.0 % against the baseline; Android 3,518,464 B. Re-measured at E3 before release. **Not met after B6** (2026-10-30): iOS 3,894,148 B, 37,940 B (0.98 %) over the baseline, all of it Expo Router ([B6 record §4.2](../implementations/2026-10-30-phase1-b6-expo-router.md#42-the-bytecode)); with B7 merged, 3,912,916 B (56,708 B, 1.47 % over). **Accepted for now by the owner, 2026-10-30, and revisited at E3** with B7's TTI numbers in hand (B6 §7.1, option a).) · **Verify:** A: the [B1b record](../implementations/2026-10-29-phase1-b1b-airports-asset.md) and the [B2 record](../implementations/2026-10-29-phase1-b2-mmkv-migration.md) bytecode tables · **Source:** [SDK 58 upgrade §6.1](../implementations/2026-10-29-expo-sdk-58-upgrade.md#61-local-gates-all-passed-at-every-step)
+**Target:** Phase 1 · **Status:** implemented (met by B1b `0d63145`, held after B2 `dd1e894`: iOS 3,430,632 B, −11.0 % against the baseline; Android 3,518,464 B. Re-measured at E3 before release. **Not met after B6** (2026-10-30): iOS 3,894,148 B, 37,940 B (0.98 %) over the baseline, all of it Expo Router ([B6 record §4.2](../implementations/2026-10-30-phase1-b6-expo-router.md#42-the-bytecode)); with B7 merged, 3,912,916 B (56,708 B, 1.47 % over). **Accepted for now by the owner, 2026-10-30, and revisited at E3** with B7's TTI numbers in hand (B6 §7.1, option a). D1 (2026-10-30): iOS 4,026,408 B with the in-house translator (ADR-0048), 4.41 % over the limit (D1 record §4.1); D1 after its finish fixes was 4,050,408 B, 5.04 % over; D2 built: 4,112,584 B, 6.65 % over (D2 record §3.9); build 56: 4,139,364 B, 7.34 % over. **At E3 (2026-11-01): iOS 4,287,144 B, 11.18 % over** the 3,856,208 B ceiling, +147,780 B since build 56, almost all of it D5's tour art ([Stage E record](../implementations/2026-11-01-phase1-stage-e.md) §4). The owner's decision, accept and amend or trim, is pending.) · **Verify:** A: the [B1b record](../implementations/2026-10-29-phase1-b1b-airports-asset.md) and the [B2 record](../implementations/2026-10-29-phase1-b2-mmkv-migration.md) bytecode tables · **Source:** [SDK 58 upgrade §6.1](../implementations/2026-10-29-expo-sdk-58-upgrade.md#61-local-gates-all-passed-at-every-step)
 
 #### NFR-PERF-003
 **Statement:** While a session runs, a component that doesn't display time shall not re-render. In the Reassure settings-only scenario, renders drop from 14 to ≤ 2, and the timer-text leaf renders once per displayed second.
@@ -665,7 +681,7 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 
 #### NFR-PERF-005
 **Statement:** Asset budgets: an icon ≤ 2 KB, an illustration ≤ 30 KB, a mode scene ≤ 120 KB, a UI sound ≤ 25 KB.
-**Target:** Phase 1 C3, D4 · **Status:** planned (icons, illustrations and the mark met in C3 and C5, 2026-10-30: 79 assets within budget, checked by `scripts/art/check-budgets.mjs`; the sounds wait for D4) · **Verify:** A
+**Target:** Phase 1 C3, D4 · **Status:** planned (icons, illustrations and the mark met in C3 and C5, 2026-10-30: 79 assets within budget, checked by `scripts/art/check-budgets.mjs`; the UI sounds met in D4, 2026-10-30: three sounds of 11,199–14,069 B against 25,600 B, checked by `scripts/sound/build.mjs`, [D4 record](../implementations/2026-10-30-phase1-d4-sounds.md); the tour's art and babble met in D5, 2026-11-01: 133 assets within budget, [D5 assets record](../implementations/2026-11-01-phase1-d5-assets.md); mode scenes wait for their phases) · **Verify:** A
 
 #### NFR-PERF-006
 **Statement:** Shared-session skew between two phones shall be ≤ 250 ms, and a partner state change shall be visible within 1 s at p95.
@@ -723,11 +739,11 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 
 #### NFR-A11Y-004
 **Statement:** With Reduce Motion on, translate, scale, particles and overshoot shall be dropped, keeping opacity and colour. Every gesture shall have a non-gesture alternative.
-**Target:** Phase 1 D1 · **Status:** planned · **Verify:** D
+**Target:** Phase 1 D1 · **Status:** planned (D1: Reduce Motion handled for every new motion: press dimming, the sticker fade, no indicator slide, the welcome's fade; the D1 device check confirmed it. E2 checks Reduce Motion again on the release candidate.) · **Verify:** D
 
 #### NFR-I18N-001
 **Statement:** All user-visible strings shall be externalised. Turkish casing shall use `tr-TR` (İ/ı), and the display face shall cover Turkish glyphs with tabular figures.
-**Target:** Phase 1 C2, D3 · **Status:** planned · **Verify:** I + D
+**Target:** Phase 1 C2, D3 · **Status:** implemented (D1: Baloo 2 embedded (Latin + Turkish, `fi`/`fl` off, `art/type/build-fonts.py`), every timer tabular, the i18n plumbing with `tr-TR` casing; D3 extracted the remaining strings, held by the raw-text check `src/__tests__/noRawText.test.ts`; the device check in Turkish passed on builds 56 and 58) · **Verify:** I + D
 
 #### NFR-UX-001
 **Statement:** The product shall never punish: no dying pets, no lost gardens, no guilt copy.
@@ -739,7 +755,7 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 
 #### NFR-UX-003
 **Statement:** Primary screens shall score ≥ 16/20 in the Impeccable native audit.
-**Target:** Phase 1 D1 · **Status:** planned · **Verify:** I
+**Target:** Phase 1 D1 · **Status:** implemented (Classic's native audit 16/20 and critique 35/40 at D1 (`ce388d0`), from source; the D1 device check confirmed it. D2 audited the other primary screens after its fixes: Stats 16/20, Settings 18/20, Notes 17/20. The welcome scored 19/20 at D1 and the tour 18/20 at D5.) · **Verify:** I
 
 #### NFR-MAINT-001
 **Statement:** Every meaningful change shall come with an implementation record and keep the docs check green ([DOCS.md](../process/DOCS.md)).
@@ -765,8 +781,8 @@ These are places where the code at `5b10a78` doesn't fully meet a requirement ma
 | DEF-004 | FR-TMR-005 | **Reproduced in Phase 1 B3, and wider than suspected:** a session of **either** kind that ends while the app is killed is cleared on relaunch with no credit. `NavigationContainer` renders nothing until `Linking.getInitialURL()` resolves (up to 150 ms), so the screens subscribe after the clock's cold-start completion has fired. Since B2's MMKV load (microtasks) this happens every time; on v1.3.1 it was a race. Affects TestFlight build 43. | `useSessionClock.ts` mount effect; React Navigation 7.5.1 `NavigationContainer.tsx:121–135`; B1 lazy load | **High** (since B2) | **Fixed** in Phase 1 B3 (`e04cc8c`): completions wait for a handler of their kind ([B3 §0](../implementations/2026-10-30-phase1-b3-zustand-stores.md)); device check passed on `v1.4.0-tf.44`, 2026-10-30. Under Expo Router (B6) the iOS navigator no longer waits for the launch URL; the fix stays load-bearing for Fly's lazy load, deep-link launches into another tab, and Android ([B6 §3.7](../implementations/2026-10-30-phase1-b6-expo-router.md#37-def-004-under-expo-router)) |
 | DEF-005 | FR-NTF-001 | When scheduling the session-end notification takes more than 1 s, its id is dropped. That notification can't be cancelled, so a paused or skipped session may still alert. | `useTimer.ts:158–170` (`Promise.race` with a 1 s timeout) | Low–Medium | **Open.** Moved out of B3: it is notification scheduling, not store state. Not in B4, which doesn't touch scheduling. Slot TBD (owner); D1 rebuilds Classic's start path |
 | DEF-006 | FR-ADS-001 | The Stats screen shows an AdMob **banner** outside `AdPolicy`, including during a running session; the requirement covers interstitials only. | `StatsScreen.tsx:297` | Product decision | Phase 1 D2: keep it under the policy, or remove it |
-| DEF-007 | FR-SET-001 | The `sound` setting has no effect yet (sounds arrive in D4), and the tab bar's haptic ignores the Haptics setting. | `tabPressHaptic.ts` (was `HapticTab.tsx`, until B6); no reader of `settings.sound` | Low | Phase 1 D4 (sound); haptics **fixed** in B3 (`ca21ef0`; device check passed on `v1.4.0-tf.44`, 2026-10-30) |
-| DEF-008 | FR-SET-001 | **Found on TestFlight build 46 (2026-10-30), present since v1:** on iPhone the five Settings number fields (the durations, "Long break every N sessions", the custom goal) open the number pad, which has no return key, and nothing in Settings dismissed it. A field couldn't be left once edited, so its value applied only on the next tap elsewhere. | `SettingsScreen.tsx` at `v1.3.1` and `3369418`: `keyboardType="number-pad"`, no `keyboardDismissMode`, accessory view or `Keyboard.dismiss()` | Medium | **Fixed** 2026-10-30: a "Done" bar above the number pad and dismiss on scroll ([record](../implementations/2026-10-30-settings-keyboard-dismiss.md)); device check passed on TestFlight build 47 (2026-10-30) |
+| DEF-007 | FR-SET-001 | The `sound` setting has no effect yet (sounds arrive in D4), and the tab bar's haptic ignores the Haptics setting. | `tabPressHaptic.ts` (was `HapticTab.tsx`, until B6); no reader of `settings.sound` | Low | Sound **fixed** in Phase 1 D4: the Sound switch plays and silences the three UI sounds (`0e70b1a`; device check passed on `v1.4.0-tf.56` and `v1.4.0-tf.58`); haptics **fixed** in B3 (`ca21ef0`; device check passed on `v1.4.0-tf.44`, 2026-10-30) |
+| DEF-008 | FR-SET-001 | **Found on TestFlight build 46 (2026-10-30), present since v1:** on iPhone the five Settings number fields (the durations, "Long break every N sessions", the custom goal) open the number pad, which has no return key, and nothing in Settings dismissed it. A field couldn't be left once edited, so its value applied only on the next tap elsewhere. | `SettingsScreen.tsx` at `v1.3.1` and `3369418`: `keyboardType="number-pad"`, no `keyboardDismissMode`, accessory view or `Keyboard.dismiss()` | Medium | **Fixed** 2026-10-30: a "Done" bar above the number pad and dismiss on scroll ([record](../implementations/2026-10-30-settings-keyboard-dismiss.md)); device check passed on TestFlight build 47 (2026-10-30). Reopened by the build 48 device check: on the New Architecture an `InputAccessoryView` binds to the first input carrying its `nativeID` and no other, so the shared Done bar reached Focus only. Fixed 2026-10-30 (`cec4319`) with one bar per field. **Closed in D2:** Settings sets every bounded number on the system wheel (`@react-native-picker/picker`), so no number field opens the number pad, and the deprecated `InputAccessoryView` is gone |
 | DEF-009 | FR-ADS-001 | The Stats banner didn't show on TestFlight build 46 (it did on build 45). The interstitial works. Nothing in the banner's code or B7's proved a cause. | Device report, build 46; [B6 §9.1](../implementations/2026-10-30-phase1-b6-expo-router.md) | Medium | **Fixed** 2026-10-30: the banner shows on TestFlight build 47 (owner-reported). The B6 fix (`63f1db2`: `1fc37d8`, `16a6752`, `1865f75`) makes it wait for Stats' first focus and reports its load result in B7's hidden panel. Build 46's cause is unconfirmed, since that panel line wasn't recorded ([B6 §6.6](../implementations/2026-10-30-phase1-b6-expo-router.md)) |
 
 ---
@@ -795,6 +811,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 | Version | Date | Change |
 |---------|------|--------|
 | 1.0 | 2026-10-30 | First SRS: as-built v1.3.1 + Phase 0/1 work, and the v2 rehaul requirements from PLAN-REHAUL and PLAN-PHASE1 |
+| 1.1 | 2026-11-02 | Phase 1 Stage D applied at its merge ([Stage D plan](../implementations/2026-10-30-phase1-stage-d.md) §9): FR-ONB-001 and FR-ONB-002 added (§3.2.18); FR-TMR-010, FR-STA-003, FR-SET-001 and FR-SET-005 amended; FR-SET-002, FR-SET-004, FR-SET-005, FR-NTE-002, NFR-I18N-001 and NFR-UX-003 implemented; DEF-007 and DEF-008 closed |
 
 ## Backlinks
 <!-- backlinks:start -->

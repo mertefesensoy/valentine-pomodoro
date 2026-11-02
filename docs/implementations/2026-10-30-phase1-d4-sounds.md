@@ -281,6 +281,8 @@ What followed (§3.4):
 
 ## 10. Shared-doc updates to apply at merge
 
+**Applied at the merge, 2026-11-02**, with each item brought to its final state ([Stage E](2026-11-01-phase1-stage-e.md) M2).
+
 Ready to paste when this branch is merged with the owner's OK.
 
 **`docs/README.md`**, top of the implementation-records table:
@@ -332,9 +334,14 @@ And §6's D4 line: `- [x] D4: three sounds, each ≤ 1.5 s and ≤ 25 KB, rebuil
 
 ## Backlinks
 <!-- backlinks:start -->
+- [Valentine Pomodoro - Design Decisions Log](../../DECISIONS.md)
+- [Documentation map](../README.md)
+- [VectorCraft for all vector art; SoundCraft for all app sounds](../architecture/adr/0027-vectorcraft-art-soundcraft-sounds.md)
 - ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](2026-10-30-phase1-stage-d.md)
 - ["Phase 1 D4, wired in: D4's sounds merged into Stage D and played by Classic"](2026-11-01-phase1-d4-wiring.md)
 - ["Phase 1 D5, the assets: Pomo & Doro's tour expressions and their babble"](2026-11-01-phase1-d5-assets.md)
 - ["Phase 1 D5: the general tutorial, Pomo & Doro show you around"](2026-11-01-phase1-d5-tutorial.md)
+- [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
+- [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

@@ -38,6 +38,15 @@ Around them are a daily goal and streak, love notes, a daily reminder, a first-r
 
 ### 1.3 Work in progress (Phase 1 Stage B), not described as done
 
+> **Update, 2026-11-02 (Stage D):** Phase 1 Stage D (D1–D5) is merged into `rehaul/v2` as `96ce9dd` ([Stage D plan](../implementations/2026-10-30-phase1-stage-d.md)); every screen is rebuilt in the Sticker Diary design.
+> - **Theme:** `useTheme` returns `{ theme, tokens, isDark }` from the system appearance, the theme coming from `palette.ts` (§5.9, §8.3). The transitional `legacyColors` adapter D1 added for the screens not yet rebuilt was deleted in D2 (`5849286`).
+> - **First run:** the one-time v1.4 welcome (`app/welcome.tsx`, D1) is the only first-run screen; `GiftModeModal` and the gift screen are gone (D2).
+> - **Routes:** form sheets over the tabs: `/love-note` and `/modes` (D1), and `/note-editor` (`src/screens/notes/NoteEditor.tsx`, D2) (§5.3).
+> - **New building blocks:** `src/components/settings/SettingsList.tsx` (the grouped-list rows and the number wheel) and `src/screens/stats/WeekStack.tsx` (the postcard stack), D2; `src/i18n/` (the in-house translator, [ADR-0048](adr/0048-in-house-translator.md)), D1 and D3; `src/audio/uiSounds.ts` (the three UI sounds), D4; `src/screens/tutorial/` (the tour), D5.
+> - **Dependencies:** `@react-native-picker/picker` 2.11.4 added (D2); `expo-blur` removed (D1).
+> - **The tour:** the tour (D5) is a sixth store, `src/screens/tutorial/tourStore.ts`, hydrated with the others under one additive key, `tutorial` (the version last seen, and the step to resume at, once). Its layer is lazy-loaded inside the Timer, Stats and Notes tabs, as Fly's screen is, never as a root route, so the native tab bar stays live above it (D5 record §3.2, §3.8).
+> - **Brought current below:** §5.3's routes and tab icons, §5.6's Timer row, §5.7's Stage D entries (its `HapticTab` and `TabBarBackground` went in B6), §5.9's resolver, §6.5's first participant, §8.2's new keys and §8.3's tokens. The rest of §5 still describes `5b10a78`.
+
 > **Update, 2026-10-30 (B6 and B7):** B6 and B7 are merged into `rehaul/v2`: B6 as `1b7a8d7` (`a736b22`, `65fa2ea`, `62fef2e`; [B6 record](../implementations/2026-10-30-phase1-b6-expo-router.md), [ADR-0043](adr/0043-native-tabs-frozen-by-a-wrapper.md)), then B7 as `3d3fbaf` (`6ab3953`…`e0e8f26`; [B7 record](../implementations/2026-10-30-phase1-b7-deferred-startup.md)). Expo Router 58 replaces `src/navigation/`: `index.tsx` imports `expo-router/entry`; `app/_layout.tsx` renders `App` (`src/App.tsx`) around a native stack with `(tabs)` and `+not-found`; `app/(tabs)/_layout.tsx` is the iOS native tab bar. Each tab route renders its screen inside `LazyTab`: nothing until its first focus or start-up idle, then always (build 46's frozen tabs flickered; [B6 record §9](../implementations/2026-10-30-phase1-b6-expo-router.md), merged as `63f1db2`). Screens lay out by safe-area insets; the router vendors React Navigation, and the `@react-navigation/*` packages are gone. §5.3 below is current; §5.2 still describes the pre-B6 `App.tsx`. Since B7, `AdManager.init()` and the launch update check wait for the root's first layout (`onLayout={markFirstFrame}` on `App()`'s `GestureHandlerRootView`) and then run in one idle callback (`src/startup/deferredStartup.ts`).
 
 > **Update, 2026-10-30 (B4):** B4 landed, pushed through `178b4ba`, as `b7461f1`, `43cf1a8`, `e9df252`, `040ad32` and `b838ebe` ([B4 record](../implementations/2026-10-30-phase1-b4-rerender-refactor.md)). The F1 chain of §8.1 is gone: the session store has no `tick`, and the engine has no interval. A clock store (`src/stores/clockStore.ts`, `useSyncExternalStore`) samples the wall clock and notifies only when the running slot's displayed second changes. Its scheduler wakes $(r \bmod 1000) + 4$ ms after each sample and also detects completion. Only `<TimerText>` subscribes in the app. The ring's progress is derived on the UI thread from slot SharedValues written in the store's `set()`; Fly's clock SharedValues come from the same hook. Hidden tabs are frozen (`freezeOnBlur`). While a session runs, the Timer screen commits only its `<TimerText>`, once a second. §5, §6.1 and §8.1 below still describe the chain as it was.
@@ -206,7 +215,8 @@ flowchart TD
 Expo Router 58 (file routes in `app/`; [ADR-0028](adr/0028-expo-router.md), [ADR-0043](adr/0043-native-tabs-frozen-by-a-wrapper.md)).
 
 - **Routes:** `app/_layout.tsx` renders `App` from `src/App.tsx` around a native `Stack` holding `(tabs)` and `+not-found`. `app/(tabs)/` holds `index` (Timer, Classic with the Fly switch), `stats`, `settings` and `notes`. URLs: `/`, `/stats`, `/settings`, `/notes`; the `valentinepomodoro://` scheme maps onto them (FR-NAV-001), and any other path is the 404.
-- **The tab bar** is the iOS native one (`expo-router/native-tabs`, a `UITabBarController`), with SF Symbols typed against `IconSymbol`'s mapping. No switch animation. Its `tabPress` listener plays the haptic when Haptics is on (`tabPressHaptic.ts`, DEF-007).
+- **Sheets and the welcome (Phase 1 D1, D2):** the stack also holds three native form sheets over the tabs, with their options in `src/navigation/sheetOptions.ts`: `/love-note` (the love note after a focus), `/modes` (Classic or Fly) and `/note-editor` (`src/screens/notes/NoteEditor.tsx`, adding or editing a note). The one-time v1.4 welcome, `/welcome`, is a full-screen modal that fades in.
+- **The tab bar** is the iOS native one (`expo-router/native-tabs`, a `UITabBarController`), with the four filled tab icons as template images (`assets/images/tabs/`, Phase 1 D1). No switch animation. Its `tabPress` listener plays the haptic when Haptics is on (`tabPressHaptic.ts`, DEF-007).
 - **Lazy tabs that never hide:** native tabs mount every tab at launch and can't freeze one without a blank frame on every switch (UIKit shows a tab before JavaScript reacts; build 46). So each tab route renders its screen inside `LazyTab`: nothing until its first focus, or until start-up has gone idle after B7's interactive mark (`runAfterInteractive`, one tab per idle callback, after the deferred work); then always. A hidden screen holds back what must happen in front of the user with `useScreenFocused` (the router's `IsFocusedContext`): Timer's and Fly's celebration, love notes and interstitial wait for focus, and Fly's frame callback stops. The Stats banner waits for Stats' first focus (`useHasBeenFocused`).
 - **Safe areas:** each tab has its own `SafeAreaProvider` whose bottom inset includes the bar. Timer pads by it; Stats, Settings and Notes rely on their `SafeAreaView`; the Fly sheet reads the window's inset through `useWindowInsets()`. Every tab sets `disableAutomaticContentInsets`.
 - **One copy of React Navigation:** the router vendors it. `useSlotClock` reads `NavigationContext` from `expo-router/react-navigation`; nothing imports `@react-navigation/*`.
@@ -317,7 +327,7 @@ stateDiagram-v2
 
 | Screen | Responsibility | Key facts |
 |--------|----------------|-----------|
-| `TimerScreen` | Hosts **both** modes. Classic: ring, phase chip, Start/Pause/Resume, Skip, Reset with a confirm, and the overlay queue: goal popup, then love note, then interstitial (`:104–147`). Fly: `FlyModeScreen` behind `lazy` + `Suspense`, with `ModeSwitcher` outside the boundary (`:25,346–357`). | Mirrors `activeMode` into `session.switchTo` (`:86–95`). The ring's progress is React state, `1 − remainingMs/totalMs` (`:174–177`). The switcher is hidden where Fly is unavailable (`:376–378`). |
+| `TimerScreen` | Hosts **both** modes. Classic: ring, phase chip, Start/Pause/Resume, Skip, Reset with a confirm, and the overlay queue: goal popup, then love note, then interstitial (`:104–147`). Fly: `FlyModeScreen` behind `lazy` + `Suspense`, with the Modes button (opening the `/modes` sheet) at the head of `FlyModeScreen`'s map controls, inside the boundary (D1 record §3.18). | Mirrors `activeMode` into `session.switchTo` (`:86–95`). The ring's progress is React state, `1 − remainingMs/totalMs` (`:174–177`). The switcher is hidden where Fly is unavailable (`:376–378`). |
 | `FlyModeScreen` | Airport pick (picker, or a map tap picks the nearest airport), a great-circle route of 100 waypoints, the plane worklet, three camera modes, the globe toggle, the sheet and pill, ambient audio, the landing note and ad | 1,207 lines. `AIRPORTS` is built from the static JSON at module evaluation (`:46,69–71`). Its own fly-slot SharedValues (`:262–264,321–331`), so the plane never follows the Pomodoro slot. |
 | `StatsScreen` | Today, all-time, a 7-day chart (sessions or minutes), the streak, the banner ad | The loading return comes after every hook (`:83–84`, FR-STA-006) |
 | `SettingsScreen` | Durations (focus 1–180, short 1–60, long 1–120, long-break-every 2–10), toggles, theme, goal presets 25/50/75/100, reminder and quiet-hours pickers, update check, About | `:25,51–86` |
@@ -327,7 +337,8 @@ stateDiagram-v2
 
 - **Fly:** `FlySheet` (two snap points; Gesture Handler 3's deprecated `Gesture.*` builders; writes `sheetProgress`), `FlyTimerPill`, `AirportPicker`.
 - **Classic:** `CircularProgress` (SVG ring), `CalmBackground` → `PremiumCalmBackground` (animated gradients; static when Reduce Motion is on), `GoalReachedPopup` and `LoveNoteCard` (RN `Animated`).
-- **Shared:** `ModeSwitcher`, `GiftModeModal`, `HapticTab`, `ui/IconSymbol` (SF Symbols on iOS; a Material mapping elsewhere, checked with `satisfies`), and `ui/TabBarBackground` (an iOS `BlurView`).
+- **Settings and Stats (Phase 1 D2):** `settings/SettingsList` (the grouped-list rows and the number wheel), and `src/screens/stats/WeekStack.tsx` (the postcard stack).
+- **Shared:** `HapticTab`, `ui/IconSymbol` (SF Symbols on iOS; a Material mapping elsewhere, checked with `satisfies`), and `ui/TabBarBackground` (an iOS `BlurView`).
 
 ### 5.8 Ads
 
@@ -345,7 +356,8 @@ stateDiagram-v2
 
 ### 5.9 Theme
 
-- `useTheme()` resolves `settings.themeMode` (`system | light | dark`) against `useColorScheme()` and returns `{ colors: LightTheme | DarkTheme, isDark }` (`src/theme/useTheme.ts:10–30`).
+- **Since Phase 1 D1 and D2,** `useTheme()` returns `{ theme, tokens, isDark }`: Strawberry Milk or Midnight Plum from `palette.ts`, chosen by the system appearance (`useColorScheme()`). v1's in-app switch is retired; `settings.themeMode` stays in storage, read by nothing (`src/theme/useTheme.ts`).
+- At `5b10a78`, `useTheme()` resolved `settings.themeMode` (`system | light | dark`) against `useColorScheme()` and returned `{ colors: LightTheme | DarkTheme, isDark }` (`src/theme/useTheme.ts:10–30`).
 - `tokens.ts` holds the two palettes, including the lilac and violet aurora gradients (`:6–42`), and `ValentineSpec`, Fly's fixed palette (`:49–55`).
 - **`useTheme` calls `useApp()`, so every component that themes itself is a context consumer** (§8.1).
 
@@ -494,7 +506,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor U as User
-    participant MS as ModeSwitcher
+    participant MS as The Modes sheet
     participant AP as AppProvider
     participant TS as TimerScreen
     participant R as React.lazy and Suspense
@@ -616,6 +628,8 @@ Every value lives in AsyncStorage as JSON text, one key per concern. `storage.ts
 | `ad_policy_v1` | none (`AdPolicy.ts:3`) | `AdState` | `AdPolicy` `:30` / `:90` | **Bypasses `storage.ts`** |
 | `startup_variant_v1` | `STARTUP_VARIANT_KEY` (`src/startup/startupVariant.ts`) | `{ mode: 'deferred' \| 'eager' \| 'alternate', last: 'deferred' \| 'eager' \| null }` | `startupVariant` / the hidden panel, and `alternate` launches | Diagnostics (B7). Written only once the panel has been opened |
 | `startup_probe_v1` | `STARTUP_PROBE_KEY` (`src/startup/startupProbe.ts`) | `ProbeRow[]`, newest 40 | `startupProbe` | Diagnostics (B7). Written only once the panel has been opened; leaves the phone only through the panel's Share |
+| `tutorial` | `TUTORIAL` | `{ seen?: version, resumeAt?: step, resumed?: true }` | `tourStore` (`src/screens/tutorial/tourStore.ts`) | The tour (Phase 1 D5): the version last seen, and the step to resume at, once. Additive, new since v1.3.1 |
+| `language_choice` | `LANGUAGE_CHOICE_KEY` (`src/i18n/languageChoice.ts`) | `'en' \| 'tr'` as a plain string; absent means System | the translator, once when it loads / Settings › Language | Phase 1 D3. Kept outside the settings blob; applied at the next launch |
 
 - The keys are listed in `src/utils/storage.ts:48–61`, except `ad_policy_v1`.
 - `src/__fixtures__/storage/v131.ts` freezes every shape, typed against the readers, so `tsc` fails if one drifts (FR-MIG-001).
@@ -624,6 +638,7 @@ Every value lives in AsyncStorage as JSON text, one key per concern. `storage.ts
 ### 8.3 Theming
 
 - **Two palettes** (§5.9) serve the system, light and dark modes. Fly uses `ValentineSpec` whatever the mode. No contrast checking exists yet (C1, NFR-A11Y-001).
+- **Tokens (Phase 1 C1, D5):** `src/theme/palette.json` holds the roles of both themes and the text and background `pairs`, which `check:contrast` gates (NFR-A11Y-001). Since D5 it holds `dims` beside `pairs`: a translucent token over a lit colour and the separation it must make, gated by `check:contrast` (the tour's `scrim` and `scrimStrong`).
 - **What follows `isDark`:** React Navigation's `DarkTheme` or `DefaultTheme` (`App.tsx:67`), the status-bar style (`TimerScreen.tsx:344`) and the MapKit `userInterfaceStyle` (`FlyModeScreen.tsx:713`).
 
 ### 8.4 Haptics

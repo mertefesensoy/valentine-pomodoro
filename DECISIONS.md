@@ -229,7 +229,7 @@
 ## Open Questions
 
 ### Q1: Sound File
-**Status**: Pending user input  
+**Status**: Closed 2026-10-30 by Phase 1 D4: neither option. Every UI sound is synthesised in SoundCraft ([ADR-0027](docs/architecture/adr/0027-vectorcraft-art-soundcraft-sounds.md)); the completion sound is `src/assets/sounds/complete.m4a`, approved by the owner on 2026-10-30 ([D4 record](docs/implementations/2026-10-30-phase1-d4-sounds.md)).  
 **Question**: Should we use a default bell sound, or would you like to provide a custom sound file?
 
 **Options**:

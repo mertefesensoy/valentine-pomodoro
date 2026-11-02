@@ -615,6 +615,10 @@ The split costs a second release cycle but halves the risk of each one.
 4. Invites: code plus link. The website gets `/invite/[code]` and the `.well-known` files.
 5. Sentry and the `events` table. Write the new privacy policy (EN/TR), replacing the README claim (F9).
 
+**Inherits from Phase 1:**
+
+- The pages-to-logo morph (Pomo & Doro become the Same Page mark) plays at the first pairing, reusing the v1.4 welcome screen's choreography ([Phase 1 Stage D plan](2026-10-30-phase1-stage-d.md) §3.2.11; owner, 2026-10-30).
+
 **Exit:** two test accounts pair through a link on two devices; RLS tests are green; the N+1 review is clean.
 
 ### Phase 3: Shared room and presence (L)

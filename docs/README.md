@@ -47,6 +47,8 @@ Start here. Every document in the repo is listed below. The rules for writing th
 |----------|--------|
 | [v2 couples rehaul plan](implementations/2026-10-29-couples-rehaul-plan.md) | Approved 2026-10-29: the master plan for phases 0–7 |
 | [Phase 1 (v1.4) plan](implementations/2026-10-29-phase1-plan.md) | Approved; in progress |
+| [Phase 1 Stage D plan](implementations/2026-10-30-phase1-stage-d.md) | Done 2026-11-02: D1–D5, the screens in the Sticker Diary design; merged into `rehaul/v2` as `96ce9dd` |
+| [Phase 1 Stage E: verify and ship v1.4.0](implementations/2026-11-01-phase1-stage-e.md) | In progress from 2026-11-01 |
 | [Scale plan](scale-plan.md) | 2026-04-20; audited in the rehaul plan §2.3 |
 | [Proposal: ticket-cutting (boarding pass)](proposals/ticket-cutting-feature.md) | Folded into Phase 4b (FR-FLY-006) |
 | [Evaluation: xtool vs Expo/EAS](proposals/xtool-evaluation.md) | 2026-10-30. Decided: stay on Expo. xtool can't build this app, and its build path breaches Apple's Xcode licence on a non-Mac |
@@ -55,6 +57,15 @@ Start here. Every document in the repo is listed below. The rules for writing th
 
 | Date | Record |
 |------|--------|
+| 2026-11-01 | [Phase 1 Stage E: verify and ship v1.4.0](implementations/2026-11-01-phase1-stage-e.md) |
+| 2026-11-01 | [Phase 1 D5, the assets: Pomo & Doro's tour expressions and their babble](implementations/2026-11-01-phase1-d5-assets.md) |
+| 2026-11-01 | [Phase 1 D5: the general tutorial, Pomo & Doro show you around](implementations/2026-11-01-phase1-d5-tutorial.md) |
+| 2026-11-01 | [Phase 1 D4, wired in: D4's sounds merged into Stage D and played by Classic](implementations/2026-11-01-phase1-d4-wiring.md) |
+| 2026-11-01 | [Phase 1 D3: every string in English and Turkish, a raw-text check, and the in-app language choice](implementations/2026-11-01-phase1-d3-en-tr.md) |
+| 2026-10-31 | [Phase 1 D2: Stats, Settings and Notes rebuilt in the Sticker Diary design, the gift screen retired](implementations/2026-10-31-phase1-d2-screens.md) |
+| 2026-10-30 | [Phase 1 D4: the SoundCraft sound set, and Fly's loop re-encoded](implementations/2026-10-30-phase1-d4-sounds.md) |
+| 2026-10-30 | [Phase 1 D1: Classic rebuilt in the Sticker Diary design, with the v1.4 welcome screen](implementations/2026-10-30-phase1-d1-classic.md) |
+| 2026-10-30 | [Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan](implementations/2026-10-30-phase1-stage-d.md) |
 | 2026-10-30 | [The repository licence: FSL-1.1-ALv2 for the code, CC BY-ND 4.0 for the brand, a trademark policy](implementations/2026-10-30-repository-licence.md) |
 | 2026-10-30 | [The brand kit: `brand/`, after the Cassandra Collective and SuperconducTED kits](implementations/2026-10-30-brand-kit.md) |
 | 2026-10-30 | [Phase 1 Stage C: the Sticker Diary design system, display face, Classic brief, art and identity](implementations/2026-10-30-phase1-stage-c-design.md) |

@@ -161,6 +161,18 @@ The owner: "do it". Built in a temporary worktree at `rehaul/v2` (`618fbf5`), so
   - Jest, 65 suites and 494 tests;
   - `check-docs`.
 
+### 3.7 Phase 1's exit criteria
+
+From the plan §3, checked at E3 and E4:
+- A1's guards green;
+- Reassure's F1 drop (14 → ≤ 2);
+- the React Compiler's lint rules at `error`;
+- E1 and the iPhone checklists (A0, E2);
+- `airports.json` out of the bytecode (B1b);
+- Classic's audit ≥ 16/20;
+- DECISIONS.md Q1 closed;
+- DESIGN.md regenerated.
+
 ### 3.8 R1: the release candidate, build 59 (2026-11-02)
 
 The owner: "go for it". Built from `rehaul/v2`'s head, `bce65cc` (Stage D merged, M2 and E4 applied).
@@ -173,18 +185,6 @@ The owner: "go for it". Built from `rehaul/v2`'s head, `bce65cc` (Stage D merged
 | IPA | **21,618,068 B**, +2,341 B on build 58 (21,615,727 B): the choice-C mark and the light splash |
 
 **What the owner checks on it:** E2's checklist (§3.3); the cold-start TTI from the hidden panel (a 1.5 s long-press on Settings › About's credit line), for E3's bytecode decision; and the light splash, now the choice-C mark (§3.6).
-
-### 3.7 Phase 1's exit criteria
-
-From the plan §3, checked at E3 and E4:
-- A1's guards green;
-- Reassure's F1 drop (14 → ≤ 2);
-- the React Compiler's lint rules at `error`;
-- E1 and the iPhone checklists (A0, E2);
-- `airports.json` out of the bytecode (B1b);
-- Classic's audit ≥ 16/20;
-- DECISIONS.md Q1 closed;
-- DESIGN.md regenerated.
 
 ## 4. Mathematical / Statistical Details
 

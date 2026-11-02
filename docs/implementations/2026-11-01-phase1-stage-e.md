@@ -157,6 +157,104 @@ Drafted 2026-11-01 from what v1.4 ships, in the app's own names for each feature
 
 **The privacy labels:** v1.4 adds no SDK that collects data. Since 1.3.1 the new runtime dependencies are on-device only: MMKV, Zustand, Expo Router, expo-localization, expo-file-system, the picker, and expo-application. Google Mobile Ads (non-personalised, `requestNonPersonalizedAdsOnly`) and the update check of `update.json` were already in 1.3.1. The app shows no tracking prompt and declares no usage descriptions. So the existing labels stand, for the owner to confirm in App Store Connect.
 
+**The listing, as handed to the owner** (2026-11-02). The owner asked: "let's fill it part by part and give me everything for me to put there". The fill-in page is https://claude.ai/artifact/YVBXzsSRe4Rx4VSKQoGtfC: 15 steps in the version page's order, with copy buttons. The texts below are its source. Lengths were counted in characters, and the Turkish keywords also in UTF-8 bytes (95), in case App Store Connect counts bytes.
+
+- **Languages:** English (U.S.) and Turkish. Turkish is added as a localization so Turkish users get a Turkish page, with the Turkish screenshots.
+- **Header and Search Results** (per language, the same files in both):
+  - `creative-header.mp4` (21:9, 3840 × 1646) and `creative-search.mp4` (3:2, 3456 × 2304), from `C:\vp\stage-shots\art\out\creative\`, on `phase1/app-store-shots` (`35b05f0`).
+  - Poster frames: header 1.8 s (frame 54), search 11.2 s (frame 336).
+  - "Use header asset in search results" stays off.
+- **Screenshots** (per language), from `C:\vp\stage-shots\art\out\store\` (`8b12e2b`):
+  - iPhone with Dynamic Island (medium display): `store-iphone-<lang>-01…05-1206x2622.png`;
+  - iPad 13": `store-ipad-<lang>-01…05-2064x2752.png`;
+  - the 1320 × 2868 set only if a large-iPhone slot is offered;
+  - iPhone Duo, Apple Watch and app previews stay empty.
+- **Version page:**
+  - Copyright `2026 Mert Efe Şensoy`.
+  - Build 1.4.0 (59). There is no export-compliance prompt, since `ITSAppUsesNonExemptEncryption` is false.
+  - Sign-in not required.
+  - Manual release, with phased release for automatic updates (recommended, so R4 and R5 go out with the release).
+- **App Accessibility** (optional): only what the device checks have shown:
+  - Dark Interface;
+  - Larger Text (the largest text size, build 58);
+  - Sufficient Contrast (the 60-pair contrast check).
+  - VoiceOver, Voice Control, Reduced Motion and Differentiate Without Color wait for the owner to try them on device.
+- **What's New** and the **App Review notes:** as drafted above.
+
+**Promotional Text** (159 and 151 of 170 characters)
+
+> Meet Pomo & Doro. Pick a focus length, and every session you finish presses a sticker onto today's page. Reach your daily goal and keep your love streak going.
+
+> Pomo ile Doro'yla tanış. Bir odak süresi seç; bitirdiğin her oturum bugünün sayfasına bir çıkartma yapıştırır. Günlük hedefine ulaş, aşk serini sürdür.
+
+**Description** (1414 and 1416 of 4000; it replaces 1.3.1's)
+
+> Valentine Pomodoro is a focus timer that feels like a little diary. Pick how long you want to focus, start the timer, and every session you finish presses a sticker onto today's page.
+>
+> MEET POMO & DORO
+> The two little faces of your timer show you around on your first visit and keep you company while you work. You can watch their tour again any time from Settings.
+>
+> FOCUS YOUR WAY
+> • Pick a length in one tap: 25/5, 50/10, 90/20, or Custom with your own durations
+> • Two timer layouts: the Ring, or Facing pages
+> • The timer stays accurate when you leave the app or lock your phone
+> • A notification tells you when a focus or a break ends, and an optional daily reminder invites you back
+>
+> A DIARY THAT FILLS UP
+> • A sticker for every focus you finish, toward a daily goal you set
+> • Stats as a stack of postcards, one for each day, in sessions or minutes
+> • A love streak for every day you reach your goal
+>
+> LOVE NOTES
+> A sweet note appears after each focus session. Write your own, edit them, and keep the built-in ones too.
+>
+> FLY MODE
+> Pick two airports and fly across the map while you focus. The flight lasts as long as your session.
+>
+> CALM BY DESIGN
+> • Strawberry Milk by day and Midnight Plum by night, following your iPhone's appearance
+> • Soft sounds when a focus or a break starts and when you finish, which respect the silent switch
+> • In English and Turkish
+>
+> No account and no sign-in. Open the app and start focusing.
+
+> Valentine Pomodoro, küçük bir günlük gibi hissettiren bir odak zamanlayıcısı. Ne kadar odaklanmak istediğini seç, zamanlayıcıyı başlat; bitirdiğin her oturum bugünün sayfasına bir çıkartma yapıştırır.
+>
+> POMO İLE DORO'YLA TANIŞ
+> Zamanlayıcının iki küçük yüzü ilk açılışta sana etrafı gösterir ve çalışırken sana eşlik eder. Turu istediğin zaman Ayarlar'dan yeniden izleyebilirsin.
+>
+> KENDİ TARZINDA ODAKLAN
+> • Süreni tek dokunuşla seç: 25/5, 50/10, 90/20 ya da kendi sürelerinle Özel
+> • İki zamanlayıcı düzeni: Halka ya da Karşılıklı sayfalar
+> • Uygulamadan çıksan ya da telefonunu kilitlesen de zamanlayıcı doğru saymaya devam eder
+> • Odak ya da mola bittiğinde bir bildirim gelir; istersen günlük bir hatırlatıcı da seni geri çağırır
+>
+> DOLDUKÇA GÜZELLEŞEN BİR GÜNLÜK
+> • Bitirdiğin her odak için bir çıkartma, belirlediğin günlük hedefe doğru
+> • İstatistikler bir kartpostal destesi: her gün için bir kart, oturum ya da dakika olarak
+> • Hedefine ulaştığın her gün aşk serine sayılır
+>
+> AŞK NOTLARI
+> Her odaktan sonra tatlı bir not çıkar. Kendi notlarını yaz ve düzenle; hazır notlar da seninle kalır.
+>
+> UÇUŞ MODU
+> İki havalimanı seç ve odaklanırken haritada uç. Uçuş, odak oturumun kadar sürer.
+>
+> SAKİN BİR TASARIM
+> • Gündüz açık, gece koyu renkler; iPhone'unun görünümüne uyar
+> • Odak ya da mola başlarken ve bitirdiğinde yumuşak sesler; sessiz moda uyar
+> • Türkçe ve İngilizce
+>
+> Hesap yok, giriş yok. Uygulamayı aç ve odaklanmaya başla.
+
+**Keywords** (98 and 82 of 100; the app name's words are left out because the name is already searchable)
+
+> focus,timer,study,productivity,love,motivation,habits,stats,fly,sticker,diary,tomato,concentration
+
+> odak,zamanlayıcı,ders,çalışma,verimlilik,aşk,motivasyon,alışkanlık,çıkartma,günlük
+
+**Subtitle** (optional, App Information): "Focus timer & sticker diary" / "Çıkartmalı odak günlüğü".
+
 ### 3.6 M1: the merge (2026-11-02)
 
 The owner: "do it". Built in a temporary worktree at `rehaul/v2` (`618fbf5`), so neither checkout switched branches, then fast-forwarded into `phase1/stage-d` for the guards and into `rehaul/v2` in the main checkout once they were green.

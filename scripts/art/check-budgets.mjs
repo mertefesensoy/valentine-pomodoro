@@ -7,6 +7,8 @@
  *
  * Kinds come from the jobs in art/jobs/: icon ≤ 2 KB, illustration and logo ≤ 30 KB, scene ≤ 120 KB.
  * PNG exports are previews and app-icon rasters, which the budget doesn't cover.
+ * The App Store listing's art (kinds store and creative) is uploaded to App Store Connect and never
+ * bundled in the app, so it is counted as skipped, not checked. Any other unknown kind still fails.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,12 +16,15 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const BUDGET = { icon: 2 * 1024, illustration: 30 * 1024, logo: 30 * 1024, scene: 120 * 1024 };
+const LISTING_ONLY = new Set(['store', 'creative']);
 
 let misses = 0;
 let count = 0;
+let skipped = 0;
 for (const f of fs.readdirSync(path.join(ROOT, 'art/jobs')).filter((n) => n.endsWith('.json'))) {
     const job = JSON.parse(fs.readFileSync(path.join(ROOT, 'art/jobs', f), 'utf8'));
     for (const a of job.assets) {
+        if (LISTING_ONLY.has(a.kind)) { skipped++; continue; }
         const budget = BUDGET[a.kind];
         if (budget === undefined) { misses++; console.log(`✖ ${a.id}: unknown kind "${a.kind}"`); continue; }
         const svg = path.join(ROOT, `art/out/${a.kind}/${a.id}.svg`);
@@ -31,5 +36,5 @@ for (const f of fs.readdirSync(path.join(ROOT, 'art/jobs')).filter((n) => n.ends
         console.log(`${ok ? '✔' : '✖'} ${a.id.padEnd(36)} ${String(size).padStart(6)} B  ≤ ${budget} B  (${a.kind})`);
     }
 }
-console.log(`\n${misses ? '✖' : '✔'} ${count} assets checked, ${misses} over budget or missing`);
+console.log(`\n${misses ? '✖' : '✔'} ${count} assets checked, ${misses} over budget or missing; ${skipped} App Store listing assets skipped (not in the app)`);
 process.exit(misses ? 1 : 0);

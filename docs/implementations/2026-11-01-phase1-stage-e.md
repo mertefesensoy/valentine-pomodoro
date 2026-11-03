@@ -319,6 +319,15 @@ The owner: "push and merge everything and tag the latest version as submitted". 
   - `rehaul/v2` (`ceeef9a`) fast-forwarded to `phase1/stage-d` (`b661f28`: this record's R2, R3, E2 and E3 entries).
   - `phase1/app-store-shots` was merged with `--no-ff` as `a03135c`, parents `b661f28` and `35b05f0`.
   - There were no conflicts. The branch adds the store and creative art, their scripts and their two records, and changes one shared file, `scripts/art/build.mjs` (rect crops and the compact-JSON time pin).
+- **One interaction the guards caught:** `check-budgets.mjs` failed on the branch's seven jobs, with "unknown kind" for `store` and `creative`. NFR-PERF-005's budgets cover art shipped in the app. The listing's art is uploaded to App Store Connect and is never bundled (nothing in `src/` or `app/` imports `art/out/store` or `art/out/creative`). So the check now counts those two kinds as skipped, and any other unknown kind still fails.
+- **The guards on the merge with that fix, all green:**
+  - `tsc`; lint, 0 errors and 29 warnings, as before;
+  - the compiler report, 100 compiled and 5 skipped;
+  - raw text; contrast, 60 pairs;
+  - the art and sound `--check`, and the icons, 120 drawings;
+  - budgets, 133 assets, with 7 listing assets skipped;
+  - Jest, 65 suites and 494 tests;
+  - `check-docs`, 142 docs.
 - **On top of the merge:**
   - DEF-009's urgent record;
   - its SRS row;

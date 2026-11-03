@@ -1,0 +1,11 @@
+# Valentine Pomodoro: read this first
+
+## Urgent, before any new job: DEF-009
+
+Apple's review of 1.4.0 (build 59, 2026-11-03) flagged Guideline 2.5.4. The app declares `audio` in `UIBackgroundModes`, but nothing in it plays in the background. The key comes from the `expo-audio` plugin's default, `enableBackgroundPlayback: true`. The owner asked Apple to approve 1.4.0 as it is, so **the next version submitted must not declare it**, or it will be rejected.
+
+The owner's instruction (2026-11-03): no session starts on a new job before this is fixed. So, in every session, until the plan's checklist is ticked:
+1. Read the plan: [docs/implementations/2026-11-03-def-009-background-audio-mode.md](docs/implementations/2026-11-03-def-009-background-audio-mode.md).
+2. If its §6 isn't fully ticked, tell the owner that this comes first, and do it, or ask them before starting anything else.
+
+Remove this section once 1.4.1 is submitted with the fix (the plan's §6, last item).

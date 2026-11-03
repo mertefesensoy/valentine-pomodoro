@@ -40,6 +40,14 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-stage-d, IMPL-2026
 - **R2 and R3 done** (2026-11-02): the owner filled App Store Connect from the listing page (§3.5) in English (U.S.) and Turkish, chose build 59 and submitted 1.4.0. App Store Connect then showed "1 Item Submitted" and the version "Waiting for Review"; the owner wrote "perfect it is done! everything is fixed".
   - The first Save was refused (a red "!"). Two gaps in the listing page were fixed in it before the save went through: a new localization starts with empty Support and Marketing URLs, and the large-iPhone screenshot set (6.9", the `1320x2868` files) has no tab on the version page, only in Media Manager. Without that set, English's large iPhones would also have kept 1.3.1's screenshots.
   - Next, on approval: R4 (`master` fast-forwards to `rehaul/v2`, tag `v1.4.0`, the GitHub Release), R5 (`update.json`) and R6 (close-up, with NFR-PERF-002's amendment), each on the owner's word. The cold-start TTI is still to be recorded.
+- **R3: App Review's answer** (2026-11-03). Submission `af77109e-129d-4d43-b550-afb0860fc3a7`, 1.4.0 (59), reviewed on an iPad Air 11-inch (M3).
+  - The finding: Guideline 2.5.4. `UIBackgroundModes` declares `audio`, and Apple found no feature that needs persistent audio.
+  - Apple offered to approve now, since the version includes bug fixes, with the issue resolved in the next update; or a fix and a resubmission.
+  - The cause is `expo-audio`'s plugin default, and the app plays nothing in the background ([DEF-009](2026-11-03-def-009-background-audio-mode.md)).
+  - The owner chose "Ask Apple to approve", and sends the reply below in App Store Connect. They also asked to "document this as an urgent fix so any other new seassion does not start on a new job before fixing this issue". So DEF-009's record, `CLAUDE.md` and the project memory put it first, and **the next version submitted, 1.4.1, must remove the key**.
+
+  > Hello, and thank you for the review. Version 1.4.0 includes bug fixes, so we'd like it approved at this time, please. The app has no feature that needs persistent background audio. The "audio" entry in UIBackgroundModes was added by default by our audio library's configuration, and the app's sounds stop when it moves to the background. We will remove the "audio" setting from UIBackgroundModes in our next update. Thank you!
+- **M3 and the push** (2026-11-02/03), on the owner's "push and merge everything and tag the latest version as submitted". Asked about `master`, they chose "Now"; asked about the tag, "v1.4.0-submitted (Recommended)". The work is in §3.9.
 - **E3's bytecode decision: accepted** (2026-11-02). The question was "Ship build 59 with the app code 11 % over its size limit, or trim it first?". The owner answered "Ship build 59". So 1.4.0 ships the iOS bytecode at 4,287,144 B, 11.18 % over NFR-PERF-002's 3,856,208 B. That requirement is amended to the shipped size at R6, with the release paperwork, as the owner was told when choosing. The tour's art stays in the bundle; moving it into a data asset is the trim, if it's ever needed. The cold-start TTI is still to be recorded from the hidden panel.
 - **R2 grows (2026-11-02):** the owner asked for the App Store's creative assets as well, a Header and a Search Results asset, which show on iOS 27 and iPadOS 27 and later. Their answers:
   - format: "Looping videos" (a 21:9 header loop and a 3:2 search loop cut from one scene; Apple has no video that serves both, and the 16:9 universal asset is still-only);
@@ -122,7 +130,7 @@ Each step names who acts. Every push, merge, EAS build, TestFlight submission, s
 | R1 | **The release candidate:** an EAS production build from `rehaul/v2`'s head with TestFlight submission, tagged `v1.4.0-tf.<n>`; E1 and E2 run on it | **The owner's go-ahead**, then Claude; the owner checks |
 | R2 | **The store listing:** "What's New" in English and Turkish (drafted from the CHANGELOG by Claude), screenshots of the redesign, the privacy labels (v1.4 adds no data collection, to be confirmed), notes for App Review, and the Header and Search Results videos (added 2026-11-02; R3 waits for them) | Claude drafts; the owner sets them in App Store Connect |
 | R3 | **Submit for App Store review,** choosing the release candidate's build | The owner |
-| R4 | **On approval:** `master` fast-forwards to `rehaul/v2`; `v1.4.0` is tagged on the released commit and pushed; a GitHub Release with the CHANGELOG section as notes | **The owner's go-ahead**, then Claude |
+| R4 | **On approval:** `master` fast-forwards to `rehaul/v2` (done early, at M3, on the owner's word: §3.9); `v1.4.0` is tagged on the released commit and pushed; a GitHub Release with the CHANGELOG section as notes | **The owner's go-ahead**, then Claude |
 | R5 | **The update prompt:** `latestVersion` in `update.json` on `gh-pages` set to 1.4.0, and the served file checked | **The owner's go-ahead**, then Claude |
 | R6 | **Close up:** the ROADMAP milestone closed, the release date in the CHANGELOG, NFR-PERF-002 amended to the shipped bytecode (the owner's "Ship build 59", 2026-11-02), `rehaul/v2` deleted | Claude; the deletion on the owner's word |
 
@@ -303,6 +311,28 @@ The owner: "go for it". Built from `rehaul/v2`'s head, `bce65cc` (Stage D merged
 
 **What the owner checks on it:** E2's checklist (§3.3); the cold-start TTI from the hidden panel (a 1.5 s long-press on Settings › About's credit line), for E3's bytecode decision; and the light splash, now the choice-C mark (§3.6).
 
+### 3.9 M3: the store assets, `master` and the submitted tag (2026-11-02/03)
+
+The owner: "push and merge everything and tag the latest version as submitted". Then "Now" for `master`, and "v1.4.0-submitted (Recommended)" for the tag.
+
+- **The merge** was built in a temporary worktree (`C:\vp\merge-v2`), as M1 was:
+  - `rehaul/v2` (`ceeef9a`) fast-forwarded to `phase1/stage-d` (`b661f28`: this record's R2, R3, E2 and E3 entries).
+  - `phase1/app-store-shots` was merged with `--no-ff` as `a03135c`, parents `b661f28` and `35b05f0`.
+  - There were no conflicts. The branch adds the store and creative art, their scripts and their two records, and changes one shared file, `scripts/art/build.mjs` (rect crops and the compact-JSON time pin).
+- **On top of the merge:**
+  - DEF-009's urgent record;
+  - its SRS row;
+  - `CLAUDE.md`;
+  - this section;
+  - RELEASE.md's new tag kind;
+  - BRANCHING.md's note on `master`.
+- **`master`** fast-forwards from `fda4fef` to the same head as `rehaul/v2`. That is ahead of BRANCHING.md's "when v1.4.0 is approved", on the owner's word, and they were told the trade-off: a rejection's fix lands on `master` after code that never went live. Since `bce65cc`, only documentation and store art have changed, no app code. `rehaul/v2` stays until R6.
+- **The tag:** `v1.4.0-submitted`, annotated, on `bce65cc`, the commit build 59 was made from, which is the binary in App Review. It is a new tag kind (RELEASE.md §2). `v1.4.0` waits for R4, since a release tag never moves.
+- **Pushed by commit ID:**
+  - `rehaul/v2`, `master` and `phase1/stage-d` to the head;
+  - the tag by name.
+  - `phase1/app-store-shots` isn't pushed as a branch, since its commits are in `rehaul/v2`.
+
 ## 4. Mathematical / Statistical Details
 
 Filled in at E3: the bytecode's size against NFR-PERF-002's ceiling, as (size − 3,856,208) / 3,856,208, and the Reassure counts against the baseline.
@@ -336,7 +366,9 @@ Filled in at E3: the bytecode's size against NFR-PERF-002's ceiling, as (size �
 |----------|------------------------|--------------|
 | Close Stage D before the merge | Merge first, close after | The merge carries Stage D's shared-doc updates (§9); its records should be final when they land |
 | One release candidate for E1, E2 and the store | Ship build 58 | The merge and the release paperwork change the commit; the binary in review must be the one checked, from the commit `master` fast-forwards to |
-| `master` fast-forwards at approval | Merge `rehaul/v2` into `master` now | BRANCHING.md's transition: `master` stays the releasable trunk until the store approves |
+| `master` fast-forwards at approval | Merge `rehaul/v2` into `master` now | BRANCHING.md's transition: `master` stays the releasable trunk until the store approves. **Superseded at M3** (§3.9): the owner moved it at submission ("Now") |
+| A `v1.4.0-submitted` tag on `bce65cc` | `v1.4.0` now; the same tag on the merged head | A release tag never moves, and a rejection could mean a new build. The tag marks the binary in review, not the later documentation and store art |
+| Ask Apple to approve build 59, fix the background mode in 1.4.1 | Rebuild as build 60 and resubmit | **The owner's choice** (2026-11-03). Build 59 is device-checked, Apple offered it because 1.4.0 has bug fixes, and the key changes nothing a user sees (DEF-009) |
 
 ## 6. Verification
 

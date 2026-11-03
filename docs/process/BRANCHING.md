@@ -25,14 +25,14 @@ Decided 2026-10-30 (your choice). It replaces the old habit of one long-lived `r
 `rehaul/v2` is the **integration branch for Phase 1** and the only long-lived exception. It exists because two sessions are working in it right now, and switching their checkout mid-task would break their trees.
 
 1. **Until v1.4.0 ships:** sessions keep committing to `rehaul/v2`. TestFlight builds are tagged `v1.4.0-tf.<build>`.
-2. **When v1.4.0 is approved for the store:** `master` fast-forwards to `rehaul/v2` (it's an ancestor, so no merge commit), the store build is made from `master`, `v1.4.0` is tagged there, and `rehaul/v2` is deleted.
+2. **When v1.4.0 is approved for the store:** `master` fast-forwards to `rehaul/v2` (it's an ancestor, so no merge commit), the store build is made from `master`, `v1.4.0` is tagged there, and `rehaul/v2` is deleted. For 1.4.0, the owner moved `master` early, at submission (2026-11-02, [Stage E §3.9](../implementations/2026-11-01-phase1-stage-e.md)). So at approval only the tag and the deletion remain, and 1.4.1's fix branches from `master`.
 3. **From then on:** the rules above apply to all work, with pull requests into `master`.
 
 ## Branches today (2026-10-30)
 
 | Branch | Role | Fate |
 |--------|------|------|
-| `master` | Trunk (at `fda4fef`; behind `rehaul/v2`) | Fast-forwards at v1.4.0 |
+| `master` | Trunk (fast-forwarded to `rehaul/v2` at 1.4.0's submission, 2026-11-02) | Tagged `v1.4.0` on approval |
 | `rehaul/v2` | Phase 1 integration branch | Deleted after v1.4.0 |
 | `gh-pages` | **Publishing only**: GitHub Pages serves it at `https://mertefesensoy.github.io/valentine-pomodoro/`. It holds `update.json` and nothing else, and is never merged. | Permanent |
 
@@ -44,5 +44,6 @@ All eight old `release/*` branches were deleted on 2026-10-30 after every commit
 - [Contributing](../../CONTRIBUTING.md)
 - [Documentation map](../README.md)
 - ["Phase 1 Stage E: verify and ship v1.4.0"](../implementations/2026-11-01-phase1-stage-e.md)
+- ["URGENT: remove the unused audio background mode before the next submission (DEF-009)"](../implementations/2026-11-03-def-009-background-audio-mode.md)
 - [Release process](RELEASE.md)
 <!-- backlinks:end -->

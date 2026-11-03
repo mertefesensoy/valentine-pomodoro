@@ -25,6 +25,7 @@ related: [BRANCHING, CHANGELOG, TEST-STRATEGY]
 | `vX.Y.Z` | A store release: the commit the released build was made from. **Never moved, never reused.** | `v1.3.1` |
 | `vX.Y.Z-android` | An Android build when it came from a different commit than iOS (history only) | `v1.0.1-android` |
 | `vX.Y.Z-tf.N` | A TestFlight pre-release, build number N; a SemVer pre-release, so it sorts before `vX.Y.Z` | `v1.4.0-tf.42` |
+| `vX.Y.Z-submitted` | The commit of the build submitted for App Store review (from 1.4.0). The release still gets `vX.Y.Z` on approval, on the commit that ships | `v1.4.0-submitted` |
 | `archive/<slug>` | Preserved commits of a deleted branch; not a version | `archive/ios-ads-consent-1.2.3` |
 
 - Tags are **annotated**, and the annotation records: platform, build number, EAS build id or date, source commit, and what is known about release to users.
@@ -78,6 +79,7 @@ When Android returns (the [roadmap Android track](../roadmap/ROADMAP.md#android-
 - [Valentine Pomodoro](../../README.md)
 - [Documentation map](../README.md)
 - ["Phase 1 Stage E: verify and ship v1.4.0"](../implementations/2026-11-01-phase1-stage-e.md)
+- ["URGENT: remove the unused audio background mode before the next submission (DEF-009)"](../implementations/2026-11-03-def-009-background-audio-mode.md)
 - [Branching model](BRANCHING.md)
 - [Evaluation — xtool (cross-platform Xcode replacement) vs staying on Expo/EAS](../proposals/xtool-evaluation.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)

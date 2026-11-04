@@ -47,7 +47,7 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-stage-d, IMPL-2026
   - The owner chose "Ask Apple to approve", and sends the reply below in App Store Connect. They also asked to "document this as an urgent fix so any other new seassion does not start on a new job before fixing this issue". So DEF-009's record, `CLAUDE.md` and the project memory put it first, and **the next version submitted, 1.4.1, must remove the key**.
 
   > Hello, and thank you for the review. Version 1.4.0 includes bug fixes, so we'd like it approved at this time, please. The app has no feature that needs persistent background audio. The "audio" entry in UIBackgroundModes was added by default by our audio library's configuration, and the app's sounds stop when it moves to the background. We will remove the "audio" setting from UIBackgroundModes in our next update. Thank you!
-- **R3's fallback, build 60** (2026-11-04). Apple hadn't answered the reply after about 20 hours, and the owner said "Yes, start build 60": the fix (`5c2fe1c`), built as version 1.4.0 so that it fits the rejected version. Uploading it doesn't touch the submission until the owner attaches it. If Apple approves build 59 first, the fix ships as 1.4.1 instead ([DEF-009's record](2026-11-03-def-009-background-audio-mode.md) §3).
+- **R3's fallback, build 60** (2026-11-04). Apple hadn't answered the reply after about 20 hours, and the owner said "Yes, start build 60": the fix (`5c2fe1c`), built as version 1.4.0 so that it fits the rejected version. Uploading it doesn't touch the submission until the owner attaches it. If Apple approves build 59 first, the fix ships as 1.4.1 instead ([DEF-009's record](2026-11-03-def-009-background-audio-mode.md) §3). The build is in §3.10.
 - **M3 and the push** (2026-11-02/03), on the owner's "push and merge everything and tag the latest version as submitted". Asked about `master`, they chose "Now"; asked about the tag, "v1.4.0-submitted (Recommended)". The work is in §3.9.
 - **E3's bytecode decision: accepted** (2026-11-02). The question was "Ship build 59 with the app code 11 % over its size limit, or trim it first?". The owner answered "Ship build 59". So 1.4.0 ships the iOS bytecode at 4,287,144 B, 11.18 % over NFR-PERF-002's 3,856,208 B. That requirement is amended to the shipped size at R6, with the release paperwork, as the owner was told when choosing. The tour's art stays in the bundle; moving it into a data asset is the trim, if it's ever needed. The cold-start TTI is still to be recorded from the hidden panel.
 - **R2 grows (2026-11-02):** the owner asked for the App Store's creative assets as well, a Header and a Search Results asset, which show on iOS 27 and iPadOS 27 and later. Their answers:
@@ -342,6 +342,23 @@ The owner: "push and merge everything and tag the latest version as submitted". 
   - `rehaul/v2`, `master` and `phase1/stage-d` to the head;
   - the tag by name.
   - `phase1/app-store-shots` isn't pushed as a branch, since its commits are in `rehaul/v2`.
+
+### 3.10 R3's fallback: build 60 (2026-11-04)
+
+The owner: "Yes, start build 60". Built from `c184337`, with `master`, `rehaul/v2` and `phase1/stage-d` all at that commit.
+
+| | |
+|---|---|
+| EAS build | `b1c037dd-9105-4368-a23e-3a693ba4ee42`, iOS build 60, version 1.4.0, created 2026-11-04T11:15:09Z, finished 11:23:46Z |
+| Submission | `c8a9df13-d1b6-4082-9eed-60559cd5c6fe`; `submit-ios.yaml` succeeded, to TestFlight only |
+| CI on the commit | Green: runs 41819215848 (`master`) and 41819216342 (`rehaul/v2`) |
+| Tag | `v1.4.0-tf.60` on `c184337`, pushed (`refs/tags/v1.4.0-tf.60`) |
+| IPA | **21,618,033 B**, −35 B on build 59 (21,618,068 B) |
+| App changes since build 59 | `app.json` only: `git diff bce65cc c184337` over `src`, `app`, `assets`, `package.json` and `eas.json` shows the plugin option and its test, nothing else |
+
+**How the fix was checked:** `npx expo config --type introspect --json` runs the plugins as EAS does, and gives `UIBackgroundModes` as `["audio"]` before the fix and no key after it. The built IPA's own Info.plist hasn't been opened.
+
+**What's left:** the owner's device check (DEF-009's record §3 step 7), and then the choice in step 8. Nothing has touched the submission: build 59 is still the one attached.
 
 ## 4. Mathematical / Statistical Details
 

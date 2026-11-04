@@ -4,7 +4,9 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [Unreleased]
 
-*Nothing since 1.4.0.*
+### Fixed
+
+- The app no longer declares the `audio` background mode, which nothing used. `expo-audio`'s plugin added it by default, and App Review flagged it under Guideline 2.5.4 (DEF-009, 5c2fe1c). It is on TestFlight as build 60. It ships in 1.4.0 if build 60 replaces build 59 in review, otherwise in 1.4.1.
 
 ## [1.4.0] - 2026-11-02
 
@@ -110,6 +112,12 @@ The v2 rehaul's Phase 1. Each bullet names its theme: Phase 0 (the foundation), 
 ### Security
 
 - **Phase 0:** `nanoid` 3.3.11 → 3.3.20, the only package with an `npm audit` advisory that ships in the app bundle. React Navigation uses it for fixed-size keys, so its advisories couldn't be triggered here (65c1d34). After the SDK 58 upgrade, `npm audit` reports 16 advisories, down from 39; the three high-severity ones come from `zod` inside `@expo/cli`, build tooling that contributes no code to the app (befaf99).
+
+## [1.4.0-tf.60] - 2026-11-04
+
+*iOS TestFlight build 60, a pre-release and not a store release, source c184337. Built with EAS (build b1c037dd) and uploaded to App Store Connect for TestFlight (submission c8a9df13); device check on a physical iPhone: pending.*
+
+This build is build 59 without the `audio` background mode (DEF-009); the rest since build 59 is documentation, a test and store art.
 
 ## [1.4.0-tf.59] - 2026-11-02
 
@@ -451,6 +459,7 @@ Two later fixes on the same branch were never built: functional state updates fo
 
 [Unreleased]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0...rehaul/v2
 [1.4.0]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.3.1...v1.4.0
+[1.4.0-tf.60]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.59...v1.4.0-tf.60
 [1.4.0-tf.59]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.58...v1.4.0-tf.59
 [1.4.0-tf.58]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.57...v1.4.0-tf.58
 [1.4.0-tf.57]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.56...v1.4.0-tf.57

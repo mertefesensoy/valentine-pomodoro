@@ -115,7 +115,7 @@ The v2 rehaul's Phase 1. Each bullet names its theme: Phase 0 (the foundation), 
 
 ## [1.4.0-tf.60] - 2026-11-04
 
-*iOS TestFlight build 60, a pre-release and not a store release, source c184337. Built with EAS (build b1c037dd) and uploaded to App Store Connect for TestFlight (submission c8a9df13); device check on a physical iPhone: pending.*
+*iOS TestFlight build 60, a pre-release and not a store release, source c184337. Built with EAS (build b1c037dd) and uploaded to App Store Connect for TestFlight (submission c8a9df13); device check on a physical iPhone, 2026-11-04: passed, as reported by the owner.*
 
 This build is build 59 without the `audio` background mode (DEF-009); the rest since build 59 is documentation, a test and store art.
 

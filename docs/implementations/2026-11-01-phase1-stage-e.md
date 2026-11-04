@@ -358,7 +358,9 @@ The owner: "Yes, start build 60". Built from `c184337`, with `master`, `rehaul/v
 
 **How the fix was checked:** `npx expo config --type introspect --json` runs the plugins as EAS does, and gives `UIBackgroundModes` as `["audio"]` before the fix and no key after it. The built IPA's own Info.plist hasn't been opened.
 
-**What's left:** the owner's device check (DEF-009's record §3 step 7), and then the choice in step 8. Nothing has touched the submission: build 59 is still the one attached.
+**The device check passed,** 2026-11-04. Asked "Did build 60 pass the sound check?", the owner answered "Passed" (DEF-009's record §3 step 7).
+
+**What's left:** the choice in step 8. Nothing has touched the submission: build 59 is still the one attached.
 
 ## 4. Mathematical / Statistical Details
 

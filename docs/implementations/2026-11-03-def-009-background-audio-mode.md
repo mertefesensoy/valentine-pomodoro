@@ -94,7 +94,7 @@ None: a build-configuration change.
   - **Why they don't block build 60:** VectorCraft 0.21.0 and SoundCraft 0.17.0 were installed on 2026-11-03 at about 19:30, after both checks last passed on these same files (`a03135c`, that day). No art or sound file has changed since. Neither tool runs in CI or in the EAS build, which packages the committed assets. What exactly differs in the art rebuild hasn't been looked at; re-baselining the checks or pinning the tools is a separate job, after this one.
 - [x] CI green on the build's commit (`c184337`: runs 41819215848 and 41819216342).
 - [x] The fix's build on TestFlight, tagged: build 60, `v1.4.0-tf.60` ([Stage E §3.10](2026-11-01-phase1-stage-e.md)).
-- [ ] The device check on that build (§3 step 7).
+- [x] The device check on that build (§3 step 7): passed on build 60, 2026-11-04. Asked "Did build 60 pass the sound check?", the owner answered "Passed".
 - [ ] A version submitted with the fix, and App Review raises no 2.5.4 finding.
 - [ ] The urgent notice removed from `CLAUDE.md` and the project memory, and DEF-009 closed in the SRS.
 

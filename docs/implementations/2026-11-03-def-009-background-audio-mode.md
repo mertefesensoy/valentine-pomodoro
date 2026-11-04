@@ -88,7 +88,11 @@ None: a build-configuration change.
 
 - [x] `npx expo config --type introspect --json`: no `audio` in `ios.infoPlist.UIBackgroundModes` (before the fix: `["audio"]`; after `5c2fe1c`: the key is gone, and Android's two `FOREGROUND_SERVICE` permissions with it).
 - [x] `npx jest src/constants/__tests__/appConfig.test.ts` passes.
-- [ ] The guards green on the fix's commit, and CI green on the build's commit.
+- [x] The guards on the fix's commit, with two exceptions that don't come from it:
+  - **Green:** `tsc`; lint, 0 errors and 29 warnings, as before; the compiler report, 100 compiled and 5 skipped; raw text; contrast, 60 pairs; the icons, 120 drawings; budgets, 133 assets; Jest, 496 tests; `check-docs`, 142 docs.
+  - **Not passing:** `scripts/art/build.mjs --check` (198 files differ from a clean rebuild) and `scripts/sound/build.mjs --check` (only `art/sound/report.json` differs).
+  - **Why they don't block build 60:** VectorCraft 0.21.0 and SoundCraft 0.17.0 were installed on 2026-11-03 at about 19:30, after both checks last passed on these same files (`a03135c`, that day). No art or sound file has changed since. Neither tool runs in CI or in the EAS build, which packages the committed assets. What exactly differs in the art rebuild hasn't been looked at; re-baselining the checks or pinning the tools is a separate job, after this one.
+- [ ] CI green on the build's commit.
 - [ ] The fix's build on TestFlight, tagged.
 - [ ] The device check on that build (§3 step 7).
 - [ ] A version submitted with the fix, and App Review raises no 2.5.4 finding.

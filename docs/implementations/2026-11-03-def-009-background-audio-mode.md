@@ -86,8 +86,8 @@ None: a build-configuration change.
 
 ## 6. Verification
 
-- [ ] `npx expo config --type introspect --json`: no `audio` in `ios.infoPlist.UIBackgroundModes` (before the fix: `["audio"]`).
-- [ ] `npx jest src/constants/__tests__/appConfig.test.ts` passes.
+- [x] `npx expo config --type introspect --json`: no `audio` in `ios.infoPlist.UIBackgroundModes` (before the fix: `["audio"]`; after `5c2fe1c`: the key is gone, and Android's two `FOREGROUND_SERVICE` permissions with it).
+- [x] `npx jest src/constants/__tests__/appConfig.test.ts` passes.
 - [ ] The guards green on the fix's commit, and CI green on the build's commit.
 - [ ] The fix's build on TestFlight, tagged.
 - [ ] The device check on that build (§3 step 7).

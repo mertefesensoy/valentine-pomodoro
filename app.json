@@ -107,7 +107,12 @@
           ]
         }
       ],
-      "expo-audio",
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": false
+        }
+      ],
       "expo-splash-screen",
       [
         "expo-splash-screen",

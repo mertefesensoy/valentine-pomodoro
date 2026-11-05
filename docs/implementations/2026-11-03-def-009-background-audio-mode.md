@@ -104,6 +104,9 @@ None: a build-configuration change.
 - [x] CI green on the build's commit (`c184337`: runs 41819215848 and 41819216342).
 - [x] The fix's build on TestFlight, tagged: build 60, `v1.4.0-tf.60` ([Stage E §3.10](2026-11-01-phase1-stage-e.md)).
 - [x] The device check on that build (§3 step 7): passed on build 60, 2026-11-04. Asked "Did build 60 pass the sound check?", the owner answered "Passed".
+- [x] The guards on the 1.4.1 commit (`8f9dab6`), with the same two exceptions as above, and one thing to note:
+  - **Bytecode:** iOS 4,292,796 B, within NFR-PERF-002's amended 4,292,868 B.
+  - **Jest:** one run failed 4 of 496 tests, and which four wasn't captured. A rerun with no change passed all 496. CI runs them again on the pull request.
 - [ ] Version 1.4.1 built with the fix, on TestFlight, tagged.
 - [ ] The device check on the 1.4.1 build (§3 step 7).
 - [ ] 1.4.1 submitted with the fix, and App Review raises no 2.5.4 finding.

@@ -86,7 +86,7 @@ No app code changes. Nothing in `package.json` changes in this task.
 
 - **Sentry is by far the largest cost,** and there's no lighter Sentry to fall back on: its core alone is 744 KB. It is also the one SDK that runs for a solo user, starting at launch and sending to a server, while the plan makes every solo promise "beyond crash reports".
 - **Most of `supabase-js` is auth.** The app's whole server surface in this phase is a few auth calls and POSTs to RPCs and one Edge Function (plan B3). PostgREST's own client is small, and `realtime-js` and `storage-js` are unused until Phase 3.
-- **The URL polyfill looks unnecessary.** Expo's runtime installs `URL` and `URLSearchParams` (`expo/src/winter/runtime.native.ts`), and Supabase's guide predates that. A real sign-in on a device has to prove it, because a successful export doesn't.
+- **The URL polyfill looks unnecessary.** Expo's runtime installs `URL` and `URLSearchParams` (`expo/src/winter/runtime.native.ts`), and Supabase's guide predates that. Had `supabase-js` stayed, a real sign-in on a device would have had to prove it.
 - **TanStack Query earns its 127 KB,** because C3's offline queue and the persisted cache would otherwise be written here, and Phase 3 needs it anyway (ADR-0029).
 - **Apple and the Keychain are nearly free.**
 
@@ -123,7 +123,7 @@ The plan's formula is 4,292,868 B + the kept costs − any trim. That leaves out
 **The owner's decision, 2026-11-05:** **"Lean: 4,640,000 B, +8.1 % (Recommended)"**. So for 1.5.0:
 
 - **Kept:** `expo-apple-authentication`, `expo-secure-store`, `@tanstack/react-query` with its persister.
-- **Not used:** `@supabase/supabase-js`, replaced by a small client written here, on `fetch` (its decision gets an ADR before C1); `react-native-url-polyfill`, which a real sign-in on a device must prove unnecessary.
+- **Not used:** `@supabase/supabase-js`, replaced by a small client written here, on `fetch` (its decision gets an ADR before C1); `react-native-url-polyfill`, which only `supabase-js` asked for.
 - **Dropped:** Sentry, so plan task E1 and §0.2's Sentry account go. NFR-REL-001 is read from App Store Connect's crash data.
 - **The new ceiling:** NFR-PERF-002 is 4,640,000 B for 1.5.0.
 

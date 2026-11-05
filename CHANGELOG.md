@@ -10,7 +10,7 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [1.4.0] - 2026-11-02
 
-*The iOS release of the v2 rehaul's Phase 1, from `rehaul/v2`. The release candidate is TestFlight build 59; this section is dated by its EAS production build (UTC), as every version here is. Android stays on 1.3.1 (iOS-first, below).*
+*The iOS release of the v2 rehaul's Phase 1: TestFlight build 59, live on the App Store on 2026-11-04. This section is dated by its EAS production build (UTC), as every version here is. Android stays on 1.3.1 (iOS-first, below).*
 
 **What's new for you**
 

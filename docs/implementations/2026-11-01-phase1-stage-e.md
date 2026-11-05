@@ -48,11 +48,13 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-stage-d, IMPL-2026
 
   > Hello, and thank you for the review. Version 1.4.0 includes bug fixes, so we'd like it approved at this time, please. The app has no feature that needs persistent background audio. The "audio" entry in UIBackgroundModes was added by default by our audio library's configuration, and the app's sounds stop when it moves to the background. We will remove the "audio" setting from UIBackgroundModes in our next update. Thank you!
 - **R3 done: 1.4.0 is live** (found 2026-11-05). The owner: "wait but 1.4.0 is already live". The public App Store lookup confirms it in both the US and Turkish storefronts: version 1.4.0, released 2026-11-04T14:45:37Z. Apple accepted the reply and approved build 59, the only build ever submitted. So build 60 is retired, and the fix ships as 1.4.1 ([DEF-009's record](2026-11-03-def-009-background-audio-mode.md)). R4–R6 are still to do.
-- **R5 needs the owner's decision** (2026-11-05). Setting `latestVersion` to 1.4.0, as planned, would show Android users on 1.3.1 an update that doesn't exist, because Android reads `update.json` (`src/hooks/useUpdateCheck.ts`) and stays on 1.3.1. iOS doesn't need the change:
+- **R4 done** (2026-11-05, the owner: "Yes, go ahead"). `v1.4.0`, annotated, on `bce65cc`, pushed by name. The GitHub Release is https://github.com/mertefesensoy/valentine-pomodoro/releases/tag/v1.4.0, with the CHANGELOG section as its notes and its relative links made absolute. `master` had already moved at M3. The tag rests on build 59 being the only build ever submitted (the owner: "i did not submit yet").
+- **R6, in part** (2026-11-05): the ROADMAP's milestone and status, the release date in the CHANGELOG, NFR-PERF-002 amended to 4,287,144 B, the READMEs, and RELEASE.md and BRANCHING.md. **Left:** B7's cold-start TTI, which the owner hasn't sent, and deleting `rehaul/v2`, on the owner's word (the main checkout is on it).
+- **R5 skipped** (2026-11-05), covered by the owner's "Yes, go ahead": the question said it included skipping this step. Setting `latestVersion` to 1.4.0, as planned, would show Android users on 1.3.1 an update that doesn't exist, because Android reads `update.json` (`src/hooks/useUpdateCheck.ts`) and stays on 1.3.1. iOS doesn't need the change:
   - from 1.3.1 on, iOS asks Apple's lookup, which now answers 1.4.0;
   - iOS 1.0.3–1.3.0 reads `update.json`, is already prompted by its 1.3.1, and its link opens the App Store, which now serves 1.4.0.
 
-  So the recommendation is to leave `update.json` at 1.3.1 until Android ships a newer version.
+  So `update.json` stays at 1.3.1 until Android ships a newer version, and RELEASE.md step 12 now says so.
 - **R3's fallback, build 60** (2026-11-04). Apple hadn't answered the reply after about 20 hours, and the owner said "Yes, start build 60": the fix (`5c2fe1c`), built as version 1.4.0 so that it fits the rejected version. Uploading it doesn't touch the submission until the owner attaches it. If Apple approves build 59 first, the fix ships as 1.4.1 instead ([DEF-009's record](2026-11-03-def-009-background-audio-mode.md) §3). The build is in §3.10.
 - **M3 and the push** (2026-11-02/03), on the owner's "push and merge everything and tag the latest version as submitted". Asked about `master`, they chose "Now"; asked about the tag, "v1.4.0-submitted (Recommended)". The work is in §3.9.
 - **E3's bytecode decision: accepted** (2026-11-02). The question was "Ship build 59 with the app code 11 % over its size limit, or trim it first?". The owner answered "Ship build 59". So 1.4.0 ships the iOS bytecode at 4,287,144 B, 11.18 % over NFR-PERF-002's 3,856,208 B. That requirement is amended to the shipped size at R6, with the release paperwork, as the owner was told when choosing. The tour's art stays in the bundle; moving it into a data asset is the trim, if it's ever needed. The cold-start TTI is still to be recorded from the hidden panel.
@@ -138,7 +140,7 @@ Each step names who acts. Every push, merge, EAS build, TestFlight submission, s
 | R2 | **The store listing:** "What's New" in English and Turkish (drafted from the CHANGELOG by Claude), screenshots of the redesign, the privacy labels (v1.4 adds no data collection, to be confirmed), notes for App Review, and the Header and Search Results videos (added 2026-11-02; R3 waits for them) | Claude drafts; the owner sets them in App Store Connect |
 | R3 | **Submit for App Store review,** choosing the release candidate's build | The owner |
 | R4 | **On approval:** `master` fast-forwards to `rehaul/v2` (done early, at M3, on the owner's word: §3.9); `v1.4.0` is tagged on the released commit and pushed; a GitHub Release with the CHANGELOG section as notes | **The owner's go-ahead**, then Claude |
-| R5 | **The update prompt:** `latestVersion` in `update.json` on `gh-pages` set to 1.4.0, and the served file checked | **The owner's go-ahead**, then Claude |
+| R5 | **The update prompt:** ~~`latestVersion` in `update.json` on `gh-pages` set to 1.4.0~~ **skipped:** Android reads that file and stays on 1.3.1 (status above) | The owner |
 | R6 | **Close up:** the ROADMAP milestone closed, the release date in the CHANGELOG, NFR-PERF-002 amended to the shipped bytecode (the owner's "Ship build 59", 2026-11-02), `rehaul/v2` deleted | Claude; the deletion on the owner's word |
 
 ### 3.5 R2's drafts: "What's New" for the App Store (for the owner to edit)
@@ -407,10 +409,10 @@ Filled in at E3: the bytecode's size against NFR-PERF-002's ceiling, as (size �
 
 ## 6. Verification
 
-- [ ] S1–S3: every Stage D record Done; the tour's verdict ship.
-- [ ] M1–M2: the merge on `rehaul/v2`, guards green, §9 applied.
-- [ ] E1–E4: as above, each recorded here.
-- [ ] R1–R6: the release candidate checked, submitted, approved, released, tagged and announced through `update.json`.
+- [x] S1–S3: every Stage D record Done; the tour's verdict ship.
+- [x] M1–M2: the merge on `rehaul/v2`, guards green, §9 applied.
+- [ ] E1–E4: as above, each recorded here. All done but E3's cold-start TTI, which the owner hasn't sent.
+- [ ] R1–R6: the release candidate checked, submitted, approved, released and tagged. `update.json` stays as it is, by decision (R5). Deleting `rehaul/v2` is left (R6).
 
 ## 7. Related Docs
 

@@ -55,7 +55,7 @@ related: [BRANCHING, CHANGELOG, TEST-STRATEGY]
     ```bash
     gh release create vX.Y.Z --title "X.Y.Z" --notes-file <section>
     ```
-12. [ ] **Owner's go-ahead:** set `latestVersion` in `update.json` on the `gh-pages` branch to the released version, and push. That file is the live one, read by every version's update prompt (iOS 1.0.3–1.3.0; non-iOS platforms from 1.3.1 on). Check `https://mertefesensoy.github.io/valentine-pomodoro/update.json` serves it.
+12. [ ] **Only when the version also ships on Android, with the owner's go-ahead:** set `latestVersion` in `update.json` on the `gh-pages` branch to the released version, and push. That file is the live one, read by the update prompt of iOS 1.0.3–1.3.0 and of every non-iOS version from 1.3.1 on. An iOS-only release leaves it alone: Android would be told to install a version it doesn't have, and iOS doesn't need it. From 1.3.1 on, iOS asks Apple's lookup, and older iOS versions are already prompted by the file's version, with a link that opens the current App Store version. Check `https://mertefesensoy.github.io/valentine-pomodoro/update.json` serves it.
 13. [ ] Close the milestone in the [roadmap](../roadmap/ROADMAP.md) and record the release date in CHANGELOG.
 
 ## 4. Things that expire

@@ -13,6 +13,8 @@ related: [SRS, IMPL-2026-11-01-phase1-stage-e, RELEASE, BRANCHING]
 
 The owner, 2026-11-04, while Apple hadn't yet answered the reply: "Yes, start build 60". That go-ahead covers the fix, the checks, the push, EAS build 60 with its TestFlight upload, and the tag `v1.4.0-tf.60`. Attaching the build and submitting stay with the owner.
 
+**2026-11-05: the owner lifted the hold** ("Yes, it can start"). 1.4.1 is submitted, so new work can start while Apple reviews it. If Apple answers about 1.4.1, that comes first.
+
 **2026-11-05: 1.4.0 is live, on build 59.** The owner: "wait but 1.4.0 is already live". The public App Store lookup confirms it: version 1.4.0, released 2026-11-04T14:45:37Z. So Apple accepted the reply, §3 step 8 took its first branch, and build 60 is retired. The fix ships as 1.4.1.
 
 **Branch:** `phase1/stage-d`, then fast-forwarded into `rehaul/v2` and `master`. All three sit at the same commit, `0d5e4ba`, and `rehaul/v2` stays the integration branch until 1.4.0 ships ([BRANCHING.md](../process/BRANCHING.md)).

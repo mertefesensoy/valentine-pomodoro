@@ -5,7 +5,7 @@ How work is done in this repo, by the owner and by every Claude session. The [do
 ## The sequence for every change
 
 1. **Plan first.** For anything non-trivial, write the plan before code: a phase plan, or a task in the current one. No code changes without a documented plan.
-2. **Branch** from `master` (or, until v1.4.0 ships, from `rehaul/v2`). See [BRANCHING.md](docs/process/BRANCHING.md).
+2. **Branch** from `master`. See [BRANCHING.md](docs/process/BRANCHING.md).
 3. **Implement**, citing requirement IDs from the [SRS](docs/srs/SRS.md).
 4. **Test.** Tests state what they cover (`// covers: FR-TMR-005`). Guard tests get a mutation check ([test strategy](docs/testing/TEST-STRATEGY.md)).
 5. **Document.** Write an implementation record from [`docs/implementations/_TEMPLATE.md`](docs/implementations/_TEMPLATE.md) and add any new doc to the map. If the change made a significant choice, add an ADR ([`docs/architecture/adr/`](docs/architecture/adr/README.md)).

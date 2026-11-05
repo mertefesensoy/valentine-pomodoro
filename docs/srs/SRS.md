@@ -853,6 +853,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - ["Phase 2 B2: row-level security, tested with pgTAP in CI"](../implementations/2026-11-05-phase2-b2-rls.md)
 - ["Phase 2 B3: the database functions and the delete-account Edge Function"](../implementations/2026-11-05-phase2-b3-functions.md)
 - ["Phase 2 B4: the table and function for anonymous start-up reports"](../implementations/2026-11-05-phase2-b4-startup-reports.md)
+- ["Phase 2: GitHub deploys database changes on merge"](../implementations/2026-11-05-phase2-deploy.md)
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Documentation conventions](../process/DOCS.md)

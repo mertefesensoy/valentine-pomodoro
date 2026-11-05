@@ -19,6 +19,8 @@ A university student, often in a long-distance couple, opens the Timer tab many 
 - **Success:** the remaining time reads from a metre away; focus versus break is obvious from three cues at once (the ring's colour, the phase line, Pomo & Doro's pose); today's progress is visible without a tap; nothing competes during focus (PRODUCT principle 5).
 - **What only this app has:** the partner slot (both partners always in the frame), Pomo & Doro, and the sticker placement when a session completes.
 
+> **From 1.5.0:** the partner slot, solo and paired, follows `.impeccable/surfaces/app-partner-tsx.md` (Phase 2 A3). "It never promises pairing before pairing ships" holds until `PAIRING_ENABLED` turns on.
+
 ## 3. Selected direction: two layouts, one component set
 
 The owner chose two of the three dealt structures on 2026-10-30: "both of them should be a classic page mode that should be available and the ring, done properly as default".

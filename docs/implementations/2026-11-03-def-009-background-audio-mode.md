@@ -91,6 +91,7 @@ None: a build-configuration change.
 | Build 60 stays version 1.4.0 | Bump to 1.4.1 now | It must fit the rejected 1.4.0 version. If Apple approves build 59 first, the cost is one small bump and one more build |
 | Keep `NSMicrophoneUsageDescription` | Set `microphonePermission: false` in the same line | The plugin declares this string by default too, and the app never asks for the microphone. But expo-audio's native code links `AVAudioRecorder` (`node_modules/expo-audio/ios/AudioRecorder.swift`), so removing the string risks App Store Connect's missing-purpose-string check on upload. Apple didn't flag it, and no prompt ever shows. One well-understood change at a time |
 | Keep every sound foreground-only | Let Fly's hum play in the background and defend the key with a screen recording | Nobody asked for background sound. The timer runs on timestamps and notifications |
+| Keep the silent-switch behaviour as it is (the owner, 2026-11-05: "Keep it as it is") | Let the start and finish sounds and the voices play in silent mode; make Fly's hum obey silent mode too | The owner noticed that the phone must leave silent mode to hear the start and finish sounds and the voices, while Fly's hum plays anyway. That is unchanged since those sounds arrived in D4 (FR-SET-004), and since Fly's hum arrived (`e1e8264`). It follows Apple's rule (`playing-audio.md` › Silence): silent mode mutes sound effects, and plays audio people start themselves. So no new build |
 | Make this the first job of every new session | Leave it on the release list (R4–R6) | **The owner's instruction.** Missing it costs a rejection of the next version |
 
 ## 6. Verification
@@ -113,7 +114,7 @@ None: a build-configuration change.
   - Submission `fb2ea06e-6b22-4eed-9bac-c8ebf6384c94`; `submit-ios.yaml` succeeded.
   - Tag `v1.4.1-tf.61` on `4c39732`, pushed.
   - IPA 21,618,015 B, −18 B on build 60. The built IPA's own Info.plist hasn't been opened; the evidence is the plugin run above.
-- [ ] The device check on the 1.4.1 build (§3 step 7).
+- [x] The device check on the 1.4.1 build (§3 step 7): passed on build 61, 2026-11-05. The owner: "every sound works properly" and "everything works other than that". The one remark was about the silent switch, which is by design (§5).
 - [ ] 1.4.1 submitted with the fix, and App Review raises no 2.5.4 finding.
 - [ ] The urgent notice removed from `CLAUDE.md` and the project memory, and DEF-009 closed in the SRS.
 

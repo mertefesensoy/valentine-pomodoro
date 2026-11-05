@@ -1,7 +1,7 @@
 ---
 id: IMPL-2026-11-05-phase2-a3-design
 title: "Phase 2 A3: the design of pairing, your partner's day and the account screens"
-status: in-progress
+status: done
 date: 2026-11-05
 owner: Mert Efe Şensoy
 related: [IMPL-2026-11-05-phase2-plan, DESIGN-WORKFLOW, ADR-0049, ADR-0051, SRS]
@@ -9,7 +9,7 @@ related: [IMPL-2026-11-05-phase2-plan, DESIGN-WORKFLOW, ADR-0049, ADR-0051, SRS]
 
 # 2026-11-05 — Phase 2 A3: the design of pairing, your partner's day and the account screens
 
-**Status:** In progress. The owner has chosen the structure; the briefs and contract wait for the owner's approval.
+**Status:** Done. The owner approved the briefs and contracts on 2026-11-05. D1 to D5 build them, each with its own finish review.
 **Branch:** `docs/phase2-a3-design`, one pull request into `master`. No app code: D1 to D5 build this.
 **Plan task:** [Phase 2 plan §3, A3](2026-11-05-phase2-plan.md#stage-a-baselines-budget-and-design-no-backend), by [DESIGN-WORKFLOW](../process/DESIGN-WORKFLOW.md).
 
@@ -85,7 +85,10 @@ Both are in DESIGN-WORKFLOW's table. DESIGN.md itself is updated from the build,
 
 ### 3.5 What the owner approved
 
-To be recorded here.
+The owner, 2026-11-05, on the page's "For your approval" section:
+
+- **The briefs, the direction contracts and the two additions:** "Approve it (Recommended)".
+- **Sign out:** "No sign out in 1.5.0 (Recommended)", with the cost stated: someone who hands their phone on must delete their account or unpair.
 
 ## 5. Design Decisions
 
@@ -100,8 +103,8 @@ To be recorded here.
 
 - [x] The owner chose the structure and confirmed the frames (§3.2).
 - [x] The platform check ran, and each finding has its disposition (§3.3).
-- [ ] The owner approved the briefs and the direction contracts (§3.5).
-- [ ] `node scripts/docs/check-docs.mjs`: 0 errors.
+- [x] The owner approved the briefs and the direction contracts (§3.5).
+- [x] `node scripts/docs/check-docs.mjs`: 0 errors.
 
 ## 7. Related Docs
 

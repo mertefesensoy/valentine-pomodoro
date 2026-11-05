@@ -9,6 +9,8 @@ related_targets: ["src/screens/partner/PartnerScreen.tsx","src/screens/TimerScre
 
 Surface brief from `/impeccable shape`, Phase 2 A3, 2026-11-05. **Mode: Operate.** Build path: code-led. D2 and D3 build it, behind `PAIRING_ENABLED`. It extends Classic (the strip) and reuses Stats' parts, so there was no structure round.
 
+**Brief and direction contract approved by the owner, 2026-11-05** ("Approve it").
+
 **The owner's discovery answers, 2026-11-05:**
 - **On the Timer:** "Name and stickers on the strip".
 - **A note when Show love notes is off:** "It waits on their card".

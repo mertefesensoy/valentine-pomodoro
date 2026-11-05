@@ -9,6 +9,8 @@ related_targets: ["src/screens/pair/PairScreen.tsx"]
 
 Surface brief from `/impeccable shape`, Phase 2 A3, 2026-11-05. **Mode: Operate.** Build path: code-led. `seed:0039ebbffa7e05be`. D1 builds it, behind `PAIRING_ENABLED`.
 
+**Brief and direction contract approved by the owner, 2026-11-05** ("Approve it").
+
 **The owner's discovery answers, 2026-11-05:**
 - **Where Pair lives:** "Timer strip when idle, and Settings".
 - **The structure:** "Facing pages", chosen over One grouped list and The postcard.

@@ -54,6 +54,7 @@ One `AppContext` holds everything. Every second of a running session changes its
 - [An account only at pairing, with Sign in with Apple only, and pairing by code only](0049-account-only-at-pairing.md)
 - [Architecture decision records](README.md)
 - ["Phase 1 B3: Zustand stores, hydrated synchronously from MMKV"](../../implementations/2026-10-30-phase1-b3-zustand-stores.md)
+- ["Phase 2 A0 and A1: the baselines on 1.4.1, and the size budget for 1.5.0"](../../implementations/2026-11-05-phase2-a0-a1-baselines-budget.md)
 - ["Phase 2 A2: the PAIRING_ENABLED flag and ADR-0049"](../../implementations/2026-11-05-phase2-a2-pairing-flag.md)
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../../implementations/2026-11-05-phase2-plan.md)
 <!-- backlinks:end -->

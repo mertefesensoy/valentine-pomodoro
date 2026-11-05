@@ -31,14 +31,16 @@ The migrations and the Edge Function have to reach the hosted project, and doing
 
 **What it needs,** both set by the owner in GitHub's repository secrets, never in the repo:
 
-- `SUPABASE_ACCESS_TOKEN`: from the Supabase dashboard, Account › Access Tokens.
+- `SUPABASE_ACCESS_TOKEN`: from the Supabase dashboard, Account › Access Tokens, scoped to this project. The owner gave it Project Settings, API Keys and API Key Secrets at read, and Edge Functions at read-write.
 - `SUPABASE_DB_PASSWORD`: the database password chosen when creating the project.
 
-The project's reference isn't a secret (it's in the app's URL), so it's written in the workflow.
+The project's reference and the pooler's host aren't secrets, so they're written in the workflow.
 
 **The Apple secrets** live in Supabase, not GitHub: `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_CLIENT_ID`, `APPLE_PRIVATE_KEY`, in Edge Functions › Secrets. Only the Edge Function reads them.
 
 **`supabase db push`** applies only the migrations the project hasn't recorded, in order, so a run with nothing new does nothing. Migrations are written to run once and are never edited after merging: a change is always a new file.
+
+**It goes through the session pooler.** The first run failed: `IPv6 is not supported on your current network`. GitHub's runners have no IPv6, and the database's direct address is IPv6 only on this plan. So `db push` gets `--db-url` with the session pooler (port 5432), which has IPv4, and the password is percent-encoded for the URL and masked in the log. That also makes `supabase link` unnecessary, so the step is gone, and the token needs only what deploying the function needs.
 
 ## 5. Design Decisions
 
@@ -48,6 +50,7 @@ The project's reference isn't a secret (it's in the app's URL), so it's written 
 | Two repository secrets | Environment secrets with a required reviewer | Nothing here reaches real users until `PAIRING_ENABLED` turns on, and each merge already has the owner's OK. A reviewer gate can be added when real couples depend on it |
 | The CLI pinned at 2.121.0 | `latest`; 3.0.0 | `latest` can break a passing deployment. 3.0.0 was 3 days old, and 2.121.0 is the newest over two weeks old |
 | Secrets not used by any other job | One shared environment | The `check`, `db` and `perf` jobs never see them, so a test can't print them |
+| The session pooler | Supabase's paid IPv4 add-on | It's free, it works on this plan, and it only carries deployments, never the app's traffic |
 
 ## 6. Verification
 

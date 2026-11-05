@@ -25,14 +25,19 @@ jobs:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       PROJECT_REF: mwftolngrxmmcbwpbaut
+      # GitHub's runners have no IPv6, and the database's direct address is IPv6 only, so migrations go
+      # through the session pooler, which has IPv4. The host isn't secret.
+      POOLER_HOST: aws-1-eu-central-1.pooler.supabase.com
     steps:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
         with:
           version: 2.121.0
-      - name: Link the project
-        run: supabase link --project-ref "$PROJECT_REF"
       - name: Apply new migrations
-        run: supabase db push
+        run: |
+          # The password goes into a URL, so it's percent-encoded, and the encoded form is masked too.
+          password=$(jq -rn --arg p "$SUPABASE_DB_PASSWORD" '$p | @uri')
+          echo "::add-mask::$password"
+          supabase db push --db-url "postgresql://postgres.$PROJECT_REF:$password@$POOLER_HOST:5432/postgres"
       - name: Deploy the Edge Function
         run: supabase functions deploy delete-account --project-ref "$PROJECT_REF"

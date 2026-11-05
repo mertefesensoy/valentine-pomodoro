@@ -372,7 +372,7 @@
     "you": "Sen",
     "partner": "Partnerin",
     "partnerFallback": "partnerin",
-    "why": "Eşleşmek için ikinizin de hesabı olmalı. Hesabında adın ve paylaşmayı seçtiklerin durur. Zamanlayıcı hesapsız da çalışır.",
+    "why": "Eşleşmek için ikinizin de bir hesabı olmalı; hesabında adın, saat dilimin, dilin ve paylaştıkların durur.",
     "notNow": "Şimdi değil",
     "lasts": "24 saat geçerli",
     "tapToType": "Onun kodunu yazmak için dokun",
@@ -403,6 +403,11 @@
       "offlineCode": "Çevrimdışısın. Kodun güvende.",
       "failed": "Bir şeyler ters gitti. Tekrar dene.",
       "signIn": "Giriş yapılamadı. Tekrar dene."
-    }
+    },
+    "checking": "Denetleniyor…",
+    "signingIn": "Giriş yapılıyor",
+    "keepCode": "Bu kodu tut",
+    "newCodeAsk": "Yeni kod oluşturulsun mu?",
+    "newCodeWhy": "Elindeki kod, göndermiş olsan bile çalışmaz olur."
   }
 }

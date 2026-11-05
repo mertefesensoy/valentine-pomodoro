@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 import Animated, {
     FadeIn,
+    ReduceMotion,
     useAnimatedReaction,
     useAnimatedStyle,
     useDerivedValue,
@@ -63,6 +64,9 @@ const POSES = { pomo: { idle: pomoIdle, joy: pomoCelebrating }, doro: { idle: do
 export type MorphBox = { w: number; h: number };
 
 const SPARKLE = 8;
+
+// Reanimated would otherwise jump this fade to its end under Reduce Motion, and the mark would pop in.
+const SETTLED_IN = FadeIn.duration(300).reduceMotion(ReduceMotion.Never);
 
 function Layer({ art, width, style }: { art: StickerArt; width: number; style?: object }) {
     return (
@@ -177,7 +181,7 @@ export function MorphArt({ p, box, room, reduced, label }: {
     const pomoSparkle = isDark ? tokens.stickerEdge : tokens.primary;
     return (
         <Animated.View
-            entering={reduced ? FadeIn.duration(300) : undefined}
+            entering={reduced ? SETTLED_IN : undefined}
             style={{ width: box.w, height: box.h }}
             accessible
             accessibilityRole="image"
@@ -194,13 +198,16 @@ export function MorphArt({ p, box, room, reduced, label }: {
     );
 }
 
-/** One soft tap when the timeline passes `atMs`, following Settings › Haptics. */
-export function useMorphHaptic(p: SharedValue<number>, atMs: number): void {
+/**
+ * One soft tap when the timeline passes `atMs`, following Settings › Haptics. `armed`, when given, has to be
+ * true by then, for a timeline that can also jump past that point with nothing having happened.
+ */
+export function useMorphHaptic(p: SharedValue<number>, atMs: number, armed?: SharedValue<boolean>): void {
     const tap = () => {
         if (useSettingsStore.getState().settings.haptics) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).catch(() => {});
     };
     useAnimatedReaction(
-        () => p.get() >= atMs,
+        () => (armed ? armed.get() : true) && p.get() >= atMs,
         (met, was) => {
             if (met && was === false) scheduleOnRN(tap);
         },

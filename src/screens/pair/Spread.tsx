@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, { css, cubicBezier, useReducedMotion } from 'react-native-reanimated';
 
 import { useTheme } from '../../theme/useTheme';
@@ -10,9 +10,16 @@ import { edgeWidth, radius, space } from '../../theme/layout';
  * outer corners 22 and spine corners 8. At the largest text sizes they stack, you first.
  *
  *   in : `left` and `right`, each page's contents; `stacked`; `rightFlat`, the right page lifts to flat while
- *        typing, a CSS transition on the UI thread, instant under Reduce Motion.
+ *        typing, a CSS transition on the UI thread, instant under Reduce Motion; `rightOverlay`, laid over the
+ *        whole right page, padding included.
  */
-export function Spread({ left, right, stacked, rightFlat = false }: { left: ReactNode; right: ReactNode; stacked: boolean; rightFlat?: boolean }) {
+export function Spread({ left, right, stacked, rightFlat = false, rightOverlay }: {
+    left: ReactNode;
+    right: ReactNode;
+    stacked: boolean;
+    rightFlat?: boolean;
+    rightOverlay?: ReactNode;
+}) {
     const { tokens } = useTheme();
     const reduced = useReducedMotion();
     const paper = { backgroundColor: tokens.paper, borderColor: tokens.edge };
@@ -20,14 +27,20 @@ export function Spread({ left, right, stacked, rightFlat = false }: { left: Reac
         return (
             <View style={styles.stack}>
                 <View style={[styles.pageStacked, paper]}>{left}</View>
-                <View style={[styles.pageStacked, paper]}>{right}</View>
+                <View style={[styles.pageStacked, paper]}>
+                    {right}
+                    {rightOverlay && <View style={StyleSheet.absoluteFill}>{rightOverlay}</View>}
+                </View>
             </View>
         );
     }
     return (
         <View style={styles.row}>
             <View style={[styles.page, styles.left, paper]}>{left}</View>
-            <Animated.View style={[styles.page, styles.right, paper, rightFlat && styles.flat, reduced && styles.instant]}>{right}</Animated.View>
+            <Animated.View style={[styles.page, styles.right, paper, rightFlat && styles.flat, reduced && styles.instant]}>
+                {right}
+                {rightOverlay && <View style={StyleSheet.absoluteFill}>{rightOverlay}</View>}
+            </Animated.View>
         </View>
     );
 }

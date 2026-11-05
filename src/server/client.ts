@@ -1,5 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
-import { setHasAccount } from './account';
+import { setHasAccount, setSessionEnded } from './account';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from './config';
 
 /**
@@ -143,6 +143,7 @@ export async function signInWithIdToken(input: { identityToken: string; rawNonce
     const next = await parseSession(response);
     await saveSession(next);
     setHasAccount(true);
+    setSessionEnded(false);
     return { userId: next.userId };
 }
 
@@ -152,6 +153,7 @@ async function runRefresh(current: Session): Promise<Session> {
     });
     if (response.status === 400 || response.status === 401 || response.status === 403) {
         await clearSession();
+        setSessionEnded(true);
         throw new SessionEnded();
     }
     if (!response.ok) throw new ServerError(response.status, await errorCode(response));
@@ -173,7 +175,10 @@ function refresh(current: Session): Promise<Session> {
 
 async function validSession(): Promise<Session> {
     const current = await readSession();
-    if (!current) throw new SessionEnded();
+    if (!current) {
+        setSessionEnded(true);
+        throw new SessionEnded();
+    }
     if (refreshing) return refreshing;
     if (Date.now() / 1000 >= current.expiresAt - EXPIRY_MARGIN_S) return refresh(current);
     return current;
@@ -189,6 +194,7 @@ async function authorized(path: string, body: unknown, retried = false): Promise
     }
     if (response.status === 401) {
         await clearSession();
+        setSessionEnded(true);
         throw new SessionEnded();
     }
     if (!response.ok) throw new ServerError(response.status, await errorCode(response));

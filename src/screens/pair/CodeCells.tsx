@@ -12,14 +12,15 @@ const CELL_GAP = space.xs + 2;
 export const CODE_WIDTH = 3 * CELL_WIDTH + 2 * CELL_GAP;
 
 /**
- * How large the cells can be in a window this wide: a zoomed small iPhone is 320 pt, where three at full size
- * wouldn't fit on one of two pages. Stacked pages have the whole width, so there they grow with the text.
- *   in : `width`, the window's; `stacked`, whether the pages stack.
- *   out: the scale for `CodeCells`; no side effects. Page padding is the sheet's `space.l` and the spread's `space.s`.
+ * How large the cells can be in a spread this wide: a zoomed small iPhone leaves 272 pt, and a small one in
+ * landscape less, where three at full size wouldn't fit on one of two pages. Stacked pages have the whole width,
+ * so there they grow with the text.
+ *   in : `spreadWidth`, what the spread actually gets; `stacked`, whether the pages stack.
+ *   out: the scale for `CodeCells`; no side effects. `space.s` is the gap between pages and each page's padding.
  */
-export function cellScaleFor(width: number, stacked: boolean): number {
+export function cellScaleFor(spreadWidth: number, stacked: boolean): number {
     if (stacked) return 1.2;
-    const room = (width - 2 * space.l - space.s) / 2 - 2 * space.s - 2 * edgeWidth;
+    const room = (spreadWidth - space.s) / 2 - 2 * space.s - 2 * edgeWidth;
     return Math.min(1, room / CODE_WIDTH);
 }
 

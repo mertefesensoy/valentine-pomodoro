@@ -372,7 +372,7 @@
     "you": "You",
     "partner": "Your partner",
     "partnerFallback": "your partner",
-    "why": "To pair, you each need an account. It holds your name and what you choose to share, and the timer works without it.",
+    "why": "To pair, you each need an account, which keeps your name, time zone, language and what you share.",
     "notNow": "Not now",
     "lasts": "Lasts 24 hours",
     "tapToType": "Tap to type their code",
@@ -403,6 +403,11 @@
       "offlineCode": "You're offline. Your code is safe.",
       "failed": "Something went wrong. Try again.",
       "signIn": "Couldn't sign in. Try again."
-    }
+    },
+    "checking": "Checking…",
+    "signingIn": "Signing in",
+    "keepCode": "Keep this code",
+    "newCodeAsk": "Make a new code?",
+    "newCodeWhy": "The code you have stops working, even if you've already sent it."
   }
 }

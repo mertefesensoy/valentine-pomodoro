@@ -67,7 +67,7 @@ export function SpreadPages({ tokens, width, stacked, pose, progress, isBreak, l
         <>
             <Text style={[styles.line, { color: tokens.ink }]}>{line}</Text>
             {pairAction && (
-                <PressableScale onPress={pairAction} haptic={false} accessibilityRole="button" hitSlop={8}>
+                <PressableScale onPress={pairAction} haptic={false} accessibilityRole="button" hitSlop={12}>
                     <Text style={[styles.line, styles.pairAction, { color: tokens.primaryInk }]}>{t('partner.pair')}</Text>
                 </PressableScale>
             )}

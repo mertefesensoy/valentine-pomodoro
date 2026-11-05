@@ -1,6 +1,6 @@
 // covers: FR-PAR-001, FR-ACC-002
 // What the pairing sheet does on the server's functions (Phase 2 D1).
-import { cleanCode, ensureCode, previewCode, redeemCode, saveName, signIn, wasCelebrated, markCelebrated } from '../pairing';
+import { cleanCode, ensureCode, newCode, previewCode, redeemCode, saveName, signIn, wasCelebrated, markCelebrated } from '../pairing';
 
 const mockRpc = jest.fn();
 const mockSignInWithIdToken = jest.fn(async () => ({ userId: 'u' }));
@@ -20,16 +20,27 @@ const mockSnapshot = { current: null as unknown };
 jest.mock('../../../server/home', () => ({
     HOME_KEY: ['home'],
     fetchHome: jest.fn(),
+    homeRestored: Promise.resolve(),
     refreshHome: jest.fn(async () => {}),
     homeClient: {
         fetchQuery: jest.fn(async () => mockSnapshot.current),
         getQueryData: jest.fn(() => mockSnapshot.current),
+        setQueryData: jest.fn((_key: unknown, update: (old: unknown) => unknown) => {
+            mockSnapshot.current = update(mockSnapshot.current);
+        }),
     },
 }));
 jest.mock('../../../server/runtime', () => ({ startPairedRuntime: jest.fn() }));
 jest.mock('../../../server/dayReports', () => ({ reportToday: jest.fn(async () => {}) }));
 
 const { Offline, SessionEnded } = jest.requireMock<typeof import('../../../server/client')>('../../../server/client');
+const { homeClient, refreshHome } = jest.requireMock<{
+    homeClient: { fetchQuery: jest.Mock };
+    refreshHome: jest.Mock;
+}>('../../../server/home');
+const later = () => new Date(Date.now() + 60_000).toISOString();
+const earlier = () => new Date(Date.now() - 60_000).toISOString();
+const ME = { id: 'm', display_name: 'Ece' };
 
 beforeEach(() => {
     mockRpc.mockReset();
@@ -122,21 +133,75 @@ describe('saveName', () => {
 });
 
 describe('ensureCode', () => {
-    it('keeps your open code', async () => {
-        mockSnapshot.current = { invite: { code: 'K7MP2Q', expires_at: new Date(Date.now() + 60_000).toISOString() } };
+    it('asks the server first, and keeps your open code', async () => {
+        mockSnapshot.current = { me: ME, couple: null, invite: { code: 'K7MP2Q', expires_at: later() } };
         await expect(ensureCode()).resolves.toEqual({ code: 'K7MP2Q' });
+        expect(homeClient.fetchQuery).toHaveBeenCalled();
         expect(mockRpc).not.toHaveBeenCalled();
     });
 
     it('makes a new one when yours has expired', async () => {
-        mockSnapshot.current = { invite: { code: 'K7MP2Q', expires_at: new Date(Date.now() - 60_000).toISOString() } };
+        mockSnapshot.current = { me: ME, couple: null, invite: { code: 'K7MP2Q', expires_at: earlier() } };
         mockRpc.mockResolvedValue({ status: 'ok', code: 'H4TW9B' });
         await expect(ensureCode()).resolves.toEqual({ code: 'H4TW9B' });
     });
 
-    it('says offline when it can\'t make one', async () => {
-        mockRpc.mockRejectedValue(new Offline());
+    it('makes one when you have none', async () => {
+        mockSnapshot.current = { me: ME, couple: null, invite: null };
+        mockRpc.mockResolvedValue({ status: 'ok', code: 'H4TW9B' });
+        await expect(ensureCode()).resolves.toEqual({ code: 'H4TW9B' });
+    });
+
+    it('never makes one when it can\'t tell, since that would cancel a code your partner may hold', async () => {
+        homeClient.fetchQuery.mockRejectedValueOnce(new Offline());
         await expect(ensureCode()).resolves.toEqual({ problem: 'offline' });
+        expect(mockRpc).not.toHaveBeenCalled();
+    });
+
+    it('shows the last known code when offline', async () => {
+        mockSnapshot.current = { me: ME, couple: null, invite: { code: 'K7MP2Q', expires_at: later() } };
+        homeClient.fetchQuery.mockRejectedValueOnce(new Offline());
+        await expect(ensureCode()).resolves.toEqual({ code: 'K7MP2Q' });
+        expect(mockRpc).not.toHaveBeenCalled();
+    });
+
+    it('doesn\'t show a last known code that has expired', async () => {
+        mockSnapshot.current = { me: ME, couple: null, invite: { code: 'K7MP2Q', expires_at: earlier() } };
+        homeClient.fetchQuery.mockRejectedValueOnce(new Offline());
+        await expect(ensureCode()).resolves.toEqual({ problem: 'offline' });
+    });
+
+    it('makes none for someone with no name, whom a partner couldn\'t recognise', async () => {
+        mockSnapshot.current = { me: { id: 'm', display_name: null }, couple: null, invite: null };
+        await expect(ensureCode()).resolves.toEqual({ problem: 'no_name' });
+        expect(mockRpc).not.toHaveBeenCalled();
+    });
+
+    it('makes none once there\'s a couple', async () => {
+        mockSnapshot.current = { me: ME, couple: { id: 'c' }, invite: null };
+        await expect(ensureCode()).resolves.toEqual({ problem: 'already_paired' });
+        expect(mockRpc).not.toHaveBeenCalled();
+    });
+});
+
+describe('saveName, in the cache', () => {
+    it('writes the name at once, so a failed refresh can\'t leave the sheet asking for it', async () => {
+        mockSnapshot.current = { me: { id: 'm', display_name: null }, couple: null, invite: null };
+        mockRpc.mockResolvedValue({ status: 'ok' });
+        refreshHome.mockRejectedValueOnce(new Offline());
+        await expect(saveName('Ece')).resolves.toBe('ok');
+        expect(mockSnapshot.current).toMatchObject({ me: { display_name: 'Ece' } });
+    });
+});
+
+describe('newCode', () => {
+    it('writes the new code into the cache, so a failed refresh can\'t leave the cancelled one on show', async () => {
+        mockSnapshot.current = { me: ME, couple: null, invite: { code: 'K7MP2Q', expires_at: later() } };
+        const expires = later();
+        mockRpc.mockResolvedValue({ status: 'ok', code: 'H4TW9B', expires_at: expires });
+        refreshHome.mockRejectedValueOnce(new Offline());
+        await expect(newCode()).resolves.toEqual({ code: 'H4TW9B' });
+        expect(mockSnapshot.current).toMatchObject({ invite: { code: 'H4TW9B', expires_at: expires } });
     });
 });
 
@@ -187,11 +252,10 @@ describe('redeemCode', () => {
     });
 });
 
-describe('the morph plays once', () => {
-    it('remembers the couple it celebrated', () => {
-        expect(wasCelebrated('c1')).toBe(false);
+describe('the morph plays once per person', () => {
+    it('stays played, even for a new couple', () => {
+        expect(wasCelebrated()).toBe(false);
         markCelebrated('c1');
-        expect(wasCelebrated('c1')).toBe(true);
-        expect(wasCelebrated('c2')).toBe(false);
+        expect(wasCelebrated()).toBe(true);
     });
 });

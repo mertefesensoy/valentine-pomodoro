@@ -2,7 +2,7 @@ import { language } from '../../i18n';
 import { requestSignIn } from '../../server/appleSignIn';
 import { Offline, rpc, SessionEnded, signInWithIdToken } from '../../server/client';
 import { reportToday } from '../../server/dayReports';
-import { fetchHome, HOME_KEY, homeClient, refreshHome } from '../../server/home';
+import { fetchHome, HOME_KEY, homeClient, homeRestored, refreshHome } from '../../server/home';
 import { startPairedRuntime } from '../../server/runtime';
 import type { HomeSnapshot } from '../../server/types';
 import { appStorage } from '../../utils/appStorage';
@@ -15,6 +15,7 @@ import { appStorage } from '../../utils/appStorage';
 /** A–Z and 2–9 without I, L and O (plan §4; the check on invites.code). */
 const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 export const CODE_LENGTH = 6;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
  * What someone typed or pasted, cleaned: capitals in English's rules, whatever the phone's language (a Turkish
@@ -68,6 +69,8 @@ export async function saveName(name: string): Promise<'ok' | 'invalid' | 'offlin
     try {
         const { status } = await rpc<{ status: string }>('set_profile', { p_display_name: name });
         if (status !== 'ok') return 'invalid';
+        // Written here too, so a refresh that fails can't leave the sheet asking for a name it already has.
+        homeClient.setQueryData<HomeSnapshot>(HOME_KEY, (old) => (old?.me ? { ...old, me: { ...old.me, display_name: name } } : old));
         await refreshHome().catch(() => {});
         return 'ok';
     } catch (error) {
@@ -75,13 +78,18 @@ export async function saveName(name: string): Promise<'ok' | 'invalid' | 'offlin
     }
 }
 
-export type CodeResult = { code: string } | { problem: 'offline' | 'failed' | 'already_paired' };
+export type CodeResult = { code: string } | { problem: 'offline' | 'failed' | 'already_paired' | 'no_name' };
 
-/** Makes a code, cancelling your earlier one. */
+/**
+ * Makes a code, cancelling your earlier one, so it's only for when you've asked, or you certainly have none. The
+ * new code goes into the cache at once: a refresh that fails must not leave the cancelled code on show.
+ */
 export async function newCode(): Promise<CodeResult> {
     try {
-        const result = await rpc<{ status: string; code?: string }>('create_invite');
+        const result = await rpc<{ status: string; code?: string; expires_at?: string }>('create_invite');
         if (result.status === 'ok' && result.code) {
+            const invite = { code: result.code, expires_at: result.expires_at ?? new Date(Date.now() + DAY_MS).toISOString() };
+            homeClient.setQueryData<HomeSnapshot>(HOME_KEY, (old) => (old ? { ...old, invite } : old));
             await refreshHome().catch(() => {});
             return { code: result.code };
         }
@@ -91,10 +99,26 @@ export async function newCode(): Promise<CodeResult> {
     }
 }
 
-/** Your open code, or a new one. */
+const isOpen = (invite: HomeSnapshot['invite']) => Boolean(invite && new Date(invite.expires_at).getTime() > Date.now());
+
+/**
+ * Your open code, or a new one. A new code cancels the one your partner may already hold, so it asks the server
+ * first, and never makes one when it can't tell: with no answer it shows the last known code, or says so.
+ * Someone with no name gets no code, since their partner would see nothing to recognise them by.
+ */
 export async function ensureCode(): Promise<CodeResult> {
-    const open = homeClient.getQueryData<HomeSnapshot>(HOME_KEY)?.invite;
-    if (open && new Date(open.expires_at).getTime() > Date.now()) return { code: open.code };
+    await homeRestored;
+    let home: HomeSnapshot;
+    try {
+        home = await homeClient.fetchQuery({ queryKey: HOME_KEY, queryFn: fetchHome, staleTime: 0 });
+    } catch (error) {
+        const known = homeClient.getQueryData<HomeSnapshot>(HOME_KEY)?.invite;
+        if (known && isOpen(known)) return { code: known.code };
+        return { problem: statusOf(error) === 'offline' ? 'offline' : 'failed' };
+    }
+    if (home.couple) return { problem: 'already_paired' };
+    if (!home.me?.display_name) return { problem: 'no_name' };
+    if (home.invite && isOpen(home.invite)) return { code: home.invite.code };
     return newCode();
 }
 
@@ -133,13 +157,13 @@ export async function redeemCode(code: string): Promise<RedeemResult> {
     }
 }
 
-/** The morph plays once per person, at their first pairing. */
+/** The morph plays once per person, at their first pairing: pairing again with someone new doesn't replay it. */
 export const CELEBRATED_KEY = 'pair_celebrated_v1';
 
 export function markCelebrated(coupleId: string): void {
     appStorage.set(CELEBRATED_KEY, coupleId);
 }
 
-export function wasCelebrated(coupleId: string): boolean {
-    return appStorage.getString(CELEBRATED_KEY) === coupleId;
+export function wasCelebrated(): boolean {
+    return appStorage.getString(CELEBRATED_KEY) !== undefined;
 }

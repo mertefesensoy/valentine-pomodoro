@@ -850,6 +850,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - ["Phase 2 A3: the design of pairing, your partner's day and the account screens"](../implementations/2026-11-05-phase2-a3-design.md)
 - ["Phase 2 A4: a slow session-end notification keeps its id (DEF-005)"](../implementations/2026-11-05-phase2-a4-def-005.md)
 - ["Phase 2 B1: supabase/ in the repo, and this phase's tables"](../implementations/2026-11-05-phase2-b1-tables.md)
+- ["Phase 2 B2: row-level security, tested with pgTAP in CI"](../implementations/2026-11-05-phase2-b2-rls.md)
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Documentation conventions](../process/DOCS.md)

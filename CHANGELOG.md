@@ -14,6 +14,12 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 - The app no longer declares the `audio` background mode, which nothing used. `expo-audio`'s plugin added it by default, and App Review flagged it under Guideline 2.5.4 (DEF-009, 5c2fe1c). Sounds work as before: they stop when you leave the app.
 
+## [1.4.1-tf.61] - 2026-11-05
+
+*iOS TestFlight build 61, the release candidate, a pre-release and not a store release, source 4c39732. Built with EAS (build db76113a) and uploaded to App Store Connect for TestFlight (submission fb2ea06e); device check on a physical iPhone: pending.*
+
+Its changes are listed under [1.4.1].
+
 ## [1.4.0] - 2026-11-02
 
 *The iOS release of the v2 rehaul's Phase 1: TestFlight build 59, live on the App Store on 2026-11-04. This section is dated by its EAS production build (UTC), as every version here is. Android stays on 1.3.1 (iOS-first, below).*
@@ -465,6 +471,7 @@ Two later fixes on the same branch were never built: functional state updates fo
 
 [Unreleased]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.1...master
 [1.4.1]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0...v1.4.1
+[1.4.1-tf.61]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0...v1.4.1-tf.61
 [1.4.0]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.3.1...v1.4.0
 [1.4.0-tf.60]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.59...v1.4.0-tf.60
 [1.4.0-tf.59]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.58...v1.4.0-tf.59

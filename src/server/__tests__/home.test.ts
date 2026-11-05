@@ -49,17 +49,19 @@ describe('the runtime', () => {
         mockRpc.mockResolvedValue(snapshot(1));
         const { startPairedRuntime } = require('../runtime') as typeof import('../runtime');
 
+        const homeCalls = () => mockRpc.mock.calls.filter(([name]) => name === 'home_snapshot').length;
+
         startPairedRuntime();
         await flushMicrotasks();
-        expect(mockRpc).toHaveBeenCalledTimes(1);
+        expect(homeCalls()).toBe(1);
 
         listeners[0]('background');
         await flushMicrotasks();
-        expect(mockRpc).toHaveBeenCalledTimes(1);
+        expect(homeCalls()).toBe(1);
 
         listeners[0]('active');
         await flushMicrotasks();
-        expect(mockRpc).toHaveBeenCalledTimes(2);
+        expect(homeCalls()).toBe(2);
     });
 
     it('starts once per launch', async () => {

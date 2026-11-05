@@ -1,7 +1,7 @@
 ---
 id: IMPL-2026-11-03-def-009-background-audio-mode
 title: "URGENT: remove the unused audio background mode before the next submission (DEF-009)"
-status: in-progress
+status: done
 date: 2026-11-03
 owner: Mert Efe Şensoy
 related: [SRS, IMPL-2026-11-01-phase1-stage-e, RELEASE, BRANCHING]
@@ -117,8 +117,8 @@ None: a build-configuration change.
   - Tag `v1.4.1-tf.61` on `4c39732`, pushed.
   - IPA 21,618,015 B, −18 B on build 60. The built IPA's own Info.plist hasn't been opened; the evidence is the plugin run above.
 - [x] The device check on the 1.4.1 build (§3 step 7): passed on build 61, 2026-11-05. The owner: "every sound works properly" and "everything works other than that". The one remark was about the silent switch, which is by design (§5).
-- [ ] 1.4.1 submitted with the fix, and App Review raises no 2.5.4 finding. **Submitted 2026-11-05** on build 61 (the owner: "Submitted"); App Review's answer is pending.
-- [ ] The urgent notice removed from `CLAUDE.md` and the project memory, and DEF-009 closed in the SRS.
+- [x] 1.4.1 submitted with the fix, and App Review raises no 2.5.4 finding. Submitted 2026-11-05 on build 61 (the owner: "Submitted"). Approved and live the same day: the owner, "approved an released"; the Turkish App Store lookup shows 1.4.1, released at 2026-11-05T19:04:08Z.
+- [x] The urgent notice removed from `CLAUDE.md` and the project memory, and DEF-009 closed in the SRS, 2026-11-05.
 
 ## 7. Related Docs
 

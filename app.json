@@ -129,12 +129,7 @@
       ],
       "expo-localization",
       "expo-router",
-      [
-        "expo-secure-store",
-        {
-          "faceIDPermission": false
-        }
-      ]
+      "expo-secure-store"
     ],
     "extra": {
       "eas": {

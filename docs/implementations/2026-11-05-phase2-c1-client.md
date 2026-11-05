@@ -30,7 +30,7 @@ Requirements: [FR-ACC-001](../srs/SRS.md#fr-acc-001), [FR-ACC-002](../srs/SRS.md
 | `src/server/appleSignIn.ts` | New: asks Apple, with a nonce, for sign-in or for a code to confirm a deletion. |
 | `src/server/__tests__/client.test.ts` | New: the refresh rules, the Keychain, and failures. |
 | `src/server/__tests__/appleSignIn.test.ts` | New: the nonce, the name, and a cancel. |
-| `app.json` | The `expo-secure-store` plugin, with no Face ID purpose string, since nothing uses it. |
+| `app.json` | The `expo-secure-store` plugin, as it comes. |
 | `package.json` | `expo-apple-authentication`, `expo-secure-store` and `expo-crypto`, at the SDK's versions. |
 
 ## 3. Implementation Approach
@@ -65,6 +65,7 @@ Requirements: [FR-ACC-001](../srs/SRS.md#fr-acc-001), [FR-ACC-002](../srs/SRS.md
 - `requestSignIn()` draws a random nonce (`expo-crypto`), gives Apple its SHA-256, and returns the identity token, the raw nonce and the first name. Supabase hashes the raw nonce and compares it. It asks for `FULL_NAME` only, and not the email (NFR-PRIV-001). **If Supabase refuses a sign-in with no email, the owner hears before this changes.**
 - `requestDeletionCode()` asks Apple again with no scopes, which is the confirmation plan B3 calls for, and returns the fresh authorization code.
 - A cancel comes back as `null`, never as an error.
+- **For D4:** Apple's authorization code is single-use and lasts five minutes. So deletion runs in this order, with nothing between the last two: the native alert, Apple's sheet, then `invoke('delete-account')`.
 - The first name, not the full name, is what's saved: it's what a partner would call you, and it fits the strip. Apple sends it only on the first sign-in, so D1 saves it straight away through `set_profile`.
 
 ## 4. Mathematical / Statistical Details
@@ -81,7 +82,7 @@ Requirements: [FR-ACC-001](../srs/SRS.md#fr-acc-001), [FR-ACC-002](../srs/SRS.md
 | Stay signed in through network failures | Clear on any refresh failure | People are often offline in a library. Only a real refusal ends a session |
 | No sign-out function | Offer one | The owner: "No sign out in 1.5.0". `clearSession` exists for after a deletion |
 | The first name only | The full name | Data minimisation, and it's what a partner calls you. The person can change it in Settings |
-| No Face ID string from the plugin | The plugin's default | Nothing uses Face ID, and DEF-009 showed that App Review reads what the app declares |
+| Keep the plugin's Face ID string | Remove it, since nothing here uses Face ID | The library links `LocalAuthentication`, and App Store Connect's upload check can flag a linked API with no purpose string (ITMS-90683). It's the same reasoning as keeping `NSMicrophoneUsageDescription` for `expo-audio`. DEF-009 was the opposite case: a capability the app claimed and nothing used |
 
 ## 6. Verification
 

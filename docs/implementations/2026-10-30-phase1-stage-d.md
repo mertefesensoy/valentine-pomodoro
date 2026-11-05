@@ -647,6 +647,7 @@ Kept current in the same commit as each piece of work, and applied at the merge 
 - ["Phase 1 D4, wired in: D4's sounds merged into Stage D and played by Classic"](2026-11-01-phase1-d4-wiring.md)
 - ["Phase 1 D5: the general tutorial, Pomo & Doro show you around"](2026-11-01-phase1-d5-tutorial.md)
 - ["Phase 1 Stage E: verify and ship v1.4.0"](2026-11-01-phase1-stage-e.md)
+- ["Phase 2 (v1.5.0): accounts, pairing by code and your partner's day, plan"](2026-11-05-phase2-plan.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)

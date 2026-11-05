@@ -150,6 +150,7 @@ Polish and harden passes, a Realtime load test, Maestro end-to-end tests, the re
 - [MMKV for local storage, with a one-time migration from AsyncStorage](../architecture/adr/0030-mmkv-storage.md)
 - [2026-10-29 — v2 Couples Rehaul: Plan](../implementations/2026-10-29-couples-rehaul-plan.md)
 - [Documentation system, release history and branch cleanup](../implementations/2026-10-30-documentation-system.md)
+- ["Phase 2 (v1.5.0): accounts, pairing by code and your partner's day, plan"](../implementations/2026-11-05-phase2-plan.md)
 - [Release process](../process/RELEASE.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Status snapshot 2026-10-30](../status/2026-10-30-status.md)

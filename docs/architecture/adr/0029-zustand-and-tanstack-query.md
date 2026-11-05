@@ -53,4 +53,5 @@ One `AppContext` holds everything. Every second of a running session changes its
 - [Progress ring drawn with react-native-svg stroke-dashoffset](0009-svg-progress-ring.md)
 - [Architecture decision records](README.md)
 - ["Phase 1 B3: Zustand stores, hydrated synchronously from MMKV"](../../implementations/2026-10-30-phase1-b3-zustand-stores.md)
+- ["Phase 2 (v1.5.0): accounts, pairing by code and your partner's day, plan"](../../implementations/2026-11-05-phase2-plan.md)
 <!-- backlinks:end -->

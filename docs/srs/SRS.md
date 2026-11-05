@@ -833,6 +833,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](../implementations/2026-10-30-phase1-stage-d.md)
 - ["Settings: the number pad can be dismissed (DEF-008)"](../implementations/2026-10-30-settings-keyboard-dismiss.md)
 - ["URGENT: remove the unused audio background mode before the next submission (DEF-009)"](../implementations/2026-11-03-def-009-background-audio-mode.md)
+- ["Phase 2 (v1.5.0): accounts, pairing by code and your partner's day, plan"](../implementations/2026-11-05-phase2-plan.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Documentation conventions](../process/DOCS.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)

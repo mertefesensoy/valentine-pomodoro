@@ -45,5 +45,6 @@ All eight old `release/*` branches were deleted on 2026-10-30 after every commit
 - [Documentation map](../README.md)
 - ["Phase 1 Stage E: verify and ship v1.4.0"](../implementations/2026-11-01-phase1-stage-e.md)
 - ["URGENT: remove the unused audio background mode before the next submission (DEF-009)"](../implementations/2026-11-03-def-009-background-audio-mode.md)
+- ["Phase 2 (v1.5.0): accounts, pairing by code and your partner's day, plan"](../implementations/2026-11-05-phase2-plan.md)
 - [Release process](RELEASE.md)
 <!-- backlinks:end -->

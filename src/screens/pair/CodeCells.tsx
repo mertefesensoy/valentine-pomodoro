@@ -11,6 +11,18 @@ const CELL_GAP = space.xs + 2;
 /** How wide a row of three cells is at scale 1, so a page can tell whether they fit. */
 export const CODE_WIDTH = 3 * CELL_WIDTH + 2 * CELL_GAP;
 
+/**
+ * How large the cells can be in a window this wide: a zoomed small iPhone is 320 pt, where three at full size
+ * wouldn't fit on one of two pages. Stacked pages have the whole width, so there they grow with the text.
+ *   in : `width`, the window's; `stacked`, whether the pages stack.
+ *   out: the scale for `CodeCells`; no side effects. Page padding is the sheet's `space.l` and the spread's `space.s`.
+ */
+export function cellScaleFor(width: number, stacked: boolean): number {
+    if (stacked) return 1.2;
+    const room = (width - 2 * space.l - space.s) / 2 - 2 * space.s - 2 * edgeWidth;
+    return Math.min(1, room / CODE_WIDTH);
+}
+
 /** One empty cell, the facing page's promise before sign-in. Decoration, hidden from VoiceOver. */
 export function DashedCell() {
     const { tokens } = useTheme();

@@ -1,10 +1,12 @@
 // covers: FR-PAR-001, FR-ACC-002
 // The pairing sheet's steps (Phase 2 D1). The server's side is pinned in pairing.test.ts and pgTAP; these pin
 // what a person sees at each step, and that nothing happens until they press Pair.
-import { Share } from 'react-native';
+import { Dimensions, Share } from 'react-native';
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 
 import PairScreen from '../PairScreen';
+import { CODE_WIDTH, cellScaleFor } from '../CodeCells';
+import { space, edgeWidth } from '../../../theme/layout';
 import { useAccountStore } from '../../../server/account';
 
 jest.setTimeout(30_000);
@@ -33,6 +35,8 @@ jest.mock('expo-apple-authentication', () => {
     };
 });
 
+let mockCelebrated = false;
+const mockMarkCelebrated = jest.fn();
 const mockSignIn = jest.fn();
 const mockSaveName = jest.fn();
 const mockEnsureCode = jest.fn();
@@ -47,8 +51,8 @@ jest.mock('../pairing', () => ({
     newCode: () => mockNewCode(),
     previewCode: (code: string) => mockPreview(code),
     redeemCode: (code: string) => mockRedeem(code),
-    markCelebrated: jest.fn(),
-    wasCelebrated: () => false,
+    markCelebrated: (id: string) => mockMarkCelebrated(id),
+    wasCelebrated: () => mockCelebrated,
 }));
 
 let mockHome: unknown = null;
@@ -70,6 +74,8 @@ async function open({ signedIn }: { signedIn: boolean }) {
 beforeEach(() => {
     mockHome = null;
     mockReduced = false;
+    mockCelebrated = false;
+    mockMarkCelebrated.mockReset();
     mockSignIn.mockReset();
     mockSaveName.mockReset();
     mockEnsureCode.mockReset();
@@ -119,6 +125,26 @@ describe('before sign-in', () => {
 
         expect(mockSaveName).toHaveBeenCalledWith('Ece');
         expect(screen.getByText('Send my code')).toBeOnTheScreen();
+    });
+});
+
+describe('your name', () => {
+    it('stays in the scroll, above the keyboard, and the keyboard\'s Done key continues', async () => {
+        mockSignIn.mockResolvedValue({ needsName: true });
+        mockSaveName.mockResolvedValue('ok');
+        await open({ signedIn: false });
+        await fireEvent.press(screen.getByText('Continue with Apple'));
+        await flush();
+        expect(within(screen.getByTestId('pair-scroll')).getByText('Continue')).toBeOnTheScreen();
+
+        const field = screen.getByLabelText('What should your partner call you?');
+        await fireEvent(field, 'submitEditing');
+        expect(mockSaveName).not.toHaveBeenCalled();
+
+        await fireEvent.changeText(field, 'Ece');
+        await fireEvent(field, 'submitEditing');
+        await flush();
+        expect(mockSaveName).toHaveBeenCalledWith('Ece');
     });
 });
 
@@ -260,6 +286,33 @@ describe('at the largest text sizes', () => {
     });
 });
 
+describe('in the usual layouts', () => {
+    const PHONE = { width: 393, height: 852, scale: 3, fontScale: 1 };
+    const LANDSCAPE = { width: 852, height: 393, scale: 3, fontScale: 1 };
+    const jestWindow = Dimensions.get('window');
+    afterEach(async () => {
+        await act(async () => Dimensions.set({ window: jestWindow, screen: jestWindow }));
+    });
+
+    it.each([
+        ['a phone', PHONE],
+        ['a landscape phone', LANDSCAPE],
+    ])('keeps the actions in the scroll on %s', async (_name, size) => {
+        await act(async () => Dimensions.set({ window: size, screen: size }));
+        await open({ signedIn: false });
+        expect(within(screen.getByTestId('pair-scroll')).getByText('Continue with Apple')).toBeOnTheScreen();
+    });
+
+    it('fits three cells on a page, even on a zoomed small iPhone', () => {
+        expect(cellScaleFor(393, false)).toBe(1);
+        const narrow = cellScaleFor(320, false);
+        expect(narrow).toBeLessThan(1);
+        const room = (320 - 2 * space.l - space.s) / 2 - 2 * space.s - 2 * edgeWidth;
+        expect(CODE_WIDTH * narrow).toBeLessThanOrEqual(room + 0.001);
+        expect(cellScaleFor(320, true)).toBe(1.2);
+    });
+});
+
 describe('once there is a couple', () => {
     it('goes to the morph, whichever phone got there first, and Done closes the sheet', async () => {
         const { router } = jest.requireMock<{ router: { back: jest.Mock } }>('expo-router');
@@ -273,8 +326,22 @@ describe('once there is a couple', () => {
 
         expect(screen.getByText('You and Deniz are on the same page.')).toBeOnTheScreen();
         expect(screen.getByLabelText('Pomo and Doro become the two faces of one diary')).toBeOnTheScreen();
+        expect(mockMarkCelebrated).toHaveBeenCalledTimes(1);
+        expect(mockMarkCelebrated).toHaveBeenCalledWith('c');
 
         await fireEvent.press(screen.getByText('Done'));
         expect(router.back).toHaveBeenCalled();
+    });
+
+    it('plays once per person: opened again, the mark is just there', async () => {
+        mockCelebrated = true;
+        mockHome = {
+            couple: { id: 'c', paired_at: 'x' },
+            partner: { id: 'p', display_name: 'Deniz' },
+            me: { id: 'm', display_name: 'Ece' },
+        };
+        await open({ signedIn: true });
+        expect(screen.getByText('You and Deniz are on the same page.')).toBeOnTheScreen();
+        expect(mockMarkCelebrated).not.toHaveBeenCalled();
     });
 });

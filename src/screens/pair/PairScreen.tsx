@@ -33,7 +33,7 @@ import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
 import { PoseSticker } from '../classic/PoseSticker';
 import { ASPECT, DURATION, linePose } from '../welcome/choreography';
 import { MorphArt, useMorphHaptic } from '../welcome/MorphStage';
-import { CODE_WIDTH, CodeCells, DashedCell } from './CodeCells';
+import { CodeCells, DashedCell, cellScaleFor } from './CodeCells';
 import {
     CODE_LENGTH,
     cleanCode,
@@ -159,27 +159,31 @@ export default function PairScreen() {
 
     const stacked = fontScale >= STACK_FONT_SCALE;
     const sideBySide = height < COMPACT_HEIGHT;
-    const pinned = stacked && !sideBySide;
+    // The name step raises the keyboard straight away, and pinned actions would sit behind it, so it stays in the
+    // scroll, which the keyboard's insets move. On the pages, the pill is hidden only while typing, which needs no pill.
+    const pinned = stacked && !sideBySide && view !== 'name';
     const artScale = stacked ? 0.6 : 1;
     const boxW = Math.round(artScale * Math.min(width * 0.78, 420, sideBySide ? height * 0.6 : 420));
     const box = { w: boxW, h: Math.round(boxW * ASPECT) };
-    // A zoomed small iPhone is 320 pt wide, where three cells at full size wouldn't fit on one page.
-    const pageRoom = (width - 2 * space.l - space.s) / 2 - 2 * space.s - 2 * edgeWidth;
-    const cellScale = stacked ? 1.2 : Math.min(1, pageRoom / CODE_WIDTH);
+    const cellScale = cellScaleFor(width, stacked);
 
     // The welcome's timeline, joined at the open spread, where it holds still while you check who it is. Pressing
-    // Pair simply lets it run on. Under Reduce Motion, the settled mark fades in instead (MorphArt).
-    const p = useSharedValue(MORPH_START_MS);
+    // Pair simply lets it run on. Under Reduce Motion, the settled mark fades in instead (MorphArt). It plays once
+    // per person: open this again once it has played, and the mark is simply there, with no haptic.
+    const coupleId = couple?.id ?? null;
+    const [playedBefore] = useState(() => (coupleId ? wasCelebrated(coupleId) : false));
+    const p = useSharedValue(playedBefore ? DURATION : MORPH_START_MS);
     useMorphHaptic(p, MORPH_HAPTIC_MS);
     const line = useAnimatedStyle(() => {
         const l = linePose(p.get());
         return { opacity: l.opacity, transform: [{ translateY: l.dy }] };
     });
     useEffect(() => {
-        if (view !== 'morph' || !couple) return;
-        if (!wasCelebrated(couple.id)) markCelebrated(couple.id);
-        p.set(reduced ? DURATION : withTiming(DURATION, { duration: DURATION - MORPH_START_MS, easing: Easing.linear }));
-    }, [view, couple, reduced, p]);
+        if (view !== 'morph' || !coupleId) return;
+        const first = !wasCelebrated(coupleId);
+        if (first) markCelebrated(coupleId);
+        p.set(reduced || !first ? DURATION : withTiming(DURATION, { duration: DURATION - MORPH_START_MS, easing: Easing.linear }));
+    }, [view, coupleId, reduced, p]);
     useEffect(() => {
         if (view === 'morph') announce(t('pair.samePage', { name: partnerName }));
     }, [view, partnerName]);
@@ -294,7 +298,7 @@ export default function PairScreen() {
 
     // One element through who-it-is and the morph, so pressing Pair moves the same drawing with no cut.
     const art =
-        view === 'morph' && reduced ? (
+        view === 'morph' && reduced && !playedBefore ? (
             <MorphArt key="settled" p={p} box={box} room={1} reduced label={t('pair.art')} />
         ) : (
             <MorphArt key="art" p={p} box={box} room={1} reduced={false} label={t('pair.art')} />
@@ -359,6 +363,9 @@ export default function PairScreen() {
                 <TextInput
                     value={name}
                     onChangeText={setName}
+                    onSubmitEditing={() => {
+                        if (name.trim().length > 0) void onSaveName();
+                    }}
                     maxLength={60}
                     autoFocus
                     autoCapitalize="words"

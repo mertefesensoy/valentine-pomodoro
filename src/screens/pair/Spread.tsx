@@ -11,18 +11,20 @@ import { edgeWidth, radius, space } from '../../theme/layout';
  *
  *   in : `left` and `right`, each page's contents; `stacked`; `rightFlat`, the right page lifts to flat while
  *        typing, a CSS transition on the UI thread, instant under Reduce Motion; `rightOverlay`, laid over the
- *        whole right page, padding included.
+ *        whole right page, padding included; `pageMinHeight`, for pages that have to match another drawing.
  */
-export function Spread({ left, right, stacked, rightFlat = false, rightOverlay }: {
+export function Spread({ left, right, stacked, rightFlat = false, rightOverlay, pageMinHeight }: {
     left: ReactNode;
     right: ReactNode;
     stacked: boolean;
     rightFlat?: boolean;
     rightOverlay?: ReactNode;
+    pageMinHeight?: number;
 }) {
     const { tokens } = useTheme();
     const reduced = useReducedMotion();
     const paper = { backgroundColor: tokens.paper, borderColor: tokens.edge };
+    const tall = pageMinHeight ? { minHeight: pageMinHeight } : null;
     if (stacked) {
         return (
             <View style={styles.stack}>
@@ -36,8 +38,8 @@ export function Spread({ left, right, stacked, rightFlat = false, rightOverlay }
     }
     return (
         <View style={styles.row}>
-            <View style={[styles.page, styles.left, paper]}>{left}</View>
-            <Animated.View style={[styles.page, styles.right, paper, rightFlat && styles.flat, reduced && styles.instant]}>
+            <View style={[styles.page, styles.left, paper, tall]}>{left}</View>
+            <Animated.View style={[styles.page, styles.right, paper, tall, rightFlat && styles.flat, reduced && styles.instant]}>
                 {right}
                 {rightOverlay && <View style={StyleSheet.absoluteFill}>{rightOverlay}</View>}
             </Animated.View>

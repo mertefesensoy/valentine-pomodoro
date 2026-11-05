@@ -43,31 +43,38 @@ function statusOf(error: unknown): 'offline' | 'session_ended' | 'failed' {
 
 export type SignInResult = 'cancelled' | 'offline' | 'failed' | { needsName: boolean };
 
+const deviceProfile = () => ({ p_tz: Intl.DateTimeFormat().resolvedOptions().timeZone, p_locale: language });
+
 /**
  * Asks Apple, signs in, and saves the first name at once, because Apple sends it only on the first sign-in.
  * Starts the paired runtime, since this person now has an account. A cancel is not a failure.
  */
 export async function signIn(): Promise<SignInResult> {
+    let firstName: string | null;
     try {
         const apple = await requestSignIn();
         if (!apple) return 'cancelled';
+        firstName = apple.firstName;
         await signInWithIdToken({ identityToken: apple.identityToken, rawNonce: apple.rawNonce });
-        await rpc('set_profile', {
-            p_display_name: apple.firstName,
-            p_tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            p_locale: language,
-        });
-        const home = await homeClient.fetchQuery({ queryKey: HOME_KEY, queryFn: fetchHome, staleTime: 0 });
-        startPairedRuntime();
-        return { needsName: !home.me?.display_name };
     } catch (error) {
         return statusOf(error) === 'offline' ? 'offline' : 'failed';
+    }
+    // Signed in from here, so nothing below can be called a failed sign-in. If it doesn't finish, the sheet shows
+    // your page and carries on, and asks for a name once it can see that there isn't one.
+    startPairedRuntime();
+    try {
+        await rpc('set_profile', { p_display_name: firstName, ...deviceProfile() });
+        const home = await homeClient.fetchQuery({ queryKey: HOME_KEY, queryFn: fetchHome, staleTime: 0 });
+        return { needsName: !home.me?.display_name };
+    } catch {
+        return { needsName: false };
     }
 }
 
 export async function saveName(name: string): Promise<'ok' | 'invalid' | 'offline' | 'failed'> {
     try {
-        const { status } = await rpc<{ status: string }>('set_profile', { p_display_name: name });
+        // With the time zone and language again: the sign-in that should have sent them may not have got through.
+        const { status } = await rpc<{ status: string }>('set_profile', { p_display_name: name, ...deviceProfile() });
         if (status !== 'ok') return 'invalid';
         // Written here too, so a refresh that fails can't leave the sheet asking for a name it already has.
         homeClient.setQueryData<HomeSnapshot>(HOME_KEY, (old) => (old?.me ? { ...old, me: { ...old.me, display_name: name } } : old));
@@ -99,7 +106,9 @@ export async function newCode(): Promise<CodeResult> {
     }
 }
 
-const isOpen = (invite: HomeSnapshot['invite']) => Boolean(invite && new Date(invite.expires_at).getTime() > Date.now());
+/** Whether a code can still be used. Pure, apart from reading the clock. */
+export const isOpen = (invite: HomeSnapshot['invite'] | undefined) =>
+    Boolean(invite && new Date(invite.expires_at).getTime() > Date.now());
 
 /**
  * Your open code, or a new one. A new code cancels the one your partner may already hold, so it asks the server

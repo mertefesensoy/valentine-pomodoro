@@ -19,6 +19,7 @@ jest.mock('expo-router', () => ({
 let mockReduced = false;
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual('react-native-reanimated/mock'),
+    LayoutAnimationConfig: ({ children }: { children: unknown }) => children,
     useReducedMotion: () => mockReduced,
 }));
 
@@ -92,6 +93,12 @@ async function open({ signedIn, sessionEnded = false }: { signedIn: boolean; ses
 
 let announce: jest.SpyInstance;
 
+/** Pair ignores presses for a moment after it appears, in case the keyboard's falling under someone's finger. */
+const pastTheGuard = () => {
+    const later = Date.now() + 1000;
+    jest.spyOn(Date, 'now').mockReturnValue(later);
+};
+
 beforeEach(() => {
     mockHome = null;
     mockReduced = false;
@@ -109,6 +116,7 @@ beforeEach(() => {
 
 afterEach(() => {
     announce.mockRestore();
+    jest.spyOn(Date, 'now').mockRestore();
 });
 
 describe('before sign-in', () => {
@@ -236,6 +244,31 @@ describe('your code and theirs', () => {
         expect(screen.getByText('Lasts 24 hours')).toBeOnTheScreen();
     });
 
+    it('shows the last known code at once, while it asks the server', async () => {
+        mockEnsureCode.mockImplementation(() => new Promise(() => {}));
+        mockHome = { ...NAMED, invite: { code: 'K7MP2Q', expires_at: new Date(Date.now() + 60_000).toISOString() } };
+        await open({ signedIn: true });
+        expect(screen.getByLabelText('Ece. Your code: K, 7, M, P, 2, Q. Lasts 24 hours')).toBeOnTheScreen();
+    });
+
+    it('doesn\'t show a last known code that has expired', async () => {
+        mockEnsureCode.mockImplementation(() => new Promise(() => {}));
+        mockHome = { ...NAMED, invite: { code: 'K7MP2Q', expires_at: new Date(Date.now() - 60_000).toISOString() } };
+        await open({ signedIn: true });
+        expect(screen.queryByLabelText(/K, 7, M, P, 2, Q/)).toBeNull();
+    });
+
+    it('offers Send my code on your page as well, for VoiceOver', async () => {
+        const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' } as never);
+        mockHome = NAMED;
+        await open({ signedIn: true });
+        const page = screen.getByLabelText(/Your code: K, 7, M, P, 2, Q/);
+        expect(page.props.accessibilityActions).toEqual([{ name: 'send', label: 'Send my code' }]);
+        await act(async () => page.props.onAccessibilityAction({ nativeEvent: { actionName: 'send' } }));
+        expect(share).toHaveBeenCalled();
+        share.mockRestore();
+    });
+
     it('doesn\'t promise a time on a code that hasn\'t come yet', async () => {
         mockEnsureCode.mockImplementation(() => new Promise(() => {}));
         await open({ signedIn: true });
@@ -339,6 +372,7 @@ describe('your code and theirs', () => {
         await flush();
         expect(screen.getByText('Pair with Deniz')).toBeOnTheScreen();
 
+        pastTheGuard();
         await fireEvent.press(screen.getByText('Pair with Deniz'));
         await flush();
         expect(mockRedeem).toHaveBeenCalledWith('H4TW9C');
@@ -400,14 +434,37 @@ describe('who it is', () => {
     it('pairs only when asked, with the code that was typed', async () => {
         mockRedeem.mockResolvedValue('ok');
         await toConfirm();
+        pastTheGuard();
         await fireEvent.press(screen.getByText('Pair with Deniz'));
         await flush();
         expect(mockRedeem).toHaveBeenCalledWith('H4TW9B');
     });
 
+    it('ignores a press in the moment Pair appears, when a finger on the keyboard could land on it', async () => {
+        await toConfirm();
+        await fireEvent.press(screen.getByText('Pair with Deniz'));
+        await flush();
+        expect(mockRedeem).not.toHaveBeenCalled();
+    });
+
+    it('can\'t be backed out of while Pair is on its way', async () => {
+        mockRedeem.mockImplementation(() => new Promise(() => {}));
+        await toConfirm();
+        pastTheGuard();
+        const notThem = screen.getByRole('button', { name: "That's not them" });
+        // fireEvent would wait for the handler, which this test holds open.
+        await act(async () => {
+            void fireEvent.press(screen.getByRole('button', { name: 'Pair with Deniz' }));
+        });
+        await fireEvent.press(notThem);
+        await flush();
+        expect(screen.queryByText('Send my code')).toBeNull();
+    });
+
     it('returns to the pages and explains, aloud too, if it failed', async () => {
         mockRedeem.mockResolvedValue({ problem: 'expired' });
         await toConfirm();
+        pastTheGuard();
         await fireEvent.press(screen.getByText('Pair with Deniz'));
         await flush();
         expect(screen.getByText(/has expired/)).toBeOnTheScreen();
@@ -427,6 +484,7 @@ describe('under Reduce Motion', () => {
         expect(screen.getByText('Pair with Deniz')).toBeOnTheScreen();
         expect(screen.queryByLabelText(ART)).toBeNull();
 
+        pastTheGuard();
         await fireEvent.press(screen.getByText('Pair with Deniz'));
         await flush();
         expect(mockRedeem).toHaveBeenCalledWith('H4TW9B');

@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import Animated, {
+    Easing,
     FadeIn,
     ReduceMotion,
     useAnimatedReaction,
@@ -66,7 +67,7 @@ export type MorphBox = { w: number; h: number };
 const SPARKLE = 8;
 
 // Reanimated would otherwise jump this fade to its end under Reduce Motion, and the mark would pop in.
-const SETTLED_IN = FadeIn.duration(300).reduceMotion(ReduceMotion.Never);
+const SETTLED_IN = FadeIn.duration(300).easing(Easing.bezier(0.23, 1, 0.32, 1)).reduceMotion(ReduceMotion.Never);
 
 function Layer({ art, width, style }: { art: StickerArt; width: number; style?: object }) {
     return (
@@ -158,6 +159,19 @@ function Sparkle({ i, p, box, colour }: { i: number; p: SharedValue<number>; box
         };
     });
     return <Animated.View style={[styles.sparkle, { backgroundColor: colour }, style]} />;
+}
+
+/**
+ * Just Pomo & Doro at this point of the timeline, for a stage that draws its own pages. Pairing's who-it-is holds
+ * them still at the frame the morph starts from, so nothing moves when the drawing takes over. No side effects.
+ */
+export function MorphCharacters({ p, box, room }: { p: SharedValue<number>; box: MorphBox; room: number }) {
+    return (
+        <>
+            <Character who="pomo" p={p} box={box} room={room} />
+            <Character who="doro" p={p} box={box} room={room} />
+        </>
+    );
 }
 
 /**

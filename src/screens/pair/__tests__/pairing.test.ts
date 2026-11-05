@@ -107,6 +107,12 @@ describe('signIn', () => {
         await expect(signIn()).resolves.toEqual({ needsName: false });
     });
 
+    it('counts as signed in once the token is saved: a failure after that isn\'t a failed sign-in', async () => {
+        mockRequestSignIn.mockResolvedValue({ identityToken: 't', rawNonce: 'n', firstName: 'Ece' });
+        mockRpc.mockRejectedValue(new Offline());
+        await expect(signIn()).resolves.toEqual({ needsName: false });
+    });
+
     it('treats a cancel as nothing having happened', async () => {
         mockRequestSignIn.mockResolvedValue(null);
         await expect(signIn()).resolves.toBe('cancelled');
@@ -185,6 +191,16 @@ describe('ensureCode', () => {
 });
 
 describe('saveName, in the cache', () => {
+    it('sends the time zone and language again, in case the sign-in that should have sent them didn\'t get through', async () => {
+        mockRpc.mockResolvedValue({ status: 'ok' });
+        await saveName('Ece');
+        expect(mockRpc).toHaveBeenCalledWith('set_profile', expect.objectContaining({
+            p_display_name: 'Ece',
+            p_tz: expect.any(String),
+            p_locale: expect.any(String),
+        }));
+    });
+
     it('writes the name at once, so a failed refresh can\'t leave the sheet asking for it', async () => {
         mockSnapshot.current = { me: { id: 'm', display_name: null }, couple: null, invite: null };
         mockRpc.mockResolvedValue({ status: 'ok' });

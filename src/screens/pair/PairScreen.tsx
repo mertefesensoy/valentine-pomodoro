@@ -18,6 +18,7 @@ import Animated, {
     Easing,
     FadeIn,
     FadeOut,
+    LayoutAnimationConfig,
     ReduceMotion,
     useAnimatedStyle,
     useReducedMotion,
@@ -40,12 +41,13 @@ import { useTheme } from '../../theme/useTheme';
 import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
 import { PoseSticker } from '../classic/PoseSticker';
 import { ASPECT, DURATION, linePose } from '../welcome/choreography';
-import { MorphArt, useMorphHaptic } from '../welcome/MorphStage';
+import { MorphArt, MorphCharacters, useMorphHaptic } from '../welcome/MorphStage';
 import { CodeCells, DashedCell, cellScaleFor } from './CodeCells';
 import {
     CODE_LENGTH,
     cleanCode,
     ensureCode,
+    isOpen,
     markCelebrated,
     newCode,
     previewCode,
@@ -65,6 +67,7 @@ const COMPACT_HEIGHT = 500;
 const SIDE_MAIN = 6;
 const SIDE_ACTIONS = 5;
 const STICKER = 72;
+const PILL_HEIGHT = 56;
 
 /** On this frame of the welcome's timeline the pair have landed on the open spread, in their joyful pose. */
 export const MORPH_START_MS = 2100;
@@ -73,9 +76,13 @@ const MORPH_HAPTIC_MS = 3080;
 /** The steps' crossfade: the morph holds still until the spread has faded under it. */
 const CROSSFADE_MS = 200;
 
+/** A person finishing a code has their finger on the keyboard as it falls, and Pair can land under it. */
+const PAIR_GUARD_MS = 500;
+
 // Opacity stays under Reduce Motion (DESIGN.md), and Reanimated would otherwise jump a fade to its end.
-const STEP_IN = FadeIn.duration(CROSSFADE_MS).reduceMotion(ReduceMotion.Never);
-const STEP_OUT = FadeOut.duration(CROSSFADE_MS).reduceMotion(ReduceMotion.Never);
+const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
+const STEP_IN = FadeIn.duration(CROSSFADE_MS).easing(EASE_OUT).reduceMotion(ReduceMotion.Never);
+const STEP_OUT = FadeOut.duration(CROSSFADE_MS).easing(EASE_OUT).reduceMotion(ReduceMotion.Never);
 
 type Step = 'pages' | 'confirm';
 type CodeProblem = ProblemStatus | 'already_paired';
@@ -99,11 +106,12 @@ function spelled(code: string): string {
     return [...code].join(', ');
 }
 
-function Pill({ label, onPress, disabled, busy }: { label: string; onPress: () => void; disabled?: boolean; busy?: boolean }) {
+function Pill({ label, onPress, disabled, busy, haptic }: { label: string; onPress: () => void; disabled?: boolean; busy?: boolean; haptic?: boolean }) {
     const { tokens } = useTheme();
     return (
         <PressableScale
             onPress={disabled || busy ? () => {} : onPress}
+            haptic={haptic}
             accessibilityRole="button"
             accessibilityState={{ disabled: Boolean(disabled), busy: Boolean(busy) }}
             style={[styles.pill, { backgroundColor: tokens.primary, opacity: disabled ? 0.5 : 1 }]}
@@ -172,13 +180,16 @@ export default function PairScreen() {
     // Only the latest check may answer, and Pair redeems the code that was shown, not whatever is in the field.
     const latestCheck = useRef(0);
     const previewed = useRef<string | null>(null);
+    const whoShownAt = useRef(0);
+    // Someone arriving on the pages hears the code when it comes, not only the sheet's title.
+    const codeToSpeak = useRef(false);
 
     const home = useQuery(
         {
             queryKey: HOME_KEY,
             queryFn: fetchHome,
             enabled: signedIn,
-            refetchInterval: step === 'pages' ? POLL_MS : false,
+            refetchInterval: (query) => (step === 'pages' && !query.state.data?.couple ? POLL_MS : false),
         },
         homeClient,
     );
@@ -187,6 +198,9 @@ export default function PairScreen() {
     const me = home.data?.me ?? null;
     const partnerName = home.data?.partner?.display_name ?? inviterName ?? t('pair.partnerFallback');
     const myName = me?.display_name ?? t('pair.you');
+    // "Your code is already there": the last known one shows at once, and the server's answer corrects it.
+    const known = home.data?.invite;
+    const shownCode = code ?? (known && isOpen(known) ? known.code : null);
 
     // Signing in sets the account flag before the name is saved, so the step holds until signIn() has finished.
     let view: 'signin' | 'name' | 'morph' | Step;
@@ -198,16 +212,19 @@ export default function PairScreen() {
     const stacked = fontScale >= STACK_FONT_SCALE;
     const sideBySide = height < COMPACT_HEIGHT;
     const pinned = !sideBySide && view !== 'name';
-    const column = width - 2 * space.l;
+    const gutterLeft = sideBySide ? Math.max(insets.left, space.l) : space.l;
+    const gutterRight = sideBySide ? Math.max(insets.right, space.l) : space.l;
+    const column = width - gutterLeft - gutterRight;
     const mainWidth = sideBySide ? ((column - space.l) * SIDE_MAIN) / (SIDE_MAIN + SIDE_ACTIONS) : column;
     const cellScale = cellScaleFor(mainWidth, stacked);
     const boxW = Math.round((stacked ? 0.6 : 1) * Math.min(mainWidth, 420, sideBySide ? height * 0.6 : 420));
     const box = { w: boxW, h: Math.round(boxW * ASPECT) };
 
-    // The welcome's timeline, joined at the frame where the pair have landed on the open spread. It plays once per
-    // person: open this again once it has played, and the mark is simply there, with no haptic.
-    const [playedBefore] = useState(() => wasCelebrated());
-    const p = useSharedValue(playedBefore ? DURATION : MORPH_START_MS);
+    // The welcome's timeline, held at the frame where the pair have landed on the open spread: who-it-is draws them
+    // from it, so they don't move when the drawing takes over. It plays once per person: open this again once it
+    // has played, and the mark is simply there, with no haptic.
+    const [settledAtOpen] = useState(() => Boolean(couple) && wasCelebrated());
+    const p = useSharedValue(settledAtOpen ? DURATION : MORPH_START_MS);
     const hapticArmed = useSharedValue(false);
     useMorphHaptic(p, MORPH_HAPTIC_MS, hapticArmed);
     const line = useAnimatedStyle(() => {
@@ -232,8 +249,12 @@ export default function PairScreen() {
         else if (view === 'confirm') announce(`${t('pair.confirm', { name: partnerName })}. ${t('pair.question')}`);
         else if (view === 'name') announce(t('pair.nameAsk'));
         else if (view === 'signin') announce(t('pair.why'));
-        else announce(code ? t('pair.codeLabel', { spelled: spelled(code) }) : t('pair.title'));
-    }, [view, partnerName, code]);
+        else if (shownCode) announce(t('pair.codeLabel', { spelled: spelled(shownCode) }));
+        else {
+            codeToSpeak.current = true;
+            announce(t('pair.title'));
+        }
+    }, [view, partnerName, shownCode]);
 
     // Your code, once you're on the pages. A person who comes back to an open sheet keeps theirs.
     const loadCode = useRef(async () => {
@@ -241,6 +262,8 @@ export default function PairScreen() {
         if ('code' in result) {
             setCode(result.code);
             setCodeProblem(null);
+            if (codeToSpeak.current) announce(t('pair.codeLabel', { spelled: spelled(result.code) }));
+            codeToSpeak.current = false;
         } else if (result.problem === 'offline' || result.problem === 'failed') {
             setCodeProblem(result.problem);
             announce(t(result.problem === 'offline' ? 'pair.error.offline' : 'pair.error.failed'));
@@ -259,7 +282,12 @@ export default function PairScreen() {
         setSignInProblem(null);
         const result = await signIn();
         setSigningIn(false);
-        if (result === 'cancelled' || typeof result === 'object') return;
+        if (result === 'cancelled') return;
+        if (typeof result === 'object') {
+            setTypedProblem(null);
+            setCodeProblem(null);
+            return;
+        }
         const text = t(result === 'offline' ? 'pair.error.offline' : 'pair.error.signIn');
         setSignInProblem(text);
         announce(text);
@@ -301,12 +329,15 @@ export default function PairScreen() {
             return;
         }
         previewed.current = clean;
+        whoShownAt.current = Date.now();
+        // The field is about to unmount, and its blur wouldn't reach us.
+        setTyping(false);
         setInviterName(result.inviterName);
         setStep('confirm');
     };
 
     const onPair = async () => {
-        if (!previewed.current) return;
+        if (!previewed.current || Date.now() - whoShownAt.current < PAIR_GUARD_MS) return;
         setBusy(true);
         const result = await redeemCode(previewed.current);
         setBusy(false);
@@ -317,6 +348,7 @@ export default function PairScreen() {
     };
 
     const onNotThem = () => {
+        if (busy) return;
         latestCheck.current += 1;
         previewed.current = null;
         setTyped('');
@@ -325,8 +357,8 @@ export default function PairScreen() {
     };
 
     const onSend = () => {
-        if (!code) return;
-        void Share.share({ message: t('pair.shareMessage', { code, url: STORE_URL }) }).catch(() => {});
+        if (!shownCode) return;
+        void Share.share({ message: t('pair.shareMessage', { code: shownCode, url: STORE_URL }) }).catch(() => {});
     };
 
     const makeNewCode = async () => {
@@ -343,7 +375,7 @@ export default function PairScreen() {
 
     // Your partner may already hold the code you have, and a new one cancels it, so that's worth one question.
     const onNewCode = () => {
-        if (!code) {
+        if (!shownCode) {
             void makeNewCode();
             return;
         }
@@ -354,7 +386,7 @@ export default function PairScreen() {
     };
 
     const head = (
-        <View style={styles.head} nativeID="pair-head">
+        <View style={styles.head}>
             <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header" maxFontSizeMultiplier={1.6}>
                 {t('pair.title')}
             </Text>
@@ -458,27 +490,42 @@ export default function PairScreen() {
         );
         body = (
             <>
-                <Spread
-                    stacked={stacked}
-                    left={
-                        <View style={styles.pageInner}>
-                            <Text style={[styles.who, { color: tokens.inkSoft }]} numberOfLines={2}>{myName}</Text>
-                            {face(pomoCelebrating)}
+                <View>
+                    <Spread
+                        stacked={stacked}
+                        pageMinHeight={stacked ? undefined : box.h}
+                        left={
+                            <View style={styles.pageInner}>
+                                <Text style={[styles.who, { color: tokens.inkSoft }]} numberOfLines={2}>{myName}</Text>
+                                {stacked && face(pomoCelebrating)}
+                            </View>
+                        }
+                        right={
+                            <View style={styles.pageInner}>
+                                <Text style={[styles.who, { color: tokens.inkSoft }]} numberOfLines={2}>{partnerName}</Text>
+                                {stacked && face(doroCelebrating)}
+                            </View>
+                        }
+                    />
+                    {/* Where the morph starts them, so Pair moves nothing: they lean toward the spine. Stacked pages have no spine. */}
+                    {!stacked && (
+                        <View
+                            style={[styles.morphStage, { width: box.w, height: box.h }]}
+                            pointerEvents="none"
+                            accessibilityElementsHidden
+                            importantForAccessibility="no-hide-descendants"
+                        >
+                            <MorphCharacters p={p} box={box} room={1} />
                         </View>
-                    }
-                    right={
-                        <View style={styles.pageInner}>
-                            <Text style={[styles.who, { color: tokens.inkSoft }]} numberOfLines={2}>{partnerName}</Text>
-                            {face(doroCelebrating)}
-                        </View>
-                    }
-                />
+                    )}
+                </View>
                 <Text style={[styles.question, styles.centered, { color: tokens.ink }]}>{t('pair.question')}</Text>
             </>
         );
         actions = (
             <>
-                <Pill label={t('pair.confirm', { name: partnerName })} onPress={onPair} busy={busy} />
+                {/* The morph's soft tap is this press's one haptic. */}
+                <Pill label={t('pair.confirm', { name: partnerName })} onPress={onPair} busy={busy} haptic={false} />
                 <LinkButton label={t('pair.notThem')} onPress={onNotThem} />
             </>
         );
@@ -487,12 +534,12 @@ export default function PairScreen() {
         if (codeProblem) codeProblemText = t(codeProblem === 'offline' ? 'pair.error.offline' : 'pair.error.failed');
         const leftLabel = [
             myName,
-            code ? t('pair.codeLabel', { spelled: spelled(code) }) : null,
-            code ? t('pair.lasts') : codeProblemText,
+            shownCode ? t('pair.codeLabel', { spelled: spelled(shownCode) }) : null,
+            shownCode ? t('pair.lasts') : codeProblemText,
         ].filter(Boolean).join('. ');
 
         let leftLine = <ActivityIndicator color={tokens.inkSoft} />;
-        if (code) leftLine = <Text style={[styles.mini, { color: tokens.inkSoft }]}>{t('pair.lasts')}</Text>;
+        if (shownCode) leftLine = <Text style={[styles.mini, { color: tokens.inkSoft }]}>{t('pair.lasts')}</Text>;
         else if (codeProblemText) leftLine = <Text style={[styles.pageProblem, { color: tokens.ink }]}>{codeProblemText}</Text>;
 
         let rightLine = <Text style={[styles.mini, { color: tokens.inkSoft }]}>{t('pair.tapToType')}</Text>;
@@ -505,14 +552,23 @@ export default function PairScreen() {
                 stacked={stacked}
                 rightFlat={typing}
                 left={
-                    <View style={styles.pageInner} nativeID="pair-left" accessible accessibilityLabel={leftLabel}>
+                    <View
+                        style={styles.pageInner}
+                        accessible
+                        accessibilityLabel={leftLabel}
+                        // Send my code is below the field on screen, so it's offered here too, right beside the code.
+                        accessibilityActions={shownCode ? [{ name: 'send', label: t('pair.send') }] : undefined}
+                        onAccessibilityAction={(event) => {
+                            if (event.nativeEvent.actionName === 'send') onSend();
+                        }}
+                    >
                         <Text style={[styles.who, { color: tokens.inkSoft }]} numberOfLines={2}>{myName}</Text>
-                        <CodeCells value={code ?? ''} scale={cellScale} />
+                        <CodeCells value={shownCode ?? ''} scale={cellScale} />
                         {leftLine}
                     </View>
                 }
                 right={
-                    <View style={styles.pageInner} nativeID="pair-right">
+                    <View style={styles.pageInner}>
                         <Text style={[styles.who, { color: tokens.inkSoft }]} numberOfLines={2}>{t('pair.partner')}</Text>
                         <CodeCells value={typed} scale={cellScale} />
                         {rightLine}
@@ -522,7 +578,6 @@ export default function PairScreen() {
                     // One real text field over the whole page: the keyboard, paste and VoiceOver all just work.
                     <TextInput
                         testID="pair-code-input"
-                        nativeID="pair-field"
                         value={typed}
                         onChangeText={onTyped}
                         onFocus={() => setTyping(true)}
@@ -542,20 +597,16 @@ export default function PairScreen() {
         );
         actions = (
             <>
-                <Pill label={t('pair.send')} onPress={onSend} disabled={!code} />
+                <Pill label={t('pair.send')} onPress={onSend} disabled={!shownCode} />
                 <LinkButton label={t('pair.newCode')} onPress={onNewCode} />
             </>
         );
     }
 
     const centred = view === 'morph';
-    const sideGutters = sideBySide
-        ? { paddingLeft: Math.max(insets.left, space.l), paddingRight: Math.max(insets.right, space.l) }
-        : null;
     const actionsBlock = (
         <Animated.View
             key={`actions-${view}`}
-            nativeID="pair-actions"
             entering={STEP_IN}
             exiting={STEP_OUT}
             style={[styles.actions, sideBySide && styles.sideActions]}
@@ -564,40 +615,39 @@ export default function PairScreen() {
         </Animated.View>
     );
     return (
-        // VoiceOver's order on your code's step (the brief §6): your code, Send my code, then the field, which is above Send on screen.
-        <View
-            style={[styles.root, { backgroundColor: tokens.page }]}
-            experimental_accessibilityOrder={view === 'pages' ? ['pair-head', 'pair-left', 'pair-actions', 'pair-field', 'pair-right'] : undefined}
-        >
-            <ScrollView
-                testID="pair-scroll"
-                style={styles.root}
-                contentContainerStyle={[styles.content, sideGutters]}
-                keyboardShouldPersistTaps="handled"
-                automaticallyAdjustKeyboardInsets
-                bounces={false}
-            >
-                {head}
-                <View style={sideBySide ? styles.side : styles.column}>
-                    <Animated.View
-                        key={view}
-                        entering={STEP_IN}
-                        exiting={STEP_OUT}
-                        style={[centred ? styles.center : styles.column, sideBySide && styles.sideMain]}
-                    >
-                        {body}
-                    </Animated.View>
-                    {!pinned && actionsBlock}
-                </View>
-            </ScrollView>
-            {pinned && <View style={[styles.pinned, { paddingBottom: Math.max(insets.bottom, space.l) }]}>{actionsBlock}</View>}
-        </View>
+        // The sheet's own rise is the first step's entrance, so that one doesn't fade as well.
+        <LayoutAnimationConfig skipEntering>
+            <View style={[styles.root, { backgroundColor: tokens.page }]}>
+                <ScrollView
+                    testID="pair-scroll"
+                    style={styles.root}
+                    contentContainerStyle={[styles.content, { paddingLeft: gutterLeft, paddingRight: gutterRight }]}
+                    keyboardShouldPersistTaps="handled"
+                    automaticallyAdjustKeyboardInsets
+                    bounces={false}
+                >
+                    {head}
+                    <View style={sideBySide ? styles.side : styles.column}>
+                        <Animated.View
+                            key={view}
+                            entering={STEP_IN}
+                            exiting={STEP_OUT}
+                            style={[centred ? styles.center : styles.column, sideBySide && styles.sideMain]}
+                        >
+                            {body}
+                        </Animated.View>
+                        {!pinned && actionsBlock}
+                    </View>
+                </ScrollView>
+                {pinned && <View style={[styles.pinned, { paddingBottom: Math.max(insets.bottom, space.l) }]}>{actionsBlock}</View>}
+            </View>
+        </LayoutAnimationConfig>
     );
 }
 
 const styles = StyleSheet.create({
     root: { flex: 1 },
-    content: { paddingHorizontal: space.l, paddingTop: space.m, paddingBottom: space.xl, gap: space.m },
+    content: { paddingTop: space.m, paddingBottom: space.xl, gap: space.m },
     head: { minHeight: minTarget, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: minTarget },
     title: { fontSize: 17, fontWeight: '600', textAlign: 'center' },
     closeCorner: { position: 'absolute', right: 0, top: 4 },
@@ -608,7 +658,9 @@ const styles = StyleSheet.create({
     sideMain: { flex: SIDE_MAIN },
     sideActions: { flex: SIDE_ACTIONS },
     actions: { gap: space.s },
-    pinned: { paddingHorizontal: space.l, paddingTop: space.s },
+    // Room for a pill and a link at every step, so Done sits where Pair was.
+    pinned: { paddingHorizontal: space.l, paddingTop: space.s, minHeight: PILL_HEIGHT + space.s + minTarget },
+    morphStage: { position: 'absolute', top: 0, alignSelf: 'center' },
     pageInner: { flex: 1, alignSelf: 'stretch', alignItems: 'center', gap: space.s },
     who: { fontSize: 13, fontWeight: '600', textAlign: 'center' },
     mini: { fontSize: 13, lineHeight: 18, textAlign: 'center' },
@@ -621,7 +673,7 @@ const styles = StyleSheet.create({
     samePage: { fontSize: 17, lineHeight: 23, fontWeight: '600', textAlign: 'center' },
     apple: { height: 56, alignSelf: 'stretch' },
     pill: {
-        minHeight: 56,
+        minHeight: PILL_HEIGHT,
         alignSelf: 'stretch',
         borderRadius: radius.pill,
         alignItems: 'center',

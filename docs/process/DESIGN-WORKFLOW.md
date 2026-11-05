@@ -98,6 +98,7 @@ A new tension gets a row here, or an ADR if it is structural.
 - ["Settings: the number pad can be dismissed (DEF-008)"](../implementations/2026-10-30-settings-keyboard-dismiss.md)
 - ["Phase 1 D2: Stats, Settings and Notes rebuilt in the Sticker Diary design, the gift screen retired"](../implementations/2026-10-31-phase1-d2-screens.md)
 - ["Phase 2 A3: the design of pairing, your partner's day and the account screens"](../implementations/2026-11-05-phase2-a3-design.md)
+- ["Phase 2 D1: Sign in with Apple and pairing by code"](../implementations/2026-11-05-phase2-d1-pairing.md)
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

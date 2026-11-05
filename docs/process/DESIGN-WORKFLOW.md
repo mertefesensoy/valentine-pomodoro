@@ -66,6 +66,8 @@ They will. Impeccable bans things the HIG recommends, the HIG prefers system def
 | Launch screen: Apple's "don't include logos" vs. the brief's splash built from the mark | The owner kept the mark (C3 gate 2): static, small, on the page colour; the pages-to-logo animation never plays at launch (HIG review H-2) | Phase 1 C3 |
 | Capitalisation: Apple's title-style buttons and titles vs. the owner's sentence case | Sentence case for every label in English, matching how Turkish is written (the owner, C4 gate). An allowed brand choice, not an App Review rule | Phase 1 C4; D2 HIG review |
 | Appearance: v1's in-app System / Light / Dark switch vs. `dark-mode.md`'s "avoid offering an app-specific appearance setting" | Settled, no exception: the switch is retired and the app follows the phone (the owner, 2026-10-31). `themeMode` stays in storage, read as System | Phase 1 D2 |
+| DESIGN.md: the one bounce belongs to the sticker placement. The plan: the pages close into the mark at the first pairing | A third once-only exception, beside the welcome and the tour. It plays once per person; Done is live from its first frame; under Reduce Motion it fades | Phase 2 A3 |
+| A pairing code wants to read large, like a display figure. DESIGN.md: Baloo 2 only for the timer, a tab's title, the welcome line and today's postcard title | The system face, semibold and tabular, in fixed cells. The display rule holds | Phase 2 A3 |
 
 A new tension gets a row here, or an ADR if it is structural.
 
@@ -95,6 +97,7 @@ A new tension gets a row here, or an ADR if it is structural.
 - ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](../implementations/2026-10-30-phase1-stage-d.md)
 - ["Settings: the number pad can be dismissed (DEF-008)"](../implementations/2026-10-30-settings-keyboard-dismiss.md)
 - ["Phase 1 D2: Stats, Settings and Notes rebuilt in the Sticker Diary design, the gift screen retired"](../implementations/2026-10-31-phase1-d2-screens.md)
+- ["Phase 2 A3: the design of pairing, your partner's day and the account screens"](../implementations/2026-11-05-phase2-a3-design.md)
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

@@ -847,6 +847,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - ["URGENT: remove the unused audio background mode before the next submission (DEF-009)"](../implementations/2026-11-03-def-009-background-audio-mode.md)
 - ["Phase 2 A0 and A1: the baselines on 1.4.1, and the size budget for 1.5.0"](../implementations/2026-11-05-phase2-a0-a1-baselines-budget.md)
 - ["Phase 2 A2: the PAIRING_ENABLED flag and ADR-0049"](../implementations/2026-11-05-phase2-a2-pairing-flag.md)
+- ["Phase 2 A3: the design of pairing, your partner's day and the account screens"](../implementations/2026-11-05-phase2-a3-design.md)
 - ["Phase 2 A4: a slow session-end notification keeps its id (DEF-005)"](../implementations/2026-11-05-phase2-a4-def-005.md)
 - ["Phase 2 B1: supabase/ in the repo, and this phase's tables"](../implementations/2026-11-05-phase2-b1-tables.md)
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)

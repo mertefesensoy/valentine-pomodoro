@@ -4,7 +4,9 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [Unreleased]
 
-*Nothing since 1.4.1.*
+### Fixed
+
+- If your phone took over a second to set up a session's end notification, pausing or skipping couldn't cancel it, so a paused session could still alert. That notification can now always be cancelled, in Classic and in Fly (DEF-005).
 
 ## [1.4.1] - 2026-11-05
 

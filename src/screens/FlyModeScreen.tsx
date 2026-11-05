@@ -161,7 +161,7 @@ export default function FlyModeScreen() {
     // Session state and actions: re-renders on session changes, not each
     // second. The time is <TimerText>'s, the plane the frame callback's (B4).
     const session = useSessionState();
-    const { scheduleSessionEnd, cancelScheduled } = useNotifications();
+    const { scheduleSlotEnd, rescheduleSlotEnd, cancelScheduled } = useNotifications();
 
     // Populated on mount when a saved session is restored; consumed once
     // flightData becomes available to reposition the plane at the correct point.
@@ -464,10 +464,7 @@ export default function FlyModeScreen() {
         let notifId: string | null = null;
         if (settings.notifications) {
             try {
-                notifId = await Promise.race([
-                    scheduleSessionEnd(endAt, flightLandedContent.title, flightLandedContent.body),
-                    new Promise<null>(resolve => setTimeout(() => resolve(null), 1000)),
-                ]);
+                notifId = await scheduleSlotEnd('fly', endAt, flightLandedContent.title, flightLandedContent.body);
             } catch (e) {
                 console.warn('Failed to schedule landing notification:', e);
             }
@@ -494,7 +491,7 @@ export default function FlyModeScreen() {
                 scheduledNotificationId: notifId,
             },
         });
-    }, [flightData, origin, destination, progressSV, markerUpdateAccSV, scheduleSessionEnd, settings.notifications, session]);
+    }, [flightData, origin, destination, progressSV, markerUpdateAccSV, scheduleSlotEnd, settings.notifications, session]);
 
     // ── Pause
     const handlePause = useCallback(() => {
@@ -516,16 +513,12 @@ export default function FlyModeScreen() {
         if (settings.notifications) {
             const endAt = Date.now() + slot.pausedRemainingMs;
             try {
-                const notifId = await Promise.race([
-                    scheduleSessionEnd(endAt, flightLandedContent.title, flightLandedContent.body),
-                    new Promise<null>(resolve => setTimeout(() => resolve(null), 1000)),
-                ]);
-                session.setSlotExtras('fly', { scheduledNotificationId: notifId });
+                await rescheduleSlotEnd('fly', endAt, flightLandedContent.title, flightLandedContent.body);
             } catch (e) {
                 console.warn('Failed to reschedule landing notification:', e);
             }
         }
-    }, [session, scheduleSessionEnd, settings.notifications]);
+    }, [session, rescheduleSlotEnd, settings.notifications]);
 
     // ── Reset
     const handleReset = useCallback(() => {

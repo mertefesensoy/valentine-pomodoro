@@ -40,7 +40,7 @@ export function useTimer(
 
     const [showLoveNoteCard, setShowLoveNoteCard] = useState(false);
 
-    const { scheduleSessionEnd, cancelScheduled } = useNotifications();
+    const { scheduleSlotEnd, rescheduleSlotEnd, cancelScheduled } = useNotifications();
 
     // ── Cancel Pomodoro notification when mode switches away ─────────────────
     // switchTo() auto-pauses the clock but doesn't know about notification IDs.
@@ -123,10 +123,7 @@ export function useTimer(
         if (settings.notifications) {
             try {
                 const { title, body } = getNotificationContent(currentPomodoro().phase);
-                notificationId = await Promise.race([
-                    scheduleSessionEnd(now + durationMs, title, body),
-                    new Promise<null>(resolve => setTimeout(() => resolve(null), 1000)),
-                ]);
+                notificationId = await scheduleSlotEnd('pomodoro', now + durationMs, title, body);
             } catch (e) {
                 console.warn('Failed to schedule notification:', e);
             }
@@ -142,7 +139,7 @@ export function useTimer(
                 scheduledNotificationId: notificationId,
             },
         });
-    }, [getCurrentDuration, settings.notifications, scheduleSessionEnd, session]);
+    }, [getCurrentDuration, settings.notifications, scheduleSlotEnd, session]);
 
     const pause = useCallback(async () => {
         const notifId = session.state.pomodoro?.scheduledNotificationId ?? null;
@@ -163,16 +160,12 @@ export function useTimer(
             const endAt = Date.now() + slot.pausedRemainingMs;
             try {
                 const { title, body } = getNotificationContent(currentPomodoro().phase);
-                const notifId = await Promise.race([
-                    scheduleSessionEnd(endAt, title, body),
-                    new Promise<null>(resolve => setTimeout(() => resolve(null), 1000)),
-                ]);
-                session.setSlotExtras('pomodoro', { scheduledNotificationId: notifId });
+                await rescheduleSlotEnd('pomodoro', endAt, title, body);
             } catch (e) {
                 console.warn('Failed to reschedule notification:', e);
             }
         }
-    }, [session, settings.notifications, scheduleSessionEnd]);
+    }, [session, settings.notifications, rescheduleSlotEnd]);
 
     const skip = useCallback(() => {
         const notifId = session.state.pomodoro?.scheduledNotificationId ?? null;

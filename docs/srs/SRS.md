@@ -151,7 +151,8 @@ These were rejected in the [rehaul plan §3.5](../implementations/2026-10-29-cou
 |---------|-------|---------|--------|
 | v1.3.1 | — | The current App Store version | Released 2026-05-11 |
 | **v1.4.0** | 1 | The design system, local re-architecture (MMKV, stores, re-render fix, Expo Router), the Classic redesign, presets, EN/TR, sounds. iOS only | Released on iOS on 2026-11-04, on build 59 |
-| v1.5+ | 2–6 | Accounts and pairing, shared room and presence, modes, Plus, web. The version per phase is TBD | Planned |
+| v1.5.0 | 2 | Accounts at pairing with Sign in with Apple, pairing by code, your partner's day, notes to your partner. iOS only ([plan](../implementations/2026-11-05-phase2-plan.md)) | Planned |
+| v1.6+ | 3–6 | Shared room and presence, modes, Plus, web. The version per phase is TBD | Planned |
 | v2.0.0 | 7 | Public launch under the new name and brand | Planned |
 | Android | 3b | All `deferred` requirements | Deferred |
 
@@ -392,7 +393,7 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 
 #### FR-NTE-003
 **Statement:** Notes written by a partner shall be delivered to the other partner and shown after **their** focus sessions.
-**Pri:** Must · **Target:** Phase 3 · **Status:** planned · **Source:** PLAN-REHAUL §3.5 #1
+**Pri:** Must · **Target:** Phase 2, delivered when the partner's app next refreshes; pushes wait for Phase 3 · **Status:** planned · **Verify:** T; D (two physical phones) · **Source:** PLAN-REHAUL §3.5 #1; the owner, 2026-11-05 ("Add it to 1.5.0")
 
 #### 3.2.5 Settings and personalisation (SET)
 
@@ -503,8 +504,8 @@ AsyncStorage stays untouched for one release as a fallback.
 **Pri:** Must · **Target:** Phase 1 (B2) · **Status:** implemented (`dd1e894`; device check passed on `v1.4.0-tf.43`, 2026-10-30) · **Verify:** T: `src/utils/__tests__/storageMigration.test.ts`, `src/utils/__tests__/storage.test.ts` over every A3 fixture · **Source:** PLAN-PHASE1 B2, [B2 doc](../implementations/2026-10-29-phase1-b2-mmkv-migration.md)
 
 #### FR-MIG-003
-**Statement:** On first sign-in, local stats and notes shall be uploaded once, guarded by an idempotency key.
-**Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** PLAN-REHAUL §7 Phase 2
+**Statement:** When a feature first needs them, local stats history and notes shall be uploaded once, guarded by an idempotency key.
+**Pri:** Must · **Target:** Phase 3 · **Status:** planned · **Source:** PLAN-REHAUL §7 Phase 2; the owner, 2026-11-05 ("Wait for 1.6.0")
 
 #### 3.2.10 Accounts (ACC)
 
@@ -513,8 +514,8 @@ AsyncStorage stays untouched for one release as a fallback.
 **Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** PLAN-REHAUL §3.2
 
 #### FR-ACC-002
-**Statement:** Users shall start with anonymous sign-in and be able to link Sign in with Apple, Google or an email magic link without losing data.
-**Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** PLAN-REHAUL §4.1
+**Statement:** Users shall create an account only when they choose to pair, with Sign in with Apple. Email and Google wait for Android or web. A solo user has no account and sends nothing to the server.
+**Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** the owner, 2026-11-05 ([Phase 2 plan](../implementations/2026-11-05-phase2-plan.md) §0.1; it replaces anonymous sign-in, PLAN-REHAUL §4.1)
 
 #### FR-ACC-003
 **Statement:** Users shall be able to delete their account inside the app. Deletion cascades through their data and dissolves the couple; the partner keeps their own history.
@@ -527,12 +528,16 @@ AsyncStorage stays untouched for one release as a fallback.
 #### 3.2.11 Pairing (PAR)
 
 #### FR-PAR-001
-**Statement:** A user shall be able to invite a partner with a link or a 6-character code (no look-alike characters) that expires and can be used once. Opening the link shall open the app if installed, otherwise the store or the web app.
-**Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** PLAN-REHAUL §4.3, §4.7
+**Statement:** A user shall be able to invite a partner with a 6-character code (no look-alike characters) that expires and can be used once, shared as text. From Phase 6, a link shall also work: opening it shall open the app if installed, otherwise the store or the web app.
+**Pri:** Must · **Target:** Phase 2 (the code), Phase 6 (the link) · **Status:** planned · **Source:** PLAN-REHAUL §4.3, §4.7; the owner, 2026-11-05 ("Codes only for now")
 
 #### FR-PAR-002
 **Statement:** A user shall belong to at most one couple at a time, and either partner shall be able to unpair.
 **Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** schema `couple_members unique (user_id)`
+
+#### FR-PAR-003
+**Statement:** A paired user shall see their partner's name and today's stickers, minutes and goal, read-only, refreshed when the app comes to the foreground. A solo user sends nothing to the server.
+**Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Verify:** T; D (two physical phones) · **Source:** the owner, 2026-11-05 ([Phase 2 plan](../implementations/2026-11-05-phase2-plan.md) §0.1)
 
 #### 3.2.12 Shared session and presence (SYN)
 
@@ -640,7 +645,7 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 - `/.well-known/apple-app-site-association` and `assetlinks.json`
 - the privacy policy and terms in EN and TR
 
-**Pri:** Must · **Target:** Phase 2/6 · **Status:** planned
+**Pri:** Must · **Target:** Phase 2 (the privacy policy), Phase 6 (`/invite/[code]` and the `.well-known` files) · **Status:** planned
 
 #### 3.2.17 Navigation (NAV)
 
@@ -833,6 +838,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](../implementations/2026-10-30-phase1-stage-d.md)
 - ["Settings: the number pad can be dismissed (DEF-008)"](../implementations/2026-10-30-settings-keyboard-dismiss.md)
 - ["URGENT: remove the unused audio background mode before the next submission (DEF-009)"](../implementations/2026-11-03-def-009-background-audio-mode.md)
+- ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Documentation conventions](../process/DOCS.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)

@@ -47,4 +47,5 @@ The plan's design on top of it (Phase 2; not built):
 ## Backlinks
 <!-- backlinks:start -->
 - [Architecture decision records](README.md)
+- ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../../implementations/2026-11-05-phase2-plan.md)
 <!-- backlinks:end -->

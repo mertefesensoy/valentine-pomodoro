@@ -10,6 +10,12 @@ import { AppMode } from '../types';
 export const PAIRING_ENABLED: boolean = false;
 
 /**
+ * The anonymous start-up report and its groups (ADR-0051) reach people together with pairing, under one
+ * set of privacy labels, so until then the app sends nothing and shows no switch.
+ */
+export const STARTUP_REPORTS_ENABLED: boolean = PAIRING_ENABLED;
+
+/**
  * Fly Mode draws a real map with react-native-maps. Only iOS has a provider that
  * works without setup (Apple Maps): Android needs a Google Maps API key the app
  * doesn't ship, and react-native-maps has no web implementation, so opening Fly

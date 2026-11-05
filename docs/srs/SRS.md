@@ -703,7 +703,7 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 
 #### NFR-PERF-008
 **Statement:** The app shall measure cold start on real phones. After each clean cold start, an install shall send one report holding only its start-up group, its time to interactive, the iPhone model, the iOS version and the app build, with no identifier. A Settings switch, on by default, turns it off, and then the app sends nothing. Each install joins one of two groups once, at random, half and half.
-**Target:** Phase 2 · **Status:** planned · **Verify:** T: pgTAP on `report_startup`; a Jest test of the exact request; D: reports arrive from TestFlight · **Source:** the owner, 2026-11-05 ([ADR-0051](../architecture/adr/0051-anonymous-start-up-reports.md))
+**Target:** Phase 2 · **Status:** planned · **Verify:** T: `supabase/tests/startup_reports.test.sql`, `src/startup/__tests__/startupReport.test.ts`; D: reports arrive from TestFlight · **Source:** the owner, 2026-11-05 ([ADR-0051](../architecture/adr/0051-anonymous-start-up-reports.md))
 
 #### NFR-REL-001
 **Statement:** Crash-free sessions shall be ≥ 99.8 %.
@@ -851,6 +851,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - ["Phase 2 A4: a slow session-end notification keeps its id (DEF-005)"](../implementations/2026-11-05-phase2-a4-def-005.md)
 - ["Phase 2 B1: supabase/ in the repo, and this phase's tables"](../implementations/2026-11-05-phase2-b1-tables.md)
 - ["Phase 2 B2: row-level security, tested with pgTAP in CI"](../implementations/2026-11-05-phase2-b2-rls.md)
+- ["Phase 2 C4: the phone's side of the anonymous start-up report"](../implementations/2026-11-05-phase2-c4-startup-report.md)
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Documentation conventions](../process/DOCS.md)

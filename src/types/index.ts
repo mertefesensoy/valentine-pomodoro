@@ -46,6 +46,7 @@ export interface Settings {
     animationsEnabled: boolean; // Background animations toggle
     flyModeSound: boolean; // Ambient cabin sound during Fly Mode sessions
     classicLayout: 'ring' | 'spread'; // Classic's layout (Phase 1 D1); additive, defaults to 'ring'
+    shareStartupTimings: boolean; // The anonymous start-up report (ADR-0051); additive, defaults to on
     // The Timer's preset and Custom's own durations (Phase 1 D1, build 49). Optional and never in
     // the defaults: with none stored, src/constants/presets.ts derives both from `durations`.
     presetChoice?: '25-5' | '50-10' | '90-20' | 'custom';

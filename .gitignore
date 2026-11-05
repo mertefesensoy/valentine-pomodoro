@@ -57,3 +57,7 @@ coverage/
 .impeccable/mocks/
 .impeccable/questions/
 .claude/launch.json
+
+# The Supabase CLI's local state
+supabase/.temp/
+supabase/.branches/

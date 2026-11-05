@@ -10,7 +10,7 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [1.4.1] - 2026-11-05
 
-*An iOS patch, dated by its EAS production build (UTC). Android stays on 1.3.1.*
+*An iOS patch: TestFlight build 61, live on the App Store on 2026-11-05 at 19:04 UTC, dated by its EAS production build (UTC). Android stays on 1.3.1.*
 
 ### Fixed
 

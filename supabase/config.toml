@@ -24,6 +24,10 @@ enable_anonymous_sign_ins = false
 [auth.email]
 enable_signup = false
 
+# delete-account checks the token itself, by asking Auth who it belongs to.
+[functions.delete-account]
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 policy = "oneshot"

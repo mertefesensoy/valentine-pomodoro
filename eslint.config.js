@@ -5,8 +5,9 @@ const expoConfig = require('eslint-config-expo/flat');
 module.exports = defineConfig([
   expoConfig,
   {
-    // .claude/ holds vendored agent skills (third-party browser scripts), not app code.
-    ignores: ['dist/*', '.claude/**'],
+    // .claude/ holds vendored agent skills (third-party browser scripts), not app code. Edge Functions'
+    // entry points are Deno's, where `Deno` is a global and imports carry their extension.
+    ignores: ['dist/*', '.claude/**', 'supabase/functions/*/index.ts'],
   },
   {
     // The React Compiler rules, at 'error' again since Phase 1 B5 turned the

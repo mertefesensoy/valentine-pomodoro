@@ -50,7 +50,7 @@ related: [BRANCHING, CHANGELOG, TEST-STRATEGY]
 **Release**
 
 9. [ ] **Owner:** submit for App Store review in App Store Connect; release when approved.
-10. [ ] Tag `vX.Y.Z` on the released commit and push it. From 1.4.0, the merge to `master` comes first ([BRANCHING.md](BRANCHING.md#the-transition-from-rehaulv2-now)).
+10. [ ] Tag `vX.Y.Z` on the released commit and push it. From 1.4.0, the merge to `master` comes first ([BRANCHING.md](BRANCHING.md#the-transition-from-rehaulv2-now)). To confirm that a version is live, add a throwaway value to the lookup (`https://itunes.apple.com/lookup?id=6757491918&cb=<anything new>`): the bare URL can trail a release by up to 24 hours ([audit](../implementations/2026-11-06-update-check-audit.md)).
 11. [ ] **GitHub Release** (from v1.4.0 on), with the CHANGELOG section as its notes:
     ```bash
     gh release create vX.Y.Z --title "X.Y.Z" --notes-file <section>
@@ -80,6 +80,8 @@ When Android returns (the [roadmap Android track](../roadmap/ROADMAP.md#android-
 - [Documentation map](../README.md)
 - ["Phase 1 Stage E: verify and ship v1.4.0"](../implementations/2026-11-01-phase1-stage-e.md)
 - ["URGENT: remove the unused audio background mode before the next submission (DEF-009)"](../implementations/2026-11-03-def-009-background-audio-mode.md)
+- [2026-11-06 — Update check audit: why the app said "latest version 1.4.0"](../implementations/2026-11-06-update-check-audit.md)
+- [2026-11-06 — 1.4.2: the update check finds new versions when they're out](../implementations/2026-11-06-v142-update-check-fix.md)
 - [Branching model](BRANCHING.md)
 - [Evaluation — xtool (cross-platform Xcode replacement) vs staying on Expo/EAS](../proposals/xtool-evaluation.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)

@@ -453,6 +453,8 @@ In the Stage B tests bullet, before "Jest runs 134 tests in 26 suites at B5", ad
 - [Documentation map](../README.md)
 - [Architecture — Valentine Pomodoro (as built, and the v2 target)](../architecture/ARCHITECTURE.md)
 - [2026-10-29 — Phase 1 (v1.4): design system and local re-architecture, plan](2026-10-29-phase1-plan.md)
+- [2026-11-06 — Update check audit: why the app said "latest version 1.4.0"](2026-11-06-update-check-audit.md)
+- [2026-11-06 — 1.4.2: the update check finds new versions when they're out](2026-11-06-v142-update-check-fix.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)

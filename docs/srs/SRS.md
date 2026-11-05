@@ -461,8 +461,8 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 #### 3.2.7 Update prompt (UPD)
 
 #### FR-UPD-001
-**Statement:** Once per cold launch, the app shall check for a newer store version: iTunes Lookup on iOS, `update.json` elsewhere. When the store version is newer, it shall show a dismissible prompt, at most once per version.
-**Pri:** Should · **Target:** v1 · **Status:** implemented · **Verify:** I: `useUpdateCheck.ts`; T: `src/hooks/__tests__/useUpdateCheck.test.tsx` (since Phase 1 B7 the launch check runs after the first frame, still once per cold launch; the forced check runs at once) · **Source:** [update check](../implementations/2026-04-17-app-store-update-check.md)
+**Statement:** After the first frame of a cold launch, and on returning to the app when the last answer is at least 6 hours old and no session is running, the app shall check for a newer store version: iTunes Lookup on iOS, `update.json` elsewhere. The iOS lookup URL shall change at least hourly, and on every check the user asks for, because Apple's CDN and the phone's URL cache keep an exact URL for up to 24 hours. When the store version is newer, each check shall show a dismissible prompt.
+**Pri:** Should · **Target:** v1 · **Status:** implemented · **Verify:** I: `useUpdateCheck.ts`; T: `src/hooks/__tests__/useUpdateCheck.test.tsx`, `src/utils/__tests__/semver.test.ts` (since Phase 1 B7 the launch check runs after the first frame; the forced check runs at once) · **Source:** [update check](../implementations/2026-04-17-app-store-update-check.md), [audit](../implementations/2026-11-06-update-check-audit.md), [1.4.2](../implementations/2026-11-06-v142-update-check-fix.md). The earlier "at most once per version" went: the code has prompted at every check since 1.3.1, the owner's rule of 2026-04-17.
 
 #### 3.2.8 Ads (ADS)
 
@@ -833,6 +833,8 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](../implementations/2026-10-30-phase1-stage-d.md)
 - ["Settings: the number pad can be dismissed (DEF-008)"](../implementations/2026-10-30-settings-keyboard-dismiss.md)
 - ["URGENT: remove the unused audio background mode before the next submission (DEF-009)"](../implementations/2026-11-03-def-009-background-audio-mode.md)
+- [2026-11-06 — Update check audit: why the app said "latest version 1.4.0"](../implementations/2026-11-06-update-check-audit.md)
+- [2026-11-06 — 1.4.2: the update check finds new versions when they're out](../implementations/2026-11-06-v142-update-check-fix.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Documentation conventions](../process/DOCS.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)

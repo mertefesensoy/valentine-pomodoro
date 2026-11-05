@@ -53,6 +53,9 @@ jobs:
           version: 2.121.0
       - name: Apply the migrations to a clean database
         run: supabase db start
+      - name: Row-level security and database functions (pgTAP)
+        # Blocking: a failing policy doesn't merge (NFR-SEC-001).
+        run: supabase test db
 
   perf:
     if: github.event_name == 'pull_request'

@@ -57,8 +57,13 @@ export function useHome() {
     return useQuery({ queryKey: HOME_KEY, queryFn: fetchHome }, homeClient);
 }
 
-export function refreshHome(): Promise<void> {
-    return homeClient.invalidateQueries({ queryKey: HOME_KEY });
+/**
+ * Fetches now, even with nothing on screen: invalidateQueries would only mark an unobserved query as
+ * stale, and a note waiting for the next focus has to arrive with the screen closed too. A fetch already
+ * in flight is shared. Rejects if it fails, and the cached data stays.
+ */
+export async function refreshHome(): Promise<void> {
+    await homeClient.fetchQuery({ queryKey: HOME_KEY, queryFn: fetchHome, staleTime: 0 });
 }
 
 /** Forgets the cached snapshot, at unpairing and deletion. */

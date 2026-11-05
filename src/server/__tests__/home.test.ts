@@ -29,10 +29,50 @@ function launch() {
 }
 
 const flushPersist = () => new Promise((resolve) => setTimeout(resolve, 1200));
+const flushMicrotasks = () => new Promise((resolve) => setTimeout(resolve, 20));
 
 beforeEach(() => {
     mockRpc.mockReset();
     mockLaunchStorage.clearAll();
+});
+
+describe('the runtime', () => {
+    it('fetches at start and on returning to the foreground, with nothing on screen', async () => {
+        // After the reset: launch() gives react-native a fresh copy, and the runtime uses that one.
+        launch();
+        const { AppState } = require('react-native');
+        const listeners: ((state: string) => void)[] = [];
+        jest.spyOn(AppState, 'addEventListener').mockImplementation(((_: string, fn: (state: string) => void) => {
+            listeners.push(fn);
+            return { remove: () => {} };
+        }) as never);
+        mockRpc.mockResolvedValue(snapshot(1));
+        const { startPairedRuntime } = require('../runtime') as typeof import('../runtime');
+
+        startPairedRuntime();
+        await flushMicrotasks();
+        expect(mockRpc).toHaveBeenCalledTimes(1);
+
+        listeners[0]('background');
+        await flushMicrotasks();
+        expect(mockRpc).toHaveBeenCalledTimes(1);
+
+        listeners[0]('active');
+        await flushMicrotasks();
+        expect(mockRpc).toHaveBeenCalledTimes(2);
+    });
+
+    it('starts once per launch', async () => {
+        launch();
+        const { AppState } = require('react-native');
+        const add = jest.spyOn(AppState, 'addEventListener').mockImplementation((() => ({ remove: () => {} })) as never);
+        mockRpc.mockResolvedValue(snapshot(1));
+        const { startPairedRuntime } = require('../runtime') as typeof import('../runtime');
+        startPairedRuntime();
+        startPairedRuntime();
+        await flushMicrotasks();
+        expect(add).toHaveBeenCalledTimes(1);
+    });
 });
 
 describe('the home query', () => {

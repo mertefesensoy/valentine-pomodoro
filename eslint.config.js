@@ -10,6 +10,30 @@ module.exports = defineConfig([
     ignores: ['dist/*', '.claude/**', 'supabase/functions/*/index.ts'],
   },
   {
+    // A solo launch must never evaluate the server code (ADR-0049; Phase 2 C2), and soloLaunch.test.tsx
+    // only sees the Timer's graph. So outside src/server and the screens that load lazily, none of this
+    // may be imported statically: reach it through React.lazy or import(), which this rule allows.
+    files: ['src/**/*.{ts,tsx}', 'app/**/*.{ts,tsx}'],
+    ignores: ['src/server/**', 'src/screens/pair/**', 'src/screens/partner/**', '**/__tests__/**'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          group: [
+            '**/server/client',
+            '**/server/home',
+            '**/server/runtime',
+            '**/server/appleSignIn',
+            '@tanstack/*',
+            'expo-secure-store',
+            'expo-apple-authentication',
+            'expo-crypto',
+          ],
+          message: 'A solo launch must not evaluate this (ADR-0049). Use React.lazy or import(), or move the code to src/server.',
+        }],
+      }],
+    },
+  },
+  {
     // The React Compiler rules, at 'error' again since Phase 1 B5 turned the
     // compiler on (app.json experiments.reactCompiler; ADR-0041). They were
     // held at 'warn' from the SDK 56 step until B5 fixed the findings

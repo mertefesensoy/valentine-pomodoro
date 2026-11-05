@@ -1,3 +1,4 @@
+import { create } from 'zustand';
 import { isStorageMigrated } from '../utils/storageMigration';
 import { loadSync, saveSync } from '../utils/storage';
 
@@ -11,11 +12,19 @@ import { loadSync, saveSync } from '../utils/storage';
  */
 export const ACCOUNT_KEY = 'account_v1';
 
-export function hasAccount(): boolean {
+function readFlag(): boolean {
     if (!isStorageMigrated()) return false;
     return loadSync<unknown>(ACCOUNT_KEY, false) === true;
 }
 
+/** For screens that re-render when a person signs in. */
+export const useAccountStore = create<{ present: boolean }>()(() => ({ present: readFlag() }));
+
+export function hasAccount(): boolean {
+    return readFlag();
+}
+
 export function setHasAccount(on: boolean): void {
     saveSync(ACCOUNT_KEY, on);
+    useAccountStore.setState({ present: on });
 }

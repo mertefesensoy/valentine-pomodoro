@@ -400,6 +400,7 @@
       "partnerPaired": "Bu kişi zaten eşleşmiş.",
       "rateLimited": "Çok fazla deneme oldu. Bir saat sonra tekrar dene.",
       "offline": "Çevrimdışısın. Bağlanınca tekrar dene.",
+      "offlineCode": "Çevrimdışısın. Kodun güvende.",
       "failed": "Bir şeyler ters gitti. Tekrar dene.",
       "signIn": "Giriş yapılamadı. Tekrar dene."
     }

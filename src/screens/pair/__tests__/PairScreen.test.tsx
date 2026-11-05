@@ -2,7 +2,7 @@
 // The pairing sheet's steps (Phase 2 D1). The server's side is pinned in pairing.test.ts and pgTAP; these pin
 // what a person sees at each step, and that nothing happens until they press Pair.
 import { Share } from 'react-native';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 
 import PairScreen from '../PairScreen';
 import { useAccountStore } from '../../../server/account';
@@ -12,6 +12,12 @@ jest.setTimeout(30_000);
 jest.mock('expo-router', () => ({
     ...jest.requireActual('expo-router'),
     router: { push: jest.fn(), back: jest.fn(), canGoBack: () => true },
+}));
+
+let mockReduced = false;
+jest.mock('react-native-reanimated', () => ({
+    ...jest.requireActual('react-native-reanimated/mock'),
+    useReducedMotion: () => mockReduced,
 }));
 
 jest.mock('expo-apple-authentication', () => {
@@ -63,6 +69,7 @@ async function open({ signedIn }: { signedIn: boolean }) {
 
 beforeEach(() => {
     mockHome = null;
+    mockReduced = false;
     mockSignIn.mockReset();
     mockSaveName.mockReset();
     mockEnsureCode.mockReset();
@@ -214,6 +221,42 @@ describe('who it is', () => {
         await fireEvent.press(screen.getByText('Pair with Deniz'));
         await flush();
         expect(screen.getByText(/has expired/)).toBeOnTheScreen();
+    });
+});
+
+describe('under Reduce Motion', () => {
+    it('still shows who it is, and pressing Pair ends on the settled mark and its line', async () => {
+        mockReduced = true;
+        mockPreview.mockResolvedValue({ inviterName: 'Deniz' });
+        mockRedeem.mockResolvedValue('ok');
+        await open({ signedIn: true });
+        await fireEvent.changeText(screen.getByLabelText("Your partner's code"), 'H4TW9B');
+        await flush();
+        expect(screen.getByText('Pair with Deniz')).toBeOnTheScreen();
+        expect(screen.getByLabelText('Pomo and Doro become the two faces of one diary')).toBeOnTheScreen();
+
+        await fireEvent.press(screen.getByText('Pair with Deniz'));
+        await flush();
+        expect(mockRedeem).toHaveBeenCalledWith('H4TW9B');
+
+        // redeemCode refreshes the snapshot, and the query re-renders the sheet with the couple.
+        mockHome = {
+            couple: { id: 'c', paired_at: 'x' },
+            partner: { id: 'p', display_name: 'Deniz' },
+            me: { id: 'm', display_name: 'Ece' },
+        };
+        await screen.rerender(<PairScreen />);
+        expect(screen.getByText('You and Deniz are on the same page.')).toBeOnTheScreen();
+        expect(screen.getByText('Done')).toBeOnTheScreen();
+    });
+});
+
+describe('at the largest text sizes', () => {
+    // The Jest window is font scale 2, so these tests run stacked: the actions sit outside the scroll.
+    it('keeps Apple\'s button and Send my code out of the scroll, so they\'re never below the fold', async () => {
+        await open({ signedIn: false });
+        expect(within(screen.getByTestId('pair-scroll')).queryByText('Continue with Apple')).toBeNull();
+        expect(screen.getByText('Continue with Apple')).toBeOnTheScreen();
     });
 });
 

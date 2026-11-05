@@ -400,6 +400,7 @@
       "partnerPaired": "That person is already paired.",
       "rateLimited": "That's a lot of tries. Try again in an hour.",
       "offline": "You're offline. Try again when you're connected.",
+      "offlineCode": "You're offline. Your code is safe.",
       "failed": "Something went wrong. Try again.",
       "signIn": "Couldn't sign in. Try again."
     }

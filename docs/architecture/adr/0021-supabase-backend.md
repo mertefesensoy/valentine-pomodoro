@@ -49,6 +49,7 @@ The plan's design on top of it (Phase 2; not built):
 ## Backlinks
 <!-- backlinks:start -->
 - [An account only at pairing, with Sign in with Apple only, and pairing by code only](0049-account-only-at-pairing.md)
+- [A small Supabase client of our own, and no Sentry, in 1.5.0](0050-small-client-and-no-sentry.md)
 - [Architecture decision records](README.md)
 - ["Phase 2 A2: the PAIRING_ENABLED flag and ADR-0049"](../../implementations/2026-11-05-phase2-a2-pairing-flag.md)
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../../implementations/2026-11-05-phase2-plan.md)

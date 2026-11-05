@@ -52,6 +52,7 @@ One `AppContext` holds everything. Every second of a running session changes its
 <!-- backlinks:start -->
 - [Progress ring drawn with react-native-svg stroke-dashoffset](0009-svg-progress-ring.md)
 - [An account only at pairing, with Sign in with Apple only, and pairing by code only](0049-account-only-at-pairing.md)
+- [A small Supabase client of our own, and no Sentry, in 1.5.0](0050-small-client-and-no-sentry.md)
 - [Architecture decision records](README.md)
 - ["Phase 1 B3: Zustand stores, hydrated synchronously from MMKV"](../../implementations/2026-10-30-phase1-b3-zustand-stores.md)
 - ["Phase 2 A0 and A1: the baselines on 1.4.1, and the size budget for 1.5.0"](../../implementations/2026-11-05-phase2-a0-a1-baselines-budget.md)

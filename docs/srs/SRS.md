@@ -821,6 +821,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 |---------|------|--------|
 | 1.0 | 2026-10-30 | First SRS: as-built v1.3.1 + Phase 0/1 work, and the v2 rehaul requirements from PLAN-REHAUL and PLAN-PHASE1 |
 | 1.1 | 2026-11-02 | Phase 1 Stage D applied at its merge ([Stage D plan](../implementations/2026-10-30-phase1-stage-d.md) §9): FR-ONB-001 and FR-ONB-002 added (§3.2.18); FR-TMR-010, FR-STA-003, FR-SET-001 and FR-SET-005 amended; FR-SET-002, FR-SET-004, FR-SET-005, FR-NTE-002, NFR-I18N-001 and NFR-UX-003 implemented; DEF-007 and DEF-008 closed |
+| 1.2 | 2026-11-05 | Phase 2: the owner's decisions while building ([plan §0.3](../implementations/2026-11-05-phase2-plan.md#03-changed-while-building-2026-11-05)): NFR-PERF-008 added; NFR-PERF-001, NFR-PERF-002, NFR-REL-001, NFR-PRIV-001, FR-ACC-002 and FR-PAR-003 amended |
 
 ## Backlinks
 <!-- backlinks:start -->
@@ -830,6 +831,8 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - [Documentation map](../README.md)
 - [Architecture — Valentine Pomodoro (as built, and the v2 target)](../architecture/ARCHITECTURE.md)
 - [An account only at pairing, with Sign in with Apple only, and pairing by code only](../architecture/adr/0049-account-only-at-pairing.md)
+- [A small Supabase client of our own, and no Sentry, in 1.5.0](../architecture/adr/0050-small-client-and-no-sentry.md)
+- [Anonymous start-up reports from every install, with two random groups](../architecture/adr/0051-anonymous-start-up-reports.md)
 - [Original v1 implementation plan (2026-01-07)](../history/2026-01-07-v1-plan.md)
 - [Documentation system, release history and branch cleanup](../implementations/2026-10-30-documentation-system.md)
 - ["Phase 1 B3: Zustand stores, hydrated synchronously from MMKV"](../implementations/2026-10-30-phase1-b3-zustand-stores.md)

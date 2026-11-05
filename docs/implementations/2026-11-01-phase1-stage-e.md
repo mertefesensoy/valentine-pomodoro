@@ -47,6 +47,12 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-stage-d, IMPL-2026
   - The owner chose "Ask Apple to approve", and sends the reply below in App Store Connect. They also asked to "document this as an urgent fix so any other new seassion does not start on a new job before fixing this issue". So DEF-009's record, `CLAUDE.md` and the project memory put it first, and **the next version submitted, 1.4.1, must remove the key**.
 
   > Hello, and thank you for the review. Version 1.4.0 includes bug fixes, so we'd like it approved at this time, please. The app has no feature that needs persistent background audio. The "audio" entry in UIBackgroundModes was added by default by our audio library's configuration, and the app's sounds stop when it moves to the background. We will remove the "audio" setting from UIBackgroundModes in our next update. Thank you!
+- **R3 done: 1.4.0 is live** (found 2026-11-05). The owner: "wait but 1.4.0 is already live". The public App Store lookup confirms it in both the US and Turkish storefronts: version 1.4.0, released 2026-11-04T14:45:37Z. Apple accepted the reply and approved build 59, the only build ever submitted. So build 60 is retired, and the fix ships as 1.4.1 ([DEF-009's record](2026-11-03-def-009-background-audio-mode.md)). R4–R6 are still to do.
+- **R5 needs the owner's decision** (2026-11-05). Setting `latestVersion` to 1.4.0, as planned, would show Android users on 1.3.1 an update that doesn't exist, because Android reads `update.json` (`src/hooks/useUpdateCheck.ts`) and stays on 1.3.1. iOS doesn't need the change:
+  - from 1.3.1 on, iOS asks Apple's lookup, which now answers 1.4.0;
+  - iOS 1.0.3–1.3.0 reads `update.json`, is already prompted by its 1.3.1, and its link opens the App Store, which now serves 1.4.0.
+
+  So the recommendation is to leave `update.json` at 1.3.1 until Android ships a newer version.
 - **R3's fallback, build 60** (2026-11-04). Apple hadn't answered the reply after about 20 hours, and the owner said "Yes, start build 60": the fix (`5c2fe1c`), built as version 1.4.0 so that it fits the rejected version. Uploading it doesn't touch the submission until the owner attaches it. If Apple approves build 59 first, the fix ships as 1.4.1 instead ([DEF-009's record](2026-11-03-def-009-background-audio-mode.md) §3). The build is in §3.10.
 - **M3 and the push** (2026-11-02/03), on the owner's "push and merge everything and tag the latest version as submitted". Asked about `master`, they chose "Now"; asked about the tag, "v1.4.0-submitted (Recommended)". The work is in §3.9.
 - **E3's bytecode decision: accepted** (2026-11-02). The question was "Ship build 59 with the app code 11 % over its size limit, or trim it first?". The owner answered "Ship build 59". So 1.4.0 ships the iOS bytecode at 4,287,144 B, 11.18 % over NFR-PERF-002's 3,856,208 B. That requirement is amended to the shipped size at R6, with the release paperwork, as the owner was told when choosing. The tour's art stays in the bundle; moving it into a data asset is the trim, if it's ever needed. The cold-start TTI is still to be recorded from the hidden panel.
@@ -360,7 +366,7 @@ The owner: "Yes, start build 60". Built from `c184337`, with `master`, `rehaul/v
 
 **The device check passed,** 2026-11-04. Asked "Did build 60 pass the sound check?", the owner answered "Passed" (DEF-009's record §3 step 7).
 
-**What's left:** the choice in step 8. Nothing has touched the submission: build 59 is still the one attached.
+**Retired.** 1.4.0 had gone live on build 59 at 2026-11-04T14:45:37Z, before this check was reported, so build 60 was never attached. A 1.4.0 build can't go on a later version, so the fix ships as 1.4.1 from a new build.
 
 ## 4. Mathematical / Statistical Details
 

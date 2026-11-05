@@ -6,7 +6,7 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ### Fixed
 
-- The app no longer declares the `audio` background mode, which nothing used. `expo-audio`'s plugin added it by default, and App Review flagged it under Guideline 2.5.4 (DEF-009, 5c2fe1c). It is on TestFlight as build 60. It ships in 1.4.0 if build 60 replaces build 59 in review, otherwise in 1.4.1.
+- The app no longer declares the `audio` background mode, which nothing used. `expo-audio`'s plugin added it by default, and App Review flagged it under Guideline 2.5.4 (DEF-009, 5c2fe1c). It ships in 1.4.1.
 
 ## [1.4.0] - 2026-11-02
 
@@ -117,7 +117,7 @@ The v2 rehaul's Phase 1. Each bullet names its theme: Phase 0 (the foundation), 
 
 *iOS TestFlight build 60, a pre-release and not a store release, source c184337. Built with EAS (build b1c037dd) and uploaded to App Store Connect for TestFlight (submission c8a9df13); device check on a physical iPhone, 2026-11-04: passed, as reported by the owner.*
 
-This build is build 59 without the `audio` background mode (DEF-009); the rest since build 59 is documentation, a test and store art.
+This build is build 59 without the `audio` background mode (DEF-009); the rest since build 59 is documentation, a test and store art. It was never submitted for review: 1.4.0 went live on build 59.
 
 ## [1.4.0-tf.59] - 2026-11-02
 

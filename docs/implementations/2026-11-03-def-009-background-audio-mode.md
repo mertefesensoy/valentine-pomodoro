@@ -13,6 +13,8 @@ related: [SRS, IMPL-2026-11-01-phase1-stage-e, RELEASE, BRANCHING]
 
 The owner, 2026-11-04, while Apple hadn't yet answered the reply: "Yes, start build 60". That go-ahead covers the fix, the checks, the push, EAS build 60 with its TestFlight upload, and the tag `v1.4.0-tf.60`. Attaching the build and submitting stay with the owner.
 
+**2026-11-05: 1.4.0 is live, on build 59.** The owner: "wait but 1.4.0 is already live". The public App Store lookup confirms it: version 1.4.0, released 2026-11-04T14:45:37Z. So Apple accepted the reply, §3 step 8 took its first branch, and build 60 is retired. The fix ships as 1.4.1.
+
 **Branch:** `phase1/stage-d`, then fast-forwarded into `rehaul/v2` and `master`. All three sit at the same commit, `0d5e4ba`, and `rehaul/v2` stays the integration branch until 1.4.0 ships ([BRANCHING.md](../process/BRANCHING.md)).
 
 ---
@@ -68,6 +70,8 @@ The native module pauses every player when the app enters the background and res
 
    The App Review note gains one line: "The "audio" UIBackgroundModes entry flagged in the previous review (Guideline 2.5.4) is removed."
 
+   **Outcome:** the first branch. Build 60 was never attached. Its fix is already on `master`, so 1.4.1 needs only the version bump, a build, its tag `v1.4.1-tf.<n>`, the device check and the submission.
+
 ## 4. Mathematical / Statistical Details
 
 None: a build-configuration change.
@@ -95,7 +99,9 @@ None: a build-configuration change.
 - [x] CI green on the build's commit (`c184337`: runs 41819215848 and 41819216342).
 - [x] The fix's build on TestFlight, tagged: build 60, `v1.4.0-tf.60` ([Stage E §3.10](2026-11-01-phase1-stage-e.md)).
 - [x] The device check on that build (§3 step 7): passed on build 60, 2026-11-04. Asked "Did build 60 pass the sound check?", the owner answered "Passed".
-- [ ] A version submitted with the fix, and App Review raises no 2.5.4 finding.
+- [ ] Version 1.4.1 built with the fix, on TestFlight, tagged.
+- [ ] The device check on the 1.4.1 build (§3 step 7).
+- [ ] 1.4.1 submitted with the fix, and App Review raises no 2.5.4 finding.
 - [ ] The urgent notice removed from `CLAUDE.md` and the project memory, and DEF-009 closed in the SRS.
 
 ## 7. Related Docs

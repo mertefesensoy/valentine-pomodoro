@@ -856,6 +856,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - ["Phase 2 C1: the small Supabase client, and Sign in with Apple"](../implementations/2026-11-05-phase2-c1-client.md)
 - ["Phase 2 C2: TanStack Query for paired users only, and a launch test for solo users"](../implementations/2026-11-05-phase2-c2-home.md)
 - ["Phase 2 C4: the phone's side of the anonymous start-up report"](../implementations/2026-11-05-phase2-c4-startup-report.md)
+- ["Phase 2: GitHub deploys database changes on merge"](../implementations/2026-11-05-phase2-deploy.md)
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Documentation conventions](../process/DOCS.md)

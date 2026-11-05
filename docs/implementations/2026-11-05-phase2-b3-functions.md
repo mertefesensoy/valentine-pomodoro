@@ -91,7 +91,8 @@ If Apple refuses, nothing is deleted, the app says so, and the person can try ag
 
 ## 6. Verification
 
-- [ ] `supabase test db` in CI: `functions.test.sql` (80 checks) and `index_review.test.sql` (3). A local pre-check passes them, with a small shim for pgTAP; only CI counts.
+- [x] `supabase test db` in CI: `functions.test.sql` (80 checks) and `index_review.test.sql` (3), on pull request #12.
+- [x] On the hosted project: `delete-account` answers 401 `{"status":"not_signed_in"}` with no token, and `home_snapshot`, `profiles` and `invites` answer 401 to the publishable key alone.
 - [x] `npx jest src/__tests__/deleteAccountHandler.test.ts` passes: 10 tests.
 - [x] `npx tsc --noEmit`, `npm run lint`, `npx jest --ci` and `node scripts/docs/check-docs.mjs` pass.
 - [ ] **Needs a real account, at Stage D:** the function deletes a real user, and the token no longer works with Apple.

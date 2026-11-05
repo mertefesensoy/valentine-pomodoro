@@ -75,7 +75,7 @@ Requirement: [NFR-PERF-008](../srs/SRS.md#nfr-perf-008). It's the first thing a 
 
 - [x] `npx jest src/startup/__tests__/startupReport.test.ts` passes, 21 tests: the exact request, once, only after the interactive mark; none with the switch off or the flag off; none for a launch that isn't clean; the group is drawn once and kept; the panel's choice wins; nothing is written before the migration.
 - [x] `npx tsc --noEmit`, `npm run lint`, `npx jest --ci` (528 tests) and `node scripts/docs/check-docs.mjs` pass.
-- [ ] **On the hosted project, with B4 deployed:** one real request succeeds with the publishable key on `apikey` alone.
+- [x] **On the hosted project, with B4 deployed:** a real request with the publishable key on `apikey` alone answered 204, 2026-11-05. It carried an unknown group, so nothing was written. Reading `startup_reports` the same way answered 401.
 - [ ] **Needs a device, at Stage F:** reports arrive from TestFlight.
 
 ## 7. Related Docs

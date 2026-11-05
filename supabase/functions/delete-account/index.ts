@@ -3,8 +3,9 @@
 // `supabase secrets set` or in the dashboard, and they never appear in the repo.
 import { handle, signClientSecret } from './handler.ts';
 
-// Supabase injects its keys as JSON dictionaries, by key name.
-const keyFrom = (name: string) => JSON.parse(env(name)).default as string;
+// Supabase injects its keys as JSON dictionaries, by key name. The name is whatever the owner gave the
+// key on the API Keys page, so this takes the first one rather than assuming "default".
+const keyFrom = (name: string) => Object.values(JSON.parse(env(name)))[0] as string;
 
 function env(name: string) {
     const value = Deno.env.get(name);

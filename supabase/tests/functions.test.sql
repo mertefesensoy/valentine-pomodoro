@@ -4,6 +4,13 @@ create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 select plan(80);
 
+-- Created here, while still postgres, because the tests below change role.
+create temporary table anas (code text) on commit drop;
+create temporary table live (code text) on commit drop;
+create temporary table expired (code text) on commit drop;
+create temporary table the_note (id uuid) on commit drop;
+grant all on anas, live, expired, the_note to public;
+
 insert into auth.users (id, aud, role) values
     ('00000000-0000-0000-0000-00000000000a', 'authenticated', 'authenticated'),
     ('00000000-0000-0000-0000-00000000000b', 'authenticated', 'authenticated'),
@@ -36,8 +43,6 @@ select is((select public.set_profile('Bora', 'Pacific/Auckland') ->> 'status'), 
 
 -- create_invite: Ana makes one.
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
-create temporary table anas (code text) on commit drop;
-grant all on anas to public;
 insert into anas select public.create_invite() ->> 'code';
 select ok((select code ~ '^[A-HJKMNP-Z2-9]{6}$' from anas), 'a code uses the 31-symbol alphabet');
 select is((select count(*)::int from public.home_snapshot() s where s -> 'invite' ->> 'code' = (select code from anas)), 1, 'the snapshot holds your open code');
@@ -56,8 +61,6 @@ set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';
 select is((select public.preview_invite(null) ->> 'status'), 'invalid', 'no code is invalid');
 reset role;
-create temporary table live (code text) on commit drop;
-grant all on live to public;
 insert into live select code from public.invites where created_by = '00000000-0000-0000-0000-00000000000a';
 select is((select failed_redeems from public.profiles where id = '00000000-0000-0000-0000-00000000000b'), 0, 'a malformed code isn''t a guess');
 set local role authenticated;
@@ -104,8 +107,6 @@ set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000c","r
 select is((select public.redeem_invite('') ->> 'status'), 'invalid', 'nothing typed is invalid');
 reset role;
 select is((select count(*)::int from public.invites where created_by = '00000000-0000-0000-0000-00000000000d' and expires_at < now()), 1, 'the code has expired');
-create temporary table expired (code text) on commit drop;
-grant all on expired to public;
 insert into expired select code from public.invites where created_by = '00000000-0000-0000-0000-00000000000d';
 set local role authenticated;
 select is((select public.redeem_invite((select code from expired)) ->> 'status'), 'expired', 'an expired code is refused');
@@ -143,9 +144,9 @@ select is((select public.home_snapshot() -> 'partner' ->> 'display_name'), 'Ana'
 select is(((select public.home_snapshot() -> 'partner_today' ->> 'sessions')::int), 2, 'and holds their today');
 
 -- mark_note_shown: the recipient's only, and the first time counts.
-create temporary table the_note (id uuid) on commit drop;
-grant all on the_note to public;
+reset role;
 insert into the_note select id from public.love_notes;
+set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
 select is((select public.mark_note_shown((select id from the_note)) ->> 'status'), 'not_found', 'the author can''t mark their own note shown');
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}';

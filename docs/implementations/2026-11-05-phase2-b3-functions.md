@@ -65,7 +65,7 @@ Requirements: [FR-PAR-001](../srs/SRS.md#fr-par-001), [FR-PAR-002](../srs/SRS.md
 4. Revoke the resulting refresh token at Apple's `/auth/revoke`.
 5. Delete the user (`DELETE /auth/v1/admin/users/{id}`, with the secret key on `apikey`, since Supabase's new keys aren't JWTs). The triggers from B1 do the rest.
 
-If Apple refuses, nothing is deleted, the app says so, and the person can try again. The account is never left half-gone, since deletion is last and is one call.
+If Apple refuses, nothing is deleted, the app says so, and the person can try again. Deletion is last and is one call, so the database is never left half-gone. One gap to know about: if step 4 succeeds and step 5 fails, Apple's token is already revoked while the account remains. A retry still works while the person's Supabase session is valid, because they get a fresh code from Apple. The header step 5 sends is checked against the real project after the first deployment, with one `curl` by the owner.
 
 ## 4. Mathematical / Statistical Details
 
@@ -76,6 +76,8 @@ If Apple refuses, nothing is deleted, the app says so, and the person can try ag
 **A day can only grow.** `report_day` sets focus_ms' = max(focus_ms, reported), and the same for sessions; goal_hit' = goal_hit OR reported. `goal_minutes` is simply the latest reported, because it isn't a total, so a late replay can briefly show an older goal. A goal's size isn't a count anyone is credited for, and the next report corrects it.
 
 **Your partner's today:** day = (now() at time zone their tz)::date. Without a row for that date, `partner_today` is null, and the app says "Nothing yet today".
+
+**A note for C1 and D1.** If two people redeem each other's codes at the same moment, the second call may find its inviter's code gone and answer `already_paired`, though it's paired with exactly the person typed. So the client treats `already_paired` as "refresh the snapshot", never as an error.
 
 ## 5. Design Decisions
 
@@ -89,7 +91,7 @@ If Apple refuses, nothing is deleted, the app says so, and the person can try ag
 
 ## 6. Verification
 
-- [x] `supabase test db` in CI: `functions.test.sql` (80 checks) and `index_review.test.sql` (3) pass.
+- [ ] `supabase test db` in CI: `functions.test.sql` (80 checks) and `index_review.test.sql` (3). A local pre-check passes them, with a small shim for pgTAP; only CI counts.
 - [x] `npx jest src/__tests__/deleteAccountHandler.test.ts` passes: 10 tests.
 - [x] `npx tsc --noEmit`, `npm run lint`, `npx jest --ci` and `node scripts/docs/check-docs.mjs` pass.
 - [ ] **Needs a real account, at Stage D:** the function deletes a real user, and the token no longer works with Apple.

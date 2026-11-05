@@ -1,5 +1,5 @@
 import { AppState } from 'react-native';
-import { flushDayReports, reportToday, startDayReports } from './dayReports';
+import { reportToday, startDayReports } from './dayReports';
 import { homeRestored, refreshHome } from './home';
 import { syncTimeZone } from './timeZone';
 
@@ -14,13 +14,15 @@ let started = false;
 async function refreshAll(): Promise<void> {
     await syncTimeZone();
     await refreshHome().catch(() => {});
+    // After the refresh, so a person who has just paired is known to be paired. It also sends what's queued.
     await reportToday();
-    await flushDayReports();
 }
 
 export function startPairedRuntime(): void {
     if (started) return;
     started = true;
+    // This can start before the cache is restored, when isPaired() still reads false. A focus credited in
+    // that moment is covered by reportToday() in refreshAll.
     startDayReports();
     // After the cache is restored, so a refresh can't race the last known values.
     void homeRestored.then(refreshAll).catch(() => {});

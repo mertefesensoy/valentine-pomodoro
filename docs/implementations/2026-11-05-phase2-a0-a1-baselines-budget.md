@@ -129,6 +129,10 @@ The plan's formula is 4,292,868 B + the kept costs − any trim. That leaves out
 
 The line in the table above that says a solo user would send nothing to anyone no longer holds: the start-up timings in §3.3 are the exception.
 
+### 3.5 Where the bytecode stands
+
+With every SDK and Stage C's code in place, C3's branch measures **4,457,320 B** on iOS, with the pinned command. That's 21,000 B above A1's lean figure, for the real client, `expo-device`, `expo-crypto` and C3 and C4's own code, and 182,680 B under the 4,640,000 B ceiling. D1 to D6 have that much left. D5's tour cost 148 KB in Phase 1, so the 1.5 tutorial reuses its kit and adds only lines.
+
 ## 4. Mathematical / Statistical Details
 
 **Cost.** For a stack S, cost(S) = bytes(base + S) − bytes(base), with both measured in one worktree by one command. Percentages are cost / 4,292,796.

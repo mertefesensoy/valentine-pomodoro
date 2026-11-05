@@ -1,0 +1,38 @@
+# Applies merged database changes and Edge Functions to the hosted Supabase project (the owner's choice,
+# 2026-11-05: "GitHub deploys on merge"; docs/implementations/2026-11-05-phase2-deploy.md). It runs only
+# on master, after a pull request's checks have passed, and pull requests from forks can't read its
+# secrets. To deploy again without a merge, run it from the Actions tab.
+name: Deploy Supabase
+
+on:
+  push:
+    branches: [master]
+    paths: ['supabase/**', '.github/workflows/deploy-supabase.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-supabase
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PROJECT_REF: mwftolngrxmmcbwpbaut
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.121.0
+      - name: Link the project
+        run: supabase link --project-ref "$PROJECT_REF"
+      - name: Apply new migrations
+        run: supabase db push
+      - name: Deploy the Edge Function
+        run: supabase functions deploy delete-account --project-ref "$PROJECT_REF"

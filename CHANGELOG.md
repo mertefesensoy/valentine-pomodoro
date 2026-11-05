@@ -4,11 +4,19 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [Unreleased]
 
-*Nothing since 1.4.0.*
+*Nothing since 1.4.1.*
+
+## [1.4.1] - 2026-11-05
+
+*An iOS patch, dated by its EAS production build (UTC). Android stays on 1.3.1.*
+
+### Fixed
+
+- The app no longer declares the `audio` background mode, which nothing used. `expo-audio`'s plugin added it by default, and App Review flagged it under Guideline 2.5.4 (DEF-009, 5c2fe1c). Sounds work as before: they stop when you leave the app.
 
 ## [1.4.0] - 2026-11-02
 
-*The iOS release of the v2 rehaul's Phase 1, from `rehaul/v2`. The release candidate is TestFlight build 59; this section is dated by its EAS production build (UTC), as every version here is. Android stays on 1.3.1 (iOS-first, below).*
+*The iOS release of the v2 rehaul's Phase 1: TestFlight build 59, live on the App Store on 2026-11-04. This section is dated by its EAS production build (UTC), as every version here is. Android stays on 1.3.1 (iOS-first, below).*
 
 **What's new for you**
 
@@ -110,6 +118,12 @@ The v2 rehaul's Phase 1. Each bullet names its theme: Phase 0 (the foundation), 
 ### Security
 
 - **Phase 0:** `nanoid` 3.3.11 → 3.3.20, the only package with an `npm audit` advisory that ships in the app bundle. React Navigation uses it for fixed-size keys, so its advisories couldn't be triggered here (65c1d34). After the SDK 58 upgrade, `npm audit` reports 16 advisories, down from 39; the three high-severity ones come from `zod` inside `@expo/cli`, build tooling that contributes no code to the app (befaf99).
+
+## [1.4.0-tf.60] - 2026-11-04
+
+*iOS TestFlight build 60, a pre-release and not a store release, source c184337. Built with EAS (build b1c037dd) and uploaded to App Store Connect for TestFlight (submission c8a9df13); device check on a physical iPhone, 2026-11-04: passed, as reported by the owner.*
+
+This build is build 59 without the `audio` background mode (DEF-009); the rest since build 59 is documentation, a test and store art. It was never submitted for review: 1.4.0 went live on build 59.
 
 ## [1.4.0-tf.59] - 2026-11-02
 
@@ -449,8 +463,10 @@ Two later fixes on the same branch were never built: functional state updates fo
 - A circular progress ring, haptics and button animations (d836c0a).
 - The app icon, splash screen and EAS build configuration, on Expo SDK 54 with React Native 0.81.5 (42409bf, adc5bb3, 40489e2, 4278bd6).
 
-[Unreleased]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0...rehaul/v2
+[Unreleased]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.1...master
+[1.4.1]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.3.1...v1.4.0
+[1.4.0-tf.60]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.59...v1.4.0-tf.60
 [1.4.0-tf.59]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.58...v1.4.0-tf.59
 [1.4.0-tf.58]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.57...v1.4.0-tf.58
 [1.4.0-tf.57]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.56...v1.4.0-tf.57

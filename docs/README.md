@@ -46,9 +46,9 @@ Start here. Every document in the repo is listed below. The rules for writing th
 | Document | Status |
 |----------|--------|
 | [v2 couples rehaul plan](implementations/2026-10-29-couples-rehaul-plan.md) | Approved 2026-10-29: the master plan for phases 0–7 |
-| [Phase 1 (v1.4) plan](implementations/2026-10-29-phase1-plan.md) | Approved; in progress |
+| [Phase 1 (v1.4) plan](implementations/2026-10-29-phase1-plan.md) | Released as 1.4.0 on 2026-11-04 |
 | [Phase 1 Stage D plan](implementations/2026-10-30-phase1-stage-d.md) | Done 2026-11-02: D1–D5, the screens in the Sticker Diary design; merged into `rehaul/v2` as `96ce9dd` |
-| [Phase 1 Stage E: verify and ship v1.4.0](implementations/2026-11-01-phase1-stage-e.md) | In progress from 2026-11-01 |
+| [Phase 1 Stage E: verify and ship v1.4.0](implementations/2026-11-01-phase1-stage-e.md) | Released 2026-11-04; the TTI numbers and deleting `rehaul/v2` are left |
 | [Scale plan](scale-plan.md) | 2026-04-20; audited in the rehaul plan §2.3 |
 | [Proposal: ticket-cutting (boarding pass)](proposals/ticket-cutting-feature.md) | Folded into Phase 4b (FR-FLY-006) |
 | [Evaluation: xtool vs Expo/EAS](proposals/xtool-evaluation.md) | 2026-10-30. Decided: stay on Expo. xtool can't build this app, and its build path breaches Apple's Xcode licence on a non-Mac |
@@ -57,6 +57,9 @@ Start here. Every document in the repo is listed below. The rules for writing th
 
 | Date | Record |
 |------|--------|
+| 2026-11-03 | [URGENT: remove the unused audio background mode before the next submission (DEF-009)](implementations/2026-11-03-def-009-background-audio-mode.md) |
+| 2026-11-02 | [v1.4 App Store creative assets: a looping Header and Search Results video](implementations/2026-11-02-app-store-creative-assets.md) |
+| 2026-11-01 | [v1.4 App Store screenshots](implementations/2026-11-01-app-store-screenshots.md) |
 | 2026-11-01 | [Phase 1 Stage E: verify and ship v1.4.0](implementations/2026-11-01-phase1-stage-e.md) |
 | 2026-11-01 | [Phase 1 D5, the assets: Pomo & Doro's tour expressions and their babble](implementations/2026-11-01-phase1-d5-assets.md) |
 | 2026-11-01 | [Phase 1 D5: the general tutorial, Pomo & Doro show you around](implementations/2026-11-01-phase1-d5-tutorial.md) |

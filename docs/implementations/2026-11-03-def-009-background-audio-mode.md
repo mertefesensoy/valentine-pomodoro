@@ -13,6 +13,8 @@ related: [SRS, IMPL-2026-11-01-phase1-stage-e, RELEASE, BRANCHING]
 
 The owner, 2026-11-04, while Apple hadn't yet answered the reply: "Yes, start build 60". That go-ahead covers the fix, the checks, the push, EAS build 60 with its TestFlight upload, and the tag `v1.4.0-tf.60`. Attaching the build and submitting stay with the owner.
 
+**2026-11-05: 1.4.0 is live, on build 59.** The owner: "wait but 1.4.0 is already live". The public App Store lookup confirms it: version 1.4.0, released 2026-11-04T14:45:37Z. So Apple accepted the reply, §3 step 8 took its first branch, and build 60 is retired. The fix ships as 1.4.1.
+
 **Branch:** `phase1/stage-d`, then fast-forwarded into `rehaul/v2` and `master`. All three sit at the same commit, `0d5e4ba`, and `rehaul/v2` stays the integration branch until 1.4.0 ships ([BRANCHING.md](../process/BRANCHING.md)).
 
 ---
@@ -41,10 +43,11 @@ The native module pauses every player when the app enters the background and res
 
 | File | Change |
 |------|--------|
-| `app.json` | `"expo-audio"` becomes `["expo-audio", { "enableBackgroundPlayback": false }]`. The version stays 1.4.0, so build 60 can go on the rejected 1.4.0 version |
+| `app.json` | `"expo-audio"` becomes `["expo-audio", { "enableBackgroundPlayback": false }]` (`5c2fe1c`, in build 60 at version 1.4.0). The version becomes 1.4.1, since a live version can't take more uploads (RELEASE.md §1) |
+| `package.json` and `package-lock.json` | The version becomes 1.4.1 |
 | `src/constants/__tests__/appConfig.test.ts` (new) | Pins the plugin option, so a later upgrade can't quietly bring the key back |
 | `docs/srs/SRS.md` | DEF-009 marked fixed in code, with the commit; closed when a submission carries it |
-| `CHANGELOG.md` | `[1.4.0-tf.60]`, once the build exists |
+| `CHANGELOG.md` | `[1.4.0-tf.60]` and `[1.4.1]`, and `[1.4.1-tf.<n>]` once that build exists |
 | `docs/implementations/2026-11-01-phase1-stage-e.md` | The fallback build and its table; a correction to its statement about usage descriptions (§5) |
 | `CLAUDE.md` and the project memory | The notice says what is left, so no session repeats the fix. Removed once a submission carries it |
 | This record | Status Done, at the end |
@@ -67,6 +70,12 @@ The native module pauses every player when the app enters the background and res
    - **No answer yet:** on the rejected 1.4.0 version, remove build 59, add build 60, add the note below and submit again. The text, screenshots and videos stay.
 
    The App Review note gains one line: "The "audio" UIBackgroundModes entry flagged in the previous review (Guideline 2.5.4) is removed."
+
+   **Outcome:** the first branch. Build 60 was never attached. Its fix is already on `master`, so 1.4.1 needs only the version bump, a build, its tag `v1.4.1-tf.<n>`, the device check and the submission. The owner went ahead on 2026-11-05 ("Yes, go ahead"): the bump goes through a pull request into `master`, and the build is made from the merge.
+
+   **What's New for 1.4.1,** for the owner to edit:
+   - English: "A small behind-the-scenes fix. Everything works as before."
+   - Türkçe: "Perde arkasında küçük bir düzeltme. Her şey eskisi gibi çalışıyor."
 
 ## 4. Mathematical / Statistical Details
 
@@ -92,10 +101,15 @@ None: a build-configuration change.
   - **Green:** `tsc`; lint, 0 errors and 29 warnings, as before; the compiler report, 100 compiled and 5 skipped; raw text; contrast, 60 pairs; the icons, 120 drawings; budgets, 133 assets; Jest, 496 tests; `check-docs`, 142 docs.
   - **Not passing:** `scripts/art/build.mjs --check` (198 files differ from a clean rebuild) and `scripts/sound/build.mjs --check` (only `art/sound/report.json` differs).
   - **Why they don't block build 60:** VectorCraft 0.21.0 and SoundCraft 0.17.0 were installed on 2026-11-03 at about 19:30, after both checks last passed on these same files (`a03135c`, that day). No art or sound file has changed since. Neither tool runs in CI or in the EAS build, which packages the committed assets. What exactly differs in the art rebuild hasn't been looked at; re-baselining the checks or pinning the tools is a separate job, after this one.
-- [ ] CI green on the build's commit.
-- [ ] The fix's build on TestFlight, tagged.
-- [ ] The device check on that build (§3 step 7).
-- [ ] A version submitted with the fix, and App Review raises no 2.5.4 finding.
+- [x] CI green on the build's commit (`c184337`: runs 41819215848 and 41819216342).
+- [x] The fix's build on TestFlight, tagged: build 60, `v1.4.0-tf.60` ([Stage E §3.10](2026-11-01-phase1-stage-e.md)).
+- [x] The device check on that build (§3 step 7): passed on build 60, 2026-11-04. Asked "Did build 60 pass the sound check?", the owner answered "Passed".
+- [x] The guards on the 1.4.1 commit (`8f9dab6`), with the same two exceptions as above, and one thing to note:
+  - **Bytecode:** iOS 4,292,796 B, within NFR-PERF-002's amended 4,292,868 B.
+  - **Jest:** one run failed 4 of 496 tests, and which four wasn't captured. A rerun with no change passed all 496. CI runs them again on the pull request.
+- [ ] Version 1.4.1 built with the fix, on TestFlight, tagged.
+- [ ] The device check on the 1.4.1 build (§3 step 7).
+- [ ] 1.4.1 submitted with the fix, and App Review raises no 2.5.4 finding.
 - [ ] The urgent notice removed from `CLAUDE.md` and the project memory, and DEF-009 closed in the SRS.
 
 ## 7. Related Docs

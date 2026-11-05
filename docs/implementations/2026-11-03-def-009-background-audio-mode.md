@@ -13,6 +13,8 @@ related: [SRS, IMPL-2026-11-01-phase1-stage-e, RELEASE, BRANCHING]
 
 The owner, 2026-11-04, while Apple hadn't yet answered the reply: "Yes, start build 60". That go-ahead covers the fix, the checks, the push, EAS build 60 with its TestFlight upload, and the tag `v1.4.0-tf.60`. Attaching the build and submitting stay with the owner.
 
+**2026-11-05: the owner lifted the hold** ("Yes, it can start"). 1.4.1 is submitted, so new work can start while Apple reviews it. If Apple answers about 1.4.1, that comes first.
+
 **2026-11-05: 1.4.0 is live, on build 59.** The owner: "wait but 1.4.0 is already live". The public App Store lookup confirms it: version 1.4.0, released 2026-11-04T14:45:37Z. So Apple accepted the reply, §3 step 8 took its first branch, and build 60 is retired. The fix ships as 1.4.1.
 
 **Branch:** `phase1/stage-d`, then fast-forwarded into `rehaul/v2` and `master`. All three sit at the same commit, `0d5e4ba`, and `rehaul/v2` stays the integration branch until 1.4.0 ships ([BRANCHING.md](../process/BRANCHING.md)).
@@ -91,6 +93,7 @@ None: a build-configuration change.
 | Build 60 stays version 1.4.0 | Bump to 1.4.1 now | It must fit the rejected 1.4.0 version. If Apple approves build 59 first, the cost is one small bump and one more build |
 | Keep `NSMicrophoneUsageDescription` | Set `microphonePermission: false` in the same line | The plugin declares this string by default too, and the app never asks for the microphone. But expo-audio's native code links `AVAudioRecorder` (`node_modules/expo-audio/ios/AudioRecorder.swift`), so removing the string risks App Store Connect's missing-purpose-string check on upload. Apple didn't flag it, and no prompt ever shows. One well-understood change at a time |
 | Keep every sound foreground-only | Let Fly's hum play in the background and defend the key with a screen recording | Nobody asked for background sound. The timer runs on timestamps and notifications |
+| Keep the silent-switch behaviour as it is (the owner, 2026-11-05: "Keep it as it is") | Let the start and finish sounds and the voices play in silent mode; make Fly's hum obey silent mode too | The owner noticed that the phone must leave silent mode to hear the start and finish sounds and the voices, while Fly's hum plays anyway. That is unchanged since those sounds arrived in D4 (FR-SET-004), and since Fly's hum arrived (`e1e8264`). It follows Apple's rule (`playing-audio.md` › Silence): silent mode mutes sound effects, and plays audio people start themselves. So no new build |
 | Make this the first job of every new session | Leave it on the release list (R4–R6) | **The owner's instruction.** Missing it costs a rejection of the next version |
 
 ## 6. Verification
@@ -106,10 +109,15 @@ None: a build-configuration change.
 - [x] The device check on that build (§3 step 7): passed on build 60, 2026-11-04. Asked "Did build 60 pass the sound check?", the owner answered "Passed".
 - [x] The guards on the 1.4.1 commit (`8f9dab6`), with the same two exceptions as above, and one thing to note:
   - **Bytecode:** iOS 4,292,796 B, within NFR-PERF-002's amended 4,292,868 B.
-  - **Jest:** one run failed 4 of 496 tests, and which four wasn't captured. A rerun with no change passed all 496. CI runs them again on the pull request.
-- [ ] Version 1.4.1 built with the fix, on TestFlight, tagged.
-- [ ] The device check on the 1.4.1 build (§3 step 7).
-- [ ] 1.4.1 submitted with the fix, and App Review raises no 2.5.4 finding.
+  - **Jest:** one run failed 4 of 496 tests, and which four wasn't captured. Three later runs with no change passed all 496, and so did CI. The cause is unknown; it ran right after the art and sound checks, so load is a guess.
+- [x] Pull request [#2](https://github.com/mertefesensoy/valentine-pomodoro/pull/2) merged as `4c39732`, with both CI checks green. Its tree is the one the pull request's CI tested, and the push run on the commit (42006620950) passed too.
+- [x] Version 1.4.1 built with the fix, on TestFlight, tagged:
+  - EAS build `db76113a-0346-42c3-a56f-62dfffef9d31`, iOS build 61, created 2026-11-05T09:58:29Z, finished 10:05:01Z.
+  - Submission `fb2ea06e-6b22-4eed-9bac-c8ebf6384c94`; `submit-ios.yaml` succeeded.
+  - Tag `v1.4.1-tf.61` on `4c39732`, pushed.
+  - IPA 21,618,015 B, −18 B on build 60. The built IPA's own Info.plist hasn't been opened; the evidence is the plugin run above.
+- [x] The device check on the 1.4.1 build (§3 step 7): passed on build 61, 2026-11-05. The owner: "every sound works properly" and "everything works other than that". The one remark was about the silent switch, which is by design (§5).
+- [ ] 1.4.1 submitted with the fix, and App Review raises no 2.5.4 finding. **Submitted 2026-11-05** on build 61 (the owner: "Submitted"); App Review's answer is pending.
 - [ ] The urgent notice removed from `CLAUDE.md` and the project memory, and DEF-009 closed in the SRS.
 
 ## 7. Related Docs

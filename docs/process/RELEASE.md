@@ -49,7 +49,7 @@ related: [BRANCHING, CHANGELOG, TEST-STRATEGY]
 
 **Release**
 
-9. [ ] **Owner:** submit for App Store review in App Store Connect; release when approved.
+9. [ ] **Owner:** submit for App Store review in App Store Connect; release when approved. When it goes in, tag `vX.Y.Z-submitted` on the build's commit and push it.
 10. [ ] Tag `vX.Y.Z` on the released commit and push it. From 1.4.0, the merge to `master` comes first ([BRANCHING.md](BRANCHING.md#the-transition-from-rehaulv2-now)).
 11. [ ] **GitHub Release** (from v1.4.0 on), with the CHANGELOG section as its notes:
     ```bash
@@ -80,6 +80,7 @@ When Android returns (the [roadmap Android track](../roadmap/ROADMAP.md#android-
 - [Documentation map](../README.md)
 - ["Phase 1 Stage E: verify and ship v1.4.0"](../implementations/2026-11-01-phase1-stage-e.md)
 - ["URGENT: remove the unused audio background mode before the next submission (DEF-009)"](../implementations/2026-11-03-def-009-background-audio-mode.md)
+- ["App Store featuring nomination: Meet Pomo & Doro"](../implementations/2026-11-04-featuring-nomination.md)
 - [Branching model](BRANCHING.md)
 - [Evaluation — xtool (cross-platform Xcode replacement) vs staying on Expo/EAS](../proposals/xtool-evaluation.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)

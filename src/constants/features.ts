@@ -2,6 +2,14 @@ import { Platform } from 'react-native';
 import { AppMode } from '../types';
 
 /**
+ * Hides everything to do with accounts and pairing until 1.5.0's release build
+ * turns it on (Phase 2 plan, F1). It controls what a person can reach: code behind
+ * it still ships in the one Hermes bytecode file. Typed `boolean` rather than the
+ * literal `false`, so the branches behind it stay reachable to the type checker.
+ */
+export const PAIRING_ENABLED: boolean = false;
+
+/**
  * Fly Mode draws a real map with react-native-maps. Only iOS has a provider that
  * works without setup (Apple Maps): Android needs a Google Maps API key the app
  * doesn't ship, and react-native-maps has no web implementation, so opening Fly

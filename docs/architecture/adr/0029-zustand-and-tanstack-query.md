@@ -4,14 +4,14 @@ title: Zustand for app state, TanStack Query for server state
 status: accepted
 date: 2026-10-29
 owner: Mert Efe Şensoy
-related: [ADR-0015, ADR-0016, ADR-0021, ADR-0028, ADR-0030]
+related: [ADR-0015, ADR-0016, ADR-0021, ADR-0028, ADR-0030, ADR-0049]
 ---
 
 # ADR-0029: Zustand for app state, TanStack Query for server state
 
 > **Status note:** accepted on 2026-10-29 as part of the approved rehaul plan and Phase 1 plan. "Accepted" records the decision; build status is tracked in the [roadmap](../../roadmap/ROADMAP.md).
 > - **Zustand: built in Phase 1 B3** (2026-10-30, `71d836f`…`e04cc8c`, [B3 record](../../implementations/2026-10-30-phase1-b3-zustand-stores.md)). Five stores, hydrated synchronously from MMKV by `StoreGate`. `AppContext` was a shim for one commit, then deleted. The stats store keeps `lastAppliedSessionId`. With selectors, the settings-only Reassure scenario dropped from 14 renders to 1.
-> - **TanStack Query** arrives with the backend (Phases 2–3) and appears only in the rehaul plan. Not built.
+> - **TanStack Query** arrives with the backend (Phases 2–3) and appears only in the rehaul plan. Not built. From 1.5.0 it loads for paired users only, so a solo user never runs it ([ADR-0049](0049-account-only-at-pairing.md)).
 
 ## Context
 
@@ -51,7 +51,9 @@ One `AppContext` holds everything. Every second of a running session changes its
 ## Backlinks
 <!-- backlinks:start -->
 - [Progress ring drawn with react-native-svg stroke-dashoffset](0009-svg-progress-ring.md)
+- [An account only at pairing, with Sign in with Apple only, and pairing by code only](0049-account-only-at-pairing.md)
 - [Architecture decision records](README.md)
 - ["Phase 1 B3: Zustand stores, hydrated synchronously from MMKV"](../../implementations/2026-10-30-phase1-b3-zustand-stores.md)
+- ["Phase 2 A2: the PAIRING_ENABLED flag and ADR-0049"](../../implementations/2026-11-05-phase2-a2-pairing-flag.md)
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../../implementations/2026-11-05-phase2-plan.md)
 <!-- backlinks:end -->

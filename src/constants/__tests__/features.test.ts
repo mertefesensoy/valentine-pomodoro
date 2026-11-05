@@ -1,4 +1,13 @@
-import { isFlyModeAvailable, resolveAppMode } from '../features';
+import { isFlyModeAvailable, PAIRING_ENABLED, resolveAppMode } from '../features';
+
+// Phase 2 merges into master task by task, and master must stay releasable. This
+// fails if pairing is switched on by accident before Stage F (plan task F1), which
+// changes the expected value here on purpose.
+describe('PAIRING_ENABLED', () => {
+    it('stays off until the 1.5.0 release build', () => {
+        expect(PAIRING_ENABLED).toBe(false);
+    });
+});
 
 // Fly Mode crashed on Android (no Google Maps API key) and, because the mode is
 // persisted, every later launch crashed too. These pin the platform gate and the

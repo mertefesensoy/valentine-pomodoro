@@ -452,7 +452,9 @@ In the Stage B tests bullet, before "Jest runs 134 tests in 26 suites at B5", ad
 <!-- backlinks:start -->
 - [Documentation map](../README.md)
 - [Architecture — Valentine Pomodoro (as built, and the v2 target)](../architecture/ARCHITECTURE.md)
+- [Anonymous start-up reports from every install, with two random groups](../architecture/adr/0051-anonymous-start-up-reports.md)
 - [2026-10-29 — Phase 1 (v1.4): design system and local re-architecture, plan](2026-10-29-phase1-plan.md)
+- ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](2026-11-05-phase2-plan.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)

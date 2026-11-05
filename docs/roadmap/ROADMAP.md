@@ -86,8 +86,8 @@ Plan: [Phase 1 plan](../implementations/2026-10-29-phase1-plan.md) (approved 202
 
 Plan: [Phase 2 plan](../implementations/2026-11-05-phase2-plan.md) (approved 2026-11-05), which changes [rehaul plan §7](../implementations/2026-10-29-couples-rehaul-plan.md#7-roadmap). Requirements: FR-ACC-*, FR-PAR-*, FR-NTE-003, NFR-SEC-001, NFR-PRIV-*.
 
-- **Needs from you:** a Supabase project, Sign in with Apple in the developer portal, a Sentry account, a second iPhone, and the cold-start times (the plan's §0.2).
-- **Work:** the schema, RLS and pgTAP tests; Sign in with Apple only when pairing; pairing by code; your partner's day; notes to your partner; account deletion and data export; Sentry; the new privacy policy.
+- **Needs from you:** Sign in with Apple in the developer portal, and a second iPhone (the plan's §0.2). The Supabase project exists.
+- **Work:** the schema, RLS and pgTAP tests; Sign in with Apple only when pairing; pairing by code; your partner's day; notes to your partner; account deletion and data export; anonymous start-up reports with two groups; the new privacy policy. No Sentry, and a small client in place of `supabase-js` (the plan's §0.3).
 - **Inherits from Phase 1:** the pages-to-logo morph (Pomo & Doro become the Same Page mark) plays at the first pairing, reusing the v1.4 welcome screen's choreography ([Phase 1 Stage D plan](../implementations/2026-10-30-phase1-stage-d.md) §3.2.11; owner, 2026-10-30).
 
 ### Phase 3 — Shared room and presence · Planned

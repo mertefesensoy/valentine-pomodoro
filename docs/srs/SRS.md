@@ -513,8 +513,8 @@ AsyncStorage stays untouched for one release as a fallback.
 **Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** PLAN-REHAUL §3.2
 
 #### FR-ACC-002
-**Statement:** Users shall create an account only when they choose to pair, with Sign in with Apple. Email and Google wait for Android or web. A solo user has no account and sends nothing to the server.
-**Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** the owner, 2026-11-05 ([Phase 2 plan](../implementations/2026-11-05-phase2-plan.md) §0.1; it replaces anonymous sign-in, PLAN-REHAUL §4.1)
+**Statement:** Users shall create an account only when they choose to pair, with Sign in with Apple. Email and Google wait for Android or web. A solo user has no account, and sends nothing to the server except the anonymous start-up report ([NFR-PERF-008](#nfr-perf-008)).
+**Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** the owner, 2026-11-05 ([Phase 2 plan](../implementations/2026-11-05-phase2-plan.md) §0.1 and §0.3; it replaces anonymous sign-in, PLAN-REHAUL §4.1)
 
 #### FR-ACC-003
 **Statement:** Users shall be able to delete their account inside the app. Deletion cascades through their data and dissolves the couple; the partner keeps their own history.
@@ -535,7 +535,7 @@ AsyncStorage stays untouched for one release as a fallback.
 **Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** schema `couple_members unique (user_id)`
 
 #### FR-PAR-003
-**Statement:** A paired user shall see their partner's name and today's stickers, minutes and goal, read-only, refreshed when the app comes to the foreground. A solo user sends nothing to the server.
+**Statement:** A paired user shall see their partner's name and today's stickers, minutes and goal, read-only, refreshed when the app comes to the foreground. A solo user sends none of this to the server.
 **Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Verify:** T; D (two physical phones) · **Source:** the owner, 2026-11-05 ([Phase 2 plan](../implementations/2026-11-05-phase2-plan.md) §0.1)
 
 #### 3.2.12 Shared session and presence (SYN)
@@ -701,9 +701,13 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 
 **Target:** Phase 6 · **Status:** planned · **Verify:** T (Lighthouse CI) · **Source:** baseline in `docs/baselines/2026-10-29/`
 
+#### NFR-PERF-008
+**Statement:** The app shall measure cold start on real phones. After each clean cold start, an install shall send one report holding only its start-up group, its time to interactive, the iPhone model, the iOS version and the app build, with no identifier. A Settings switch, on by default, turns it off, and then the app sends nothing. Each install joins one of two groups once, at random, half and half.
+**Target:** Phase 2 · **Status:** planned · **Verify:** T: pgTAP on `report_startup`; a Jest test of the exact request; D: reports arrive from TestFlight · **Source:** the owner, 2026-11-05 ([ADR-0051](../architecture/adr/0051-anonymous-start-up-reports.md))
+
 #### NFR-REL-001
 **Statement:** Crash-free sessions shall be ≥ 99.8 %.
-**Target:** Phase 2 (Sentry) · **Status:** planned · **Verify:** A
+**Target:** Phase 2 · **Status:** planned · **Verify:** A: App Store Connect's crash data; there is no Sentry ([ADR-0050](../architecture/adr/0050-small-client-and-no-sentry.md))
 
 #### NFR-REL-002
 **Statement:** No update shall lose user data. See [FR-MIG-001](#fr-mig-001).
@@ -722,7 +726,7 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 **Target:** now · **Status:** implemented · **Verify:** I
 
 #### NFR-PRIV-001
-**Statement:** Data shall be minimised. Analytics events are bucketed, carry no personal data and are kept for 90 days. There is no third-party tracking, so no App Tracking Transparency prompt.
+**Statement:** Data shall be minimised. Analytics events are bucketed, carry no personal data and are kept for 90 days. There is no third-party tracking, so no App Tracking Transparency prompt. In 1.5.0 the only such data is the start-up report ([NFR-PERF-008](#nfr-perf-008)).
 **Target:** Phase 2 · **Status:** planned · **Source:** PLAN-REHAUL §4.3
 
 #### NFR-PRIV-002
@@ -817,6 +821,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 |---------|------|--------|
 | 1.0 | 2026-10-30 | First SRS: as-built v1.3.1 + Phase 0/1 work, and the v2 rehaul requirements from PLAN-REHAUL and PLAN-PHASE1 |
 | 1.1 | 2026-11-02 | Phase 1 Stage D applied at its merge ([Stage D plan](../implementations/2026-10-30-phase1-stage-d.md) §9): FR-ONB-001 and FR-ONB-002 added (§3.2.18); FR-TMR-010, FR-STA-003, FR-SET-001 and FR-SET-005 amended; FR-SET-002, FR-SET-004, FR-SET-005, FR-NTE-002, NFR-I18N-001 and NFR-UX-003 implemented; DEF-007 and DEF-008 closed |
+| 1.2 | 2026-11-05 | Phase 2: the owner's decisions while building ([plan §0.3](../implementations/2026-11-05-phase2-plan.md#03-changed-while-building-2026-11-05)): NFR-PERF-008 added; NFR-PERF-001, NFR-PERF-002, NFR-REL-001, NFR-PRIV-001, FR-ACC-002 and FR-PAR-003 amended |
 
 ## Backlinks
 <!-- backlinks:start -->
@@ -826,6 +831,8 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - [Documentation map](../README.md)
 - [Architecture — Valentine Pomodoro (as built, and the v2 target)](../architecture/ARCHITECTURE.md)
 - [An account only at pairing, with Sign in with Apple only, and pairing by code only](../architecture/adr/0049-account-only-at-pairing.md)
+- [A small Supabase client of our own, and no Sentry, in 1.5.0](../architecture/adr/0050-small-client-and-no-sentry.md)
+- [Anonymous start-up reports from every install, with two random groups](../architecture/adr/0051-anonymous-start-up-reports.md)
 - [Original v1 implementation plan (2026-01-07)](../history/2026-01-07-v1-plan.md)
 - [Documentation system, release history and branch cleanup](../implementations/2026-10-30-documentation-system.md)
 - ["Phase 1 B3: Zustand stores, hydrated synchronously from MMKV"](../implementations/2026-10-30-phase1-b3-zustand-stores.md)

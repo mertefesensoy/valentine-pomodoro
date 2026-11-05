@@ -26,7 +26,6 @@ import { PressableScale } from '../../components/ui/PressableScale';
 import { t } from '../../i18n';
 import { useAccountStore } from '../../server/account';
 import { fetchHome, HOME_KEY, homeClient } from '../../server/home';
-import { useSettingsStore } from '../../stores/settingsStore';
 import { useTheme } from '../../theme/useTheme';
 import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
 import { ASPECT, DURATION, linePose } from '../welcome/choreography';
@@ -420,9 +419,6 @@ export default function PairScreen() {
     );
 }
 
-const useSettingsImport = useSettingsStore;
-void useSettingsImport;
-
 const styles = StyleSheet.create({
     content: { paddingHorizontal: space.l, paddingTop: space.m, paddingBottom: space.xl, gap: space.m },
     head: { minHeight: minTarget, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: minTarget },
@@ -464,5 +460,5 @@ const styles = StyleSheet.create({
     link: { minHeight: minTarget, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
     linkLabel: { fontSize: 16, fontWeight: '600', textAlign: 'center' },
     nameField: { minHeight: minTarget + 8, borderWidth: edgeWidth, borderRadius: radius.m, paddingHorizontal: space.l, fontSize: 17 },
-    codeInput: { ...StyleSheet.absoluteFillObject, color: 'transparent', opacity: 0.02 },
+    codeInput: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, color: 'transparent', opacity: 0.02 },
 });

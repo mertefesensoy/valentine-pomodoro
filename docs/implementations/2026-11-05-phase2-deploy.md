@@ -54,8 +54,8 @@ The project's reference and the pooler's host aren't secrets, so they're written
 
 ## 6. Verification
 
-- [ ] After the owner sets the secrets, merging this runs the workflow, and it ends green.
-- [ ] After that, the project's Database › Migrations page lists the applied files.
+- [x] After the owner set the secrets and the pooler fix merged, the workflow ended green (pull requests #14 and #15).
+- [x] The live project answers as the migrations say it should: B3's and B4's records have the requests.
 - [ ] A merge touching only `src/` doesn't run it (the `paths` filter).
 
 ## 7. Related Docs

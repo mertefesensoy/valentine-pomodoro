@@ -89,8 +89,8 @@ export type FlyPrefs = {
 /** Every key a v1.3.1 install can hold, with the type it is read as. */
 export interface V131Storage {
     timer_state: PomodoroState;
-    /** v1.3.1 never wrote `classicLayout`; Phase 1 D1 added it, and the settings merge fills it in. */
-    settings: Omit<Settings, 'classicLayout'>;
+    /** v1.3.1 never wrote `classicLayout` or `shareStartupTimings`; later versions added them, and the settings merge fills them in. */
+    settings: Omit<Settings, 'classicLayout' | 'shareStartupTimings'>;
     /** The 1.0.x map. useStats copies it into stats_v2 once and never deletes it. */
     stats: StatsMap;
     stats_v2: StatsState;
@@ -254,7 +254,7 @@ export const V131_FULL: V131Storage = {
  */
 export interface V100Storage {
     timer_state: Omit<LegacyTimerState, 'sessionStartedAt' | 'sessionId'>;
-    settings: Omit<Settings, 'themeMode' | 'animationsEnabled' | 'flyModeSound' | 'classicLayout'>;
+    settings: Omit<Settings, 'themeMode' | 'animationsEnabled' | 'flyModeSound' | 'classicLayout' | 'shareStartupTimings'>;
     stats: Record<string, Pick<DayStats, 'focusSessions' | 'focusMinutes'>>;
     gift_mode: GiftMode;
 }

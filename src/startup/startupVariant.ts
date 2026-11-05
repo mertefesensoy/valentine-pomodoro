@@ -1,3 +1,4 @@
+import { STARTUP_REPORTS_ENABLED } from '../constants/features';
 import { loadSync, saveSync } from '../utils/storage';
 import { isStorageMigrated } from '../utils/storageMigration';
 
@@ -14,12 +15,17 @@ import { isStorageMigrated } from '../utils/storageMigration';
  *
  * Set only from the hidden panel in Settings → About. A user who never opens
  * it never has the key written.
+ *
+ * With no setting from the panel, a launch uses the install's group (Phase 2 C4,
+ * ADR-0051): drawn once at random, half and half, under a key of its own, so
+ * that hasStartupSetting() keeps meaning that the panel was opened.
  */
 
 export type StartupMode = 'deferred' | 'eager' | 'alternate';
 export type StartupArm = 'deferred' | 'eager';
 
 export const STARTUP_VARIANT_KEY = 'startup_variant_v1';
+export const STARTUP_GROUP_KEY = 'startup_group_v1';
 
 type StoredVariant = { mode: StartupMode; last: StartupArm | null };
 
@@ -52,13 +58,25 @@ export function writeStartupMode(mode: StartupMode, current: StartupArm): void {
     saveSync<StoredVariant>(STARTUP_VARIANT_KEY, { mode, last: current });
 }
 
+/** The install's group: read, or drawn and stored on its first launch. Today's order until the flag is on. */
+function installGroup(): StartupArm {
+    if (!STARTUP_REPORTS_ENABLED || !isStorageMigrated()) return 'deferred';
+    const stored = loadSync<unknown>(STARTUP_GROUP_KEY, null);
+    if (stored === 'deferred' || stored === 'eager') return stored;
+    const group: StartupArm = Math.random() < 0.5 ? 'deferred' : 'eager';
+    saveSync(STARTUP_GROUP_KEY, group);
+    return group;
+}
+
 /**
  * Chooses this launch's arm. Called once per launch, by the scheduler's first
- * use. Writes only in `alternate` mode, to remember the arm it chose.
+ * use. Writes in `alternate` mode, to remember the arm it chose, and once per
+ * install, to store its group.
  */
 export function resolveLaunchArm(): StartupArm {
     const stored = readStored();
-    if (!stored || stored.mode === 'deferred') return 'deferred';
+    if (!stored) return installGroup();
+    if (stored.mode === 'deferred') return 'deferred';
     if (stored.mode === 'eager') return 'eager';
     const arm: StartupArm = stored.last === 'deferred' ? 'eager' : 'deferred';
     saveSync<StoredVariant>(STARTUP_VARIANT_KEY, { mode: 'alternate', last: arm });

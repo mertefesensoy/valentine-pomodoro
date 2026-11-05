@@ -125,7 +125,7 @@ describe('classicLayout', () => {
         await render(<StoreGate>{null}</StoreGate>);
         const { settings } = useSettingsStore.getState();
         expect(settings.classicLayout).toBe('ring');
-        expect(settings).toEqual({ ...V131_FULL.settings, classicLayout: 'ring' });
+        expect(settings).toEqual({ ...V131_FULL.settings, classicLayout: 'ring', shareStartupTimings: true });
     });
 
     it('persists a change to Facing Pages across a restart', async () => {

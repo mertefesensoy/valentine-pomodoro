@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
+import { STARTUP_REPORTS_ENABLED } from '../constants/features';
 import {
     AccessibilityInfo,
     Alert,
@@ -410,6 +411,16 @@ export default function SettingsScreen() {
                         onValueChange={(on) => updateSettings({ flyModeSound: on })}
                     />
                 </ListGroup>
+
+                {STARTUP_REPORTS_ENABLED && (
+                    <ListGroup header={t('settings.privacy.header')} footer={t('settings.privacy.footer')}>
+                        <SwitchRow
+                            label={t('settings.privacy.timings')}
+                            value={settings.shareStartupTimings}
+                            onValueChange={(on) => updateSettings({ shareStartupTimings: on })}
+                        />
+                    </ListGroup>
+                )}
 
                 <ListGroup
                     header={t('settings.about.header')}

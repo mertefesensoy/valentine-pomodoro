@@ -159,6 +159,11 @@
     "fly": {
       "ambient": "Ambient sounds"
     },
+    "privacy": {
+      "header": "Privacy",
+      "timings": "Share start-up timings",
+      "footer": "Sends how long the app took to open, your iPhone model, your iOS version and the app’s build. Nothing that identifies you."
+    },
     "about": {
       "header": "About",
       "updates": "Check for updates",

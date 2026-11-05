@@ -41,6 +41,19 @@ jobs:
         continue-on-error: true
         run: node scripts/docs/check-docs.mjs
 
+  db:
+    # Applies the migrations to a clean Supabase database on GitHub's runner, since the development
+    # machine has no Docker (Phase 2 plan, B1 and B2).
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.121.0
+      - name: Apply the migrations to a clean database
+        run: supabase db start
+
   perf:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest

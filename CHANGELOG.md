@@ -4,9 +4,15 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [Unreleased]
 
+*Nothing since 1.4.1.*
+
+## [1.4.1] - 2026-11-05
+
+*An iOS patch, dated by its EAS production build (UTC). Android stays on 1.3.1.*
+
 ### Fixed
 
-- The app no longer declares the `audio` background mode, which nothing used. `expo-audio`'s plugin added it by default, and App Review flagged it under Guideline 2.5.4 (DEF-009, 5c2fe1c). It ships in 1.4.1.
+- The app no longer declares the `audio` background mode, which nothing used. `expo-audio`'s plugin added it by default, and App Review flagged it under Guideline 2.5.4 (DEF-009, 5c2fe1c). Sounds work as before: they stop when you leave the app.
 
 ## [1.4.0] - 2026-11-02
 
@@ -457,7 +463,8 @@ Two later fixes on the same branch were never built: functional state updates fo
 - A circular progress ring, haptics and button animations (d836c0a).
 - The app icon, splash screen and EAS build configuration, on Expo SDK 54 with React Native 0.81.5 (42409bf, adc5bb3, 40489e2, 4278bd6).
 
-[Unreleased]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0...rehaul/v2
+[Unreleased]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.1...master
+[1.4.1]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.3.1...v1.4.0
 [1.4.0-tf.60]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.59...v1.4.0-tf.60
 [1.4.0-tf.59]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.58...v1.4.0-tf.59

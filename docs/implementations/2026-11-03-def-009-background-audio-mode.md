@@ -43,10 +43,11 @@ The native module pauses every player when the app enters the background and res
 
 | File | Change |
 |------|--------|
-| `app.json` | `"expo-audio"` becomes `["expo-audio", { "enableBackgroundPlayback": false }]`. The version stays 1.4.0, so build 60 can go on the rejected 1.4.0 version |
+| `app.json` | `"expo-audio"` becomes `["expo-audio", { "enableBackgroundPlayback": false }]` (`5c2fe1c`, in build 60 at version 1.4.0). The version becomes 1.4.1, since a live version can't take more uploads (RELEASE.md §1) |
+| `package.json` and `package-lock.json` | The version becomes 1.4.1 |
 | `src/constants/__tests__/appConfig.test.ts` (new) | Pins the plugin option, so a later upgrade can't quietly bring the key back |
 | `docs/srs/SRS.md` | DEF-009 marked fixed in code, with the commit; closed when a submission carries it |
-| `CHANGELOG.md` | `[1.4.0-tf.60]`, once the build exists |
+| `CHANGELOG.md` | `[1.4.0-tf.60]` and `[1.4.1]`, and `[1.4.1-tf.<n>]` once that build exists |
 | `docs/implementations/2026-11-01-phase1-stage-e.md` | The fallback build and its table; a correction to its statement about usage descriptions (§5) |
 | `CLAUDE.md` and the project memory | The notice says what is left, so no session repeats the fix. Removed once a submission carries it |
 | This record | Status Done, at the end |
@@ -70,7 +71,11 @@ The native module pauses every player when the app enters the background and res
 
    The App Review note gains one line: "The "audio" UIBackgroundModes entry flagged in the previous review (Guideline 2.5.4) is removed."
 
-   **Outcome:** the first branch. Build 60 was never attached. Its fix is already on `master`, so 1.4.1 needs only the version bump, a build, its tag `v1.4.1-tf.<n>`, the device check and the submission.
+   **Outcome:** the first branch. Build 60 was never attached. Its fix is already on `master`, so 1.4.1 needs only the version bump, a build, its tag `v1.4.1-tf.<n>`, the device check and the submission. The owner went ahead on 2026-11-05 ("Yes, go ahead"): the bump goes through a pull request into `master`, and the build is made from the merge.
+
+   **What's New for 1.4.1,** for the owner to edit:
+   - English: "A small behind-the-scenes fix. Everything works as before."
+   - Türkçe: "Perde arkasında küçük bir düzeltme. Her şey eskisi gibi çalışıyor."
 
 ## 4. Mathematical / Statistical Details
 

@@ -61,7 +61,7 @@ Requirements: [NFR-PERF-008](../srs/SRS.md#nfr-perf-008), [NFR-PRIV-001](../srs/
 
 ## 6. Verification
 
-- [x] `supabase test db` in CI: `startup_reports.test.sql` passes.
+- [ ] `supabase test db` in CI: `startup_reports.test.sql` (19 checks). A local pre-check passes them; only CI counts.
 - [x] `node scripts/docs/check-docs.mjs`: 0 errors.
 - [ ] **On the hosted project, at C4:** one real request with the new `sb_publishable_` key shows how PostgREST wants it sent (`apikey` alone, or with `Authorization`).
 

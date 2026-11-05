@@ -4,7 +4,7 @@ title: Supabase as the backend
 status: accepted
 date: 2026-10-29
 owner: Mert Efe Şensoy
-related: [ADR-0022, ADR-0023, ADR-0025, ADR-0029, ADR-0049, IMPL-2026-10-29-couples-rehaul-plan]
+related: [ADR-0022, ADR-0023, ADR-0025, ADR-0029, ADR-0049, ADR-0050, ADR-0051, IMPL-2026-10-29-couples-rehaul-plan]
 ---
 
 # ADR-0021: Supabase as the backend

@@ -513,8 +513,8 @@ AsyncStorage stays untouched for one release as a fallback.
 **Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** PLAN-REHAUL §3.2
 
 #### FR-ACC-002
-**Statement:** Users shall create an account only when they choose to pair, with Sign in with Apple. Email and Google wait for Android or web. A solo user has no account and sends nothing to the server.
-**Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** the owner, 2026-11-05 ([Phase 2 plan](../implementations/2026-11-05-phase2-plan.md) §0.1; it replaces anonymous sign-in, PLAN-REHAUL §4.1)
+**Statement:** Users shall create an account only when they choose to pair, with Sign in with Apple. Email and Google wait for Android or web. A solo user has no account, and sends nothing to the server except the anonymous start-up report ([NFR-PERF-008](#nfr-perf-008)).
+**Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** the owner, 2026-11-05 ([Phase 2 plan](../implementations/2026-11-05-phase2-plan.md) §0.1 and §0.3; it replaces anonymous sign-in, PLAN-REHAUL §4.1)
 
 #### FR-ACC-003
 **Statement:** Users shall be able to delete their account inside the app. Deletion cascades through their data and dissolves the couple; the partner keeps their own history.
@@ -535,7 +535,7 @@ AsyncStorage stays untouched for one release as a fallback.
 **Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** schema `couple_members unique (user_id)`
 
 #### FR-PAR-003
-**Statement:** A paired user shall see their partner's name and today's stickers, minutes and goal, read-only, refreshed when the app comes to the foreground. A solo user sends nothing to the server.
+**Statement:** A paired user shall see their partner's name and today's stickers, minutes and goal, read-only, refreshed when the app comes to the foreground. A solo user sends none of this to the server.
 **Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Verify:** T; D (two physical phones) · **Source:** the owner, 2026-11-05 ([Phase 2 plan](../implementations/2026-11-05-phase2-plan.md) §0.1)
 
 #### 3.2.12 Shared session and presence (SYN)
@@ -701,9 +701,13 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 
 **Target:** Phase 6 · **Status:** planned · **Verify:** T (Lighthouse CI) · **Source:** baseline in `docs/baselines/2026-10-29/`
 
+#### NFR-PERF-008
+**Statement:** The app shall measure cold start on real phones. After each clean cold start, an install shall send one report holding only its start-up group, its time to interactive, the iPhone model, the iOS version and the app build, with no identifier. A Settings switch, on by default, turns it off, and then the app sends nothing. Each install joins one of two groups once, at random, half and half.
+**Target:** Phase 2 · **Status:** planned · **Verify:** T: pgTAP on `report_startup`; a Jest test of the exact request; D: reports arrive from TestFlight · **Source:** the owner, 2026-11-05 ([ADR-0051](../architecture/adr/0051-anonymous-start-up-reports.md))
+
 #### NFR-REL-001
 **Statement:** Crash-free sessions shall be ≥ 99.8 %.
-**Target:** Phase 2 (Sentry) · **Status:** planned · **Verify:** A
+**Target:** Phase 2 · **Status:** planned · **Verify:** A: App Store Connect's crash data; there is no Sentry ([ADR-0050](../architecture/adr/0050-small-client-and-no-sentry.md))
 
 #### NFR-REL-002
 **Statement:** No update shall lose user data. See [FR-MIG-001](#fr-mig-001).
@@ -722,7 +726,7 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 **Target:** now · **Status:** implemented · **Verify:** I
 
 #### NFR-PRIV-001
-**Statement:** Data shall be minimised. Analytics events are bucketed, carry no personal data and are kept for 90 days. There is no third-party tracking, so no App Tracking Transparency prompt.
+**Statement:** Data shall be minimised. Analytics events are bucketed, carry no personal data and are kept for 90 days. There is no third-party tracking, so no App Tracking Transparency prompt. In 1.5.0 the only such data is the start-up report ([NFR-PERF-008](#nfr-perf-008)).
 **Target:** Phase 2 · **Status:** planned · **Source:** PLAN-REHAUL §4.3
 
 #### NFR-PRIV-002

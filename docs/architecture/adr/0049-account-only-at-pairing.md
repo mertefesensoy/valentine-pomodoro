@@ -4,12 +4,12 @@ title: An account only at pairing, with Sign in with Apple only, and pairing by 
 status: accepted
 date: 2026-11-05
 owner: Mert Efe Şensoy
-related: [ADR-0021, ADR-0029, IMPL-2026-11-05-phase2-plan, IMPL-2026-11-05-phase2-a2-pairing-flag, SRS]
+related: [ADR-0021, ADR-0029, ADR-0050, ADR-0051, IMPL-2026-11-05-phase2-plan, IMPL-2026-11-05-phase2-a2-pairing-flag, SRS]
 ---
 
 # ADR-0049: An account only at pairing, with Sign in with Apple only, and pairing by code only
 
-> **Status note:** accepted by the owner on 2026-11-05, when approving the [Phase 2 plan](../../implementations/2026-11-05-phase2-plan.md) ("Approve and hand over"). It replaces the auth paragraph of [ADR-0021](0021-supabase-backend.md) and the invite links in the rehaul plan for 1.5.0. Being built in Phase 2, behind `PAIRING_ENABLED`.
+> **Status note:** accepted by the owner on 2026-11-05, when approving the [Phase 2 plan](../../implementations/2026-11-05-phase2-plan.md) ("Approve and hand over"). It replaces the auth paragraph of [ADR-0021](0021-supabase-backend.md) and the invite links in the rehaul plan for 1.5.0. Being built in Phase 2, behind `PAIRING_ENABLED`. **One later change:** [ADR-0051](0051-anonymous-start-up-reports.md) adds an anonymous start-up report, so "the app never contacts Supabase for them" below no longer holds for that one request. A solo user still has no account. [ADR-0050](0050-small-client-and-no-sentry.md) replaces `supabase-js` with a small client and drops the crash reports mentioned below.
 
 ## Context
 

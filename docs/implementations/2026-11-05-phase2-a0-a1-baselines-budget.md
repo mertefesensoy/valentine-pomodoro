@@ -1,7 +1,7 @@
 ---
 id: IMPL-2026-11-05-phase2-a0-a1-baselines-budget
 title: "Phase 2 A0 and A1: the baselines on 1.4.1, and the size budget for 1.5.0"
-status: in-progress
+status: done
 date: 2026-11-05
 owner: Mert Efe Şensoy
 related: [IMPL-2026-11-05-phase2-plan, IMPL-2026-11-01-phase1-stage-e, ADR-0021, ADR-0029, ADR-0049, SRS]
@@ -9,7 +9,7 @@ related: [IMPL-2026-11-05-phase2-plan, IMPL-2026-11-01-phase1-stage-e, ADR-0021,
 
 # 2026-11-05 — Phase 2 A0 and A1: the baselines on 1.4.1, and the size budget for 1.5.0
 
-**Status:** In progress. The measurements are done. The decisions in §3.3 and §3.4 are the owner's, and are recorded here when made.
+**Status:** Done. The measurements are in, and the owner made both decisions on 2026-11-05 (§3.3, §3.4).
 **Branch:** `docs/phase2-a0-a1-baselines-budget`, one pull request into `master`. A1's measuring happened in a throwaway worktree, `C:\vp\v150-a1`, which is never merged.
 **Plan tasks:** [Phase 2 plan §3, A0 and A1](2026-11-05-phase2-plan.md#stage-a-baselines-budget-and-design-no-backend). They share a record because A0's bytecode is A1's base row.
 
@@ -104,7 +104,9 @@ That collides with §0.1 of the plan ("A solo user never touches the server"), i
 - **App Store Connect already holds launch times from real users,** by version and device, through its [Power and Performance metrics](https://developer.apple.com/documentation/appstoreconnectapi/power-and-performance-metrics-and-logs). It needs no SDK and no network call from the app. Apple doesn't publish the usage threshold; below it, the data reads "insufficient usage". Whether this app clears it isn't known yet.
 - **The App Store can't run code groups.** Phased release and Product Page Optimization don't split a version's code. Groups need a choice made inside the app and a place to report to.
 
-**The owner's decision:** to be recorded here.
+**The owner's decision, 2026-11-05:** asked which to do, with "Apple's data now, ours in 1.6.0" recommended, the owner answered **"Build it for everyone in 1.5.0"**. The question said what that costs: every install sends anonymous start-up timings and gets a random group; it reverses the decision that a solo user never touches the server, and that exit check; the privacy labels and policy change, probably with an opt-in switch; a new table and task delay 1.5.0.
+
+So the manual runs are dropped, and A1's ceiling is set without a cold-start number. NFR-PERF-001 has no baseline from 1.4.1, and its first real numbers come from this collection on 1.5.0's TestFlight builds. The collection's design has its own record.
 
 ### 3.4 The ceiling: the recommendation and the decision
 
@@ -116,9 +118,16 @@ The plan's formula is 4,292,868 B + the kept costs − any trim. That leaves out
 | `supabase-js`, no Sentry | 5,160,000 B | +20.2 % | Less auth code of our own; 12 % more bytecode. No crash reports with JavaScript stacks |
 | The plan's whole list | 6,850,000 B | +59.6 % | Everything as planned, and crash reports with JavaScript stacks; a solo user's phone contacts Sentry |
 
-**The recommendation is Lean.** Without Sentry, crash data comes from App Store Connect, and NFR-REL-001 (a crash-free rate) can be read from there if usage is high enough. What's lost is the JavaScript stack on a JS error. A solo user would then send nothing to anyone, which is a stronger position than the plan's.
+**The recommendation is Lean.** Without Sentry, crash data comes from App Store Connect, and NFR-REL-001 (a crash-free rate) can be read from there if usage is high enough. What's lost is the JavaScript stack on a JS error. As asked, a solo user would then send nothing to anyone, which is a stronger position than the plan's (the owner's answer in §3.3 then adds the one exception).
 
-**The owner's decision:** to be recorded here.
+**The owner's decision, 2026-11-05:** **"Lean: 4,640,000 B, +8.1 % (Recommended)"**. So for 1.5.0:
+
+- **Kept:** `expo-apple-authentication`, `expo-secure-store`, `@tanstack/react-query` with its persister.
+- **Not used:** `@supabase/supabase-js`, replaced by a small client written here, on `fetch` (its decision gets an ADR before C1); `react-native-url-polyfill`, which a real sign-in on a device must prove unnecessary.
+- **Dropped:** Sentry, so plan task E1 and §0.2's Sentry account go. NFR-REL-001 is read from App Store Connect's crash data.
+- **The new ceiling:** NFR-PERF-002 is 4,640,000 B for 1.5.0.
+
+The line in the table above that says a solo user would send nothing to anyone no longer holds: the start-up timings in §3.3 are the exception.
 
 ## 4. Mathematical / Statistical Details
 
@@ -145,8 +154,8 @@ The plan's formula is 4,292,868 B + the kept costs − any trim. That leaves out
 
 - [x] The base measures 4,292,796 B, the figure the SRS already records for 1.4.1.
 - [x] Reassure's counts are identical across 3 runs, and to E3's.
-- [ ] The owner's decisions in §3.3 and §3.4 are quoted here, and the SRS is updated to match.
-- [ ] `node scripts/docs/check-docs.mjs`: 0 errors.
+- [x] The owner's decisions in §3.3 and §3.4 are quoted here, and the SRS is updated to match.
+- [x] `node scripts/docs/check-docs.mjs`: 0 errors.
 
 ## 7. Related Docs
 

@@ -20,9 +20,9 @@ function readFlag(key: string): boolean {
 }
 
 /** For screens that re-render when a person signs in, or their session ends. A solo launch reads one key. */
-export const useAccountStore = create<{ present: boolean; sessionEnded: boolean }>()(() => {
+export const useAccountStore = create<{ present: boolean; sessionEnded: boolean; justDeleted: boolean }>()(() => {
     const present = readFlag(ACCOUNT_KEY);
-    return { present, sessionEnded: present && readFlag(SESSION_ENDED_KEY) };
+    return { present, sessionEnded: present && readFlag(SESSION_ENDED_KEY), justDeleted: false };
 });
 
 export function hasAccount(): boolean {
@@ -30,11 +30,25 @@ export function hasAccount(): boolean {
 }
 
 export function setSessionEnded(on: boolean): void {
+    // Only someone with an account can have a session end: after deletion, a call finding no session means nothing.
+    if (on && !hasAccount()) return;
     saveSync(SESSION_ENDED_KEY, on);
     useAccountStore.setState({ sessionEnded: on });
 }
 
 export function setHasAccount(on: boolean): void {
     saveSync(ACCOUNT_KEY, on);
-    useAccountStore.setState({ present: on });
+    if (on) {
+        useAccountStore.setState({ present: true, justDeleted: false });
+        return;
+    }
+    // In one write with the flag: a session can't have ended for an account that isn't there, and a call failing as the
+    // Keychain empties mustn't leave that behind.
+    saveSync(SESSION_ENDED_KEY, false);
+    useAccountStore.setState({ present: false, sessionEnded: false });
+}
+
+/** For the line in Settings once an account is deleted. Not persisted: it's for now, and for this launch. */
+export function setJustDeleted(on: boolean): void {
+    useAccountStore.setState({ justDeleted: on });
 }

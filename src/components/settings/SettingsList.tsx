@@ -96,6 +96,38 @@ export function ValueRow({ label, value, expanded, onPress, children }: {
     );
 }
 
+/**
+ * A label and its value, for what doesn't open anything under it. With `onPress` it's a button that does something
+ * else, such as the system's prompt.
+ */
+export function InfoRow({ label, value, onPress }: { label: string; value: string; onPress?: () => void }) {
+    const { tokens } = useTheme();
+    const content = (
+        <>
+            <Text style={[styles.label, { color: tokens.ink }]}>{label}</Text>
+            <Text style={[styles.value, { color: tokens.inkSoft }]}>{value}</Text>
+        </>
+    );
+    if (!onPress) {
+        return (
+            <View style={styles.row} accessible accessibilityLabel={label} accessibilityValue={{ text: value }}>
+                {content}
+            </View>
+        );
+    }
+    return (
+        <Pressable
+            onPress={onPress}
+            style={({ pressed }) => [styles.row, pressed && { backgroundColor: tokens.field }]}
+            accessibilityRole="button"
+            accessibilityLabel={label}
+            accessibilityValue={{ text: value }}
+        >
+            {content}
+        </Pressable>
+    );
+}
+
 /** "HH:MM" to a Date today, and back. */
 function dateOf(hhmm: string): Date {
     const [h, m] = hhmm.split(':').map(Number);

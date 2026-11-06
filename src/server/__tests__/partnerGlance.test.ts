@@ -1,6 +1,6 @@
 // covers: FR-PAR-003, FR-ACC-001
 // The small summary the Timer's strip reads (Phase 2 D2).
-import { dismissGone, GLANCE_KEY, isGlanceStale, syncGlance, takePartnerNote, touchGlance, usePartnerGlance } from '../partnerGlance';
+import { clearPartner, dismissGone, GLANCE_KEY, glanceGeneration, isGlanceStale, syncGlance, takePartnerNote, touchGlance, usePartnerGlance } from '../partnerGlance';
 import type { HomeSnapshot } from '../types';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import { appStorage } from '../../utils/appStorage';
@@ -138,6 +138,20 @@ describe('dismissGone', () => {
         dismissGone();
         expect(usePartnerGlance.getState().gone).toBeNull();
         expect(JSON.parse(appStorage.getString(GLANCE_KEY) ?? '{}').gone).toBeNull();
+    });
+});
+
+describe('clearPartner', () => {
+    it('empties it all, with no "gone" line, since you did this yourself', () => {
+        syncGlance(snapshot({ couple, partner, notes: [note('a')] }));
+        clearPartner();
+        expect(usePartnerGlance.getState()).toEqual({ glance: null, gone: null, notes: [], shown: [] });
+    });
+
+    it('moves the generation on, for a snapshot already on its way', () => {
+        const before = glanceGeneration();
+        clearPartner();
+        expect(glanceGeneration()).not.toBe(before);
     });
 });
 

@@ -14,7 +14,7 @@ module.exports = defineConfig([
     // only sees the Timer's graph. So outside src/server and the screens that load lazily, none of this
     // may be imported statically: reach it through React.lazy or import(), which this rule allows.
     files: ['src/**/*.{ts,tsx}', 'app/**/*.{ts,tsx}'],
-    ignores: ['src/server/**', 'src/screens/pair/**', 'src/screens/partner/**', '**/__tests__/**'],
+    ignores: ['src/server/**', 'src/screens/pair/**', 'src/screens/partner/**', 'src/screens/account/**', '**/__tests__/**'],
     rules: {
       'no-restricted-imports': ['error', {
         patterns: [{
@@ -27,6 +27,7 @@ module.exports = defineConfig([
             '**/server/noteDelivery',
             '**/screens/pair/**',
             '**/screens/partner/**',
+            '**/screens/account/**',
             '@tanstack/*',
             'expo-secure-store',
             'expo-apple-authentication',

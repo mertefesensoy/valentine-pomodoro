@@ -66,6 +66,15 @@ beforeEach(() => {
 
 // covers: FR-SET-001, NFR-A11Y-003
 // D2 Settings contract: an inset grouped list of native controls, no bounded number typed.
+// covers: FR-ACC-001
+describe('with pairing off', () => {
+    it('shows nothing about a partner or an account', async () => {
+        await renderSettings();
+        expect(screen.queryByText('Pair with your partner')).toBeNull();
+        expect(screen.queryByText('Account')).toBeNull();
+    });
+});
+
 describe('Settings as a native grouped list', () => {
     it("shows each duration as a value, Custom's, and opens its wheel under the row", async () => {
         await renderSettings();

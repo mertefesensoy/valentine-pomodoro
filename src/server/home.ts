@@ -3,7 +3,7 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { appStorage } from '../utils/appStorage';
 import { rpc, SessionEnded } from './client';
-import { syncGlance } from './partnerGlance';
+import { glanceGeneration, syncGlance } from './partnerGlance';
 import type { HomeSnapshot } from './types';
 
 /**
@@ -52,10 +52,15 @@ const [, restored] = persistQueryClient({
 
 export const homeRestored = restored;
 
-/** The one way a snapshot arrives, so the strip's summary (partnerGlance.ts) follows every caller's. */
+/**
+ * The one way a snapshot arrives, so the strip's summary (partnerGlance.ts) follows every caller's. Cancelling a query
+ * doesn't stop this function, so one that was on its way when you left a couple must not write them back: its answer
+ * is from before, and it's dropped.
+ */
 export const fetchHome = async (): Promise<HomeSnapshot> => {
+    const started = glanceGeneration();
     const snapshot = await rpc<HomeSnapshot>('home_snapshot');
-    syncGlance(snapshot);
+    if (started === glanceGeneration()) syncGlance(snapshot);
     return snapshot;
 };
 

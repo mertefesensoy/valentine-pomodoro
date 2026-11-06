@@ -36,8 +36,54 @@ beforeEach(() => {
     mockLaunchStorage.clearAll();
 });
 
+describe('a snapshot already on its way when you leave', () => {
+    it('can\'t bring your partner back: its answer is from before', async () => {
+        const home = launch();
+        const { clearPartner, usePartnerGlance } = require('../partnerGlance') as typeof import('../partnerGlance');
+        let answer: (value: HomeSnapshot) => void = () => {};
+        mockRpc.mockReturnValue(new Promise((resolve) => { answer = resolve; }));
+        const pending = home.fetchHome();
+        clearPartner();
+        answer(snapshot(3));
+        await pending;
+        expect(usePartnerGlance.getState().glance).toBeNull();
+    });
+
+    it('still takes in one that started after', async () => {
+        const home = launch();
+        const { clearPartner, usePartnerGlance } = require('../partnerGlance') as typeof import('../partnerGlance');
+        clearPartner();
+        mockRpc.mockResolvedValue(snapshot(3));
+        await home.fetchHome();
+        expect(usePartnerGlance.getState().glance?.name).toBe('Deniz');
+    });
+});
+
 describe('the runtime', () => {
+    // Someone with an account, on a phone past its storage migration.
+    const withAccount = () => {
+        mockLaunchStorage.set('migration.asyncstorage_v1', 'done');
+        mockLaunchStorage.set('account_v1', 'true');
+    };
+
+    it('makes no calls once there\'s no account, which it can\'t stop for by itself', async () => {
+        launch();
+        const { AppState } = require('react-native');
+        const listeners: ((state: string) => void)[] = [];
+        jest.spyOn(AppState, 'addEventListener').mockImplementation(((_: string, fn: (state: string) => void) => {
+            listeners.push(fn);
+            return { remove: () => {} };
+        }) as never);
+        const { startPairedRuntime } = require('../runtime') as typeof import('../runtime');
+        startPairedRuntime();
+        await flushMicrotasks();
+        listeners[0]('active');
+        await flushMicrotasks();
+        expect(mockRpc).not.toHaveBeenCalled();
+    });
+
     it('fetches at start and on returning to the foreground, with nothing on screen', async () => {
+        withAccount();
         // After the reset: launch() gives react-native a fresh copy, and the runtime uses that one.
         launch();
         const { AppState } = require('react-native');
@@ -65,6 +111,7 @@ describe('the runtime', () => {
     });
 
     it('starts once per launch', async () => {
+        withAccount();
         launch();
         const { AppState } = require('react-native');
         const add = jest.spyOn(AppState, 'addEventListener').mockImplementation((() => ({ remove: () => {} })) as never);

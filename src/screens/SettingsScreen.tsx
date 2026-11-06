@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState, type ComponentRef } from 'react';
-import { STARTUP_REPORTS_ENABLED } from '../constants/features';
+import { lazy, Suspense, useEffect, useRef, useState, type ComponentRef } from 'react';
+import { PAIRING_ENABLED, STARTUP_REPORTS_ENABLED } from '../constants/features';
+import { useAccountStore } from '../server/account';
+import { usePartnerGlance } from '../server/partnerGlance';
 import {
     AccessibilityInfo,
     Alert,
@@ -36,6 +38,10 @@ import { fonts } from '../theme/type';
 import { space } from '../theme/layout';
 import { useTheme } from '../theme/useTheme';
 
+// Only ever lazy: they pull in the client and the query, which a solo launch must not evaluate (ADR-0049).
+const PartnerGroup = lazy(() => import('./account/AccountGroups').then((m) => ({ default: m.PartnerGroup })));
+const AccountGroup = lazy(() => import('./account/AccountGroups').then((m) => ({ default: m.AccountGroup })));
+
 const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
 const DEVELOPER_URL = 'https://valentine-pomodoro-developer-websit.vercel.app/';
 // FR-STA-004: the presets, or any custom goal from 1 to 1,440 minutes; 0 is off (the switch).
@@ -71,6 +77,9 @@ const WHEEL_MOTION_REDUCED: LayoutAnimationConfig = { duration: 200, create: WHE
  * gift screen used to, and the 1.5 s long-press to the start-up probe, Phase 1 B7), and Reset.
  */
 export default function SettingsScreen() {
+    const hasAccount = useAccountStore((s) => s.present);
+    const justDeleted = useAccountStore((s) => s.justDeleted);
+    const paired = usePartnerGlance((s) => s.glance !== null) && PAIRING_ENABLED && hasAccount;
     const settings = useSettingsStore((s) => s.settings);
     const updateSettings = useSettingsStore((s) => s.updateSettings);
     const reminder = useSettingsStore((s) => s.reminder);
@@ -244,6 +253,14 @@ export default function SettingsScreen() {
                     {t('settings.title')}
                 </Text>
 
+                {/* Once paired, your partner and your account come first (the brief's Phase 2 addition). */}
+                {paired && (
+                    <Suspense fallback={null}>
+                        <PartnerGroup />
+                        <AccountGroup />
+                    </Suspense>
+                )}
+
                 <ListGroup header={t('settings.timer.header')} footer={t('settings.timer.footer')}>
                     {durationRow('focus', t('settings.timer.focus'))}
                     {durationRow('shortBreak', t('settings.timer.shortBreak'))}
@@ -372,6 +389,18 @@ export default function SettingsScreen() {
                         onValueChange={(on) => updateSettings({ showLoveNotes: on })}
                     />
                 </ListGroup>
+
+                {/* Solo, they follow Love notes, and the account stays after unpairing. */}
+                {PAIRING_ENABLED && !paired && (
+                    <ListGroup header={t('account.partnerHeader')} footer={justDeleted ? t('account.deleted') : undefined}>
+                        <ButtonRow label={t('partner.pair')} onPress={() => router.push('/pair')} />
+                    </ListGroup>
+                )}
+                {PAIRING_ENABLED && hasAccount && !paired && (
+                    <Suspense fallback={null}>
+                        <AccountGroup />
+                    </Suspense>
+                )}
 
                 {/* Classic's layout (D1 brief §3): the same choice as the Modes sheet's. */}
                 <ListGroup header={t('settings.appearance.header')} footer={t('settings.appearance.footer')}>

@@ -38,6 +38,12 @@ type GlanceState = {
 
 const EMPTY: GlanceState = { glance: null, gone: null, notes: [], shown: [] };
 
+// Bumped when you leave a couple or an account, so a snapshot already on its way can't bring your partner back.
+let generation = 0;
+
+/** Read before a snapshot is fetched, and compared after: see `fetchHome`. */
+export const glanceGeneration = () => generation;
+
 export const usePartnerGlance = create<GlanceState>()(() =>
     hasAccount() ? { ...EMPTY, ...loadSync<Partial<GlanceState>>(GLANCE_KEY, EMPTY) } : EMPTY,
 );
@@ -100,6 +106,15 @@ export function takePartnerNote(): PartnerNote | null {
     store({ notes: rest, shown: [...shown, next.id] });
     void import('./noteDelivery').then(({ flushShown }) => flushShown()).catch(() => {});
     return next;
+}
+
+/**
+ * You've left: at unpairing, or with the account. Empties all of this with no "gone" line, since you did it yourself,
+ * and notes waiting or marked go too, because the server deletes them.
+ */
+export function clearPartner(): void {
+    generation += 1;
+    store(EMPTY);
 }
 
 /** The "aren't paired any more" line has been seen. */

@@ -1,5 +1,6 @@
 import { AppState } from 'react-native';
 import { reportToday, startDayReports } from './dayReports';
+import { hasAccount } from './account';
 import { homeRestored, refreshHome } from './home';
 import { flushShown } from './noteDelivery';
 import { touchGlance } from './partnerGlance';
@@ -14,6 +15,8 @@ import { syncTimeZone } from './timeZone';
 let started = false;
 
 async function refreshAll(): Promise<void> {
+    // It has no way to stop, once started: after an account is deleted, this keeps being called with nothing to do.
+    if (!hasAccount()) return;
     await syncTimeZone();
     // Before the refresh, so its snapshot can stop listing what's been shown here.
     await flushShown();

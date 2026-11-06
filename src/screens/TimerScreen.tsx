@@ -1,5 +1,8 @@
 import { View, Text, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator, useWindowDimensions, type LayoutChangeEvent } from "react-native";
 import { PAIRING_ENABLED } from "../constants/features";
+import { useAccountStore } from "../server/account";
+import { dismissGone, usePartnerGlance, wasCelebrated } from "../server/partnerGlance";
+import { PartnerDay, PartnerNotice, PartnerStrip, partnerLabel, partnerName } from "./classic/PartnerStrip";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ComponentRef } from "react";
 import { router } from "expo-router";
@@ -119,6 +122,9 @@ export default function TimerScreen() {
   // in front of the user waits until Timer is focused: the goal moment, the
   // love note and the interstitial. Always true outside a navigator.
   const focused = useScreenFocused();
+  const storedGlance = usePartnerGlance((s) => s.glance);
+  const gone = usePartnerGlance((s) => s.gone);
+  const sessionEnded = useAccountStore((s) => s.sessionEnded);
   const { tokens, isDark } = useTheme();
 
   // Interstitials the ad policy has allowed, one per completion it said yes
@@ -481,8 +487,27 @@ export default function TimerScreen() {
         )
       : Math.min(ringCap, height * 0.36);
 
-  const showPair = PAIRING_ENABLED && idle;
-  const openPair = () => router.push('/pair');
+  // Your partner, from the small summary the first frame can read (Phase 2 D2). With the flag off, or solo, it's empty.
+  const glance = PAIRING_ENABLED ? storedGlance : null;
+  const paired = glance !== null;
+  const showPair = PAIRING_ENABLED && idle && !paired;
+  const goneLine = PAIRING_ENABLED && !paired && gone
+    ? gone.name ? t('partner.gone', { name: gone.name }) : t('partner.goneNoName')
+    : null;
+  const notice = paired && sessionEnded ? t('partner.signInAgain') : goneLine;
+  const openPair = () => {
+    if (goneLine) dismissGone();
+    if (idle) router.push('/pair');
+  };
+  // Apple's button when the session has ended, and signing in finds the couple on the server.
+  const openPartner = () => router.push(sessionEnded ? '/pair' : '/partner');
+
+  // The partner who wasn't holding the sheet finds out at a refresh, and gets the morph once, on the Timer, when
+  // nothing is running. Any sheet over the Timer unfocuses it, so the phone that pressed Pair can't open a second.
+  const celebrate = paired && !sessionEnded && idle && focused && !wasCelebrated();
+  useEffect(() => {
+    if (celebrate) router.push('/pair');
+  }, [celebrate]);
 
   const face =
     layout === 'spread' ? (
@@ -495,6 +520,18 @@ export default function TimerScreen() {
         isBreak={isBreak}
         line={t(partnerLine)}
         pairAction={showPair ? openPair : undefined}
+        paired={
+          glance
+            ? {
+                name: partnerName(glance),
+                day: <PartnerDay glance={glance} tokens={tokens} />,
+                label: notice ? `${partnerLabel(glance)}. ${notice}` : partnerLabel(glance),
+                hint: notice ? undefined : t('partner.opensDay'),
+                onPress: openPartner,
+              }
+            : undefined
+        }
+        notice={notice ? <PartnerNotice text={notice} tokens={tokens} /> : undefined}
       >
         {timer(56)}
         {subLine}
@@ -526,18 +563,21 @@ export default function TimerScreen() {
       <View style={styles.partnerText}>
         <Text style={[styles.partnerLine, { color: tokens.ink }]}>{t(partnerLine)}</Text>
         {showPair && <Text style={[styles.pairLine, { color: tokens.primaryInk }]}>{t('partner.pair')}</Text>}
+        {goneLine && <PartnerNotice text={goneLine} tokens={tokens} />}
       </View>
     </>
   );
   const stripStyle = [styles.partner, { backgroundColor: tokens.paper, borderColor: tokens.edge }];
   const partner = layout === 'ring' ? (
     <View onLayout={(e) => measured('partner', e)} testID="partner-strip">
-      {showPair ? (
+      {glance ? (
+        <PartnerStrip glance={glance} notice={notice} onPress={openPartner} tokens={tokens} />
+      ) : showPair || goneLine ? (
         <PressableScale
           onPress={openPair}
           haptic={false}
           accessibilityRole="button"
-          accessibilityLabel={`${t(partnerLine)}. ${t('partner.pair')}`}
+          accessibilityLabel={[t(partnerLine), showPair ? t('partner.pair') : null, goneLine].filter(Boolean).join('. ')}
           style={stripStyle}
         >
           {stripBody}

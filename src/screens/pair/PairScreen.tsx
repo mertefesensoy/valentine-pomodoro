@@ -184,6 +184,8 @@ export default function PairScreen() {
     const [name, setName] = useState('');
     const [code, setCode] = useState<string | null>(null);
     const [codeProblem, setCodeProblem] = useState<'offline' | 'failed' | null>(null);
+    // The code that really went out. Keeping the code and not a flag means a new code takes the line with it.
+    const [sentCode, setSentCode] = useState<string | null>(null);
     const [typed, setTyped] = useState('');
     const [typing, setTyping] = useState(false);
     const [checking, setChecking] = useState(false);
@@ -383,7 +385,14 @@ export default function PairScreen() {
 
     const onSend = () => {
         if (!shownCode) return;
-        void Share.share({ message: t('pair.shareMessage', { code: shownCode, url: STORE_URL }) }).catch(() => {});
+        const sending = shownCode;
+        void Share.share({ message: t('pair.shareMessage', { code: sending, url: STORE_URL }) })
+            .then((result) => {
+                if (result.action !== Share.sharedAction) return;
+                setSentCode(sending);
+                announce(t('pair.sent'));
+            })
+            .catch(() => {});
     };
 
     const makeNewCode = async () => {
@@ -565,15 +574,24 @@ export default function PairScreen() {
     } else {
         let codeProblemText: string | null = null;
         if (codeProblem) codeProblemText = t(codeProblem === 'offline' ? 'pair.error.offline' : 'pair.error.failed');
+        const sentLine = !codeProblemText && shownCode !== null && shownCode === sentCode ? t('pair.sent') : null;
         const leftLabel = [
             myName,
             shownCode ? t('pair.codeLabel', { spelled: spelled(shownCode) }) : null,
             codeProblemText ?? (shownCode ? t('pair.lasts') : null),
+            sentLine,
         ].filter(Boolean).join('. ');
 
         let leftLine = <ActivityIndicator color={tokens.inkSoft} />;
         if (codeProblemText) leftLine = <Text style={[styles.pageProblem, { color: tokens.ink }]}>{codeProblemText}</Text>;
-        else if (shownCode) leftLine = <Text style={[styles.mini, { color: tokens.inkSoft }]}>{t('pair.lasts')}</Text>;
+        else if (shownCode) {
+            leftLine = (
+                <>
+                    <Text style={[styles.mini, { color: tokens.inkSoft }]}>{t('pair.lasts')}</Text>
+                    {sentLine && <Text style={[styles.mini, { color: tokens.inkSoft }]}>{sentLine}</Text>}
+                </>
+            );
+        }
 
         let rightLine = <Text style={[styles.mini, { color: tokens.inkSoft }]}>{t('pair.tapToType')}</Text>;
         if (checking) rightLine = <Text style={[styles.mini, { color: tokens.inkSoft }]}>{t('pair.checking')}</Text>;

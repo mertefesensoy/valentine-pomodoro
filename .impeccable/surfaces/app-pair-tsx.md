@@ -58,7 +58,7 @@ The sheet is the open spread from the Timer's Facing Pages layout, in the Same P
 - **Who it is:** both names on the two pages, with Pomo & Doro standing where the morph starts them, "Share your day and write notes to each other?", the Pair pill, "That's not them". Pair ignores presses for its first 500 ms, in case a finger on the falling keyboard lands there.
 - **A session that has ended:** back to Apple's button, whatever the cache still holds. Signing in finds the couple on the server.
 - **Make a new code:** a system alert first, since it cancels the code you have.
-- **While the sheet is open, the inviter's phone checks every 10 s,** so when the partner confirms it moves on by itself. Otherwise it finds out at the next foreground.
+- **While the sheet is open, the inviter's phone checks every 10 s,** so when the partner confirms it moves on by itself. Otherwise it finds out at the next foreground. Once your code has really gone through the share sheet, a line under it says so: "This page moves on when they type it." (the owner's choice in the copy proof, 2026-11-06). A new code takes the line away.
 - **Ranges:** names from 1 to 60 characters, Turkish and emoji included; they truncate on the spread at two lines, and never in the sentence that names them. The code is always six characters from 31 symbols.
 
 ## 6. Interaction and layout

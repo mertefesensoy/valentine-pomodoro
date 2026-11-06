@@ -87,7 +87,7 @@ const questions = [
     {
         id: 'q-pair-wait',
         title: 'After you send your code',
-        body: 'You send your code and the pairing sheet stays open. It moves on by itself about 10 seconds after your partner types the code. Nothing on the sheet says so.',
+        body: 'You send your code and the pairing sheet stays open. It moves on by itself about 10 seconds after your partner types the code. Nothing on the sheet said so.',
         choices: [
             'Add a line under the code once it’s sent: “This page moves on when they type it.”',
             'Leave it as it is: the code and “Lasts 24 hours” are enough',

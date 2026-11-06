@@ -420,6 +420,7 @@
     "lasts": "Lasts 24 hours",
     "tapToType": "Tap to type their code",
     "send": "Send my code",
+    "sent": "This page moves on when they type it.",
     "newCode": "Make a new code",
     "shareMessage": "Let's pair on Valentine Pomodoro. My code is {{code}}, and it lasts 24 hours. {{url}}",
     "codeField": "Your partner's code",

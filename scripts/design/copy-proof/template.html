@@ -152,7 +152,7 @@ footer { color: var(--ink-soft); font-size: .85rem; }
     <span class="eyebrow">Version 1.5 · before its first TestFlight build</span>
     <h1>Copy proof</h1>
     <p>Every string in the app in English and Turkish, and the default love notes. Mark a string <b>Looks right</b> when both languages read well, or suggest a change in either language and, if it helps, say why. Your answers save as you go, and Claude reads them back to apply them.</p>
-    <p>Your marks from earlier reviews are kept, and none of those strings has changed. The 114 strings new in 1.5 have none yet, and <b>To review</b> shows just those, with one new question first: pairing, your partner’s day and notes, your account, the start-up timings switch, and the tour’s new lines. A tour line is at most 110 characters in Turkish, and no word in it runs past 10 letters, so it fits the largest text size.</p>
+    <p>Reviewed and applied on 6 November 2026: the 114 strings new in 1.5 (pairing, your partner’s day and notes, your account, the start-up timings switch, and the tour’s new lines), and the question about the pairing sheet. Your marks from earlier reviews are kept. A tour line is at most 110 characters in Turkish, and no word in it runs past 10 letters, so it fits the largest text size.</p>
     <p>Grey chips such as <span class="ph">count</span> are filled in by the app (a number, a name). Keep them in your version. A note from Claude on a string says what to look at.</p>
   </header>
 
@@ -230,7 +230,7 @@ footer { color: var(--ink-soft); font-size: .85rem; }
 
   // Build the page once; verdicts only update slips in place.
   let html = '';
-  html += `<section class="questions" id="questions"><div class="section-head"><h2>Questions</h2><span class="meta">one new, two answered earlier</span></div>`;
+  html += `<section class="questions" id="questions"><div class="section-head"><h2>Questions</h2><span class="meta">all answered</span></div>`;
   for (const q of DATA.questions) {
     html += `<div class="question" data-q="${q.id}"><h3>${esc(q.title)}</h3><p>${esc(q.body)}</p><div class="choices" role="radiogroup" aria-label="${esc(q.title)}">`;
     q.choices.forEach((c, i) => {

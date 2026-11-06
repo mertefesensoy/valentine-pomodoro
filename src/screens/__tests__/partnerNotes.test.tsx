@@ -212,6 +212,18 @@ describe('with Show love notes off', () => {
         expect(push).toHaveBeenCalledWith('/partner');
     });
 
+    it('says the same on Facing Pages, where the foot opens their day', async () => {
+        await setUp({ showLoveNotes: false });
+        await act(async () => useSettingsStore.getState().updateSettings({ classicLayout: 'spread' }));
+        await act(async () => {});
+        expect(screen.getByText('A note from Deniz is waiting')).toBeOnTheScreen();
+        await act(async () => {
+            await fireEvent.press(screen.getByRole('button', { name: /A note from Deniz is waiting/ }));
+        });
+        expect(push).toHaveBeenCalledWith('/partner');
+        expect(usePartnerGlance.getState().notes).toHaveLength(1);
+    });
+
     it('goes once the note has been read', async () => {
         await setUp({ showLoveNotes: false });
         await act(async () => usePartnerGlance.setState({ notes: [] }));

@@ -22,7 +22,7 @@ type Props = {
     pairAction?: () => void;
     /** Once paired (Phase 2 D2): the right page is your partner, with their name for its label, and it opens their day. */
     paired?: { name: string; day: ReactNode; label: string; hint?: string; onPress: () => void };
-    /** One quiet line at the partner page's foot: a partner who's gone, or a session that has ended. */
+    /** One quiet line at the partner page's foot: a partner who's gone, a session that has ended, or a note waiting. */
     notice?: ReactNode;
     /** Tapping the line takes it away, for a partner who's gone. */
     onDismissNotice?: () => void;

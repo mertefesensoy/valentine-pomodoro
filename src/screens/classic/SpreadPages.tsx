@@ -4,7 +4,7 @@ import Animated, { css, cubicBezier, useAnimatedStyle, type SharedValue } from '
 
 import { t } from '../../i18n';
 import type { ThemeTokens } from '../../theme/palette';
-import { edgeWidth, radius, space } from '../../theme/layout';
+import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
 import { PoseSticker, type Pose } from './PoseSticker';
 import { PressableScale } from '../../components/ui/PressableScale';
 
@@ -20,6 +20,12 @@ type Props = {
     line: string;
     /** Pairing's way in, while idle (Phase 2 D1): the partner's page offers it, and only then. */
     pairAction?: () => void;
+    /** Once paired (Phase 2 D2): the right page is your partner, with their name for its label, and it opens their day. */
+    paired?: { name: string; day: ReactNode; label: string; hint?: string; onPress: () => void };
+    /** One quiet line at the partner page's foot: a partner who's gone, or a session that has ended. */
+    notice?: ReactNode;
+    /** Tapping the line takes it away, for a partner who's gone. */
+    onDismissNotice?: () => void;
     /** The timer and its line, drawn in the spine's frame. */
     children: ReactNode;
 };
@@ -54,22 +60,53 @@ function SpineBar({ progress, color, visible }: { progress: SharedValue<number>;
  * VoiceOver: the labels and stickers are decoration. The frame comes first, then the partner line,
  * as brief §6 orders them (the timer, then the partner slot; HIG review M-2).
  */
-export function SpreadPages({ tokens, width, stacked, pose, progress, isBreak, line, pairAction, children }: Props) {
+export function SpreadPages({ tokens, width, stacked, pose, progress, isBreak, line, pairAction, paired, notice, onDismissNotice, children }: Props) {
+    // Your partner's page draws them at rest: the pose would otherwise follow your session, as if they were live.
+    const partnerPose = paired ? 'idle' : pose;
     const pageW = (width - space.s) / 2;
     const sticker = Math.round(Math.min(pageW * 0.34, 64));
     const paper = { backgroundColor: tokens.paper, borderColor: tokens.edge };
     const label = (who: 'you' | 'doro') => (
         <Text style={[styles.who, { color: tokens.inkSoft }]} maxFontSizeMultiplier={1.4} numberOfLines={1}>
-            {t(`spread.${who}`)}
+            {who === 'doro' && paired ? paired.name : t(`spread.${who}`)}
         </Text>
     );
-    const partnerLine = (
+    const partnerLine = paired ? (
+        <PressableScale
+            onPress={paired.onPress}
+            haptic={false}
+            accessibilityRole="button"
+            accessibilityLabel={paired.label}
+            accessibilityHint={paired.hint}
+            hitSlop={12}
+        >
+            <View style={styles.pairedFoot}>
+                {paired.day}
+                {notice}
+            </View>
+        </PressableScale>
+    ) : (
         <>
             <Text style={[styles.line, { color: tokens.ink }]}>{line}</Text>
             {pairAction && (
-                <PressableScale onPress={pairAction} haptic={false} accessibilityRole="button" hitSlop={12}>
+                <PressableScale
+                    onPress={pairAction}
+                    haptic={false}
+                    accessibilityRole="button"
+                    hitSlop={12}
+                    // The notice's button below takes the slop under this one, so here it needs its own 44 pt.
+                    style={notice && onDismissNotice ? styles.noticeButton : undefined}
+                >
                     <Text style={[styles.line, styles.pairAction, { color: tokens.primaryInk }]}>{t('partner.pair')}</Text>
                 </PressableScale>
+            )}
+            {notice && onDismissNotice ? (
+                // No slop: it would reach over the Pair button just above. The height gives it its target instead.
+                <PressableScale onPress={onDismissNotice} haptic={false} accessibilityRole="button" hitSlop={0} style={styles.noticeButton}>
+                    {notice}
+                </PressableScale>
+            ) : (
+                notice
             )}
         </>
     );
@@ -97,7 +134,7 @@ export function SpreadPages({ tokens, width, stacked, pose, progress, isBreak, l
                 <View style={[styles.pageStacked, paper]}>
                     <View style={styles.head} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
                         {label('doro')}
-                        <PoseSticker who="doro" pose={pose} width={sticker} shadow={tokens.stickerShadow} />
+                        <PoseSticker who="doro" pose={partnerPose} width={sticker} shadow={tokens.stickerShadow} />
                     </View>
                     {partnerLine}
                 </View>
@@ -118,7 +155,7 @@ export function SpreadPages({ tokens, width, stacked, pose, progress, isBreak, l
                 </View>
                 <View style={[styles.head, styles.headFacing, { width: pageW }]}>
                     {label('doro')}
-                    <PoseSticker who="doro" pose={pose} width={sticker} shadow={tokens.stickerShadow} />
+                    <PoseSticker who="doro" pose={partnerPose} width={sticker} shadow={tokens.stickerShadow} />
                 </View>
             </View>
             <View style={styles.frameRow}>{frame}</View>
@@ -132,6 +169,8 @@ export function SpreadPages({ tokens, width, stacked, pose, progress, isBreak, l
 
 const styles = css.create({
     pairAction: { fontWeight: '600', marginTop: space.xs },
+    noticeButton: { minHeight: minTarget, justifyContent: 'center' },
+    pairedFoot: { alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', minHeight: minTarget, gap: space.xs },
     page: { position: 'absolute', top: 0, bottom: 0, borderWidth: edgeWidth },
     pageLeft: {
         left: 0,

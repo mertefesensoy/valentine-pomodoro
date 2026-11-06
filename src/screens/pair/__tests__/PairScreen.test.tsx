@@ -7,6 +7,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react-n
 import PairScreen from '../PairScreen';
 import { CODE_WIDTH, cellScaleFor } from '../CodeCells';
 import { useAccountStore } from '../../../server/account';
+import { usePartnerGlance } from '../../../server/partnerGlance';
 import { space, edgeWidth } from '../../../theme/layout';
 
 jest.setTimeout(30_000);
@@ -169,6 +170,69 @@ describe('before sign-in', () => {
         await open({ signedIn: true, sessionEnded: true });
         expect(screen.getByText('Continue with Apple')).toBeOnTheScreen();
         expect(screen.queryByText('You and Deniz are on the same page.')).toBeNull();
+    });
+
+    describe('when a session has ended for someone with a partner on this phone', () => {
+        const GLANCE = { coupleId: 'c', name: 'Deniz', today: null, updatedAt: null, fetchedAt: 0 };
+        beforeEach(async () => {
+            await act(async () => usePartnerGlance.setState({ glance: GLANCE, gone: null }));
+        });
+        afterEach(async () => {
+            await act(async () => usePartnerGlance.setState({ glance: null, gone: null }));
+        });
+
+        it('says nothing is lost, with them on the facing page, and doesn\'t talk about pairing', async () => {
+            await open({ signedIn: true, sessionEnded: true });
+            expect(screen.getByText('Sign in again')).toBeOnTheScreen();
+            expect(screen.getByText(/Nothing is lost/)).toBeOnTheScreen();
+            expect(screen.getByText('Deniz')).toBeOnTheScreen();
+            expect(screen.queryByText('Pair with your partner')).toBeNull();
+        });
+
+        it('keeps those words all through signing in, though the token clears the ended session early', async () => {
+            let finish: (value: unknown) => void = () => {};
+            mockSignIn.mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
+            await open({ signedIn: true, sessionEnded: true });
+            await act(async () => {
+                mockApple.press();
+            });
+            await act(async () => useAccountStore.setState({ sessionEnded: false }));
+            expect(screen.getByText('Sign in again')).toBeOnTheScreen();
+            expect(screen.queryByText(/To pair, you each need an account/)).toBeNull();
+            await act(async () => finish('offline'));
+        });
+
+        it('closes once signed in, and doesn\'t move on while it closes', async () => {
+            const { router } = jest.requireMock<{ router: { back: jest.Mock } }>('expo-router');
+            router.back.mockClear();
+            mockHome = PAIRED;
+            mockSignIn.mockImplementation(async () => {
+                useAccountStore.setState({ sessionEnded: false });
+                return { needsName: false };
+            });
+            await open({ signedIn: true, sessionEnded: true });
+            await fireEvent.press(screen.getByText('Continue with Apple'));
+            await flush();
+            expect(router.back).toHaveBeenCalled();
+            // The morph isn't used up unseen, and no code gets made for nobody.
+            expect(screen.queryByText('You and Deniz are on the same page.')).toBeNull();
+            expect(mockMarkCelebrated).not.toHaveBeenCalled();
+            expect(mockEnsureCode).not.toHaveBeenCalled();
+        });
+    });
+
+    it('hears the usual words with an ended session and no partner: they came to pair', async () => {
+        mockSignIn.mockImplementation(async () => {
+            useAccountStore.setState({ sessionEnded: false });
+            return { needsName: false };
+        });
+        await open({ signedIn: true, sessionEnded: true });
+        expect(screen.getByText(/To pair, you each need an account/)).toBeOnTheScreen();
+        expect(screen.queryByText('Sign in again')).toBeNull();
+
+        await fireEvent.press(screen.getByText('Continue with Apple'));
+        await flush();
+        expect(screen.getByText('Send my code')).toBeOnTheScreen();
     });
 });
 

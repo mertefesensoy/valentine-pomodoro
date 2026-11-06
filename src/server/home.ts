@@ -3,6 +3,7 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { appStorage } from '../utils/appStorage';
 import { rpc, SessionEnded } from './client';
+import { syncGlance } from './partnerGlance';
 import type { HomeSnapshot } from './types';
 
 /**
@@ -51,7 +52,12 @@ const [, restored] = persistQueryClient({
 
 export const homeRestored = restored;
 
-export const fetchHome = () => rpc<HomeSnapshot>('home_snapshot');
+/** The one way a snapshot arrives, so the strip's summary (partnerGlance.ts) follows every caller's. */
+export const fetchHome = async (): Promise<HomeSnapshot> => {
+    const snapshot = await rpc<HomeSnapshot>('home_snapshot');
+    syncGlance(snapshot);
+    return snapshot;
+};
 
 export function useHome() {
     return useQuery({ queryKey: HOME_KEY, queryFn: fetchHome }, homeClient);

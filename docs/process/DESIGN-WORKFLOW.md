@@ -100,5 +100,6 @@ A new tension gets a row here, or an ADR if it is structural.
 - ["Phase 2 A3: the design of pairing, your partner's day and the account screens"](../implementations/2026-11-05-phase2-a3-design.md)
 - ["Phase 2 D1: Sign in with Apple and pairing by code"](../implementations/2026-11-05-phase2-d1-pairing.md)
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)
+- ["Phase 2 D2: your partner's day"](../implementations/2026-11-06-phase2-d2-partner.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

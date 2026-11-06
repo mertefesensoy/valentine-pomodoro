@@ -49,6 +49,7 @@ A paired student, on the Timer between sessions or coming back to the app, wants
 - **Their goal off:** no dashed cells, and the line drops the goal.
 - **Writing a note:** the sheet's content swaps in place for the editor, with no second sheet, using the Notes editor's 280 limit and counter. A swipe with text in it asks first. **Sent:** "Sent. It appears after Deniz's next focus." **Too many today:** says so. **Offline:** the text stays, "You're offline. Try again when you're connected."
 - **Partner gone** (they unpaired or deleted their account): at your next refresh, the strip returns to solo, with one quiet line under it until you tap it: "You and Deniz aren't paired any more." Your stats are untouched. Never an alert (`alerts.md`, on launch).
+- **A session that has ended** (added at D2, 2026-11-06, the state the brief didn't list): the account still exists, so the strip keeps the last known values and adds one quiet line, "Sign in again to see your partner's day." The strip opens Apple's button, and signing in finds the couple on the server.
 - **Ranges:** 0 to 20+ sessions; names of 1–60 characters, Turkish and emoji included; Turkish at AX5 on an iPhone SE.
 
 ## 6. Interaction and layout

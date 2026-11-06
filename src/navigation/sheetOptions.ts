@@ -2,9 +2,9 @@
  * The native form sheets' screen options (Phase 1 D1, Classic brief §6; D2's note editor), built
  * from the theme.
  *
- * Contract: pure; `sheetOptions(tokens)` returns the options for the `love-note`, `modes` and
- * `note-editor` routes. The first two, for reading, behave as below; the editor is described
- * where it's defined.
+ * Contract: pure; `sheetOptions(tokens)` returns the options for the `love-note`, `modes`, `partner`,
+ * `pair` and `note-editor` routes. The first three, for reading, behave as below; the others are
+ * described where they're defined.
  *   - A native form sheet sized to its content (UISheetPresentationController), with no grabber:
  *     neither is resizable (HIG sheets.md). A long note at AX sizes reaches full height and scrolls.
  *   - `contentStyle.backgroundColor` is each sheet's own surface: paper under the love note, the
@@ -27,6 +27,7 @@ export function sheetOptions(tokens: ThemeTokens) {
     return {
         loveNote: { ...SHEET, contentStyle: { backgroundColor: tokens.paper } },
         modes: { ...SHEET, contentStyle: { backgroundColor: tokens.page } },
+        partner: { ...SHEET, contentStyle: { backgroundColor: tokens.page } },
         // The pairing sheet (Phase 2 D1) holds a flow and a keyboard, so it takes the full height.
         pair: {
             presentation: 'formSheet',

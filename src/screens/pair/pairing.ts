@@ -5,7 +5,6 @@ import { reportToday } from '../../server/dayReports';
 import { fetchHome, HOME_KEY, homeClient, homeRestored, refreshHome } from '../../server/home';
 import { startPairedRuntime } from '../../server/runtime';
 import type { HomeSnapshot } from '../../server/types';
-import { appStorage } from '../../utils/appStorage';
 
 /**
  * What the pairing sheet does (Phase 2 D1), on the server's functions (B3). Reached only by the lazy route,
@@ -166,13 +165,5 @@ export async function redeemCode(code: string): Promise<RedeemResult> {
     }
 }
 
-/** The morph plays once per person, at their first pairing: pairing again with someone new doesn't replay it. */
-export const CELEBRATED_KEY = 'pair_celebrated_v1';
-
-export function markCelebrated(coupleId: string): void {
-    appStorage.set(CELEBRATED_KEY, coupleId);
-}
-
-export function wasCelebrated(): boolean {
-    return appStorage.getString(CELEBRATED_KEY) !== undefined;
-}
+// They live with the strip's summary, so the Timer can read them with no server code.
+export { CELEBRATED_KEY, markCelebrated, wasCelebrated } from '../../server/partnerGlance';

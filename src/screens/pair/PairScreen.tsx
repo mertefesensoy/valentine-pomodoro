@@ -36,6 +36,7 @@ import { PressableScale } from '../../components/ui/PressableScale';
 import { useWindowInsets } from '../../hooks/useWindowInsets';
 import { t } from '../../i18n';
 import { useAccountStore } from '../../server/account';
+import { usePartnerGlance } from '../../server/partnerGlance';
 import { fetchHome, HOME_KEY, homeClient } from '../../server/home';
 import { useTheme } from '../../theme/useTheme';
 import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
@@ -163,6 +164,14 @@ export default function PairScreen() {
     const present = useAccountStore((s) => s.present);
     const sessionEnded = useAccountStore((s) => s.sessionEnded);
     const signedIn = present && !sessionEnded;
+    // A session has ended for someone with a partner on this phone: nothing is lost, and signing in picks it up again.
+    // Someone with an account who isn't paired has come to pair, and hears what anyone else does.
+    const lastGlance = usePartnerGlance((s) => s.glance);
+    const lastPartner = lastGlance?.name ?? t('pair.partner');
+    const returningNow = present && sessionEnded && lastGlance !== null;
+    // The token's acceptance clears `sessionEnded` while signIn() is still running, so this holds the words for the attempt.
+    const [returningAttempt, setReturningAttempt] = useState(false);
+    const returning = returningNow || returningAttempt;
 
     const [step, setStep] = useState<Step>('pages');
     const [signingIn, setSigningIn] = useState(false);
@@ -280,8 +289,17 @@ export default function PairScreen() {
     const onSignIn = async () => {
         setSigningIn(true);
         setSignInProblem(null);
+        const wasReturning = returning;
+        setReturningAttempt(wasReturning);
         const result = await signIn();
+        // Back where they were, with the strip's fresh values under the sheet. It stays on this step while it closes:
+        // moving on would use up the morph unseen, or even make a code nobody asked for.
+        if (wasReturning && typeof result === 'object') {
+            leave();
+            return;
+        }
         setSigningIn(false);
+        setReturningAttempt(false);
         if (result === 'cancelled') return;
         if (typeof result === 'object') {
             setTypedProblem(null);
@@ -391,7 +409,7 @@ export default function PairScreen() {
     const head = (
         <View style={styles.head}>
             <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header" maxFontSizeMultiplier={1.6}>
-                {t('pair.title')}
+                {view === 'signin' && returning ? t('pair.returnTitle') : t('pair.title')}
             </Text>
             {/* PressableScale styles its inner view, so the corner is held out here, or its target would be empty. */}
             <View style={styles.closeCorner}>
@@ -435,12 +453,20 @@ export default function PairScreen() {
                     }
                     right={
                         <View style={styles.pageInner}>
-                            <Text style={[styles.who, { color: tokens.inkSoft }]}>{t('pair.partner')}</Text>
-                            <DashedCell />
+                            <Text style={[styles.who, { color: tokens.inkSoft }]} numberOfLines={2}>
+                                {returning ? lastPartner : t('pair.partner')}
+                            </Text>
+                            {returning ? (
+                                <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                                    <PoseSticker who="doro" pose="idle" width={STICKER} shadow={tokens.stickerShadow} />
+                                </View>
+                            ) : (
+                                <DashedCell />
+                            )}
                         </View>
                     }
                 />
-                <Text style={[styles.why, { color: tokens.ink }]}>{t('pair.why')}</Text>
+                <Text style={[styles.why, { color: tokens.ink }]}>{t(returning ? 'pair.returnWhy' : 'pair.why')}</Text>
                 {signingIn && <ActivityIndicator color={tokens.inkSoft} accessibilityLabel={t('pair.signingIn')} />}
                 {signInProblem && <Text style={[styles.problem, { color: tokens.ink }]}>{signInProblem}</Text>}
             </>

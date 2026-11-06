@@ -69,7 +69,28 @@
     "studying": "Pomo ve Doro seninle çalışıyor",
     "break": "Pomo ve Doro seninle molada",
     "paused": "Pomo ve Doro seni bekliyor",
-    "pair": "Partnerinle eşleş"
+    "pair": "Partnerinle eşleş",
+    "minToday_one": "bugün {{n}} dk",
+    "minToday_other": "bugün {{n}} dk",
+    "nothingYet": "Bugün henüz bir şey yok",
+    "updatedNow": "Az önce güncellendi",
+    "updatedMinutes_one": "{{count}} dakika önce güncellendi",
+    "updatedMinutes_other": "{{count}} dakika önce güncellendi",
+    "updatedHours_one": "{{count}} saat önce güncellendi",
+    "updatedHours_other": "{{count}} saat önce güncellendi",
+    "updatedDays_one": "{{count}} gün önce güncellendi",
+    "updatedDays_other": "{{count}} gün önce güncellendi",
+    "opensDay": "Gününü açar",
+    "a11yDay": "{{name}}, {{sessions}}, bugün {{minutes}}",
+    "a11yNothing": "{{name}}, bugün henüz bir şey yok",
+    "a11yStale": "{{name}}. {{updated}}",
+    "gone": "{{name}} ile artık eşli değilsiniz.",
+    "goneNoName": "Artık eşli değilsiniz.",
+    "signInAgain": "Partnerinin gününü güncellemek için yeniden giriş yap.",
+    "goal": "hedef {{n}} dk",
+    "a11yGoal_one": "hedef {{count}} dakika",
+    "a11yGoal_other": "hedef {{count}} dakika",
+    "readyShort": "Pomo ve Doro hazır"
   },
   "spread": {
     "you": "Sen",
@@ -408,6 +429,8 @@
     "signingIn": "Giriş yapılıyor",
     "keepCode": "Bu kodu tut",
     "newCodeAsk": "Yeni kod oluşturulsun mu?",
-    "newCodeWhy": "Elindeki kod, göndermiş olsan bile çalışmaz olur."
+    "newCodeWhy": "Elindeki kod, göndermiş olsan bile çalışmaz olur.",
+    "returnTitle": "Yeniden giriş yap",
+    "returnWhy": "Hiçbir şey kaybolmadı. Kaldığın yerden devam etmek için giriş yap."
   }
 }

@@ -9,7 +9,7 @@ related: [IMPL-2026-11-05-phase2-plan, IMPL-2026-11-06-phase2-f1-flag-on, IMPL-2
 
 # 2026-11-06 — Phase 2 F2: the first TestFlight build, and the check on two phones
 
-**Status:** The build is running. The check on the phones is the owner's, next.
+**Status:** Build 63 is in TestFlight, tagged. The check on the phones is the owner's, next.
 **Branch:** `feat/phase2-f2-testflight`, one pull request into `master`.
 **Plan task:** [Phase 2 plan §3, F2](2026-11-05-phase2-plan.md#stage-f-verify-and-ship): TestFlight, tagged `v1.5.0-tf.<n>`, after the owner's go-ahead, then the device check on two phones, installed over the App Store's 1.4.x.
 
@@ -27,7 +27,7 @@ related: [IMPL-2026-11-05-phase2-plan, IMPL-2026-11-06-phase2-f1-flag-on, IMPL-2
 
 ## 3. Implementation Approach
 
-**The build.** From `master` at `3b7a2e1`, with the owner's "Build, submit and tag (Recommended)": EAS build `488a7c91-fbe7-4a32-ac7e-77f1195757c9`, number 63.
+**The build.** From `master` at `3b7a2e1`, with the owner's "Build, submit and tag (Recommended)": EAS build `488a7c91-fbe7-4a32-ac7e-77f1195757c9`, number 63, a 21,966,065 B IPA. Submission `e2108e99-a10e-4daf-a5d6-05f58fb6cf6c` uploaded it to App Store Connect, and the tag is `v1.5.0-tf.63`.
 
 **Signing needed the owner at their computer.** Sign in with Apple is a new capability, and the profile EAS held was made before it, so the build was run interactively. EAS logged in to the owner's Apple account, synced the capability and renewed the profile. The owner typed their own credentials in the Terminal, and they were on Remote Control at first, so the build waited a few hours. **The next new capability will need the same:** run it interactively, and ask while the owner is at the computer.
 
@@ -48,8 +48,8 @@ None.
 
 ## 6. Verification
 
-- [ ] The build finishes, and reaches TestFlight.
-- [ ] The tag `v1.5.0-tf.<n>` is pushed.
+- [x] The build finished, and EAS reports the upload to App Store Connect. Apple's processing comes after that, so whether it's installable is for the owner to see.
+- [x] The tag `v1.5.0-tf.63` is pushed.
 - [ ] The owner's marks are read back, and whatever they find is fixed.
 - [ ] The finish reviews for D1 to D5 run on the owner's screenshots.
 

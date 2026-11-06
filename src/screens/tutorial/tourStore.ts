@@ -9,6 +9,8 @@ import { GENERAL, dueTutorial, latestTutorialVersion, tutorialById, type Beat, t
  *
  * Persisted under one additive key, `tutorial` (no existing key or the B2 migration changes):
  *   { seen?: string, resumeAt?: number, resumed?: true }
+ * All three can be there together: someone part-way through a version tour has seen the versions before it, and a
+ * kill mustn't make them a first-timer (Phase 2 D5).
  * - `seen`: the version of the last tutorial finished or skipped. Finishing or skipping writes
  *   the newest tutorial version, so a new install that sees the general tour isn't also shown
  *   that version's update tour.
@@ -69,6 +71,11 @@ function save(value: Stored): void {
     saveSync(STORAGE_KEYS.TUTORIAL, value);
 }
 
+/** Where a first run has got to, keeping what was already seen. */
+function saveProgress(seen: string | null, resumeAt: number, resumed: boolean): void {
+    save({ ...(seen ? { seen } : {}), resumeAt, ...(resumed ? { resumed: true as const } : {}) });
+}
+
 export const useTourStore = create<TourStore>()((set, get) => ({
     isReady: false,
     // Seen until hydrated, so a tour can never start before the stored value is known.
@@ -83,7 +90,7 @@ export const useTourStore = create<TourStore>()((set, get) => ({
             const s: Stored = isRecord(stored) ? (stored as Stored) : {};
             let seen = typeof s.seen === 'string' ? s.seen : null;
             let resumeAt = typeof s.resumeAt === 'number' && Number.isInteger(s.resumeAt) && s.resumeAt >= 0 ? s.resumeAt : null;
-            if (seen === null && resumeAt !== null && s.resumed === true) {
+            if (resumeAt !== null && s.resumed === true) {
                 // The one resume was used and that run was killed too: remembered as seen.
                 seen = latestTutorialVersion();
                 resumeAt = null;
@@ -100,8 +107,9 @@ export const useTourStore = create<TourStore>()((set, get) => ({
         if (get().run) return;
         if (replay) {
             const all = GENERAL.steps.map((_, i) => i);
-            // A session running or paused: the presets are hidden and the invitation can't happen.
-            const steps = sessionActive ? all.filter((i) => GENERAL.steps[i].id !== 'presets' && GENERAL.steps[i].id !== 'invite') : all;
+            // A session running or paused: the presets are hidden, the invitation can't happen, and nor can pairing.
+            const skipped = ['presets', 'invite', 'pair'];
+            const steps = sessionActive ? all.filter((i) => !skipped.includes(GENERAL.steps[i].id)) : all;
             set({ run: { tutorialId: GENERAL.id, steps, at: 0, beat: beatOf(GENERAL.steps[steps[0]]), replay: true, resumed: false, introduced: false }, muted: false });
             return;
         }
@@ -110,9 +118,11 @@ export const useTourStore = create<TourStore>()((set, get) => ({
         const steps = tutorial.steps.map((_, i) => i);
         const resumeAt = get().resumeAt;
         const at = resumeAt !== null && resumeAt < steps.length ? resumeAt : 0;
-        if (resumeAt !== null) save({ resumeAt: at, resumed: true });
-        else save({ resumeAt: at });
-        set({ run: { tutorialId: tutorial.id, steps, at, beat: beatOf(tutorial.steps[at]), replay: false, resumed: resumeAt !== null, introduced: false }, muted: false });
+        saveProgress(get().seen, at, resumeAt !== null);
+        // A resume starts on the Timer, whose tab was never pressed, so a lead there would show nothing: its own step does.
+        const step = tutorial.steps[at];
+        const beat = resumeAt !== null && step.here.screen === 'timer' ? 'here' : beatOf(step);
+        set({ run: { tutorialId: tutorial.id, steps, at, beat, replay: false, resumed: resumeAt !== null, introduced: false }, muted: false });
     },
 
     next() {
@@ -128,7 +138,7 @@ export const useTourStore = create<TourStore>()((set, get) => ({
         const at = run.at + 1;
         if (at >= run.steps.length) return get().finish();
         if (!run.replay) {
-            save(run.resumed ? { resumeAt: run.steps[at], resumed: true } : { resumeAt: run.steps[at] });
+            saveProgress(get().seen, run.steps[at], run.resumed);
         }
         set({ run: { ...run, at, beat: beatOf(tutorial.steps[run.steps[at]]) } });
     },

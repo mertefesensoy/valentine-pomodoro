@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ComponentRef, ReactNode, RefObject } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { css, cubicBezier, useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
 
@@ -26,6 +26,8 @@ type Props = {
     notice?: ReactNode;
     /** Tapping the line takes it away, for a partner who's gone. */
     onDismissNotice?: () => void;
+    /** Where the partner's foot is, for the tour's opening (Phase 2 D5). */
+    partnerRef?: RefObject<ComponentRef<typeof View> | null>;
     /** The timer and its line, drawn in the spine's frame. */
     children: ReactNode;
 };
@@ -60,7 +62,7 @@ function SpineBar({ progress, color, visible }: { progress: SharedValue<number>;
  * VoiceOver: the labels and stickers are decoration. The frame comes first, then the partner line,
  * as brief §6 orders them (the timer, then the partner slot; HIG review M-2).
  */
-export function SpreadPages({ tokens, width, stacked, pose, progress, isBreak, line, pairAction, paired, notice, onDismissNotice, children }: Props) {
+export function SpreadPages({ tokens, width, stacked, pose, progress, isBreak, line, pairAction, paired, notice, onDismissNotice, partnerRef, children }: Props) {
     // Your partner's page draws them at rest: the pose would otherwise follow your session, as if they were live.
     const partnerPose = paired ? 'idle' : pose;
     const pageW = (width - space.s) / 2;
@@ -131,7 +133,7 @@ export function SpreadPages({ tokens, width, stacked, pose, progress, isBreak, l
                     <PoseSticker who="pomo" pose={pose} width={sticker} shadow={tokens.stickerShadow} />
                 </View>
                 {frame}
-                <View style={[styles.pageStacked, paper]}>
+                <View ref={partnerRef} collapsable={false} style={[styles.pageStacked, paper]}>
                     <View style={styles.head} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
                         {label('doro')}
                         <PoseSticker who="doro" pose={partnerPose} width={sticker} shadow={tokens.stickerShadow} />
@@ -161,7 +163,7 @@ export function SpreadPages({ tokens, width, stacked, pose, progress, isBreak, l
             <View style={styles.frameRow}>{frame}</View>
             <View style={styles.row}>
                 <View style={{ width: pageW }} />
-                <View style={[styles.foot, { width: pageW }]}>{partnerLine}</View>
+                <View ref={partnerRef} collapsable={false} style={[styles.foot, { width: pageW }]}>{partnerLine}</View>
             </View>
         </View>
     );

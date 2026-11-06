@@ -50,6 +50,12 @@ function referenceWriteOn(): (text: string, who: 'pomo' | 'doro') => { chars: nu
     return (window.TourMotion as { writeOn: ReturnType<typeof referenceWriteOn> }).writeOn;
 }
 
+// The tour as v1.4 shipped it. tutorial15.test.tsx covers it with pairing on.
+jest.mock('../../../constants/features', () => ({
+    ...jest.requireActual('../../../constants/features'),
+    PAIRING_ENABLED: false,
+}));
+
 describe('how a line is spoken (assets record §3.4, §4.4)', () => {
     it('uses the approved pace', () => {
         expect(CHAR_MS).toBe(motion.talk.charMs);
@@ -254,7 +260,7 @@ describe('the tutorials (the owner’s per-version rule)', () => {
                 for (const goalOn of [false, true])
                     for (const flyAvailable of [false, true])
                         for (const weekEmpty of [false, true])
-                            for (const breakNext of [false, true]) contexts.push({ audience, replay, goalOn, flyAvailable, weekEmpty, breakNext });
+                            for (const breakNext of [false, true]) contexts.push({ paired: false, audience, replay, goalOn, flyAvailable, weekEmpty, breakNext });
         const lines = new Map<string, Record<string, string>>();
         for (const s of GENERAL.steps)
             for (const beat of [s.lead, s.here])

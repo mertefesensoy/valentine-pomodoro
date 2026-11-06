@@ -31,6 +31,7 @@ import { COMPACT_HEIGHT, panelFrame, place, tabCentre, type Rect } from './place
 import { Ribbon } from './Ribbon';
 import { TourCharacter } from './TourCharacter';
 import { currentBeat, currentStep, isLastBeat, useTourStore } from './tourStore';
+import { usePartnerGlance } from '../../server/partnerGlance';
 import type { LineContext, Speaker, TourOpening, TourScreen, TourTab } from './tutorials';
 import { useRaisedScrim, useScreenReader } from './useTour';
 import { useSpeaking } from './useSpeaking';
@@ -47,6 +48,8 @@ export type TourTargetSpec = {
      */
     a11y?: {
         label: string;
+        /** What pressing it does, when the label doesn't say. */
+        hint?: string;
         /** `text` for a region (today's row, the week): read, not acted on (review C-1). */
         role: 'button' | 'adjustable' | 'text';
         value?: string;
@@ -127,6 +130,7 @@ export default function TourLayer({ screen, targets, scrollBy, bottomReserve = 0
     const audience = useUiStore((s) => s.welcomeAudience);
     const goalOn = useStatsStore((s) => s.goalMinutes > 0);
     const breakNext = useSessionStore((s) => s.pomodoro.phase !== 'focus');
+    const paired = usePartnerGlance((s) => s.glance !== null);
     const weekEmpty = useStatsStore((s) => {
         const today = getTodayKey();
         return !Object.entries(s.days).some(([key, day]) => day.focusSessions > 0 && diffDays(today, key) >= 0 && diffDays(today, key) < 7);
@@ -193,7 +197,7 @@ export default function TourLayer({ screen, targets, scrollBy, bottomReserve = 0
         // `targets` is a fresh object each host render; the refs inside it are stable.
     }, [opening, beatKey, W, H, panel, squeezed, bubbleH]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const context: LineContext = { audience, replay: !!run?.replay, goalOn, flyAvailable: isFlyModeAvailable(), weekEmpty, breakNext };
+    const context: LineContext = { paired, audience, replay: !!run?.replay, goalOn, flyAvailable: isFlyModeAvailable(), weekEmpty, breakNext };
     const line = beat ? beat.line(context) : null;
     const names = Object.fromEntries(Object.entries(line?.names ?? {}).map(([k, key]) => [k, t(key)]));
     const text = line ? t(line.key, names) : '';
@@ -623,6 +627,7 @@ export function Opening({ rect, a11y }: { rect: Rect; a11y: NonNullable<TourTarg
             accessible
             accessibilityRole={a11y.role}
             accessibilityLabel={a11y.label}
+            accessibilityHint={a11y.hint}
             accessibilityValue={a11y.value ? { text: a11y.value } : undefined}
             accessibilityActions={actions}
             onAccessibilityAction={onAction}

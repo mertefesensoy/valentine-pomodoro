@@ -397,6 +397,16 @@
       "first": "İlk odağına hazır mısın? Hazır olunca {{start}} düğmesine dokun.",
       "again": "Bir odağa hazır mısın? Hazır olunca {{start}} düğmesine dokun.",
       "break": "Sırada bir mola var. Hazır olunca {{start}} düğmesine dokun."
+    },
+    "pair": {
+      "lead": "{{tab}} ekranında bir şey daha var. Dönmek için sekmeye dokun.",
+      "here": "Partnerin varsa burada eşleşin, gününüzü paylaşın.",
+      "paired": "Burası onun günü. Tümünü görmek ya da not yazmak için dokun."
+    },
+    "v15": {
+      "pair": "Yeni! Partnerin varsa burada eşleşin, gününüzü paylaşın.",
+      "notes": "Sonra notlar da yazın, odak bitince görünür.",
+      "notesPaired": "Notlarınız odak bitince görünür."
     }
   },
   "pair": {

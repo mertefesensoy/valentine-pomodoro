@@ -41,6 +41,7 @@ import { fetchHome, HOME_KEY, homeClient } from '../../server/home';
 import { useTheme } from '../../theme/useTheme';
 import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
 import { PoseSticker } from '../classic/PoseSticker';
+import { useTourMoveOnClose } from '../tutorial/useTour';
 import { ASPECT, DURATION, linePose } from '../welcome/choreography';
 import { MorphArt, MorphCharacters, useMorphHaptic } from '../welcome/MorphStage';
 import { CodeCells, DashedCell, cellScaleFor } from './CodeCells';
@@ -161,6 +162,7 @@ export default function PairScreen() {
     const { width, height, fontScale } = useWindowDimensions();
     const insets = useWindowInsets();
     const reduced = useReducedMotion();
+    useTourMoveOnClose();
     const present = useAccountStore((s) => s.present);
     const sessionEnded = useAccountStore((s) => s.sessionEnded);
     const signedIn = present && !sessionEnded;

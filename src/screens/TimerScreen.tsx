@@ -471,6 +471,7 @@ export default function TimerScreen() {
   const todayRef = useRef<ComponentRef<typeof View>>(null);
   const modesRef = useRef<ComponentRef<typeof View>>(null);
   const startRef = useRef<ComponentRef<typeof View>>(null);
+  const partnerRef = useRef<ComponentRef<typeof View>>(null);
   const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
   const { track: trackScroll, scrollBy } = useTourScroll(tourHere, (y) => scrollRef.current?.scrollTo({ y, animated: true }));
   const rows = useRef({ visible: 0, top: 0, partner: 0, today: 0, controls: 0 });
@@ -548,6 +549,7 @@ export default function TimerScreen() {
         }
         notice={notice ? <PartnerNotice text={notice} tokens={tokens} centered /> : undefined}
         onDismissNotice={goneLine ? dismissGone : undefined}
+        partnerRef={partnerRef}
       >
         {timer(56)}
         {subLine}
@@ -590,7 +592,7 @@ export default function TimerScreen() {
   const partner = layout === 'ring' ? (
     // It has to stretch itself: `styles.centre` centres its children, and the strip's own `alignSelf` only stretches
     // it inside this view.
-    <View style={styles.partnerSlot} onLayout={(e) => measured('partner', e)} testID="partner-strip">
+    <View ref={partnerRef} collapsable={false} style={styles.partnerSlot} onLayout={(e) => measured('partner', e)} testID="partner-strip">
       {glance ? (
         <PartnerStrip glance={glance} notice={notice} hint={partnerHint} onPress={openPartner} tokens={tokens} />
       ) : showPair || goneLine ? (
@@ -657,7 +659,7 @@ export default function TimerScreen() {
     const next = presetSegments[presetIndex + by];
     if (next) choosePreset(next.value, false);
   };
-  const tourTargets: Partial<Record<'presets' | 'today' | 'modes' | 'start', TourTargetSpec>> = {
+  const tourTargets: Partial<Record<'presets' | 'today' | 'modes' | 'start' | 'partner', TourTargetSpec>> = {
     presets: {
       ref: presetsRef,
       radius: radius.m,
@@ -671,6 +673,13 @@ export default function TimerScreen() {
     },
     today: { ref: todayRef, radius: radius.m, a11y: { label: todayLabel(todayCount, sessionsToGoal), role: 'text' } },
     modes: { ref: modesRef, radius: minTarget / 2, a11y: { label: t('modes.button'), role: 'button', onActivate: () => router.push('/modes') } },
+    partner: {
+      ref: partnerRef,
+      radius: radius.l,
+      a11y: glance
+        ? { label: notice ? `${partnerLabel(glance)}. ${notice}` : partnerLabel(glance), hint: partnerHint, role: 'button', onActivate: openPartner }
+        : { label: goneLine ? `${t('partner.pair')}. ${goneLine}` : t('partner.pair'), role: 'button', onActivate: openPair },
+    },
     start: { ref: startRef, radius: 28, a11y: { label: primaryLabel, role: 'button', onActivate: handlePrimaryAction } },
   };
 

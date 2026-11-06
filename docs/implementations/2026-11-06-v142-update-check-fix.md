@@ -28,7 +28,7 @@ The owner's decisions, 2026-11-06, in their words:
 | `src/utils/__tests__/semver.test.ts` | New: the comparison table. |
 | `app.json`, `package.json`, `package-lock.json` | Version 1.4.2. |
 | `CHANGELOG.md` | `[1.4.2]`, written for users. |
-| `docs/srs/SRS.md` | FR-UPD-001 states the new behaviour. |
+| `docs/srs/SRS.md` | FR-UPD-001 states the new behaviour; NFR-PERF-002's 1.4.x limit becomes 1.4.2's measured size, on the owner's word. |
 | `docs/architecture/ARCHITECTURE.md` | The lookup's row: URL, timing and line numbers. |
 | `docs/process/RELEASE.md` | How to verify a release: a cache-busted lookup. |
 | `docs/implementations/2026-11-06-update-check-audit.md` | Records the owner's decision and the branch. |
@@ -101,7 +101,7 @@ Physical-device steps are marked.
   | 1.4.1 | Button | "Güncelsin" / "En son sürüm sende (1.4.1)." |
   | 1.4.2 | Button | "Güncelsin" / "En son sürüm sende (1.4.2)." |
 
-- [ ] **Bytecode, NFR-PERF-002: over by 640 B.** iOS measures 4,293,508 B with `npx expo export --platform ios --dump-sourcemap`, against a limit of 4,292,868 B and 1.4.1's 4,292,796 B. That's +712 B for the fix, 0.015 % over. It needs the owner's decision.
+- [x] **Bytecode, NFR-PERF-002: 640 B over the limit, accepted by the owner.** iOS measures 4,293,508 B with `npx expo export --platform ios --dump-sourcemap`, against a limit of 4,292,868 B and 1.4.1's 4,292,796 B. That's +712 B for the fix, 0.015 % over. Asked on 2026-11-06, the owner chose "Accept, raise the limit (Recommended)", so the 1.4.x limit is now 4,293,508 B. 1.5.0 has its own limit of 4,640,000 B on `master`.
 
 **After the push** (each on the owner's word):
 

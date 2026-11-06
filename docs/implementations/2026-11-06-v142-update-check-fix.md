@@ -113,12 +113,12 @@ Physical-device steps are marked.
   - IPA 21,618,493 B, +478 B on build 61.
 - [x] **Physical device, build 62, 2026-11-06: passed, as reported by the owner.** Asked "Did build 62 pass the phone check?", the owner answered "Passed". The device and iOS version weren't reported. The check: installed over the store version, the app opens and its data is intact. The button says "up to date (1.4.2)", since the store is behind it. In Airplane Mode the button says it couldn't check. Start a timer, leave the app and return: the timer is unaffected.
 - [ ] 1.4.2 approved and live. **Submitted 2026-11-06** on build 62 (the owner: "Submitted"); App Review's answer is pending.
-- [ ] The fix on `master`, through the 1.5.0 session's pull request ("How it ships" in §3). When this line was written, `e76d6bd` was on no other GitHub branch.
+- [x] The fix on `master`: [pull request #30](https://github.com/mertefesensoy/valentine-pomodoro/pull/30), the 1.5.0 session's, merged 2026-11-06T08:23:05Z as `3b7a2e1`. Checked here: `e76d6bd` is an ancestor of `master`, and `master`'s hook has the changing value and the timer guard. Reported by that session and not re-measured here: 1.5.0's bytecode with the fix in is 4,588,564 B, against its limit of 4,640,000 B, and NFR-PERF-002 keeps 1.4.2's 4,293,508 B in its history.
 - [ ] The records after `e76d6bd` on `master`, in their docs pull request, once 1.4.2 is live.
 - [ ] **Physical device, at the next release:** on a phone with 1.4.2 and automatic updates off, the prompt appears within an hour of the release, and "Update" opens the listing correctly from a Turkish account.
 - [ ] **Physical device, at the next release:** leave the app suspended past 6 hours and return with no timer running: the prompt appears. Return with a timer running: nothing appears until a later return.
 
-These last two can only run once a version newer than 1.4.2 is live, because 1.4.2 is the newest there is until then. That version is expected to be 1.5.0, and its session has been asked to put them on its release list.
+These last two can only run once a version newer than 1.4.2 is live, because 1.4.2 is the newest there is until then. That version is expected to be 1.5.0, and its session has taken them onto its release list, to run on a phone on 1.4.2.
 
 ### What's New for 1.4.2, for the owner to edit
 

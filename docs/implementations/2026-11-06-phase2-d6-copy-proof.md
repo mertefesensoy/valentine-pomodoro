@@ -49,7 +49,7 @@ Three items were set aside for this step:
 
 ### What the owner marked
 
-Read back on 2026-11-06, the 115 documents later than the watermark: 113 "Looks right", one change, one answer. Every new string has a mark.
+Read back on 2026-11-06, the 115 documents later than the watermark: 113 "Looks right", one change, one answer. All 114 new strings have a mark.
 
 - **`pair.tapToType`,** in Turkish, "Onun kodunu yazmak için dokun" became the owner's "Kodu yazmak için dokun", with the reason "Self explanatory this way".
 - **`q-pair-wait`:** "Add a line under the code once it’s sent: “This page moves on when they type it.”"
@@ -58,7 +58,7 @@ Read back on 2026-11-06, the 115 documents later than the watermark: 113 "Looks 
 
 `pair.sent` shows under "Lasts 24 hours" once `Share.share` resolves with `sharedAction`, and is announced to VoiceOver. Cancelling the share sheet shows nothing, since then the code hasn't gone anywhere. The state holds the code that was sent rather than a flag, so a new code takes the line away by itself: that isn't the code they have. A failed new code replaces both lines, as it already did for "Lasts 24 hours". It doesn't animate, since it appears while the share sheet is closing.
 
-The question gave only the English. The Turkish, "Partnerin kodu yazınca bu sayfa ilerler.", follows the owner's own trim of `pair.tapToType`, and names the partner because "yazınca" alone could mean you.
+The question gave only the English. The Turkish, "Partnerin kodu yazınca bu sayfa ilerler.", follows the owner's own trim of `pair.tapToType`, and names the partner because "yazınca" alone could mean you. It isn't marked on the page, since it came from the owner's answer. The owner saw both lines, and answered "Push, PR, merge when green (Recommended)", where that option said the Turkish stands as written.
 
 ## 4. Mathematical / Statistical Details
 

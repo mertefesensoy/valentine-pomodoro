@@ -90,7 +90,18 @@
     "goal": "goal {{n}} min",
     "a11yGoal_one": "goal {{count}} minute",
     "a11yGoal_other": "goal {{count}} minutes",
-    "readyShort": "Pomo & Doro are ready"
+    "readyShort": "Pomo & Doro are ready",
+    "write": "Write {{name}} a note",
+    "noteFooter": "It appears after their next focus.",
+    "notePlaceholder": "Something for after their next focus",
+    "noteField": "Your note to {{name}}",
+    "send": "Send",
+    "noteSent": "Sent. It appears after {{name}}'s next focus.",
+    "noteTooMany": "That's a lot of notes for today. Try again tomorrow.",
+    "noteOffline": "You're offline. Try again when you're connected.",
+    "noteFailed": "Something went wrong. Try again.",
+    "noteWaiting": "A note from {{name}} is waiting",
+    "noteSignIn": "Sign in again from the Timer to send this."
   },
   "spread": {
     "you": "You",
@@ -113,7 +124,8 @@
   },
   "loveNote": {
     "title": "A note for you",
-    "close": "Close"
+    "close": "Close",
+    "from": "A note from {{name}}"
   },
   "welcome": {
     "updated": "Your diary has a new look.",

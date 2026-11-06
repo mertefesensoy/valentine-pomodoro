@@ -94,7 +94,7 @@ export function PartnerDay({ glance, tokens, centered = false }: { glance: Partn
     );
 }
 
-/** A quiet line under the strip's content, for a partner who's gone or a session that has ended. */
+/** A quiet line under the strip's content: a partner who's gone, a session that has ended, or a note waiting. */
 export function PartnerNotice({ text, tokens, centered = false }: { text: string; tokens: ThemeTokens; centered?: boolean }) {
     return <Text style={[styles.notice, centered && styles.centeredText, { color: tokens.inkSoft }]}>{text}</Text>;
 }

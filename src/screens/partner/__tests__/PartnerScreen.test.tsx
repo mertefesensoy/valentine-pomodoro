@@ -12,7 +12,10 @@ jest.setTimeout(30_000);
 jest.mock('expo-router', () => ({
     ...jest.requireActual('expo-router'),
     router: { push: jest.fn(), back: jest.fn(), canGoBack: () => true },
+    usePreventRemove: jest.fn(),
 }));
+jest.mock('../../../server/client', () => ({ Offline: class extends Error {}, rpc: jest.fn() }));
+jest.mock('../../../server/home', () => ({ refreshHome: jest.fn(async () => {}) }));
 
 const back = router.back as jest.Mock;
 const today = { day_key: '2026-11-06', focus_ms: 75 * 60_000, sessions: 3, goal_hit: false, goal_minutes: 100 };

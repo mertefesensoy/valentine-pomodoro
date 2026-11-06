@@ -1,7 +1,7 @@
-import { View, Text, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator, useWindowDimensions, type LayoutChangeEvent } from "react-native";
+import { AppState, View, Text, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator, useWindowDimensions, type LayoutChangeEvent } from "react-native";
 import { PAIRING_ENABLED } from "../constants/features";
 import { useAccountStore } from "../server/account";
-import { dismissGone, usePartnerGlance, wasCelebrated } from "../server/partnerGlance";
+import { dismissGone, takePartnerNote, usePartnerGlance, wasCelebrated } from "../server/partnerGlance";
 import { PartnerDay, PartnerNotice, PartnerStrip, partnerLabel, partnerName } from "./classic/PartnerStrip";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ComponentRef } from "react";
@@ -124,6 +124,7 @@ export default function TimerScreen() {
   const focused = useScreenFocused();
   const storedGlance = usePartnerGlance((s) => s.glance);
   const gone = usePartnerGlance((s) => s.gone);
+  const noteWaiting = usePartnerGlance((s) => s.notes.length > 0);
   const sessionEnded = useAccountStore((s) => s.sessionEnded);
   const { tokens, isDark } = useTheme();
 
@@ -213,7 +214,12 @@ export default function TimerScreen() {
   const loveNoteDue = focused && !goalPopup && showLoveNoteCard && !!lastLoveNote;
   useEffect(() => {
     if (!loveNoteDue || useLoveNoteSheet.getState().note !== null) return;
-    useLoveNoteSheet.getState().open(lastLoveNote!);
+    // A partner's note takes the place of one of your own (Phase 2 D3). The choice is made here, when the sheet is due,
+    // so the session engine knows nothing of it, and your partner's words stay out of its saved state. Only with the
+    // app in front: a session ending just after the phone locks would otherwise use the note up unseen, and it waits.
+    const fromPartner = PAIRING_ENABLED && AppState.currentState === 'active' ? takePartnerNote() : null;
+    if (fromPartner) useLoveNoteSheet.getState().open(fromPartner.body, usePartnerGlance.getState().glance?.name ?? t('pair.partnerFallback'));
+    else useLoveNoteSheet.getState().open(lastLoveNote!);
     router.push("/love-note");
   }, [loveNoteDue, lastLoveNote]);
   useEffect(
@@ -494,7 +500,12 @@ export default function TimerScreen() {
   const goneLine = PAIRING_ENABLED && !paired && gone
     ? gone.name ? t('partner.gone', { name: gone.name }) : t('partner.goneNoName')
     : null;
-  const notice = paired && sessionEnded ? t('partner.signInAgain') : goneLine;
+  // With Show love notes off, one quiet line says a note is waiting (the owner, 2026-11-06: "Yes, add a quiet line on
+  // the strip"). It's a pointer: the strip opens their day as ever, and the note is a row there, so the line and its
+  // press agree in every state. The Ring gives way when it comes and goes, which the owner accepted.
+  let notice = goneLine;
+  if (paired && sessionEnded) notice = t('partner.signInAgain');
+  else if (glance && noteWaiting && !settings.showLoveNotes) notice = t('partner.noteWaiting', { name: glance.name ?? t('pair.partnerFallback') });
   const openPair = () => {
     if (goneLine) dismissGone();
     if (idle) router.push('/pair');

@@ -1,6 +1,7 @@
 import { AppState } from 'react-native';
 import { reportToday, startDayReports } from './dayReports';
 import { homeRestored, refreshHome } from './home';
+import { flushShown } from './noteDelivery';
 import { touchGlance } from './partnerGlance';
 import { syncTimeZone } from './timeZone';
 
@@ -14,6 +15,8 @@ let started = false;
 
 async function refreshAll(): Promise<void> {
     await syncTimeZone();
+    // Before the refresh, so its snapshot can stop listing what's been shown here.
+    await flushShown();
     await refreshHome().catch(() => {});
     // After the refresh, so a person who has just paired is known to be paired. It also sends what's queued.
     await reportToday();

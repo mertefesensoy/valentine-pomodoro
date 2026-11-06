@@ -24,6 +24,7 @@ module.exports = defineConfig([
             '**/server/runtime',
             '**/server/appleSignIn',
             '**/server/dayReports',
+            '**/server/noteDelivery',
             '**/screens/pair/**',
             '**/screens/partner/**',
             '@tanstack/*',

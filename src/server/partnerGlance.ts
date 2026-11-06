@@ -24,17 +24,26 @@ export type PartnerGlance = {
     fetchedAt: number;
 };
 
+export type PartnerNote = { id: string; body: string };
+
 type GlanceState = {
     glance: PartnerGlance | null;
     /** A partner who has gone, for one quiet line until it's tapped. */
     gone: { name: string | null } | null;
+    /** Their notes waiting to be shown here, oldest first (Phase 2 D3). */
+    notes: PartnerNote[];
+    /** Notes shown here that a snapshot still listed, so a refresh can't bring them back. */
+    shown: string[];
 };
 
-const EMPTY: GlanceState = { glance: null, gone: null };
+const EMPTY: GlanceState = { glance: null, gone: null, notes: [], shown: [] };
 
-export const usePartnerGlance = create<GlanceState>()(() => (hasAccount() ? loadSync<GlanceState>(GLANCE_KEY, EMPTY) : EMPTY));
+export const usePartnerGlance = create<GlanceState>()(() =>
+    hasAccount() ? { ...EMPTY, ...loadSync<Partial<GlanceState>>(GLANCE_KEY, EMPTY) } : EMPTY,
+);
 
-function store(next: GlanceState): void {
+function store(patch: Partial<GlanceState>): void {
+    const next = { ...usePartnerGlance.getState(), ...patch };
     saveSync(GLANCE_KEY, next);
     usePartnerGlance.setState(next);
 }
@@ -42,13 +51,18 @@ function store(next: GlanceState): void {
 /**
  * Takes in a snapshot.
  *   in : `snapshot`, from `home_snapshot`; `now`, for tests.
- *   out: the store and its key. With a couple, the summary is replaced and any "gone" line cleared. With no couple
- *        where there was one, the summary goes and its name moves into `gone`, which is how a later line can name
- *        them with nothing from the server. With neither, nothing changes.
+ *   out: the store and its key. With a couple, the summary is replaced and any "gone" line cleared, and their notes
+ *        are taken in, less any already shown here. An id leaves `shown` once a snapshot stops listing it, which is
+ *        the proof the server has it. With no couple where there was one, the summary and notes go and the name moves
+ *        into `gone`, which is how a later line can name them with nothing from the server. With neither, nothing
+ *        changes.
  */
 export function syncGlance(snapshot: HomeSnapshot, now: number = Date.now()): void {
     if (snapshot.couple) {
+        const { shown } = usePartnerGlance.getState();
         store({
+            notes: snapshot.notes.filter((note) => !shown.includes(note.id)).map(({ id, body }) => ({ id, body })),
+            shown: shown.filter((id) => snapshot.notes.some((note) => note.id === id)),
             glance: {
                 coupleId: snapshot.couple.id,
                 name: snapshot.partner?.display_name ?? null,
@@ -61,7 +75,7 @@ export function syncGlance(snapshot: HomeSnapshot, now: number = Date.now()): vo
         return;
     }
     const { glance } = usePartnerGlance.getState();
-    if (glance) store({ glance: null, gone: { name: glance.name } });
+    if (glance) store({ glance: null, gone: { name: glance.name }, notes: [], shown: [] });
 }
 
 /**
@@ -73,9 +87,24 @@ export function touchGlance(): void {
     if (glance) usePartnerGlance.setState({ glance: { ...glance } });
 }
 
+/**
+ * The next note from your partner, for showing now, and it won't come again: it moves out of `notes` and into `shown`
+ * in one write, before anything can show it, and the server hears straight away, or at the next refresh. It's
+ * marked on showing, not on closing, because someone who kills the app with it open has still seen it.
+ *   out: the oldest note, or null, with no effect, when there's none.
+ */
+export function takePartnerNote(): PartnerNote | null {
+    const { notes, shown } = usePartnerGlance.getState();
+    const [next, ...rest] = notes;
+    if (!next) return null;
+    store({ notes: rest, shown: [...shown, next.id] });
+    void import('./noteDelivery').then(({ flushShown }) => flushShown()).catch(() => {});
+    return next;
+}
+
 /** The "aren't paired any more" line has been seen. */
 export function dismissGone(): void {
-    store({ glance: usePartnerGlance.getState().glance, gone: null });
+    store({ gone: null });
 }
 
 /**

@@ -9,7 +9,7 @@ related: [IMPL-2026-11-05-phase2-plan, IMPL-2026-11-06-phase2-d5-tutorial, IMPL-
 
 # 2026-11-06 — Phase 2 D6: 1.5's strings through the owner's copy proof
 
-**Status:** Plan. Written before the code.
+**Status:** The page is published. Waiting for the owner's marks.
 **Branch:** `feat/phase2-d6-copy-proof`, one pull request into `master`, opened once the owner's marks are applied.
 **Plan task:** [Phase 2 plan §3, D6](2026-11-05-phase2-plan.md#stage-d-the-screens-behind-the-flag): "every string in both languages through the owner's copy proof". Done when the owner's marks are applied.
 
@@ -36,7 +36,7 @@ Three items were set aside for this step:
 
 ## 3. Implementation Approach
 
-**The page stays where it is,** the private artifact with its `verdicts` database, keyed by i18n key. Moving a string between sections loses nothing, so the owner's 310 marks stand. Republishing with its `url` and no `capabilities` keeps both the database and the link.
+**The page stays where it is,** the private artifact with its `verdicts` database, keyed by i18n key. Moving a string between sections loses nothing, so the owner's marks stand: 307 on strings and notes, two answers, and one for a string since removed (`stats.streakStartBest`). Republishing with its `url` and no `capabilities` keeps both the database and the link.
 
 **Both languages.** A string's edit form gains a second box for the English, filled in with the current text. A saved change has `text` (the Turkish, as before), and `textEn` only when the English differs. Saving with neither line changed and no reason is refused, since an unedited save used to store a "change" equal to the original.
 
@@ -53,15 +53,15 @@ None.
 | Decision | Alternatives considered | Why this one |
 |----------|------------------------|--------------|
 | One slip per string, with both languages | Two slips per string, as the default notes have | One mark per string keeps it to 114 marks, not 228 |
-| The page opens on **To review** | Opening on All, as before | 310 of the 428 items already have marks, and 114 of the 118 still open are what this pass is for |
+| The page opens on **To review** | Opening on All, as before | 307 of the 421 items already have marks, and the 114 still open are exactly the new strings |
 | Notes from Claude on particular strings | Listing them in the intro | They're read at the moment they matter |
 | `partner` and `account` get sections of their own | Leaving `partner` under Timer, as an earlier version had four strings there | 37 strings about another screen don't belong under Timer, and marks follow the key |
 
 ## 6. Verification
 
-- [ ] The page builds, and every string in `en.json` is on it.
+- [x] The page builds, and all 379 strings in `en.json` are on it, with none twice.
+- [x] The page's own script against a fake store in jsdom, so the owner's marks weren't touched: it opens on **To review** at 307 of 421, an unedited save is refused, an English change stores `textEn` and leaves the Turkish, a Turkish change stores no `textEn`, a lost placeholder warns in either language, and answering the new question hides it.
 - [ ] The owner's old marks are all still there after the republish.
-- [ ] A saved change stores what the record says it does (read back from the store).
 - [ ] The owner's marks are read back and applied, with the guards green.
 - [ ] Bytecode under 4,640,000 B.
 

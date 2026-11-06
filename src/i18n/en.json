@@ -415,7 +415,7 @@
     "you": "You",
     "partner": "Your partner",
     "partnerFallback": "your partner",
-    "why": "To pair, you each need an account, which keeps your name, time zone, language and what you share.",
+    "why": "To pair, you each need an account, which keeps your name, time zone, language and what you share. The timer works without one.",
     "notNow": "Not now",
     "lasts": "Lasts 24 hours",
     "tapToType": "Tap to type their code",

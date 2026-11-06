@@ -21,7 +21,7 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [1.4.2-tf.62] - 2026-11-06
 
-*iOS TestFlight build 62, the release candidate, a pre-release and not a store release, source e76d6bd. Built with EAS (build f71942e6) and uploaded to App Store Connect for TestFlight (submission 13012651); device check on a physical iPhone: pending.*
+*iOS TestFlight build 62, the release candidate, a pre-release and not a store release, source e76d6bd. Built with EAS (build f71942e6) and uploaded to App Store Connect for TestFlight (submission 13012651); device check on a physical iPhone, 2026-11-06: passed, as reported by the owner.*
 
 Its changes are listed under [1.4.2].
 

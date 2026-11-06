@@ -104,5 +104,6 @@ A new tension gets a row here, or an ADR if it is structural.
 - ["Phase 2 D3: notes to your partner"](../implementations/2026-11-06-phase2-d3-notes.md)
 - ["Phase 2 D4: your account: unpair, delete, and download your data"](../implementations/2026-11-06-phase2-d4-account.md)
 - ["Phase 2 D5: the 1.5 version tutorial"](../implementations/2026-11-06-phase2-d5-tutorial.md)
+- ["Phase 2 D6: 1.5's strings through the owner's copy proof"](../implementations/2026-11-06-phase2-d6-copy-proof.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)
 <!-- backlinks:end -->

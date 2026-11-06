@@ -100,6 +100,8 @@ None.
 
 **A narrow second pass,** at `85b73b5`: critique 34/40 and native audit 18/20, which meets NFR-UX-003's 16/20. It found one more suite pinning the shipped tour, `tourWorstCase.test.tsx`, and the opening's label dropping the "aren't paired any more" line that pressing it dismisses. Both are fixed, and so is `router.test.tsx`, whose `{ seen: '1.4' }` stops meaning "seen" with the flag on. It also confirmed that closing `/pair` or `/partner` moves the tour on whichever way the sheet was opened, which suits the next line, so that stays.
 
+**The owner,** shown these scores and what's left below, on 2026-11-06: "Push, PR, merge when green (Recommended)".
+
 **Left, with the reasons:**
 
 - Done beside Skip tour on the last beat, and the opening's rectangle after a late refresh, are for the device.

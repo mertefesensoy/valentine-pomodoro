@@ -89,7 +89,14 @@ export function SpreadPages({ tokens, width, stacked, pose, progress, isBreak, l
         <>
             <Text style={[styles.line, { color: tokens.ink }]}>{line}</Text>
             {pairAction && (
-                <PressableScale onPress={pairAction} haptic={false} accessibilityRole="button" hitSlop={12}>
+                <PressableScale
+                    onPress={pairAction}
+                    haptic={false}
+                    accessibilityRole="button"
+                    hitSlop={12}
+                    // The notice's button below takes the slop under this one, so here it needs its own 44 pt.
+                    style={notice && onDismissNotice ? styles.noticeButton : undefined}
+                >
                     <Text style={[styles.line, styles.pairAction, { color: tokens.primaryInk }]}>{t('partner.pair')}</Text>
                 </PressableScale>
             )}

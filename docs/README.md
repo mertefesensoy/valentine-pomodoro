@@ -129,7 +129,7 @@ Start here. Every document in the repo is listed below. The rules for writing th
 | [v1 plan, 2026-01-07](history/2026-01-07-v1-plan.md) | The plan v1 was built from (a copy of the out-of-repo `PLAN.md`) |
 | [DECISIONS.md](../DECISIONS.md) | The v1 decision log; its decisions now live as ADRs |
 | [Phase 4 test guide](archive/PHASE4_TEST.md) | Archived; superseded by the test strategy |
-| [privacy-policy.md](../privacy-policy.md) | The v1 privacy policy (replaced in Phase 2, NFR-PRIV-002) |
+| [privacy-policy.md](../privacy-policy.md) | The privacy policy, in English and Turkish (NFR-PRIV-002) |
 
 ## Backlinks
 <!-- backlinks:start -->

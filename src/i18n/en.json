@@ -196,6 +196,7 @@
     "privacy": {
       "header": "Privacy",
       "timings": "Share start-up timings",
+      "policy": "Privacy policy",
       "footer": "Sends how long the app took to open, your iPhone model, your iOS version and the app’s build. Nothing that identifies you."
     },
     "about": {

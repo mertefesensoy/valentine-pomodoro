@@ -9,7 +9,7 @@ related: [IMPL-2026-11-05-phase2-plan, IMPL-2026-11-06-phase2-d4-account, IMPL-2
 
 # 2026-11-06 — Phase 2 E2: the privacy policy, in English and Turkish
 
-**Status:** Plan. Written before the text.
+**Status:** Drafted. Waiting for the owner, and §0.2's legal read.
 **Branch:** `feat/phase2-e2-privacy-policy`, one pull request into `master`. The website is a separate repository, with its own pull request.
 **Plan task:** [Phase 2 plan §3, E2](2026-11-05-phase2-plan.md#stage-e-reliability-and-policy), [NFR-PRIV-002](../srs/SRS.md#nfr-priv-002). Done when the owner approves the text, after §0.2's legal read.
 
@@ -32,7 +32,7 @@ Apple also asks for a link to the policy inside the app (Guideline 5.1.1(i)). Th
 | `privacy-policy.md` | The policy, rewritten from what the code does, in English and Turkish. |
 | `README.md`, `docs/README.md` | Their privacy lines point at it. |
 | `src/screens/SettingsScreen.tsx`, `src/i18n/en.json`, `src/i18n/tr.json` | A Privacy policy row in Settings' Privacy group. |
-| `src/screens/__tests__/settings.test.tsx` | The row opens the policy. |
+| `src/screens/__tests__/settingsPrivacy.test.tsx` | New. The row opens the policy, and the switch it names turns the report off. |
 | `Valentine-Pomodoro-Developer-Website`: `src/locales/en.json`, `src/locales/tr.json` | The same text, and the home page's two claims. A separate pull request. |
 
 ## 3. Implementation Approach
@@ -57,6 +57,19 @@ Apple also asks for a link to the policy inside the app (Guideline 5.1.1(i)). Th
 
 **Facts only.** Legal bases and what KVKK or the GDPR require are for §0.2's reader, so the text states what happens and how to act on it. The Turkish follows the English, so the reader reviews one set of facts.
 
+### Questions for the reader
+
+§0.2 asks someone qualified to read the policy before 1.5.0 ships. These are the things a developer can't settle:
+
+1. **Transfers abroad.** Data about people in Turkey goes to Frankfurt, held by Supabase on Amazon Web Services. What does KVKK Article 9 need here (a standard contract and its notification, or something else), and is Supabase's data processing agreement enough?
+2. **Are the start-up reports anonymous?** A report has no identifier, and holds a time, a random group, the iPhone model, the iOS version, the build and the date. The IP address passes through Supabase, and may sit in its request logs for a short time. It's on by default with an off switch and no prompt. Does that hold under KVKK and the GDPR?
+3. **The developer's duties.** One person runs this. What must the text add: the data controller and an address, legal bases, the rights in KVKK Article 11 and the GDPR, how to complain? Is VERBİS registration needed? Does a GDPR Article 27 representative apply?
+4. **Ads.** The app asks AdMob for non-personalised ads and shows no consent prompt. Is that enough for people in the EU, where Google's own consent policy may still apply?
+5. **Keeping data.** An account is kept until it's deleted, and deleted data can stay in backups for up to 7 days. Is that acceptable, or is a retention period needed?
+6. **A partner's words.** Your export contains notes your partner wrote, and your partner's name. Is that right?
+7. **Reading notes.** The text says notes aren't end-to-end encrypted, and that the operator looks at them only to fix a problem or if the law requires it. Is that wording sound?
+8. **Age.** The text says the app isn't meant for children under 13. Is that the right age in Turkey and the EU?
+
 ## 4. Mathematical / Statistical Details
 
 None.
@@ -71,8 +84,9 @@ None.
 
 ## 6. Verification
 
-- [ ] Every row of §3's inventory has a sentence, and every sentence a row.
-- [ ] The row opens the policy (`settings.test.tsx`), with the guards green.
+- [x] Every row of §3's inventory has a sentence, and every sentence a row.
+- [x] The row opens the policy (`settingsPrivacy.test.tsx`), with the guards green.
+- [x] The bytecode: 4,587,872 B, which is 380 B for E2 and leaves 52,128 B of NFR-PERF-002.
 - [ ] The owner approves the text, after the legal read.
 - [ ] **After the first real sign-in, at F2:** the owner looks at Authentication › Users, and the sentence about email is firmed up.
 

@@ -6,7 +6,7 @@ import { deleteAccount, downloadMyData, unpairPartner } from '../accountActions'
 import { DELETION_PENDING_KEY, isDeletionPending, setDeletionPending, setHasAccount, setSessionEnded, useAccountStore } from '../../../server/account';
 import { appStorage } from '../../../utils/appStorage';
 import { ensureMigrated } from '../../../utils/storageMigration';
-import { usePartnerGlance } from '../../../server/partnerGlance';
+import { glanceGeneration, usePartnerGlance } from '../../../server/partnerGlance';
 
 const mockFile = { create: jest.fn(), write: jest.fn(), delete: jest.fn(), uri: 'file:///cache/data.json' };
 jest.mock('expo-file-system', () => ({
@@ -160,6 +160,18 @@ describe('deleteAccount', () => {
         });
         await deleteAccount();
         expect(seen).toEqual({ keychainWhilePresent: true, homeWhilePresent: true });
+    });
+
+    it('drops a fetch started while it forgets: a stale answer must not forget a new account', async () => {
+        const seen: { during?: number; after?: number } = {};
+        mockDeletionCode.mockResolvedValue('code');
+        mockInvoke.mockResolvedValue({ status: 'ok' });
+        mockClearSession.mockImplementation(async () => {
+            seen.during = glanceGeneration();
+        });
+        await deleteAccount();
+        seen.after = glanceGeneration();
+        expect(seen.after).toBeGreaterThan(seen.during ?? Infinity);
     });
 
     it('still ends up solo when a step of forgetting fails: the account is already gone', async () => {

@@ -130,7 +130,7 @@ None.
 - [x] The groups: solo, paired and after unpairing; the order in Settings (`settingsAccount.test.tsx`); an ended session.
 - [x] With pairing on and no account, Settings evaluates no server code (`settingsAccount.test.tsx`), and with the flag off nothing draws (`settings.test.tsx`).
 - [x] After deletion, a foreground return makes no request and doesn't look like an ended session (`home.test.ts`, `accountActions.test.ts`), and a snapshot already on its way can't bring a partner back. A deletion whose answer was lost, by both signals, and the marker's life (`home.test.ts`, `accountActions.test.ts`).
-- [x] The guards, and the bytecode: 4,583,344 B, which is 23,108 B for D4 and leaves 56,656 B of NFR-PERF-002 for D5 and D6.
+- [x] The guards, and the bytecode: 4,583,552 B, which is 23,316 B for D4 and leaves 56,448 B of NFR-PERF-002 for D5 and D6.
 - [x] Deletion's server side is B3's pgTAP (`supabase/tests/functions.test.sql`): the partner keeps their history, your notes go, and they see you've gone.
 - [ ] **Needs a device, at Stage F's first build:** Apple's confirmation and a real `delete-account` call, whose code can only be spent once; what `home_snapshot` and a refresh really answer for a deleted account, since PostgREST accepting that JWT can't be tested here, though the marker's path reaches the same end if it refuses; what Apple's sheet does offline; the partner seeing you've gone; the share sheet saving to Files; the finish review on captures, at the largest text size and with VoiceOver.
 
@@ -147,7 +147,9 @@ None.
 - Two lines that misled: partner wording for someone with no partner, and offline at Apple's sheet reading as a failure.
 - `profile_tz_v1` surviving deletion, and a test the record cited that didn't prove the claim.
 
-**A narrow pass on `feae95f`:** six of the eight resolved, critique 32/40 (16/20), native audit 17/20, from code only, nothing Critical. It found two holes in the marker and three slips, all fixed after it and not re-read: an earlier lost answer cleared by a later failure; a snapshot clearing the marker mid-call; a stale `me: null` forgetting a new account; "You've unpaired" coming back; and "Add your name" for a name that simply wasn't known yet. **Its last disposition was "fix" on those.**
+**A narrow pass on `feae95f`:** seven of the eight resolved and one partial, at critique 32/40 and native audit 17/20. It found two holes in the marker and three slips: an earlier lost answer cleared by a later failure; a snapshot clearing the marker mid-call; a stale `me: null` forgetting a new account; "You've unpaired" coming back; and "Add your name" for a name that simply wasn't known yet. **A last pass on `9dada88`** confirmed those and scored **critique 33/40 (16.5/20) and native audit 17/20,** from code only, with nothing Critical on the HIG lens. It found one line left: a fetch started during the forget could still pass the generation check, so the generation moves again once the session has gone. **Its last disposition was "fix" on that line,** which went in after it, with a test, and hasn't been re-read.
+
+**Residuals it accepted:** a snapshot with `me`, started before the server finished and landing after the call was reported lost, can clear the marker, which matters only past the token's life, since `me === null` catches everything before that. And the rare false "deleted" in §3 is slightly wider, since a retry that fails keeps the marker up; the next snapshot with `me` clears it.
 
 **For the copy proof:** `en-US` renders "Paired Nov 5" where the brief writes "Paired 5 Nov", which is the app's existing habit. **For E2's privacy policy:** the export includes notes you received.
 

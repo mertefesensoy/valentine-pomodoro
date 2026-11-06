@@ -29,6 +29,10 @@ export async function forgetAccount(): Promise<void> {
     await attempt(() => appStorage.remove(PENDING_KEY));
     await attempt(() => appStorage.remove(LAST_TZ_KEY));
     await attempt(() => clearSession());
+    // Again, now the session has gone: a fetch started before this line is dropped, and one started after it finds no
+    // session. The first bump can't cover a fetch started since, say by a group remounting as the partner went, and a
+    // stale answer from this account must not forget a new one.
+    await attempt(() => clearPartner());
     setDeletionPending(false);
     setAccountNotice('deleted');
     setHasAccount(false);

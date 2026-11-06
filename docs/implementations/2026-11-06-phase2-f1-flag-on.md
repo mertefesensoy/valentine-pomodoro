@@ -31,7 +31,8 @@ Stages A to E built 1.5.0 behind a flag, so that `master` stayed releasable. A b
 | `src/constants/__tests__/features.test.ts` | It now checks the real values, with the flag on. |
 | `src/screens/__tests__/classic.test.tsx`, `classicWorstCase.test.tsx` | The Ring's idle line is the short one, beside the Pair line. |
 | `src/screens/__tests__/settings.test.tsx` | "With pairing off" becomes "with no account". |
-| Six suites that mock the flag | Each names both flags. |
+| `tourStoreAndPlacement`, `tourWorstCase`, `tutorialModel`, `tutorial15`, `partnerNotes`, `partnerStrip`, `settingsAccount` | Each suite that mocks the flag names both. |
+| `src/server/__tests__/soloLaunch.test.tsx` | It reads the real flags, so the proof of what a solo install does runs against what ships. |
 
 ## 3. Implementation Approach
 
@@ -41,7 +42,7 @@ Stages A to E built 1.5.0 behind a flag, so that `master` stayed releasable. A b
 
 **What ships is what's asserted.** The Ring's idle line and Settings are 1.5.0's real screens, so those tests changed to say what 1.5.0 shows. The tour's suites stay pinned to the shipped tour, as D5 did, because `tutorial15.test.tsx` covers the new one.
 
-**The entitlement.** `npx expo config --type introspect` already shows `com.apple.developer.applesignin` before this change, because `expo-apple-authentication`'s plugin adds it. `ios.usesAppleSignIn` is what the plan says, and it's what the Expo documentation asks for. Nothing has ever run Sign in with Apple on a device, so F2 is what proves it.
+**The entitlement.** `npx expo config --type introspect` already shows `com.apple.developer.applesignin` before this change, because `expo-apple-authentication`'s plugin adds it. The plan asks for `ios.usesAppleSignIn` too, and the output is the same with it. I didn't look for which of the two Expo's documentation prefers. Nothing has ever run Sign in with Apple on a device, so F2 is what proves it.
 
 **Left alone:** `tour.invite.lead` isn't used with the flag on, since the new step's lead brings the tour back to the Timer. It stays, since the flag-off tour is still tested, and the repository has no check for unused strings.
 

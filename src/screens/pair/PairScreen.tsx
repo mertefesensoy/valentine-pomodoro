@@ -36,6 +36,7 @@ import { PressableScale } from '../../components/ui/PressableScale';
 import { useWindowInsets } from '../../hooks/useWindowInsets';
 import { t } from '../../i18n';
 import { useAccountStore } from '../../server/account';
+import { usePartnerGlance } from '../../server/partnerGlance';
 import { fetchHome, HOME_KEY, homeClient } from '../../server/home';
 import { useTheme } from '../../theme/useTheme';
 import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
@@ -163,6 +164,9 @@ export default function PairScreen() {
     const present = useAccountStore((s) => s.present);
     const sessionEnded = useAccountStore((s) => s.sessionEnded);
     const signedIn = present && !sessionEnded;
+    // A session has ended for someone already paired: nothing is lost, and signing in just picks it up again.
+    const returning = present && sessionEnded;
+    const lastPartner = usePartnerGlance((s) => s.glance?.name) ?? t('pair.partner');
 
     const [step, setStep] = useState<Step>('pages');
     const [signingIn, setSigningIn] = useState(false);
@@ -280,12 +284,15 @@ export default function PairScreen() {
     const onSignIn = async () => {
         setSigningIn(true);
         setSignInProblem(null);
+        const wasReturning = returning;
         const result = await signIn();
         setSigningIn(false);
         if (result === 'cancelled') return;
         if (typeof result === 'object') {
             setTypedProblem(null);
             setCodeProblem(null);
+            // Back where they were, with the strip and its fresh values under the sheet.
+            if (wasReturning) leave();
             return;
         }
         const text = t(result === 'offline' ? 'pair.error.offline' : 'pair.error.signIn');
@@ -391,7 +398,7 @@ export default function PairScreen() {
     const head = (
         <View style={styles.head}>
             <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header" maxFontSizeMultiplier={1.6}>
-                {t('pair.title')}
+                {view === 'signin' && returning ? t('pair.returnTitle') : t('pair.title')}
             </Text>
             {/* PressableScale styles its inner view, so the corner is held out here, or its target would be empty. */}
             <View style={styles.closeCorner}>
@@ -435,12 +442,20 @@ export default function PairScreen() {
                     }
                     right={
                         <View style={styles.pageInner}>
-                            <Text style={[styles.who, { color: tokens.inkSoft }]}>{t('pair.partner')}</Text>
-                            <DashedCell />
+                            <Text style={[styles.who, { color: tokens.inkSoft }]} numberOfLines={2}>
+                                {returning ? lastPartner : t('pair.partner')}
+                            </Text>
+                            {returning ? (
+                                <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                                    <PoseSticker who="doro" pose="idle" width={STICKER} shadow={tokens.stickerShadow} />
+                                </View>
+                            ) : (
+                                <DashedCell />
+                            )}
                         </View>
                     }
                 />
-                <Text style={[styles.why, { color: tokens.ink }]}>{t('pair.why')}</Text>
+                <Text style={[styles.why, { color: tokens.ink }]}>{t(returning ? 'pair.returnWhy' : 'pair.why')}</Text>
                 {signingIn && <ActivityIndicator color={tokens.inkSoft} accessibilityLabel={t('pair.signingIn')} />}
                 {signInProblem && <Text style={[styles.problem, { color: tokens.ink }]}>{signInProblem}</Text>}
             </>

@@ -86,8 +86,10 @@
     "a11yStale": "{{name}}. {{updated}}",
     "gone": "You and {{name}} aren't paired any more.",
     "goneNoName": "You aren't paired any more.",
-    "signInAgain": "Sign in again to see your partner's day.",
-    "goal": "goal {{n}} min"
+    "signInAgain": "Sign in again to update your partner's day.",
+    "goal": "goal {{n}} min",
+    "a11yGoal_one": "goal {{count}} minute",
+    "a11yGoal_other": "goal {{count}} minutes"
   },
   "spread": {
     "you": "You",
@@ -426,6 +428,8 @@
     "signingIn": "Signing in",
     "keepCode": "Keep this code",
     "newCodeAsk": "Make a new code?",
-    "newCodeWhy": "The code you have stops working, even if you've already sent it."
+    "newCodeWhy": "The code you have stops working, even if you've already sent it.",
+    "returnTitle": "Sign in again",
+    "returnWhy": "You're still paired, and nothing is lost. Sign in to pick up where you left off."
   }
 }

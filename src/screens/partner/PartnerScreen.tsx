@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 
@@ -8,9 +8,13 @@ import { PressableScale } from '../../components/ui/PressableScale';
 import { t } from '../../i18n';
 import { usePartnerGlance } from '../../server/partnerGlance';
 import { useTheme } from '../../theme/useTheme';
+import { useWindowInsets } from '../../hooks/useWindowInsets';
 import { minTarget, space } from '../../theme/layout';
 import { partnerName, updatedText } from '../classic/PartnerStrip';
 import { PartnerCard } from './PartnerCard';
+
+/** Before the card has measured itself, a guess that's right for a phone and close for an iPad's sheet. */
+const MAX_SHEET_WIDTH = 500;
 
 /**
  * Your partner's day (Phase 2 D2; the brief and contract are `.impeccable/surfaces/app-partner-tsx.md`). A form sheet
@@ -20,7 +24,12 @@ import { PartnerCard } from './PartnerCard';
  */
 export default function PartnerScreen() {
     const { tokens } = useTheme();
-    const { width } = useWindowDimensions();
+    const { width, fontScale } = useWindowDimensions();
+    const insets = useWindowInsets();
+    const leftGutter = Math.max(insets.left, space.l);
+    const rightGutter = Math.max(insets.right, space.l);
+    // An iPad's form sheet is far narrower than its window, so the card plans from what it measures.
+    const [cardWidth, setCardWidth] = useState(Math.min(width, MAX_SHEET_WIDTH) - leftGutter - rightGutter);
     const glance = usePartnerGlance((s) => s.glance);
 
     const leave = () => {
@@ -37,9 +46,9 @@ export default function PartnerScreen() {
 
     return (
         // The library sizes a sheet's root scroll view to the whole sheet, so the sheet's paint reaches its bottom edge.
-        <ScrollView style={{ backgroundColor: tokens.page }} contentContainerStyle={styles.content} bounces={false}>
+        <ScrollView style={{ backgroundColor: tokens.page }} contentContainerStyle={[styles.content, { paddingLeft: leftGutter, paddingRight: rightGutter }]} bounces={false}>
             <View style={styles.head}>
-                <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header" numberOfLines={2} maxFontSizeMultiplier={1.6}>
+                <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header">
                     {partnerName(glance)}
                 </Text>
                 {/* PressableScale styles its inner view, so the corner is held out here, or its target would be empty. */}
@@ -55,14 +64,16 @@ export default function PartnerScreen() {
                     </PressableScale>
                 </View>
             </View>
-            <PartnerCard glance={glance} width={width - 2 * space.l} tokens={tokens} />
+            <View onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}>
+                <PartnerCard glance={glance} width={cardWidth} fontScale={fontScale} tokens={tokens} />
+            </View>
             {updated && <Text style={[styles.updated, { color: tokens.inkSoft }]}>{updated}</Text>}
         </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    content: { paddingHorizontal: space.l, paddingTop: space.m, paddingBottom: space.l, gap: space.m },
+    content: { paddingTop: space.m, paddingBottom: space.l, gap: space.m },
     head: { minHeight: minTarget, alignItems: 'center', justifyContent: 'center', paddingHorizontal: minTarget },
     title: { fontSize: 17, fontWeight: '600', textAlign: 'center' },
     closeCorner: { position: 'absolute', right: 0, top: 4 },

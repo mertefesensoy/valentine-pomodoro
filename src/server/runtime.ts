@@ -1,6 +1,7 @@
 import { AppState } from 'react-native';
 import { reportToday, startDayReports } from './dayReports';
 import { homeRestored, refreshHome } from './home';
+import { touchGlance } from './partnerGlance';
 import { syncTimeZone } from './timeZone';
 
 /**
@@ -27,6 +28,9 @@ export function startPairedRuntime(): void {
     // After the cache is restored, so a refresh can't race the last known values.
     void homeRestored.then(refreshAll).catch(() => {});
     AppState.addEventListener('change', (state) => {
-        if (state === 'active') void refreshAll().catch(() => {});
+        if (state !== 'active') return;
+        // First: an idle Timer doesn't re-render by itself, and with no network the refresh below changes nothing.
+        touchGlance();
+        void refreshAll().catch(() => {});
     });
 }

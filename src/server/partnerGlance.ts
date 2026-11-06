@@ -64,6 +64,15 @@ export function syncGlance(snapshot: HomeSnapshot, now: number = Date.now()): vo
     if (glance) store({ glance: null, gone: { name: glance.name } });
 }
 
+/**
+ * The clock has moved, though nothing else has: the app has come back, and any refresh may fail. Publishes the same
+ * values as a new object, so the strip looks again at whether "today" still holds. No side effects past the store.
+ */
+export function touchGlance(): void {
+    const { glance } = usePartnerGlance.getState();
+    if (glance) usePartnerGlance.setState({ glance: { ...glance } });
+}
+
 /** The "aren't paired any more" line has been seen. */
 export function dismissGone(): void {
     store({ glance: usePartnerGlance.getState().glance, gone: null });

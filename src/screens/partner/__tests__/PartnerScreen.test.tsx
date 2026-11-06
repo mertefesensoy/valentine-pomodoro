@@ -49,6 +49,25 @@ describe('their day', () => {
         expect(screen.getByTestId('partner-cells').children).toHaveLength(3);
     });
 
+    it('owes nothing on a day that\'s over, past midnight with no refresh', async () => {
+        await open(glance({ fetchedAt: Date.now() - 2 * 24 * 3_600_000 }));
+        expect(screen.getByTestId('partner-cells').children).toHaveLength(3);
+    });
+
+    it('speaks in full words, since "min" doesn\'t read well aloud', async () => {
+        await open(glance());
+        expect(screen.getByLabelText(/, 3 sessions, 75 minutes, goal 100 minutes$/)).toBeOnTheScreen();
+    });
+
+    it('plans its row from what it measures, for an iPad\'s narrow sheet', async () => {
+        await open(glance({ today: { ...today, sessions: 7, goal_hit: true } }));
+        const wide = screen.getByTestId('partner-cells').children.length;
+        await act(async () => {
+            fireEvent(screen.getByTestId('partner-cells').parent!.parent!, 'layout', { nativeEvent: { layout: { width: 160 } } });
+        });
+        expect(screen.getByTestId('partner-cells').children.length).toBeLessThanOrEqual(wide);
+    });
+
     it('drops the goal from the line when theirs is off', async () => {
         await open(glance({ today: { ...today, goal_minutes: null } }));
         expect(screen.getByText('3 sessions · 75 min')).toBeOnTheScreen();

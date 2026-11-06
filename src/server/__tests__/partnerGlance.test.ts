@@ -1,6 +1,6 @@
 // covers: FR-PAR-003, FR-ACC-001
 // The small summary the Timer's strip reads (Phase 2 D2).
-import { dismissGone, GLANCE_KEY, isGlanceStale, syncGlance, usePartnerGlance } from '../partnerGlance';
+import { dismissGone, GLANCE_KEY, isGlanceStale, syncGlance, touchGlance, usePartnerGlance } from '../partnerGlance';
 import type { HomeSnapshot } from '../types';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import { appStorage } from '../../utils/appStorage';
@@ -73,6 +73,21 @@ describe('dismissGone', () => {
         dismissGone();
         expect(usePartnerGlance.getState().gone).toBeNull();
         expect(JSON.parse(appStorage.getString(GLANCE_KEY) ?? '{}').gone).toBeNull();
+    });
+});
+
+describe('touchGlance', () => {
+    it('publishes the same values as a new object, so the strip looks again', () => {
+        syncGlance(snapshot({ couple, partner, partner_today: today }), 1000);
+        const before = usePartnerGlance.getState().glance;
+        touchGlance();
+        expect(usePartnerGlance.getState().glance).not.toBe(before);
+        expect(usePartnerGlance.getState().glance).toEqual(before);
+    });
+
+    it('does nothing for someone with no partner', () => {
+        touchGlance();
+        expect(usePartnerGlance.getState().glance).toBeNull();
     });
 });
 

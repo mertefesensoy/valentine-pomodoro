@@ -86,8 +86,10 @@
     "a11yStale": "{{name}}. {{updated}}",
     "gone": "{{name}} ile artık eşli değilsiniz.",
     "goneNoName": "Artık eşli değilsiniz.",
-    "signInAgain": "Partnerinin gününü görmek için yeniden giriş yap.",
-    "goal": "hedef {{n}} dk"
+    "signInAgain": "Partnerinin gününü güncellemek için yeniden giriş yap.",
+    "goal": "hedef {{n}} dk",
+    "a11yGoal_one": "hedef {{count}} dakika",
+    "a11yGoal_other": "hedef {{count}} dakika"
   },
   "spread": {
     "you": "Sen",
@@ -426,6 +428,8 @@
     "signingIn": "Giriş yapılıyor",
     "keepCode": "Bu kodu tut",
     "newCodeAsk": "Yeni kod oluşturulsun mu?",
-    "newCodeWhy": "Elindeki kod, göndermiş olsan bile çalışmaz olur."
+    "newCodeWhy": "Elindeki kod, göndermiş olsan bile çalışmaz olur.",
+    "returnTitle": "Yeniden giriş yap",
+    "returnWhy": "Hâlâ eşlisiniz ve hiçbir şey kaybolmadı. Kaldığın yerden devam etmek için giriş yap."
   }
 }

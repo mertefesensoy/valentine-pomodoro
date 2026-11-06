@@ -7,6 +7,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react-n
 import PairScreen from '../PairScreen';
 import { CODE_WIDTH, cellScaleFor } from '../CodeCells';
 import { useAccountStore } from '../../../server/account';
+import { usePartnerGlance } from '../../../server/partnerGlance';
 import { space, edgeWidth } from '../../../theme/layout';
 
 jest.setTimeout(30_000);
@@ -169,6 +170,29 @@ describe('before sign-in', () => {
         await open({ signedIn: true, sessionEnded: true });
         expect(screen.getByText('Continue with Apple')).toBeOnTheScreen();
         expect(screen.queryByText('You and Deniz are on the same page.')).toBeNull();
+    });
+
+    it('tells someone whose session ended that they\'re still paired, and closes itself once signed in', async () => {
+        const { router } = jest.requireMock<{ router: { back: jest.Mock } }>('expo-router');
+        router.back.mockClear();
+        mockSignIn.mockImplementation(async () => {
+            useAccountStore.setState({ sessionEnded: false });
+            return { needsName: false };
+        });
+        await act(async () => usePartnerGlance.setState({
+            glance: { coupleId: 'c', name: 'Deniz', today: null, updatedAt: null, fetchedAt: 0 },
+            gone: null,
+        }));
+        await open({ signedIn: true, sessionEnded: true });
+        expect(screen.getByText('Sign in again')).toBeOnTheScreen();
+        expect(screen.getByText(/You're still paired/)).toBeOnTheScreen();
+        expect(screen.getByText('Deniz')).toBeOnTheScreen();
+        expect(screen.queryByText('Pair with your partner')).toBeNull();
+
+        await fireEvent.press(screen.getByText('Continue with Apple'));
+        await flush();
+        expect(router.back).toHaveBeenCalled();
+        await act(async () => usePartnerGlance.setState({ glance: null, gone: null }));
     });
 });
 

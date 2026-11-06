@@ -64,19 +64,19 @@ export function partnerLabel(glance: PartnerGlance, now?: number): string {
  * Their day in a line: up to three stickers, then "+n", and "75 min today". Past this phone's midnight with no
  * refresh, when it was updated instead. No motion: the values just change when a refresh lands.
  */
-export function PartnerDay({ glance, tokens }: { glance: PartnerGlance; tokens: ThemeTokens }) {
+export function PartnerDay({ glance, tokens, centered = false }: { glance: PartnerGlance; tokens: ThemeTokens; centered?: boolean }) {
     const parts = dayParts(glance);
     if (parts.kind !== 'day') {
         const line = parts.kind === 'stale' ? parts.line : t('partner.nothingYet');
-        return <Text style={[styles.day, { color: tokens.inkSoft }]}>{line}</Text>;
+        return <Text style={[styles.day, centered && styles.centeredText, { color: tokens.inkSoft }]}>{line}</Text>;
     }
     const shown = Math.min(parts.sessions, MAX_STICKERS);
     return (
-        <View style={styles.dayRow}>
+        <View style={[styles.dayRow, centered && styles.centeredRow]}>
             {shown > 0 && (
                 <View style={styles.stickers} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
                     {Array.from({ length: shown }, (_, i) => (
-                        <Sticker key={i} art={i % 2 ? pomoCelebrating : doroCelebrating} width={DAY_STICKER} shadow={tokens.stickerShadow} />
+                        <Sticker key={i} art={i % 2 ? doroCelebrating : pomoCelebrating} width={DAY_STICKER} shadow={tokens.stickerShadow} />
                     ))}
                     {parts.sessions > MAX_STICKERS && (
                         <View style={[styles.more, { backgroundColor: tokens.primarySoft }]}>
@@ -87,7 +87,7 @@ export function PartnerDay({ glance, tokens }: { glance: PartnerGlance; tokens: 
                     )}
                 </View>
             )}
-            <Text style={[styles.day, styles.dayText, { color: tokens.ink }]}>
+            <Text style={[styles.day, { color: tokens.inkSoft }]}>
                 {t('partner.minToday', { count: parts.minutes, n: formatNumber(parts.minutes) })}
             </Text>
         </View>
@@ -95,8 +95,8 @@ export function PartnerDay({ glance, tokens }: { glance: PartnerGlance; tokens: 
 }
 
 /** A quiet line under the strip's content, for a partner who's gone or a session that has ended. */
-export function PartnerNotice({ text, tokens }: { text: string; tokens: ThemeTokens }) {
-    return <Text style={[styles.notice, { color: tokens.inkSoft }]}>{text}</Text>;
+export function PartnerNotice({ text, tokens, centered = false }: { text: string; tokens: ThemeTokens; centered?: boolean }) {
+    return <Text style={[styles.notice, centered && styles.centeredText, { color: tokens.inkSoft }]}>{text}</Text>;
 }
 
 /**
@@ -147,10 +147,11 @@ const styles = StyleSheet.create({
     },
     text: { flex: 1, gap: space.xs / 2 },
     name: { fontSize: 17, fontWeight: '600' },
-    dayRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: space.xs },
+    dayRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: space.s },
+    centeredRow: { justifyContent: 'center' },
+    centeredText: { textAlign: 'center' },
     stickers: { flexDirection: 'row', alignItems: 'center', gap: 2 },
     day: { fontSize: 14, lineHeight: 19 },
-    dayText: { fontWeight: '500' },
     more: { borderRadius: radius.s, paddingHorizontal: space.xs, paddingVertical: 1 },
     moreText: { fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'] },
     notice: { fontSize: 13, lineHeight: 18, marginTop: space.xs / 2 },

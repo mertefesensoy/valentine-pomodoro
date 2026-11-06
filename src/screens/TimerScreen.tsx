@@ -499,8 +499,9 @@ export default function TimerScreen() {
     if (goneLine) dismissGone();
     if (idle) router.push('/pair');
   };
-  // Apple's button when the session has ended, and signing in finds the couple on the server.
-  const openPartner = () => router.push(sessionEnded ? '/pair' : '/partner');
+  // Apple's button when the session has ended, and signing in finds the couple on the server. Not while a session
+  // runs: nothing else competes then, and their last known day is still there to read.
+  const openPartner = () => router.push(sessionEnded && idle ? '/pair' : '/partner');
 
   // The partner who wasn't holding the sheet finds out at a refresh, and gets the morph once, on the Timer, when
   // nothing is running. Any sheet over the Timer unfocuses it, so the phone that pressed Pair can't open a second.
@@ -524,14 +525,15 @@ export default function TimerScreen() {
           glance
             ? {
                 name: partnerName(glance),
-                day: <PartnerDay glance={glance} tokens={tokens} />,
+                day: <PartnerDay glance={glance} tokens={tokens} centered />,
                 label: notice ? `${partnerLabel(glance)}. ${notice}` : partnerLabel(glance),
                 hint: notice ? undefined : t('partner.opensDay'),
                 onPress: openPartner,
               }
             : undefined
         }
-        notice={notice ? <PartnerNotice text={notice} tokens={tokens} /> : undefined}
+        notice={notice ? <PartnerNotice text={notice} tokens={tokens} centered /> : undefined}
+        onDismissNotice={goneLine ? dismissGone : undefined}
       >
         {timer(56)}
         {subLine}
@@ -561,7 +563,7 @@ export default function TimerScreen() {
         </View>
       </View>
       <View style={styles.partnerText}>
-        <Text style={[styles.partnerLine, { color: tokens.ink }]}>{t(partnerLine)}</Text>
+        <Text style={[styles.partnerLine, showPair && styles.partnerLineWithPair, { color: tokens.ink }]}>{t(partnerLine)}</Text>
         {showPair && <Text style={[styles.pairLine, { color: tokens.primaryInk }]}>{t('partner.pair')}</Text>}
         {goneLine && <PartnerNotice text={goneLine} tokens={tokens} />}
       </View>
@@ -569,7 +571,9 @@ export default function TimerScreen() {
   );
   const stripStyle = [styles.partner, { backgroundColor: tokens.paper, borderColor: tokens.edge }];
   const partner = layout === 'ring' ? (
-    <View onLayout={(e) => measured('partner', e)} testID="partner-strip">
+    // It has to stretch itself: `styles.centre` centres its children, and the strip's own `alignSelf` only stretches
+    // it inside this view.
+    <View style={styles.partnerSlot} onLayout={(e) => measured('partner', e)} testID="partner-strip">
       {glance ? (
         <PartnerStrip glance={glance} notice={notice} onPress={openPartner} tokens={tokens} />
       ) : showPair || goneLine ? (
@@ -854,6 +858,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  partnerSlot: {
+    alignSelf: 'stretch',
+  },
   partner: {
     alignSelf: 'stretch',
     flexDirection: 'row',
@@ -880,8 +887,14 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
   },
+  // With the Pair line beneath it, as the frame draws them, so the strip stays at its 72 pt and the Ring doesn't move.
+  partnerLineWithPair: {
+    fontSize: 14,
+    lineHeight: 19,
+  },
   pairLine: {
     fontSize: 15,
+    lineHeight: 20,
     fontWeight: '600',
   },
 });

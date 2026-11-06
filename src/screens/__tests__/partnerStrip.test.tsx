@@ -1,13 +1,13 @@
 // covers: FR-PAR-003, FR-PAR-002
 // The Timer's strip once pairing is on (Phase 2 D2): your partner, the solo line, a partner gone and a session ended.
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { Dimensions } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import { useAccountStore } from '../../server/account';
-import { usePartnerGlance, type PartnerGlance } from '../../server/partnerGlance';
+import { touchGlance, usePartnerGlance, type PartnerGlance } from '../../server/partnerGlance';
 import { StoreGate } from '../../stores/StoreGate';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { partnerLabel, updatedText } from '../classic/PartnerStrip';
@@ -86,6 +86,18 @@ afterEach(async () => {
     });
 });
 
+describe('the slot on the Timer', () => {
+    // Jest doesn't lay out, so this pins the cause: `styles.centre` centres its children, and without this the
+    // strip shrinks to its sticker, with its text at no width at all.
+    it.each([
+        ['solo', {}],
+        ['paired', { partner: glance() }],
+    ])('stretches across the column when %s', async (_name, options) => {
+        await show(options);
+        expect(StyleSheet.flatten(screen.getByTestId('partner-strip').props.style).alignSelf).toBe('stretch');
+    });
+});
+
 describe('paired', () => {
     it('shows their name, stickers and minutes, with no tap', async () => {
         await show({ partner: glance() });
@@ -142,6 +154,16 @@ describe('paired', () => {
         expect(partnerLabel(glance(), NOW)).toBe('Deniz, 3 sessions, 75 minutes today');
     });
 
+    it('notices past midnight on returning to the app, with the Timer already on screen', async () => {
+        await show({ partner: glance() });
+        expect(screen.getByText('75 min today')).toBeOnTheScreen();
+
+        clock.mockReturnValue(new Date('2026-11-07T00:30:00').getTime());
+        await act(async () => touchGlance());
+        expect(screen.queryByText('75 min today')).toBeNull();
+        expect(screen.getByText('Updated 12 hours ago')).toBeOnTheScreen();
+    });
+
     it('falls back to a word when they have no name yet', async () => {
         await show({ partner: glance({ name: null }) });
         expect(screen.getByText('Your partner')).toBeOnTheScreen();
@@ -168,13 +190,22 @@ describe('when a partner has gone', () => {
         await show({ gone: { name: null } });
         expect(screen.getByText("You aren't paired any more.")).toBeOnTheScreen();
     });
+
+    it('can be tapped away on Facing Pages too', async () => {
+        await show({ gone: { name: 'Deniz' } });
+        await act(async () => useSettingsStore.getState().updateSettings({ classicLayout: 'spread' }));
+        await act(async () => {});
+        await fireEvent.press(screen.getByRole('button', { name: "You and Deniz aren't paired any more." }));
+        expect(usePartnerGlance.getState().gone).toBeNull();
+        expect(push).not.toHaveBeenCalled();
+    });
 });
 
 describe('when a session has ended', () => {
     it('keeps the last known values, offers to sign in again, and opens Apple\'s button', async () => {
         await show({ partner: glance(), sessionEnded: true });
         expect(screen.getByText('75 min today')).toBeOnTheScreen();
-        expect(screen.getByText("Sign in again to see your partner's day.")).toBeOnTheScreen();
+        expect(screen.getByText("Sign in again to update your partner's day.")).toBeOnTheScreen();
         await fireEvent.press(screen.getByRole('button', { name: /Sign in again/ }));
         expect(push).toHaveBeenCalledWith('/pair');
     });

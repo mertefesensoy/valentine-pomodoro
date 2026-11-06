@@ -14,6 +14,7 @@ import { useTheme } from '../../theme/useTheme';
 import { useWindowInsets } from '../../hooks/useWindowInsets';
 import { minTarget, space } from '../../theme/layout';
 import { partnerName, updatedText } from '../classic/PartnerStrip';
+import { useTourMoveOnClose } from '../tutorial/useTour';
 import { ButtonRow, ListGroup } from '../../components/settings/SettingsList';
 import { NoteComposer } from './NoteComposer';
 import { PartnerCard } from './PartnerCard';
@@ -29,6 +30,7 @@ const MAX_SHEET_WIDTH = 500;
  */
 export default function PartnerScreen() {
     const { tokens } = useTheme();
+    useTourMoveOnClose();
     const { width, fontScale } = useWindowDimensions();
     const insets = useWindowInsets();
     const leftGutter = Math.max(insets.left, space.l);

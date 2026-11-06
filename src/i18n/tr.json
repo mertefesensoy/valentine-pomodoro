@@ -405,7 +405,8 @@
     },
     "v15": {
       "pair": "Yeni! Partnerin varsa burada eşleşin, gününüzü paylaşın.",
-      "notes": "Sonra notlar da yazın, odak bitince görünür."
+      "notes": "Sonra notlar da yazın, odak bitince görünür.",
+      "notesPaired": "Notlarınız odak bitince görünür."
     }
   },
   "pair": {

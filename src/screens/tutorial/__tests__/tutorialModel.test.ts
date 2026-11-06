@@ -50,6 +50,12 @@ function referenceWriteOn(): (text: string, who: 'pomo' | 'doro') => { chars: nu
     return (window.TourMotion as { writeOn: ReturnType<typeof referenceWriteOn> }).writeOn;
 }
 
+// The tour as v1.4 shipped it. tutorial15.test.tsx covers it with pairing on.
+jest.mock('../../../constants/features', () => ({
+    ...jest.requireActual('../../../constants/features'),
+    PAIRING_ENABLED: false,
+}));
+
 describe('how a line is spoken (assets record §3.4, §4.4)', () => {
     it('uses the approved pace', () => {
         expect(CHAR_MS).toBe(motion.talk.charMs);

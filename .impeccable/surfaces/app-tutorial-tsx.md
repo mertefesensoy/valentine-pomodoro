@@ -151,6 +151,7 @@ Surface brief from `/impeccable shape`, Phase 1 D5 (Stage D plan §3.9), 2026-11
   - NativeTabs is iOS's own tab bar controller, so the bar stays on top, lit and tappable, and a tap on a tab is the real one.
   - An opening on an in-screen control is a four-panel dim with nothing over the hole, so the tap reaches the real control.
   - At the Modes step, the Modes sheet hosts its own bubble.
+- **1.5, Phase 2 D5, 2026-11-06 (the owner: "Two steps, as described (Recommended)"):** two steps at the partner strip for people updating, and one more in the general tour before the last, with the pair still taking turns. The strip's opening is live, so its press can reach Sign in with Apple. The anti-goal below of "no permission prompt or sign-in inside the tour" still holds in the sense that matters: the tour never asks, and it's only ever the person's own press. Closing that sheet moves the tour on, as Modes does.
 - **Six steps (T-11):**
   1. hello and the presets;
   2. today's row;

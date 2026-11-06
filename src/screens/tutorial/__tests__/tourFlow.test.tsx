@@ -23,6 +23,13 @@ import { Opening } from '../TourLayer';
 jest.useFakeTimers();
 jest.setTimeout(30_000);
 
+// The tour as v1.4 shipped it. tutorial15.test.tsx covers it with pairing on.
+jest.mock('../../../constants/features', () => ({
+    ...jest.requireActual('../../../constants/features'),
+    PAIRING_ENABLED: false,
+}));
+
+
 jest.mock('expo-notifications', () => ({
     ...jest.requireActual('expo-notifications'),
     getPermissionsAsync: jest.fn(async () => ({ granted: false })),

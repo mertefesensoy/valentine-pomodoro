@@ -213,7 +213,8 @@ export const VERSION_1_5: Tutorial = {
                 screen: 'timer',
                 target: { opening: 'partner' },
                 face: 'happy',
-                line: () => ({ key: 'tour.v15.notes' }),
+                // Pairing is what the step before suggests, and its opening is live.
+                line: (c) => ({ key: c.paired ? 'tour.v15.notesPaired' : 'tour.v15.notes' }),
             },
         },
     ],

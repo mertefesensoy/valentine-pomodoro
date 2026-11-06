@@ -405,7 +405,8 @@
     },
     "v15": {
       "pair": "New! Pair with your partner here, and see each other's day.",
-      "notes": "Then you can leave each other notes. They appear after a focus."
+      "notes": "Then you can leave each other notes. They appear after a focus.",
+      "notesPaired": "Your notes to each other appear after a focus."
     }
   },
   "pair": {

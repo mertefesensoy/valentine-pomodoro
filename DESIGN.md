@@ -412,6 +412,8 @@ iOS Settings, drawn in the diary's stationery.
 - **Rows:** at least 44 pt, 8 / 16 pt padding, label 17 pt `ink`. Native controls only: the system switch (`primary` track), the system wheel under a value row (one open at a time; the value turns `primaryInk` while open), the compact time picker tinted `primaryInk`. An action row is `primaryInk`, a destructive one `dangerInk`; a pressed row takes `field`. No bounded number is ever typed.
 - At AX sizes a row wraps, its value or control dropping under its label rather than truncating.
 - Stats and Notes reuse the same group and action row for their few actions (Start a session, Turn on the goal, Preview, Restore).
+- **Your partner and Account** (Phase 2 D4), only with pairing on. Your partner comes first once paired, and after Love notes while solo, where it's one action row to pair. Account follows it whenever there's an account, including after unpairing: your name, which opens the system's prompt, "Using Sign in with Apple", Download my data, and Delete account. Unpair and Delete ask first in a native alert naming what goes and what stays, and Delete then goes through Apple's own confirmation. While a call is on its way the rows are dimmed and disabled. With a session that has ended, the rows lead to signing in, and the footer says that deleting is on the other side of it.
+- **A line at the top** of the list, 15 / 20 pt, under the title and scrolled to, says what just happened once the groups have moved or gone: "Your account is deleted…" or "You've unpaired…". It lasts until the app next starts or a couple arrives.
 - **Language** (D3) is a group holding the segmented control (System, English, Türkçe), stored at once and applied at the next launch. About carries "Watch the welcome again" and "Watch the tour again".
 
 ### Notes
@@ -450,7 +452,7 @@ Phase 2 D2. **Nothing moves when you pair.** The strip keeps its place and its 7
 
 ### The tour (first run)
 
-Pomo & Doro show you around in six steps over the real Timer, Stats and Notes, marking your place with the diary's strawberry ribbon (choreography in the motion table).
+Pomo & Doro show you around in six steps over the real Timer, Stats and Notes, marking your place with the diary's strawberry ribbon (choreography in the motion table). With pairing on it's seven: a step at the partner strip comes before the last, and the last goes to Pomo, so they keep taking turns. Each feature version also has its own short tour for people updating; 1.5's is two steps at the strip, with the same poses and voices.
 
 - **The dim:** `scrim` over everything but one opening, which stays lit and live: four touch-blocking panels and four corner masks, with nothing over the hole, so a tap there is the real control's. On a tab step the whole page dims.
 - **The bookmark ribbon:** hangs from beyond the top edge and drapes to the control, its swallowtail pointing at it; on a tab step, to just above the tab. Decoration: no touches, hidden from VoiceOver.

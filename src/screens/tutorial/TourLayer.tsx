@@ -48,6 +48,8 @@ export type TourTargetSpec = {
      */
     a11y?: {
         label: string;
+        /** What pressing it does, when the label doesn't say. */
+        hint?: string;
         /** `text` for a region (today's row, the week): read, not acted on (review C-1). */
         role: 'button' | 'adjustable' | 'text';
         value?: string;
@@ -625,6 +627,7 @@ export function Opening({ rect, a11y }: { rect: Rect; a11y: NonNullable<TourTarg
             accessible
             accessibilityRole={a11y.role}
             accessibilityLabel={a11y.label}
+            accessibilityHint={a11y.hint}
             accessibilityValue={a11y.value ? { text: a11y.value } : undefined}
             accessibilityActions={actions}
             onAccessibilityAction={onAction}

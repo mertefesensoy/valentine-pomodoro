@@ -1,7 +1,7 @@
 // covers: FR-ONB-002, FR-ONB-001
 // The 1.5 tutorial, and pairing in the general one (Phase 2 D5).
 import { Dimensions } from 'react-native';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, renderHook, screen } from '@testing-library/react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { resetStorage } from '../../../__fixtures__/storage/resetStorage';
@@ -10,9 +10,11 @@ import { usePartnerGlance } from '../../../server/partnerGlance';
 import { StoreGate } from '../../../stores/StoreGate';
 import en from '../../../i18n/en.json';
 import tr from '../../../i18n/tr.json';
-import { save, STORAGE_KEYS } from '../../../utils/storage';
+import { loadSync, save, STORAGE_KEYS } from '../../../utils/storage';
+import { useSettingsStore } from '../../../stores/settingsStore';
 import TimerScreen from '../../TimerScreen';
-import { currentStep, useTourStore } from '../tourStore';
+import { currentBeat, currentStep, isLastBeat, useTourStore } from '../tourStore';
+import { useTourMoveOnClose } from '../useTour';
 import { GENERAL, TUTORIALS, VERSION_1_5, dueTutorial, latestTutorialVersion, withPairStep, type LineContext } from '../tutorials';
 
 jest.useFakeTimers();
@@ -110,10 +112,12 @@ describe('the steps', () => {
     });
 
     it('brings its own lead back to the Timer, so the last step needs none', () => {
-        const steps = withPairStep(GENERAL.steps.slice(0, 5).concat(GENERAL.steps[6]));
+        const invite = { ...GENERAL.steps[6], speaker: 'doro' as const, lead: GENERAL.steps[5].lead };
+        const steps = withPairStep(GENERAL.steps.slice(0, 5).concat(invite));
         expect(steps[5].lead?.screen).toBe('notes');
         expect(steps[5].here.screen).toBe('timer');
         expect(steps[6].lead).toBeUndefined();
+        expect(steps[6].speaker).toBe('pomo');
     });
 
     it('has two steps in the 1.5 tour, taking turns, both at the strip', () => {
@@ -137,7 +141,7 @@ describe('the steps', () => {
                 }
             }
         }
-        expect(lines.size).toBe(5);
+        expect(lines.size).toBe(6);
         for (const [tree, budget] of [[en, 90], [tr, 110]] as const) {
             for (const [key, names] of lines) {
                 const text = lookup(tree, key);
@@ -172,6 +176,110 @@ describe('on the Timer, updating from 1.4', () => {
         });
         expect(useTourStore.getState().run).toBeNull();
         expect(useTourStore.getState().seen).toBe('1.5');
+    });
+});
+
+const stored = () => loadSync<Record<string, unknown> | null>(STORAGE_KEYS.TUTORIAL, null);
+
+describe('walking the general tour', () => {
+    it('goes from Notes back to the Timer for the new step, then to the invitation', async () => {
+        await save(STORAGE_KEYS.TUTORIAL, {});
+        useTourStore.getState().hydrate();
+        useTourStore.getState().start({ replay: false });
+        const walk = () => {
+            const run = useTourStore.getState().run!;
+            return `${currentStep(run)?.id}:${run.beat}:${currentBeat(run)?.screen}`;
+        };
+        const seen = [walk()];
+        for (let i = 0; i < 20 && !isLastBeat(useTourStore.getState().run!); i++) {
+            useTourStore.getState().next();
+            seen.push(walk());
+        }
+        expect(seen.slice(-5)).toEqual(['notes:lead:stats', 'notes:here:notes', 'pair:lead:notes', 'pair:here:timer', 'invite:here:timer']);
+        useTourStore.setState({ run: null });
+    });
+});
+
+describe('a kill part-way through', () => {
+    const kill = () => useTourStore.setState({ run: null });
+
+    it('keeps what was seen, so someone updating isn\'t made a first-timer, and resumes once', async () => {
+        await save(STORAGE_KEYS.TUTORIAL, { seen: '1.4' });
+        useTourStore.getState().hydrate();
+        useTourStore.getState().start({ replay: false });
+        expect(stored()).toEqual({ seen: '1.4', resumeAt: 0 });
+        useTourStore.getState().next();
+        expect(stored()).toEqual({ seen: '1.4', resumeAt: 1 });
+
+        kill();
+        useTourStore.getState().hydrate();
+        expect(useTourStore.getState().seen).toBe('1.4');
+        useTourStore.getState().start({ replay: false });
+        expect(currentStep(useTourStore.getState().run!)?.id).toBe('pairNotes');
+
+        // Killed again: that was its one resume, so it counts as seen and never nags.
+        kill();
+        useTourStore.getState().hydrate();
+        expect(useTourStore.getState().seen).toBe('1.5');
+        useTourStore.getState().start({ replay: false });
+        expect(useTourStore.getState().run).toBeNull();
+    });
+
+    it('resumes someone mid-way through the shipped six-step tour on a step, adding one and skipping none', async () => {
+        await save(STORAGE_KEYS.TUTORIAL, { resumeAt: 5 });
+        useTourStore.getState().hydrate();
+        useTourStore.getState().start({ replay: false });
+        const run = useTourStore.getState().run!;
+        expect(currentStep(run)?.id).toBe('pair');
+        // On the Timer, its tab was never pressed, so its lead would show nothing there.
+        expect(run.beat).toBe('here');
+        kill();
+    });
+});
+
+describe('closing a sheet the strip opened', () => {
+    it('moves on from the step that suggested it, so it isn\'t said again', async () => {
+        await save(STORAGE_KEYS.TUTORIAL, { seen: '1.4' });
+        useTourStore.getState().hydrate();
+        useTourStore.getState().start({ replay: false });
+        const { unmount } = await renderHook(() => useTourMoveOnClose());
+        await unmount();
+        expect(currentStep(useTourStore.getState().run!)?.id).toBe('pairNotes');
+        useTourStore.setState({ run: null });
+    });
+
+    it('leaves the last step alone, where moving on would end the tour', async () => {
+        await save(STORAGE_KEYS.TUTORIAL, { seen: '1.4' });
+        useTourStore.getState().hydrate();
+        useTourStore.getState().start({ replay: false });
+        useTourStore.getState().next();
+        const { unmount } = await renderHook(() => useTourMoveOnClose());
+        await unmount();
+        expect(currentStep(useTourStore.getState().run!)?.id).toBe('pairNotes');
+        useTourStore.setState({ run: null });
+    });
+});
+
+describe('someone already paired', () => {
+    const glance = { coupleId: 'c', name: 'Deniz', today: null, updatedAt: null, fetchedAt: Date.now() };
+
+    it.each(['ring', 'spread'] as const)('says the strip is them, then doesn\'t repeat itself, on %s', async (classicLayout) => {
+        await save(STORAGE_KEYS.TUTORIAL, { seen: '1.4' });
+        await act(async () => {
+            useAccountStore.setState({ present: true });
+            usePartnerGlance.setState({ glance });
+        });
+        await show();
+        await act(async () => useSettingsStore.getState().updateSettings({ classicLayout }));
+        await settle();
+        expect(screen.getByLabelText(/Pomo: This is your partner's day/)).toBeOnTheScreen();
+        await act(async () => {
+            await fireEvent.press(screen.getByText('Next'));
+        });
+        await settle();
+        expect(screen.getByLabelText('Doro: Your notes to each other appear after a focus.')).toBeOnTheScreen();
+        await act(async () => useSettingsStore.getState().updateSettings({ classicLayout: 'ring' }));
+        useTourStore.setState({ run: null });
     });
 });
 

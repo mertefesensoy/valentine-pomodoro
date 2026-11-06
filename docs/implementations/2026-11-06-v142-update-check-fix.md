@@ -1,6 +1,6 @@
 # 2026-11-06 — 1.4.2: the update check finds new versions when they're out
 
-**Status:** In progress (the plan; the code follows)
+**Status:** In progress: build 62 is on TestFlight, and the device check is next
 **Branch:** `fix/1.4.2-update-check`, from tag `v1.4.1` ([BRANCHING.md](../process/BRANCHING.md) rule 4)
 
 ---
@@ -105,8 +105,12 @@ Physical-device steps are marked.
 
 **After the push** (each on the owner's word):
 
-- [ ] CI green on the build's exact commit (NFR-REL-003).
-- [ ] The EAS build, TestFlight upload and tag `v1.4.2-tf.<n>`.
+- [x] CI green on the build's exact commit, `e76d6bd`: run 42147516368, with typecheck, lint, unit tests, contrast and docs all passing (NFR-REL-003). `release/1.4.2` is deleted.
+- [x] Version 1.4.2 built and on TestFlight, tagged:
+  - EAS build `f71942e6-827d-44c2-aa50-501516c0e641`, iOS build 62, created 2026-11-06T02:34:16Z, finished 02:40:52Z.
+  - Submission `13012651-6c1e-4f03-a5c5-7b540dbdfb1f`; the CLI reported the upload to App Store Connect as successful.
+  - Tag `v1.4.2-tf.62` on `e76d6bd`, pushed.
+  - IPA 21,618,493 B, +478 B on build 61.
 - [ ] **Physical device:** installed over the store version, the app opens and its data is intact. The button says "up to date (1.4.2)", since the store is behind it. In Airplane Mode the button says it couldn't check. Start a timer, leave the app and return: the timer is unaffected.
 - [ ] **Physical device, at the next release:** on a phone with 1.4.2 and automatic updates off, the prompt appears within an hour of the release, and "Update" opens the listing correctly from a Turkish account.
 - [ ] **Physical device, at the next release:** leave the app suspended past 6 hours and return with no timer running: the prompt appears. Return with a timer running: nothing appears until a later return.

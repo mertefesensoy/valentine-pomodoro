@@ -1,6 +1,6 @@
 # 2026-11-06 — 1.4.2: the update check finds new versions when they're out
 
-**Status:** In progress: submitted on build 62, and App Review's answer is pending
+**Status:** Live on the App Store since 2026-11-06T19:20:03Z, on build 62. Two phone checks wait for the next release (§6)
 **Branch:** `fix/1.4.2-update-check`, from tag `v1.4.1` ([BRANCHING.md](../process/BRANCHING.md) rule 4)
 
 ---
@@ -112,7 +112,8 @@ Physical-device steps are marked.
   - Tag `v1.4.2-tf.62` on `e76d6bd`, pushed.
   - IPA 21,618,493 B, +478 B on build 61.
 - [x] **Physical device, build 62, 2026-11-06: passed, as reported by the owner.** Asked "Did build 62 pass the phone check?", the owner answered "Passed". The device and iOS version weren't reported. The check: installed over the store version, the app opens and its data is intact. The button says "up to date (1.4.2)", since the store is behind it. In Airplane Mode the button says it couldn't check. Start a timer, leave the app and return: the timer is unaffected.
-- [ ] 1.4.2 approved and live. **Submitted 2026-11-06** on build 62 (the owner: "Submitted"); App Review's answer is pending.
+- [x] 1.4.2 approved and live. Submitted 2026-11-06 on build 62 (the owner: "Submitted"), then the owner reported "It's live". Checked at 2026-11-06T19:58:51Z: cache-busted lookups by id, by bundle ID and with `country=tr` all return version 1.4.2, released 2026-11-06T19:20:03Z. The bare bundle ID URL, which phones on 1.4.1 and older call, returned it too from this machine, which says nothing about other CDN edges. Whether phased release was on wasn't reported. RELEASE.md's step 12 doesn't apply: this is iOS only, so `update.json` stays at 1.3.1.
+- [ ] Tag `v1.4.2` on `e76d6bd`, and the GitHub Release.
 - [x] The fix on `master`: [pull request #30](https://github.com/mertefesensoy/valentine-pomodoro/pull/30), the 1.5.0 session's, merged 2026-11-06T08:23:05Z as `3b7a2e1`. Checked here: `e76d6bd` is an ancestor of `master`, and `master`'s hook has the changing value and the timer guard. Reported by that session and not re-measured here: 1.5.0's bytecode with the fix in is 4,588,564 B, against its limit of 4,640,000 B, and NFR-PERF-002 keeps 1.4.2's 4,293,508 B in its history.
 - [ ] The records after `e76d6bd` on `master`, in their docs pull request, once 1.4.2 is live.
 - [ ] **Physical device, at the next release:** on a phone with 1.4.2 and automatic updates off, the prompt appears within an hour of the release, and "Update" opens the listing correctly from a Turkish account.

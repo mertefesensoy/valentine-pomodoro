@@ -36,8 +36,119 @@ beforeEach(() => {
     mockLaunchStorage.clearAll();
 });
 
+describe('finding out that an account has gone, with the answer lost', () => {
+    const mockForget = jest.fn(async () => {});
+    beforeEach(() => {
+        mockForget.mockClear();
+        mockLaunchStorage.set('migration.asyncstorage_v1', 'done');
+        mockLaunchStorage.set('account_v1', 'true');
+        jest.doMock('../forgetAccount', () => ({ forgetAccount: () => mockForget() }));
+    });
+    afterEach(() => jest.dontMock('../forgetAccount'));
+
+    it('takes a valid session with no profile as the server\'s word, and no partner is announced gone', async () => {
+        const home = launch();
+        const { syncGlance, usePartnerGlance } = require('../partnerGlance') as typeof import('../partnerGlance');
+        syncGlance(snapshot(1));
+        mockRpc.mockResolvedValue({ ...snapshot(1), me: null, couple: null, partner: null });
+        await home.fetchHome();
+        await flushMicrotasks();
+        expect(mockForget).toHaveBeenCalledTimes(1);
+        expect(usePartnerGlance.getState().gone).toBeNull();
+    });
+
+    it('drops a stale answer: one from a deleted account, landing after a new sign-in, can\'t forget the new one', async () => {
+        const home = launch();
+        const { clearPartner } = require('../partnerGlance') as typeof import('../partnerGlance');
+        let answer: (value: HomeSnapshot) => void = () => {};
+        mockRpc.mockReturnValue(new Promise((resolve) => { answer = resolve; }));
+        const pending = home.fetchHome();
+        clearPartner();
+        answer({ ...snapshot(1), me: null, couple: null, partner: null });
+        await pending;
+        await flushMicrotasks();
+        expect(mockForget).not.toHaveBeenCalled();
+    });
+
+    it('takes a refused session with the marker up the same way, and still says it was refused', async () => {
+        const home = launch();
+        const { SessionEnded } = require('../client') as typeof import('../client');
+        mockLaunchStorage.set('account_deletion_pending_v1', 'true');
+        mockRpc.mockRejectedValue(new SessionEnded());
+        await expect(home.fetchHome()).rejects.toBeInstanceOf(SessionEnded);
+        await flushMicrotasks();
+        expect(mockForget).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves a refused session alone with no marker', async () => {
+        const home = launch();
+        const { SessionEnded } = require('../client') as typeof import('../client');
+        mockRpc.mockRejectedValue(new SessionEnded());
+        await expect(home.fetchHome()).rejects.toBeInstanceOf(SessionEnded);
+        await flushMicrotasks();
+        expect(mockForget).not.toHaveBeenCalled();
+    });
+
+    it('clears the marker when a snapshot shows the account is still there, and changes nothing else', async () => {
+        const home = launch();
+        const account = require('../account') as typeof import('../account');
+        mockLaunchStorage.set('account_deletion_pending_v1', 'true');
+        mockRpc.mockResolvedValue(snapshot(1));
+        await home.fetchHome();
+        await flushMicrotasks();
+        expect(account.isDeletionPending()).toBe(false);
+        expect(mockForget).not.toHaveBeenCalled();
+    });
+});
+
+describe('a snapshot already on its way when you leave', () => {
+    it('can\'t bring your partner back: its answer is from before', async () => {
+        const home = launch();
+        const { clearPartner, usePartnerGlance } = require('../partnerGlance') as typeof import('../partnerGlance');
+        let answer: (value: HomeSnapshot) => void = () => {};
+        mockRpc.mockReturnValue(new Promise((resolve) => { answer = resolve; }));
+        const pending = home.fetchHome();
+        clearPartner();
+        answer(snapshot(3));
+        await pending;
+        expect(usePartnerGlance.getState().glance).toBeNull();
+    });
+
+    it('still takes in one that started after', async () => {
+        const home = launch();
+        const { clearPartner, usePartnerGlance } = require('../partnerGlance') as typeof import('../partnerGlance');
+        clearPartner();
+        mockRpc.mockResolvedValue(snapshot(3));
+        await home.fetchHome();
+        expect(usePartnerGlance.getState().glance?.name).toBe('Deniz');
+    });
+});
+
 describe('the runtime', () => {
+    // Someone with an account, on a phone past its storage migration.
+    const withAccount = () => {
+        mockLaunchStorage.set('migration.asyncstorage_v1', 'done');
+        mockLaunchStorage.set('account_v1', 'true');
+    };
+
+    it('makes no calls once there\'s no account, which it can\'t stop for by itself', async () => {
+        launch();
+        const { AppState } = require('react-native');
+        const listeners: ((state: string) => void)[] = [];
+        jest.spyOn(AppState, 'addEventListener').mockImplementation(((_: string, fn: (state: string) => void) => {
+            listeners.push(fn);
+            return { remove: () => {} };
+        }) as never);
+        const { startPairedRuntime } = require('../runtime') as typeof import('../runtime');
+        startPairedRuntime();
+        await flushMicrotasks();
+        listeners[0]('active');
+        await flushMicrotasks();
+        expect(mockRpc).not.toHaveBeenCalled();
+    });
+
     it('fetches at start and on returning to the foreground, with nothing on screen', async () => {
+        withAccount();
         // After the reset: launch() gives react-native a fresh copy, and the runtime uses that one.
         launch();
         const { AppState } = require('react-native');
@@ -65,6 +176,7 @@ describe('the runtime', () => {
     });
 
     it('starts once per launch', async () => {
+        withAccount();
         launch();
         const { AppState } = require('react-native');
         const add = jest.spyOn(AppState, 'addEventListener').mockImplementation((() => ({ remove: () => {} })) as never);

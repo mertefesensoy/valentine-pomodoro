@@ -862,6 +862,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)
 - ["Phase 2 D2: your partner's day"](../implementations/2026-11-06-phase2-d2-partner.md)
 - ["Phase 2 D3: notes to your partner"](../implementations/2026-11-06-phase2-d3-notes.md)
+- ["Phase 2 D4: your account: unpair, delete, and download your data"](../implementations/2026-11-06-phase2-d4-account.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Documentation conventions](../process/DOCS.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)

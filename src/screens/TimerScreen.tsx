@@ -126,6 +126,7 @@ export default function TimerScreen() {
   const gone = usePartnerGlance((s) => s.gone);
   const noteWaiting = usePartnerGlance((s) => s.notes.length > 0);
   const sessionEnded = useAccountStore((s) => s.sessionEnded);
+  const hasAccount = useAccountStore((s) => s.present);
   const { tokens, isDark } = useTheme();
 
   // Interstitials the ad policy has allowed, one per completion it said yes
@@ -494,7 +495,7 @@ export default function TimerScreen() {
       : Math.min(ringCap, height * 0.36);
 
   // Your partner, from the small summary the first frame can read (Phase 2 D2). With the flag off, or solo, it's empty.
-  const glance = PAIRING_ENABLED ? storedGlance : null;
+  const glance = PAIRING_ENABLED && hasAccount ? storedGlance : null;
   const paired = glance !== null;
   const showPair = PAIRING_ENABLED && idle && !paired;
   const goneLine = PAIRING_ENABLED && !paired && gone

@@ -2,8 +2,9 @@ import { QueryClient, useQuery } from '@tanstack/react-query';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { appStorage } from '../utils/appStorage';
+import { isDeletionPending, setDeletionPending } from './account';
 import { rpc, SessionEnded } from './client';
-import { syncGlance } from './partnerGlance';
+import { glanceGeneration, syncGlance } from './partnerGlance';
 import type { HomeSnapshot } from './types';
 
 /**
@@ -52,10 +53,38 @@ const [, restored] = persistQueryClient({
 
 export const homeRestored = restored;
 
-/** The one way a snapshot arrives, so the strip's summary (partnerGlance.ts) follows every caller's. */
+/** Reached this way because `forgetAccount` needs this module. Never throws. */
+const forgetLater = () => void import('./forgetAccount').then(({ forgetAccount }) => forgetAccount()).catch(() => {});
+
+/**
+ * The one way a snapshot arrives, so the strip's summary (partnerGlance.ts) follows every caller's.
+ *
+ * It's also where a deletion whose answer was lost gets found out, on the server's word and not before. Every account
+ * has a profile from the moment it exists, and a profile goes only with its account, so a valid session with no `me`
+ * means the account is gone. Past the token's life that same account refuses the session instead, and the pending
+ * marker tells that from a real refusal. Either way, this phone goes solo rather than asking someone to sign in to an
+ * account they deleted. It's checked before the summary, so they don't hear that their partner has gone.
+ *
+ * Cancelling a query doesn't stop this function, so one that was on its way when you left a couple must not write them
+ * back: its answer is from before, and it's dropped.
+ */
 export const fetchHome = async (): Promise<HomeSnapshot> => {
-    const snapshot = await rpc<HomeSnapshot>('home_snapshot');
-    syncGlance(snapshot);
+    const started = glanceGeneration();
+    let snapshot: HomeSnapshot;
+    try {
+        snapshot = await rpc<HomeSnapshot>('home_snapshot');
+    } catch (error) {
+        if (error instanceof SessionEnded && isDeletionPending()) forgetLater();
+        throw error;
+    }
+    if (!snapshot.me) {
+        // A forget moves the generation on at its start and again once the session has gone, so this drops only a stale
+        // answer: one from a deleted account, landing after a new sign-in, must not forget the new one.
+        if (started === glanceGeneration()) forgetLater();
+        return snapshot;
+    }
+    if (isDeletionPending()) setDeletionPending(false);
+    if (started === glanceGeneration()) syncGlance(snapshot);
     return snapshot;
 };
 

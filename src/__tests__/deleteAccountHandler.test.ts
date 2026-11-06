@@ -62,6 +62,21 @@ beforeAll(() => {
     };
 });
 
+describe('asking who it is', () => {
+    it.each([429, 500, 503])('treats %i from Auth as an outage, so the client doesn\'t end the session', async (status) => {
+        const { deps } = setup({ who: { status } });
+        const response = await handle(request(), deps);
+        expect(response.status).toBe(502);
+        expect(await bodyOf(response)).toEqual({ status: 'auth_unavailable' });
+    });
+
+    it.each([400, 401, 403, 404])('treats %i from Auth as not signed in', async (status) => {
+        const { deps } = setup({ who: { status } });
+        const response = await handle(request(), deps);
+        expect(response.status).toBe(401);
+    });
+});
+
 describe('delete-account', () => {
     it('checks who it is, exchanges the code, revokes the token, then deletes, in that order', async () => {
         const { deps, calls } = setup();

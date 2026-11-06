@@ -15,8 +15,10 @@ jest.setTimeout(30_000);
 jest.mock('expo-router', () => ({
     ...jest.requireActual('expo-router'),
     router: { push: jest.fn(), back: jest.fn(), canGoBack: () => true },
+    useLocalSearchParams: () => mockParams,
 }));
 
+let mockParams: { returning?: string } = {};
 let mockReduced = false;
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual('react-native-reanimated/mock'),
@@ -103,6 +105,7 @@ const pastTheGuard = () => {
 beforeEach(() => {
     mockHome = null;
     mockReduced = false;
+    mockParams = {};
     mockCelebrated = false;
     mockMarkCelebrated.mockReset();
     mockSignIn.mockReset();
@@ -219,6 +222,24 @@ describe('before sign-in', () => {
             expect(mockMarkCelebrated).not.toHaveBeenCalled();
             expect(mockEnsureCode).not.toHaveBeenCalled();
         });
+    });
+
+    it('comes back to their account from Settings, with no partner: back there once signed in, and no code made', async () => {
+        const { router } = jest.requireMock<{ router: { back: jest.Mock } }>('expo-router');
+        router.back.mockClear();
+        mockParams = { returning: '1' };
+        mockSignIn.mockImplementation(async () => {
+            useAccountStore.setState({ sessionEnded: false });
+            return { needsName: false };
+        });
+        await open({ signedIn: true, sessionEnded: true });
+        expect(screen.getByText('Sign in again')).toBeOnTheScreen();
+        expect(screen.queryByText(/To pair, you each need an account/)).toBeNull();
+
+        await fireEvent.press(screen.getByText('Continue with Apple'));
+        await flush();
+        expect(router.back).toHaveBeenCalled();
+        expect(mockEnsureCode).not.toHaveBeenCalled();
     });
 
     it('hears the usual words with an ended session and no partner: they came to pair', async () => {

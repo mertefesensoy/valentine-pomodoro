@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { appStorage } from '../utils/appStorage';
 import { loadSync, saveSync } from '../utils/storage';
 import { getDayKeyFromDate } from '../utils/time';
-import { hasAccount } from './account';
+import { hasAccount, setAccountNotice, useAccountStore } from './account';
 import type { HomeSnapshot } from './types';
 
 /**
@@ -38,6 +38,12 @@ type GlanceState = {
 
 const EMPTY: GlanceState = { glance: null, gone: null, notes: [], shown: [] };
 
+// Bumped when you leave a couple or an account, so a snapshot already on its way can't bring your partner back.
+let generation = 0;
+
+/** Read before a snapshot is fetched, and compared after: see `fetchHome`. */
+export const glanceGeneration = () => generation;
+
 export const usePartnerGlance = create<GlanceState>()(() =>
     hasAccount() ? { ...EMPTY, ...loadSync<Partial<GlanceState>>(GLANCE_KEY, EMPTY) } : EMPTY,
 );
@@ -59,6 +65,8 @@ function store(patch: Partial<GlanceState>): void {
  */
 export function syncGlance(snapshot: HomeSnapshot, now: number = Date.now()): void {
     if (snapshot.couple) {
+        // "You've unpaired" is about the last couple, so it ends with the next one.
+        if (useAccountStore.getState().notice) setAccountNotice(null);
         const { shown } = usePartnerGlance.getState();
         store({
             notes: snapshot.notes.filter((note) => !shown.includes(note.id)).map(({ id, body }) => ({ id, body })),
@@ -100,6 +108,15 @@ export function takePartnerNote(): PartnerNote | null {
     store({ notes: rest, shown: [...shown, next.id] });
     void import('./noteDelivery').then(({ flushShown }) => flushShown()).catch(() => {});
     return next;
+}
+
+/**
+ * You've left: at unpairing, or with the account. Empties all of this with no "gone" line, since you did it yourself,
+ * and notes waiting or marked go too, because the server deletes them.
+ */
+export function clearPartner(): void {
+    generation += 1;
+    store(EMPTY);
 }
 
 /** The "aren't paired any more" line has been seen. */

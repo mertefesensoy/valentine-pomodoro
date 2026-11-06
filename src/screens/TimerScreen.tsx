@@ -678,7 +678,7 @@ export default function TimerScreen() {
       radius: radius.l,
       a11y: glance
         ? { label: notice ? `${partnerLabel(glance)}. ${notice}` : partnerLabel(glance), hint: partnerHint, role: 'button', onActivate: openPartner }
-        : { label: t('partner.pair'), role: 'button', onActivate: openPair },
+        : { label: goneLine ? `${t('partner.pair')}. ${goneLine}` : t('partner.pair'), role: 'button', onActivate: openPair },
     },
     start: { ref: startRef, radius: 28, a11y: { label: primaryLabel, role: 'button', onActivate: handlePrimaryAction } },
   };

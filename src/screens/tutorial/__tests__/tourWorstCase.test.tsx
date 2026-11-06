@@ -25,6 +25,7 @@ jest.mock('expo-localization', () => ({ getLocales: () => [{ languageCode: 'tr',
 jest.mock('../../../constants/features', () => ({
     ...jest.requireActual('../../../constants/features'),
     PAIRING_ENABLED: false,
+    STARTUP_REPORTS_ENABLED: false,
 }));
 jest.mock('../../../hooks/useUpdateCheck', () => ({ useUpdateCheck: () => ({ checkForUpdates: jest.fn() }) }));
 jest.mock('expo-notifications', () => ({

@@ -83,7 +83,7 @@ describe('Classic, worst case, in Turkish', () => {
         // Turkish controls.
         expect(screen.getByText('Odağı başlat')).toBeOnTheScreen();
         expect(screen.getByText('Atla')).toBeOnTheScreen();
-        expect(screen.getByText('Pomo ve Doro hazır, sen ne zaman istersen')).toBeOnTheScreen();
+        expect(screen.getByText('Pomo ve Doro hazır')).toBeOnTheScreen();
         // No preset matches these durations, so Custom holds them, selected, with its key (build 48, F4).
         expect(screen.getByLabelText('25 dakika odak, 5 dakika mola')).not.toBeSelected();
         expect(screen.getByLabelText("Özel: 180 dakika odak, 30 dakika mola; Ayarlar'da belirlenir")).toBeSelected();

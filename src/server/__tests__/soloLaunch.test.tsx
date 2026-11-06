@@ -11,11 +11,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 jest.setTimeout(60_000);
 
-jest.mock('../../constants/features', () => ({
-    ...jest.requireActual('../../constants/features'),
-    PAIRING_ENABLED: true,
-    STARTUP_REPORTS_ENABLED: true,
-}));
+// The flags as they really ship, not a mock of them: this is the proof of what a solo install does.
+jest.unmock('../../constants/features');
 
 const mockEvaluated: string[] = [];
 jest.mock('../client', () => {

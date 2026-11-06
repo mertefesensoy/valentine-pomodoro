@@ -23,6 +23,7 @@ jest.setTimeout(30_000);
 jest.mock('../../../constants/features', () => ({
     ...jest.requireActual('../../../constants/features'),
     PAIRING_ENABLED: true,
+    STARTUP_REPORTS_ENABLED: false,
 }));
 jest.mock('expo-notifications', () => ({
     ...jest.requireActual('expo-notifications'),

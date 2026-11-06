@@ -183,7 +183,9 @@ describe('Classic after its first reviews (critique, HIG, review-animations)', (
 
     it('says what Pomo & Doro are doing now', async () => {
         await show(<TimerScreen />);
-        expect(screen.getByText('Pomo & Doro are ready when you are')).toBeOnTheScreen();
+        // Idle and solo, the short line shares the strip with the way to pair.
+        expect(screen.getByText('Pomo & Doro are ready')).toBeOnTheScreen();
+        expect(screen.getByText('Pair with your partner')).toBeOnTheScreen();
         await press(screen.getByText('Start focus'));
         expect(screen.getByText('Pomo & Doro are studying with you')).toBeOnTheScreen();
         await act(() => jest.advanceTimersByTime(3_000));
@@ -320,7 +322,7 @@ describe('Classic in landscape', () => {
         await onLandscape(async () => {
             await show(<TimerScreen />);
             const trailing = screen.getByRole('header', { name: /^Focus/ }).parent!.parent!;
-            expect(within(trailing).getByText('Pomo & Doro are ready when you are')).toBeOnTheScreen();
+            expect(within(trailing).getByText('Pomo & Doro are ready')).toBeOnTheScreen();
             expect(within(trailing).queryByTestId('phase-ring')).toBeNull();
         });
     });

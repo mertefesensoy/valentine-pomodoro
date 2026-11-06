@@ -1,11 +1,16 @@
-import { isFlyModeAvailable, PAIRING_ENABLED, resolveAppMode } from '../features';
+import { isFlyModeAvailable, PAIRING_ENABLED, resolveAppMode, STARTUP_REPORTS_ENABLED } from '../features';
 
-// Phase 2 merges into master task by task, and master must stay releasable. This
-// fails if pairing is switched on by accident before Stage F (plan task F1), which
-// changes the expected value here on purpose.
-describe('PAIRING_ENABLED', () => {
-    it('stays off until the 1.5.0 release build', () => {
-        expect(PAIRING_ENABLED).toBe(false);
+// jest.setup.ts pins the reports off for the other suites, so this one reads the real file.
+jest.unmock('../features');
+
+// This fails if pairing or the reports are switched off by accident (Phase 2 F1).
+describe('what 1.5.0 ships', () => {
+    it('has pairing on', () => {
+        expect(PAIRING_ENABLED).toBe(true);
+    });
+
+    it('has the start-up reports on, with it', () => {
+        expect(STARTUP_REPORTS_ENABLED).toBe(true);
     });
 });
 

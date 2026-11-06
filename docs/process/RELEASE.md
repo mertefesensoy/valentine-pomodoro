@@ -83,6 +83,7 @@ When Android returns (the [roadmap Android track](../roadmap/ROADMAP.md#android-
 - ["App Store featuring nomination: Meet Pomo & Doro"](../implementations/2026-11-04-featuring-nomination.md)
 - ["Phase 2: GitHub deploys database changes on merge"](../implementations/2026-11-05-phase2-deploy.md)
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)
+- ["Phase 2 F1: pairing on, version 1.5.0"](../implementations/2026-11-06-phase2-f1-flag-on.md)
 - [Branching model](BRANCHING.md)
 - [Evaluation — xtool (cross-platform Xcode replacement) vs staying on Expo/EAS](../proposals/xtool-evaluation.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)

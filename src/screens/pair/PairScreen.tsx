@@ -164,9 +164,14 @@ export default function PairScreen() {
     const present = useAccountStore((s) => s.present);
     const sessionEnded = useAccountStore((s) => s.sessionEnded);
     const signedIn = present && !sessionEnded;
-    // A session has ended for someone already paired: nothing is lost, and signing in just picks it up again.
-    const returning = present && sessionEnded;
-    const lastPartner = usePartnerGlance((s) => s.glance?.name) ?? t('pair.partner');
+    // A session has ended for someone with a partner on this phone: nothing is lost, and signing in picks it up again.
+    // Someone with an account who isn't paired has come to pair, and hears what anyone else does.
+    const lastGlance = usePartnerGlance((s) => s.glance);
+    const lastPartner = lastGlance?.name ?? t('pair.partner');
+    const returningNow = present && sessionEnded && lastGlance !== null;
+    // The token's acceptance clears `sessionEnded` while signIn() is still running, so this holds the words for the attempt.
+    const [returningAttempt, setReturningAttempt] = useState(false);
+    const returning = returningNow || returningAttempt;
 
     const [step, setStep] = useState<Step>('pages');
     const [signingIn, setSigningIn] = useState(false);
@@ -285,14 +290,20 @@ export default function PairScreen() {
         setSigningIn(true);
         setSignInProblem(null);
         const wasReturning = returning;
+        setReturningAttempt(wasReturning);
         const result = await signIn();
+        // Back where they were, with the strip's fresh values under the sheet. It stays on this step while it closes:
+        // moving on would use up the morph unseen, or even make a code nobody asked for.
+        if (wasReturning && typeof result === 'object') {
+            leave();
+            return;
+        }
         setSigningIn(false);
+        setReturningAttempt(false);
         if (result === 'cancelled') return;
         if (typeof result === 'object') {
             setTypedProblem(null);
             setCodeProblem(null);
-            // Back where they were, with the strip and its fresh values under the sheet.
-            if (wasReturning) leave();
             return;
         }
         const text = t(result === 'offline' ? 'pair.error.offline' : 'pair.error.signIn');

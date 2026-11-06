@@ -501,7 +501,9 @@ export default function TimerScreen() {
   };
   // Apple's button when the session has ended, and signing in finds the couple on the server. Not while a session
   // runs: nothing else competes then, and their last known day is still there to read.
-  const openPartner = () => router.push(sessionEnded && idle ? '/pair' : '/partner');
+  const opensSignIn = sessionEnded && idle;
+  const openPartner = () => router.push(opensSignIn ? '/pair' : '/partner');
+  const partnerHint = opensSignIn ? undefined : t('partner.opensDay');
 
   // The partner who wasn't holding the sheet finds out at a refresh, and gets the morph once, on the Timer, when
   // nothing is running. Any sheet over the Timer unfocuses it, so the phone that pressed Pair can't open a second.
@@ -527,7 +529,7 @@ export default function TimerScreen() {
                 name: partnerName(glance),
                 day: <PartnerDay glance={glance} tokens={tokens} centered />,
                 label: notice ? `${partnerLabel(glance)}. ${notice}` : partnerLabel(glance),
-                hint: notice ? undefined : t('partner.opensDay'),
+                hint: partnerHint,
                 onPress: openPartner,
               }
             : undefined
@@ -554,6 +556,9 @@ export default function TimerScreen() {
 
   // The partner slot: on the Ring, one paper field with the pair and their line, as the C4
   // sketch draws it (finish review fix 5); Facing Pages carries it on its right page (fix 4).
+  // With the Pair line beneath it the strip has room for one short line, as the frame draws, so it stays at 72 pt and
+  // the Ring doesn't move at Start or on pairing. The usual line is too long for that at any size.
+  const stripLine = showPair ? 'partner.readyShort' : partnerLine;
   const stripBody = (
     <>
       <View style={styles.pair} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -563,7 +568,7 @@ export default function TimerScreen() {
         </View>
       </View>
       <View style={styles.partnerText}>
-        <Text style={[styles.partnerLine, showPair && styles.partnerLineWithPair, { color: tokens.ink }]}>{t(partnerLine)}</Text>
+        <Text style={[styles.partnerLine, showPair && styles.partnerLineWithPair, { color: tokens.ink }]}>{t(stripLine)}</Text>
         {showPair && <Text style={[styles.pairLine, { color: tokens.primaryInk }]}>{t('partner.pair')}</Text>}
         {goneLine && <PartnerNotice text={goneLine} tokens={tokens} />}
       </View>
@@ -575,13 +580,13 @@ export default function TimerScreen() {
     // it inside this view.
     <View style={styles.partnerSlot} onLayout={(e) => measured('partner', e)} testID="partner-strip">
       {glance ? (
-        <PartnerStrip glance={glance} notice={notice} onPress={openPartner} tokens={tokens} />
+        <PartnerStrip glance={glance} notice={notice} hint={partnerHint} onPress={openPartner} tokens={tokens} />
       ) : showPair || goneLine ? (
         <PressableScale
           onPress={openPair}
           haptic={false}
           accessibilityRole="button"
-          accessibilityLabel={[t(partnerLine), showPair ? t('partner.pair') : null, goneLine].filter(Boolean).join('. ')}
+          accessibilityLabel={[t(stripLine), showPair ? t('partner.pair') : null, goneLine].filter(Boolean).join('. ')}
           style={stripStyle}
         >
           {stripBody}
@@ -887,7 +892,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
   },
-  // With the Pair line beneath it, as the frame draws them, so the strip stays at its 72 pt and the Ring doesn't move.
+  // With the Pair line beneath it, as the frame draws them.
   partnerLineWithPair: {
     fontSize: 14,
     lineHeight: 19,

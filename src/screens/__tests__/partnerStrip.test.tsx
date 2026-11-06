@@ -176,6 +176,12 @@ describe('solo', () => {
         await fireEvent.press(screen.getByRole('button', { name: /Pair with your partner/ }));
         expect(push).toHaveBeenCalledWith('/pair');
     });
+
+    it('uses the short line beside it, so the strip stays at its height and the Ring doesn\'t move at Start', async () => {
+        await show({});
+        expect(screen.getByRole('button', { name: 'Pomo & Doro are ready. Pair with your partner' })).toBeOnTheScreen();
+        expect(screen.queryByText('Pomo & Doro are ready when you are')).toBeNull();
+    });
 });
 
 describe('when a partner has gone', () => {

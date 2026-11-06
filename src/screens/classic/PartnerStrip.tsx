@@ -104,9 +104,11 @@ export function PartnerNotice({ text, tokens, centered = false }: { text: string
  * solo strip's size and place, so nothing moves when you pair: one sticker, their name, and their day. The whole
  * strip is one button, which opens their day, or Apple's button when `notice` says a session has ended.
  */
-export function PartnerStrip({ glance, notice, onPress, tokens }: {
+export function PartnerStrip({ glance, notice, hint, onPress, tokens }: {
     glance: PartnerGlance;
     notice: string | null;
+    /** What pressing it does, when it's their day. */
+    hint?: string;
     onPress: () => void;
     tokens: ThemeTokens;
 }) {
@@ -116,7 +118,7 @@ export function PartnerStrip({ glance, notice, onPress, tokens }: {
             haptic={false}
             accessibilityRole="button"
             accessibilityLabel={notice ? `${partnerLabel(glance)}. ${notice}` : partnerLabel(glance)}
-            accessibilityHint={notice ? undefined : t('partner.opensDay')}
+            accessibilityHint={hint}
             style={[styles.strip, { backgroundColor: tokens.paper, borderColor: tokens.edge }]}
         >
             <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">

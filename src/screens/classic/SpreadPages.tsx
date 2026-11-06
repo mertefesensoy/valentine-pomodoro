@@ -94,7 +94,8 @@ export function SpreadPages({ tokens, width, stacked, pose, progress, isBreak, l
                 </PressableScale>
             )}
             {notice && onDismissNotice ? (
-                <PressableScale onPress={onDismissNotice} haptic={false} accessibilityRole="button" hitSlop={12}>
+                // No slop: it would reach over the Pair button just above. The height gives it its target instead.
+                <PressableScale onPress={onDismissNotice} haptic={false} accessibilityRole="button" hitSlop={0} style={styles.noticeButton}>
                     {notice}
                 </PressableScale>
             ) : (
@@ -161,6 +162,7 @@ export function SpreadPages({ tokens, width, stacked, pose, progress, isBreak, l
 
 const styles = css.create({
     pairAction: { fontWeight: '600', marginTop: space.xs },
+    noticeButton: { minHeight: minTarget, justifyContent: 'center' },
     pairedFoot: { alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', minHeight: minTarget, gap: space.xs },
     page: { position: 'absolute', top: 0, bottom: 0, borderWidth: edgeWidth },
     pageLeft: {

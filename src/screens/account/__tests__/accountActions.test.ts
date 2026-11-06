@@ -208,6 +208,22 @@ describe('deleteAccount', () => {
             expect(isDeletionPending()).toBe(false);
         });
 
+        it('keeps an earlier lost answer open through a later failure', async () => {
+            setDeletionPending(true);
+            mockInvoke.mockRejectedValue(new Error('500'));
+            await expect(deleteAccount()).resolves.toBe('failed');
+            expect(isDeletionPending()).toBe(true);
+        });
+
+        it('puts the marker back if a snapshot cleared it while the call was on its way', async () => {
+            mockInvoke.mockImplementation(async () => {
+                setDeletionPending(false);
+                throw new Offline();
+            });
+            await expect(deleteAccount()).resolves.toBe('offline');
+            expect(isDeletionPending()).toBe(true);
+        });
+
         it('takes a refused session on a retry to mean it did go through', async () => {
             setDeletionPending(true);
             mockInvoke.mockRejectedValue(new SessionEnded());

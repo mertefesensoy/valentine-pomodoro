@@ -204,6 +204,12 @@ describe('your account', () => {
         expect(screen.getByText('Add your name')).toBeOnTheScreen();
     });
 
+    it('doesn\'t ask when it just isn\'t known yet', async () => {
+        mockHome = null;
+        await render(<AccountGroup />);
+        expect(screen.queryByText('Add your name')).toBeNull();
+    });
+
     it('with an ended session, says deleting is on the other side of signing in, and both rows go there', async () => {
         (router.push as jest.Mock).mockClear();
         await act(async () => useAccountStore.setState({ sessionEnded: true }));

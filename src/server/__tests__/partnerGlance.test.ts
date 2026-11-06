@@ -1,6 +1,7 @@
 // covers: FR-PAR-003, FR-ACC-001
 // The small summary the Timer's strip reads (Phase 2 D2).
 import { clearPartner, dismissGone, GLANCE_KEY, glanceGeneration, isGlanceStale, syncGlance, takePartnerNote, touchGlance, usePartnerGlance } from '../partnerGlance';
+import { useAccountStore } from '../account';
 import type { HomeSnapshot } from '../types';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
 import { appStorage } from '../../utils/appStorage';
@@ -120,6 +121,12 @@ describe('syncGlance', () => {
     it('says nothing has gone for someone who was never paired', () => {
         syncGlance(snapshot({}), 1000);
         expect(usePartnerGlance.getState()).toEqual({ glance: null, gone: null, notes: [], shown: [] });
+    });
+
+    it('ends "you\'ve unpaired" with the next couple, so it can\'t come back later as if you had done it again', () => {
+        useAccountStore.setState({ notice: 'unpaired' });
+        syncGlance(snapshot({ couple, partner }));
+        expect(useAccountStore.getState().notice).toBeNull();
     });
 
     it('clears the line on pairing again', () => {

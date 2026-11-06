@@ -57,6 +57,19 @@ describe('finding out that an account has gone, with the answer lost', () => {
         expect(usePartnerGlance.getState().gone).toBeNull();
     });
 
+    it('drops a stale answer: one from a deleted account, landing after a new sign-in, can\'t forget the new one', async () => {
+        const home = launch();
+        const { clearPartner } = require('../partnerGlance') as typeof import('../partnerGlance');
+        let answer: (value: HomeSnapshot) => void = () => {};
+        mockRpc.mockReturnValue(new Promise((resolve) => { answer = resolve; }));
+        const pending = home.fetchHome();
+        clearPartner();
+        answer({ ...snapshot(1), me: null, couple: null, partner: null });
+        await pending;
+        await flushMicrotasks();
+        expect(mockForget).not.toHaveBeenCalled();
+    });
+
     it('takes a refused session with the marker up the same way, and still says it was refused', async () => {
         const home = launch();
         const { SessionEnded } = require('../client') as typeof import('../client');

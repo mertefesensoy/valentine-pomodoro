@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { appStorage } from '../utils/appStorage';
 import { loadSync, saveSync } from '../utils/storage';
 import { getDayKeyFromDate } from '../utils/time';
-import { hasAccount } from './account';
+import { hasAccount, setAccountNotice, useAccountStore } from './account';
 import type { HomeSnapshot } from './types';
 
 /**
@@ -65,6 +65,8 @@ function store(patch: Partial<GlanceState>): void {
  */
 export function syncGlance(snapshot: HomeSnapshot, now: number = Date.now()): void {
     if (snapshot.couple) {
+        // "You've unpaired" is about the last couple, so it ends with the next one.
+        if (useAccountStore.getState().notice) setAccountNotice(null);
         const { shown } = usePartnerGlance.getState();
         store({
             notes: snapshot.notes.filter((note) => !shown.includes(note.id)).map(({ id, body }) => ({ id, body })),

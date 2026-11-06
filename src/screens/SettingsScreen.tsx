@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
     column: { gap: space.xl },
     title: { fontFamily: fonts.semiBold, fontSize: 34, lineHeight: 42, paddingHorizontal: space.xs },
     segmentRow: { paddingHorizontal: space.l, paddingVertical: space.m, gap: space.s },
-    notice: { fontSize: 15, lineHeight: 20, fontWeight: '500' },
+    notice: { fontSize: 15, lineHeight: 20, fontWeight: '500', paddingHorizontal: space.xs },
     caption: { fontSize: 13, fontWeight: '600' },
     footer: { fontSize: 13, lineHeight: 18, paddingHorizontal: space.l },
     footerBlock: { gap: space.xs },

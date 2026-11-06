@@ -81,7 +81,10 @@ export function AccountGroup() {
     const paired = usePartnerGlance((s) => s.glance !== null);
     const [problem, setProblem] = useState<string | null>(null);
     const [busy, setBusy] = useState<'asking' | 'delete' | 'download' | 'rename' | null>(null);
-    const name = home.data?.me?.display_name ?? '';
+    const me = home.data?.me;
+    const name = me?.display_name ?? '';
+    // Only when it's known there's none: on a cold start with no cache, it simply isn't known yet.
+    const nameValue = me && !me.display_name ? t('account.addName') : name;
 
     const fail = (result: Exclude<DeleteResult, 'ok' | 'cancelled'>) => {
         const line = problemLine(result);
@@ -156,7 +159,7 @@ export function AccountGroup() {
         <ListGroup header={t('account.header')} footer={busy === 'delete' ? t('account.deleting') : problem ?? undefined}>
             <InfoRow
                 label={t('account.name')}
-                value={name || t('account.addName')}
+                value={nameValue}
                 onPress={rename}
                 hint={t('account.nameHint')}
                 disabled={busy !== null}

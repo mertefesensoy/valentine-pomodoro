@@ -95,7 +95,7 @@ The account stays, so pairing again needs no sign-in. Your partner finds out at 
 **A deletion whose answer was lost.** The server may have finished with the phone none the wiser, and asking that person to sign in would make a new account for someone who just deleted theirs. Two signals, both the server's word, so "nothing local before the server's yes" holds:
 
 - **`me === null` from `home_snapshot`.** `handle_new_user` gives every account a profile in the same transaction, `profiles.id` cascades from `auth.users`, and nothing else deletes a profile, so a valid session with no `me` means the account is gone. `fetchHome` checks this before `syncGlance`, so they don't hear that their partner has gone, and runs `forgetAccount` through `import()`, since that module needs this one.
-- **`SessionEnded` with the marker up,** for when the token has expired too. `account_deletion_pending_v1` is set just before `invoke`, cleared by any answer that says it didn't happen and by any snapshot with `me`, and read only here. It changes nothing visible. A retry in that state counts a refused session as done, since `answerLostBefore` says an earlier try went unanswered. In the rare case that the session really was refused and the account remains, the phone goes solo and says it's deleted, which is wrong; signing in again finds the account, and it can be deleted then.
+- **`SessionEnded` with the marker up,** for when the token has expired too. `account_deletion_pending_v1` is set just before `invoke`, and read only here. A lost answer always leaves it up, even if a snapshot cleared it while the call was on its way; a real answer speaks only for that try, so an earlier lost one stays open; and a snapshot with `me`, outside a call, clears it. It changes nothing visible. A retry in that state counts a refused session as done, since `answerLostBefore` says an earlier try went unanswered. A snapshot with no `me` only counts from the current generation, so a stale answer from a deleted account can't forget a new one. In the rare case that the session really was refused and the account remains, the phone goes solo and says it's deleted, which is wrong; signing in again finds the account, and it can be deleted then.
 
 **The runtime keeps running after this,** with its `AppState` listener, because it starts once per launch and has no stop. So `refreshAll` returns at once with no account, before `syncTimeZone`, which also calls the server. `setSessionEnded(true)` does nothing with no account, and `setHasAccount(false)` clears it in the same store write, because a call can still fail in the moment between the Keychain emptying and the flag going. Otherwise a deleted account would look like an ended session.
 
@@ -105,7 +105,7 @@ The account stays, so pairing again needs no sign-in. Your partner finds out at 
 
 **With an ended session,** every action here needs signing in first. The Account group shows the name, "Sign in again" and "Delete account", which both open `/pair` with `returning`, and its footer says deleting is on the other side, so it can be found as Guideline 5.1.1(v) needs. The sheet then uses the words for coming back, closes itself once signed in, and makes no code.
 
-**Saying it's done.** "Your account is deleted…" and "You've unpaired…" can't live in the lazy groups, which go or move at that moment. `notice` isn't persisted, and `SettingsScreen` shows it at the top of the list, scrolling there, until the app next starts or you pair again. Both are announced too. While something is on its way the rows are disabled and, for deleting, a footer says so, because a person leaving the app in that silence could cut the call off.
+**Saying it's done.** "Your account is deleted…" and "You've unpaired…" can't live in the lazy groups, which go or move at that moment. `notice` isn't persisted, and `SettingsScreen` shows it at the top of the list, scrolling there, until the app next starts or a couple arrives, which ends it, so "You've unpaired" can't come back later as if you'd done it again. Both are announced too. While something is on its way the rows are disabled and, for deleting, a footer says so, because a person leaving the app in that silence could cut the call off.
 
 **Motion:** none. These are the system's own alerts and sheets.
 
@@ -146,6 +146,8 @@ None.
 - With an ended session, deletion wasn't named anywhere.
 - Two lines that misled: partner wording for someone with no partner, and offline at Apple's sheet reading as a failure.
 - `profile_tz_v1` surviving deletion, and a test the record cited that didn't prove the claim.
+
+**A narrow pass on `feae95f`:** six of the eight resolved, critique 32/40 (16/20), native audit 17/20, from code only, nothing Critical. It found two holes in the marker and three slips, all fixed after it and not re-read: an earlier lost answer cleared by a later failure; a snapshot clearing the marker mid-call; a stale `me: null` forgetting a new account; "You've unpaired" coming back; and "Add your name" for a name that simply wasn't known yet. **Its last disposition was "fix" on those.**
 
 **For the copy proof:** `en-US` renders "Paired Nov 5" where the brief writes "Paired 5 Nov", which is the app's existing habit. **For E2's privacy policy:** the export includes notes you received.
 

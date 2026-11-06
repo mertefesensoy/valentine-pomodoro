@@ -41,7 +41,8 @@ export async function unpairPartner(): Promise<ActionResult> {
         old ? { ...old, couple: null, partner: null, partner_today: null, partner_updated_at: null, notes: [] } : old,
     );
     setAccountNotice('unpaired');
-    await refreshHome().catch(() => {});
+    // Not waited for: it's done, and VoiceOver shouldn't hear that late on a slow network.
+    void refreshHome().catch(() => {});
     return 'ok';
 }
 
@@ -79,7 +80,9 @@ export async function deleteAccount(onConfirmed?: () => void): Promise<DeleteRes
             await forgetAccount();
             return 'ok';
         }
-        if (!(error instanceof Offline)) setDeletionPending(false);
+        // A lost answer leaves the question open, even if a snapshot cleared the marker while this was on its way. A real
+        // answer only speaks for this try, so an earlier lost one stays open.
+        setDeletionPending(error instanceof Offline || answerLostBefore);
         return statusOf(error);
     }
     await forgetAccount();

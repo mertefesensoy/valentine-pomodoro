@@ -78,7 +78,9 @@ export const fetchHome = async (): Promise<HomeSnapshot> => {
         throw error;
     }
     if (!snapshot.me) {
-        forgetLater();
+        // A real forget moves the generation on, so this drops only a stale answer: one from a deleted account, landing
+        // after a new sign-in, must not forget the new one.
+        if (started === glanceGeneration()) forgetLater();
         return snapshot;
     }
     if (isDeletionPending()) setDeletionPending(false);

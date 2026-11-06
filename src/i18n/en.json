@@ -469,7 +469,7 @@
     "offline": "You're offline. Try again when you're connected.",
     "sessionEnded": "You've been signed out. Sign in again to do this.",
     "failed": "Something went wrong. Try again.",
-    "unpaired": "You've unpaired. Your stats and notes are still on this phone.",
+    "unpaired": "You've unpaired. Your own stats stay on this phone.",
     "deleting": "Deleting your account…",
     "appleFailed": "Couldn't reach Apple. Check your connection and try again.",
     "deleteMessageSolo": "This deletes your name and your account, straight away. Your timer, stats and notes on this phone stay.",

@@ -122,6 +122,12 @@ These last two can only run once a version newer than 1.4.2 is live, because 1.4
 - **English:** "Check for updates" now finds a new version as soon as it's out, and the app also looks when you come back to it. It never interrupts a running timer.
 - **Türkçe:** "Güncellemeleri denetle" artık yeni sürümü çıktığı anda buluyor; uygulamaya döndüğünde de bakıyor. Çalışan zamanlayıcını hiç bölmüyor.
 
+### App Review notes for 1.4.2
+
+Stage E's notes stay as they are, and a line about 2.5.4 from 1.4.1, if it's still there, can go. This goes at the top:
+
+> Version 1.4.2 changes only the update check. Settings › About › "Check for updates" now always gets a current answer from Apple's lookup, and the app checks again when it returns to the foreground, at most every 6 hours. If a newer version exists, it shows a dismissible alert that opens the App Store, and it never blocks the app. During review the button says you're up to date, because 1.4.2 is newer than the App Store's current version. There are no new permissions and no new data collection.
+
 ## 7. Related Docs
 
 - [Update check audit](2026-11-06-update-check-audit.md): the diagnosis and its evidence

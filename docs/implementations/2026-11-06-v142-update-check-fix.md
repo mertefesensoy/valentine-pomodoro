@@ -1,6 +1,6 @@
 # 2026-11-06 — 1.4.2: the update check finds new versions when they're out
 
-**Status:** In progress: build 62 passed its device check, and the owner's submission is next
+**Status:** In progress: submitted on build 62, and App Review's answer is pending
 **Branch:** `fix/1.4.2-update-check`, from tag `v1.4.1` ([BRANCHING.md](../process/BRANCHING.md) rule 4)
 
 ---
@@ -112,6 +112,7 @@ Physical-device steps are marked.
   - Tag `v1.4.2-tf.62` on `e76d6bd`, pushed.
   - IPA 21,618,493 B, +478 B on build 61.
 - [x] **Physical device, build 62, 2026-11-06: passed, as reported by the owner.** Asked "Did build 62 pass the phone check?", the owner answered "Passed". The device and iOS version weren't reported. The check: installed over the store version, the app opens and its data is intact. The button says "up to date (1.4.2)", since the store is behind it. In Airplane Mode the button says it couldn't check. Start a timer, leave the app and return: the timer is unaffected.
+- [ ] 1.4.2 approved and live. **Submitted 2026-11-06** on build 62 (the owner: "Submitted"); App Review's answer is pending.
 - [ ] **Physical device, at the next release:** on a phone with 1.4.2 and automatic updates off, the prompt appears within an hour of the release, and "Update" opens the listing correctly from a Turkish account.
 - [ ] **Physical device, at the next release:** leave the app suspended past 6 hours and return with no timer running: the prompt appears. Return with a timer running: nothing appears until a later return.
 

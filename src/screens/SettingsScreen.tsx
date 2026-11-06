@@ -78,7 +78,7 @@ const WHEEL_MOTION_REDUCED: LayoutAnimationConfig = { duration: 200, create: WHE
  */
 export default function SettingsScreen() {
     const hasAccount = useAccountStore((s) => s.present);
-    const justDeleted = useAccountStore((s) => s.justDeleted);
+    const accountNotice = useAccountStore((s) => s.notice);
     const paired = usePartnerGlance((s) => s.glance !== null) && PAIRING_ENABLED && hasAccount;
     const settings = useSettingsStore((s) => s.settings);
     const updateSettings = useSettingsStore((s) => s.updateSettings);
@@ -122,6 +122,10 @@ export default function SettingsScreen() {
         scroll.current?.scrollTo({ y: Math.max(0, columnY + goalY - space.s), animated: !reduced });
         useSettingsFocus.getState().clear();
     }, [focusSection, columnY, goalY, reduced]);
+
+    useEffect(() => {
+        if (accountNotice) scroll.current?.scrollTo({ y: 0, animated: !reduced });
+    }, [accountNotice, reduced]);
 
     const animateWheels = () => LayoutAnimation.configureNext(reduced ? WHEEL_MOTION_REDUCED : WHEEL_MOTION);
     const toggle = (wheel: Wheel) => {
@@ -252,6 +256,11 @@ export default function SettingsScreen() {
                 <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header" maxFontSizeMultiplier={1.4}>
                     {t('settings.title')}
                 </Text>
+
+                {/* What just happened, where it can be seen: the groups have just moved or gone from under the finger. */}
+                {PAIRING_ENABLED && accountNotice && !paired && (
+                    <Text style={[styles.notice, { color: tokens.ink }]}>{t(`account.${accountNotice}`)}</Text>
+                )}
 
                 {/* Once paired, your partner and your account come first (the brief's Phase 2 addition). */}
                 {paired && (
@@ -392,7 +401,7 @@ export default function SettingsScreen() {
 
                 {/* Solo, they follow Love notes, and the account stays after unpairing. */}
                 {PAIRING_ENABLED && !paired && (
-                    <ListGroup header={t('account.partnerHeader')} footer={justDeleted ? t('account.deleted') : undefined}>
+                    <ListGroup header={t('account.partnerHeader')}>
                         <ButtonRow label={t('partner.pair')} onPress={() => router.push('/pair')} />
                     </ListGroup>
                 )}
@@ -484,6 +493,7 @@ const styles = StyleSheet.create({
     column: { gap: space.xl },
     title: { fontFamily: fonts.semiBold, fontSize: 34, lineHeight: 42, paddingHorizontal: space.xs },
     segmentRow: { paddingHorizontal: space.l, paddingVertical: space.m, gap: space.s },
+    notice: { fontSize: 15, lineHeight: 20, fontWeight: '500' },
     caption: { fontSize: 13, fontWeight: '600' },
     footer: { fontSize: 13, lineHeight: 18, paddingHorizontal: space.l },
     footerBlock: { gap: space.xs },

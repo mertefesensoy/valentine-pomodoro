@@ -25,6 +25,7 @@ module.exports = defineConfig([
             '**/server/appleSignIn',
             '**/server/dayReports',
             '**/server/noteDelivery',
+            '**/server/forgetAccount',
             '**/screens/pair/**',
             '**/screens/partner/**',
             '**/screens/account/**',

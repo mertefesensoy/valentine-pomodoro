@@ -11,7 +11,7 @@ import {
     View,
     useWindowDimensions,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useQuery } from '@tanstack/react-query';
 import Animated, {
@@ -168,7 +168,9 @@ export default function PairScreen() {
     // Someone with an account who isn't paired has come to pair, and hears what anyone else does.
     const lastGlance = usePartnerGlance((s) => s.glance);
     const lastPartner = lastGlance?.name ?? t('pair.partner');
-    const returningNow = present && sessionEnded && lastGlance !== null;
+    // Settings says so outright, for someone with an ended session and no partner, who's come back to their account.
+    const params = useLocalSearchParams<{ returning?: string }>();
+    const returningNow = present && sessionEnded && (lastGlance !== null || params.returning === '1');
     // The token's acceptance clears `sessionEnded` while signIn() is still running, so this holds the words for the attempt.
     const [returningAttempt, setReturningAttempt] = useState(false);
     const returning = returningNow || returningAttempt;
@@ -454,9 +456,9 @@ export default function PairScreen() {
                     right={
                         <View style={styles.pageInner}>
                             <Text style={[styles.who, { color: tokens.inkSoft }]} numberOfLines={2}>
-                                {returning ? lastPartner : t('pair.partner')}
+                                {lastGlance ? lastPartner : t('pair.partner')}
                             </Text>
-                            {returning ? (
+                            {returning && lastGlance ? (
                                 <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
                                     <PoseSticker who="doro" pose="idle" width={STICKER} shadow={tokens.stickerShadow} />
                                 </View>

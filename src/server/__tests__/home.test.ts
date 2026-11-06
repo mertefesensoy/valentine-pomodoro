@@ -36,6 +36,58 @@ beforeEach(() => {
     mockLaunchStorage.clearAll();
 });
 
+describe('finding out that an account has gone, with the answer lost', () => {
+    const mockForget = jest.fn(async () => {});
+    beforeEach(() => {
+        mockForget.mockClear();
+        mockLaunchStorage.set('migration.asyncstorage_v1', 'done');
+        mockLaunchStorage.set('account_v1', 'true');
+        jest.doMock('../forgetAccount', () => ({ forgetAccount: () => mockForget() }));
+    });
+    afterEach(() => jest.dontMock('../forgetAccount'));
+
+    it('takes a valid session with no profile as the server\'s word, and no partner is announced gone', async () => {
+        const home = launch();
+        const { syncGlance, usePartnerGlance } = require('../partnerGlance') as typeof import('../partnerGlance');
+        syncGlance(snapshot(1));
+        mockRpc.mockResolvedValue({ ...snapshot(1), me: null, couple: null, partner: null });
+        await home.fetchHome();
+        await flushMicrotasks();
+        expect(mockForget).toHaveBeenCalledTimes(1);
+        expect(usePartnerGlance.getState().gone).toBeNull();
+    });
+
+    it('takes a refused session with the marker up the same way, and still says it was refused', async () => {
+        const home = launch();
+        const { SessionEnded } = require('../client') as typeof import('../client');
+        mockLaunchStorage.set('account_deletion_pending_v1', 'true');
+        mockRpc.mockRejectedValue(new SessionEnded());
+        await expect(home.fetchHome()).rejects.toBeInstanceOf(SessionEnded);
+        await flushMicrotasks();
+        expect(mockForget).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves a refused session alone with no marker', async () => {
+        const home = launch();
+        const { SessionEnded } = require('../client') as typeof import('../client');
+        mockRpc.mockRejectedValue(new SessionEnded());
+        await expect(home.fetchHome()).rejects.toBeInstanceOf(SessionEnded);
+        await flushMicrotasks();
+        expect(mockForget).not.toHaveBeenCalled();
+    });
+
+    it('clears the marker when a snapshot shows the account is still there, and changes nothing else', async () => {
+        const home = launch();
+        const account = require('../account') as typeof import('../account');
+        mockLaunchStorage.set('account_deletion_pending_v1', 'true');
+        mockRpc.mockResolvedValue(snapshot(1));
+        await home.fetchHome();
+        await flushMicrotasks();
+        expect(account.isDeletionPending()).toBe(false);
+        expect(mockForget).not.toHaveBeenCalled();
+    });
+});
+
 describe('a snapshot already on its way when you leave', () => {
     it('can\'t bring your partner back: its answer is from before', async () => {
         const home = launch();

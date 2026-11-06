@@ -28,6 +28,22 @@ jest.mock('expo-router', () => ({
     router: { push: jest.fn(), back: jest.fn(), canGoBack: () => true },
 }));
 const mockEvaluated: string[] = [];
+jest.mock('../../server/client', () => {
+    mockEvaluated.push('client');
+    return {};
+});
+jest.mock('../../server/home', () => {
+    mockEvaluated.push('home');
+    return {};
+});
+jest.mock('@tanstack/react-query', () => {
+    mockEvaluated.push('query');
+    return {};
+});
+jest.mock('expo-secure-store', () => {
+    mockEvaluated.push('keychain');
+    return {};
+});
 jest.mock('../account/AccountGroups', () => {
     mockEvaluated.push('groups');
     const { Text: MockText } = jest.requireActual('react-native');
@@ -39,9 +55,9 @@ jest.mock('../account/AccountGroups', () => {
 
 const GLANCE = { coupleId: 'c', name: 'Deniz', today: null, updatedAt: null, fetchedAt: 0 };
 
-async function show({ present = false, paired = false, justDeleted = false }: { present?: boolean; paired?: boolean; justDeleted?: boolean }) {
+async function show({ present = false, paired = false, notice = null }: { present?: boolean; paired?: boolean; notice?: 'deleted' | 'unpaired' | null }) {
     await act(async () => {
-        useAccountStore.setState({ present, sessionEnded: false, justDeleted });
+        useAccountStore.setState({ present, sessionEnded: false, notice });
         usePartnerGlance.setState({ glance: paired ? GLANCE : null, gone: null, notes: [], shown: [] });
     });
     await render(
@@ -59,18 +75,23 @@ function position(text: string): number {
 
 beforeEach(async () => {
     await resetStorage();
-    mockEvaluated.length = 0;
     (router.push as jest.Mock).mockClear();
 });
 
 afterEach(async () => {
     await act(async () => {
-        useAccountStore.setState({ present: false, sessionEnded: false, justDeleted: false });
+        useAccountStore.setState({ present: false, sessionEnded: false, notice: null });
         usePartnerGlance.setState({ glance: null, gone: null, notes: [], shown: [] });
     });
 });
 
 describe('solo', () => {
+    // First in the file, so nothing has loaded these yet. Evaluating any of them would break the solo promise (ADR-0049).
+    it('with pairing on and no account, Settings evaluates no server code at all', async () => {
+        await show({});
+        expect(mockEvaluated).toEqual([]);
+    });
+
     it('offers to pair, after Love notes, and loads nothing about accounts', async () => {
         await show({});
         await fireEvent.press(screen.getByRole('button', { name: 'Pair with your partner' }));
@@ -79,9 +100,15 @@ describe('solo', () => {
         expect(screen.queryByText('ACCOUNT GROUP')).toBeNull();
     });
 
-    it('says the account is gone, right after deleting it', async () => {
-        await show({ justDeleted: true });
+    it('says the account is gone at the top of the list, right after deleting it', async () => {
+        await show({ notice: 'deleted' });
         expect(screen.getByText(/Your account is deleted/)).toBeOnTheScreen();
+        expect(position('Your account is deleted. Your timer, stats and notes are still on this phone.')).toBeLessThan(position('Timer'));
+    });
+
+    it('says you\'ve unpaired, the same way', async () => {
+        await show({ present: true, notice: 'unpaired' });
+        expect(screen.getByText(/You've unpaired/)).toBeOnTheScreen();
     });
 });
 

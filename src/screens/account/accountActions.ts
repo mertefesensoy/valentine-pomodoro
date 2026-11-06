@@ -1,14 +1,13 @@
 import { Share } from 'react-native';
 import { File, Paths } from 'expo-file-system';
 
-import { setHasAccount, setJustDeleted } from '../../server/account';
+import { isDeletionPending, setAccountNotice, setDeletionPending } from '../../server/account';
 import { requestDeletionCode } from '../../server/appleSignIn';
-import { clearSession, invoke, Offline, rpc, SessionEnded } from '../../server/client';
-import { PENDING_KEY } from '../../server/dayReports';
-import { clearHome, HOME_KEY, homeClient, refreshHome } from '../../server/home';
+import { invoke, Offline, rpc, SessionEnded } from '../../server/client';
+import { forgetAccount } from '../../server/forgetAccount';
+import { HOME_KEY, homeClient, refreshHome } from '../../server/home';
 import { clearPartner } from '../../server/partnerGlance';
 import type { HomeSnapshot } from '../../server/types';
-import { appStorage } from '../../utils/appStorage';
 
 /**
  * What the account's rows do (Phase 2 D4). Reached only through the lazy groups, so a solo launch evaluates none of
@@ -41,54 +40,46 @@ export async function unpairPartner(): Promise<ActionResult> {
     homeClient.setQueryData<HomeSnapshot>(HOME_KEY, (old) =>
         old ? { ...old, couple: null, partner: null, partner_today: null, partner_updated_at: null, notes: [] } : old,
     );
+    setAccountNotice('unpaired');
     await refreshHome().catch(() => {});
     return 'ok';
 }
 
-/** One step of forgetting an account: the account is already gone, so a failure here mustn't stop the next. */
-async function attempt(step: () => unknown): Promise<void> {
-    try {
-        await step();
-    } catch {
-        // Whatever this held is about an account that no longer exists.
-    }
-}
-
-/**
- * Leaves this phone solo, after the server has deleted the account. The account flag goes last, because it's what
- * flips the screens, and everything they read has to be gone by then. Your stats and notes aren't touched, and nor is
- * `pair_celebrated_v1`, since the morph is once per person.
- */
-async function forgetAccount(): Promise<void> {
-    await attempt(() => clearPartner());
-    await attempt(() => homeClient.cancelQueries({ queryKey: HOME_KEY }));
-    await attempt(() => clearHome());
-    await attempt(() => appStorage.remove(PENDING_KEY));
-    await attempt(() => clearSession());
-    setJustDeleted(true);
-    setHasAccount(false);
-}
-
-export type DeleteResult = ActionResult | 'cancelled';
+export type DeleteResult = ActionResult | 'cancelled' | 'apple_failed';
 
 /**
  * Deletes the account, after the caller's native alert: Apple's confirmation, then the server straight away, since
  * the code is single-use and lasts five minutes. Nothing here changes on this phone until the server says yes.
- *   out: `cancelled` if the person changed their mind at Apple's sheet; `ok` once this phone is solo. `delete-account`
- *        answers 401 only at its first step, before it spends the code, so the client's one retry of a 401 is safe.
- *        Apple refusing (502) and the delete failing (500) are `failed`, and trying again gets a fresh code.
+ *
+ *   in : `onConfirmed`, called once Apple has said yes and the call is about to go, for saying so on screen.
+ *   out: `cancelled` if the person changed their mind at Apple's sheet, and `apple_failed` if that sheet couldn't run.
+ *        `ok` once this phone is solo. `delete-account` answers 401 only at its first step, before it spends the code,
+ *        so the client's one retry of a 401 is safe. Apple refusing and the delete failing are `failed`, and trying
+ *        again gets a fresh code.
+ *
+ * The marker says a deletion may have gone through with its answer lost, and only an answer clears it. So a later
+ * refused session can be told apart from a real one: with the marker up from an earlier try, it means the account is
+ * gone, and this phone should be solo, not asking someone to sign in to an account they deleted.
  */
-export async function deleteAccount(): Promise<DeleteResult> {
+export async function deleteAccount(onConfirmed?: () => void): Promise<DeleteResult> {
     let code: string | null;
     try {
         code = await requestDeletionCode();
     } catch {
-        return 'failed';
+        return 'apple_failed';
     }
     if (!code) return 'cancelled';
+    onConfirmed?.();
+    const answerLostBefore = isDeletionPending();
+    setDeletionPending(true);
     try {
         await invoke('delete-account', { authorization_code: code });
     } catch (error) {
+        if (error instanceof SessionEnded && answerLostBefore) {
+            await forgetAccount();
+            return 'ok';
+        }
+        if (!(error instanceof Offline)) setDeletionPending(false);
         return statusOf(error);
     }
     await forgetAccount();
@@ -100,7 +91,7 @@ const EXPORT_NAME = 'valentine-pomodoro-data.json';
 /**
  * Hands everything the server holds about you to the share sheet, as a JSON file, then removes the copy. iOS takes its
  * own copy when something is saved, so that's safe. It includes the notes you've received: your partner's words,
- * leaving at your choice.
+ * leaving at your choice. The row is disabled while this runs, so two can't share the one file name.
  */
 export async function downloadMyData(): Promise<ActionResult> {
     let file: File | null = null;

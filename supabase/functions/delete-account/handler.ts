@@ -42,7 +42,11 @@ export async function handle(request: Request, deps: Deps): Promise<Response> {
         method: 'GET',
         headers: { apikey: deps.publishableKey, authorization: `Bearer ${bearer}` },
     });
-    if (!who.ok) return reply(401, { status: 'not_signed_in' });
+    if (!who.ok) {
+        // Only a real refusal is "not signed in", because the client ends the session on it. An outage is an outage.
+        if ([400, 401, 403, 404].includes(who.status)) return reply(401, { status: 'not_signed_in' });
+        return reply(502, { status: 'auth_unavailable' });
+    }
     const userId = ((await who.json()) as { id?: string }).id;
     if (!userId) return reply(401, { status: 'not_signed_in' });
 

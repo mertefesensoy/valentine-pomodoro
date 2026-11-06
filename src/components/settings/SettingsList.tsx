@@ -100,7 +100,13 @@ export function ValueRow({ label, value, expanded, onPress, children }: {
  * A label and its value, for what doesn't open anything under it. With `onPress` it's a button that does something
  * else, such as the system's prompt.
  */
-export function InfoRow({ label, value, onPress }: { label: string; value: string; onPress?: () => void }) {
+export function InfoRow({ label, value, onPress, hint, disabled }: {
+    label: string;
+    value: string;
+    onPress?: () => void;
+    hint?: string;
+    disabled?: boolean;
+}) {
     const { tokens } = useTheme();
     const content = (
         <>
@@ -118,10 +124,13 @@ export function InfoRow({ label, value, onPress }: { label: string; value: strin
     return (
         <Pressable
             onPress={onPress}
+            disabled={disabled}
             style={({ pressed }) => [styles.row, pressed && { backgroundColor: tokens.field }]}
             accessibilityRole="button"
             accessibilityLabel={label}
+            accessibilityHint={hint}
             accessibilityValue={{ text: value }}
+            accessibilityState={{ disabled: Boolean(disabled) }}
         >
             {content}
         </Pressable>
@@ -161,13 +170,15 @@ export function TimeRow({ label, hhmm, onChange }: { label: string; hhmm: string
 }
 
 /** A row that acts: in `primaryInk`, or `dangerInk` for a destructive action. */
-export function ButtonRow({ label, onPress, destructive }: { label: string; onPress: () => void; destructive?: boolean }) {
+export function ButtonRow({ label, onPress, destructive, disabled }: { label: string; onPress: () => void; destructive?: boolean; disabled?: boolean }) {
     const { tokens } = useTheme();
     return (
         <Pressable
             onPress={onPress}
-            style={({ pressed }) => [styles.row, pressed && { backgroundColor: tokens.field }]}
+            disabled={disabled}
+            style={({ pressed }) => [styles.row, pressed && { backgroundColor: tokens.field }, disabled && { opacity: 0.5 }]}
             accessibilityRole="button"
+            accessibilityState={{ disabled: Boolean(disabled) }}
         >
             <Text style={[styles.label, { color: destructive ? tokens.dangerInk : tokens.primaryInk }]}>{label}</Text>
         </Pressable>

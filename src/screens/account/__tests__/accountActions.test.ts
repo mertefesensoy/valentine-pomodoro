@@ -3,7 +3,8 @@
 import { Share } from 'react-native';
 
 import { deleteAccount, downloadMyData, unpairPartner } from '../accountActions';
-import { setHasAccount, setSessionEnded, useAccountStore } from '../../../server/account';
+import { DELETION_PENDING_KEY, isDeletionPending, setDeletionPending, setHasAccount, setSessionEnded, useAccountStore } from '../../../server/account';
+import { appStorage } from '../../../utils/appStorage';
 import { ensureMigrated } from '../../../utils/storageMigration';
 import { usePartnerGlance } from '../../../server/partnerGlance';
 
@@ -35,6 +36,7 @@ const mockRefresh = jest.fn(async () => {});
 const mockClearHome = jest.fn();
 jest.mock('../../../server/home', () => ({
     HOME_KEY: ['home'],
+    homeRestored: Promise.resolve(),
     homeClient: {
         cancelQueries: (...args: unknown[]) => mockCancel(...(args as [])),
         setQueryData: (...args: unknown[]) => mockSetQueryData(...args),
@@ -43,12 +45,14 @@ jest.mock('../../../server/home', () => ({
     clearHome: () => mockClearHome(),
 }));
 jest.mock('../../../server/dayReports', () => ({ PENDING_KEY: 'day_reports_pending_v1' }));
+jest.mock('../../../server/timeZone', () => ({ LAST_TZ_KEY: 'profile_tz_v1' }));
 
 const { Offline, SessionEnded } = jest.requireMock<{ Offline: new () => Error; SessionEnded: new () => Error }>('../../../server/client');
 
 const GLANCE = { coupleId: 'c', name: 'Deniz', today: null, updatedAt: null, fetchedAt: 0 };
 
-beforeEach(() => {
+beforeEach(async () => {
+    await ensureMigrated();
     mockRpc.mockReset();
     mockInvoke.mockReset();
     mockDeletionCode.mockReset();
@@ -59,7 +63,8 @@ beforeEach(() => {
     mockRefresh.mockResolvedValue(undefined);
     mockClearHome.mockReset();
     Object.values(mockFile).forEach((v) => typeof v === 'function' && (v as jest.Mock).mockClear());
-    useAccountStore.setState({ present: true, sessionEnded: false, justDeleted: false });
+    useAccountStore.setState({ present: true, sessionEnded: false, notice: null });
+    appStorage.remove(DELETION_PENDING_KEY);
     usePartnerGlance.setState({ glance: GLANCE, gone: null, notes: [{ id: 'n', body: 'hi' }], shown: ['m'] });
 });
 
@@ -69,6 +74,7 @@ describe('unpairPartner', () => {
         await expect(unpairPartner()).resolves.toBe('ok');
         expect(mockRpc).toHaveBeenCalledWith('unpair');
         expect(usePartnerGlance.getState()).toEqual({ glance: null, gone: null, notes: [], shown: [] });
+        expect(useAccountStore.getState().notice).toBe('unpaired');
     });
 
     it('counts already being unpaired as done', async () => {
@@ -112,6 +118,18 @@ describe('deleteAccount', () => {
         expect(mockInvoke).toHaveBeenCalledWith('delete-account', { authorization_code: 'code' });
     });
 
+    it('says it\'s on its way only once Apple has said yes', async () => {
+        const onConfirmed = jest.fn();
+        mockDeletionCode.mockResolvedValue(null);
+        await deleteAccount(onConfirmed);
+        expect(onConfirmed).not.toHaveBeenCalled();
+
+        mockDeletionCode.mockResolvedValue('code');
+        mockInvoke.mockResolvedValue({ status: 'ok' });
+        await deleteAccount(onConfirmed);
+        expect(onConfirmed).toHaveBeenCalledTimes(1);
+    });
+
     it('is nothing having happened if the person cancels at Apple\'s sheet', async () => {
         mockDeletionCode.mockResolvedValue(null);
         await expect(deleteAccount()).resolves.toBe('cancelled');
@@ -123,7 +141,8 @@ describe('deleteAccount', () => {
         mockDeletionCode.mockResolvedValue('code');
         mockInvoke.mockResolvedValue({ status: 'ok' });
         await deleteAccount();
-        expect(useAccountStore.getState()).toMatchObject({ present: false, sessionEnded: false, justDeleted: true });
+        expect(useAccountStore.getState()).toMatchObject({ present: false, sessionEnded: false, notice: 'deleted' });
+        expect(isDeletionPending()).toBe(false);
         expect(usePartnerGlance.getState()).toEqual({ glance: null, gone: null, notes: [], shown: [] });
         expect(mockClearSession).toHaveBeenCalled();
         expect(mockClearHome).toHaveBeenCalled();
@@ -165,11 +184,42 @@ describe('deleteAccount', () => {
         expect(useAccountStore.getState().present).toBe(true);
         expect(usePartnerGlance.getState().glance).toEqual(GLANCE);
         expect(mockClearSession).not.toHaveBeenCalled();
+        expect(useAccountStore.getState().notice).toBeNull();
     });
 
-    it('fails plainly if Apple\'s sheet does', async () => {
+    it('says it\'s Apple it couldn\'t reach, if that sheet can\'t run', async () => {
         mockDeletionCode.mockRejectedValue(new Error('apple'));
-        await expect(deleteAccount()).resolves.toBe('failed');
+        await expect(deleteAccount()).resolves.toBe('apple_failed');
+    });
+
+    describe('when the answer is lost', () => {
+        beforeEach(() => mockDeletionCode.mockResolvedValue('code'));
+
+        it('keeps the marker through a lost answer, and changes nothing visible', async () => {
+            mockInvoke.mockRejectedValue(new Offline());
+            await expect(deleteAccount()).resolves.toBe('offline');
+            expect(isDeletionPending()).toBe(true);
+            expect(useAccountStore.getState()).toMatchObject({ present: true, notice: null });
+        });
+
+        it('clears it on any answer that says it didn\'t happen', async () => {
+            mockInvoke.mockRejectedValue(new Error('502'));
+            await expect(deleteAccount()).resolves.toBe('failed');
+            expect(isDeletionPending()).toBe(false);
+        });
+
+        it('takes a refused session on a retry to mean it did go through', async () => {
+            setDeletionPending(true);
+            mockInvoke.mockRejectedValue(new SessionEnded());
+            await expect(deleteAccount()).resolves.toBe('ok');
+            expect(useAccountStore.getState()).toMatchObject({ present: false, notice: 'deleted' });
+        });
+
+        it('doesn\'t on a first try, when a refused session is only that', async () => {
+            mockInvoke.mockRejectedValue(new SessionEnded());
+            await expect(deleteAccount()).resolves.toBe('session_ended');
+            expect(useAccountStore.getState().present).toBe(true);
+        });
     });
 });
 

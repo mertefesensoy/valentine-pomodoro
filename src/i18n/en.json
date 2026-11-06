@@ -460,7 +460,7 @@
     "signIn": "Sign-in",
     "signInValue": "Using Sign in with Apple",
     "signInAgain": "Sign in again",
-    "sessionEndedFooter": "You've been signed out. Nothing is lost: sign in to carry on.",
+    "sessionEndedFooter": "You've been signed out, and nothing is lost. Sign in again to carry on, or to download or delete your data.",
     "download": "Download my data",
     "delete": "Delete account",
     "deleteTitle": "Delete your account?",
@@ -468,6 +468,12 @@
     "deleted": "Your account is deleted. Your timer, stats and notes are still on this phone.",
     "offline": "You're offline. Try again when you're connected.",
     "sessionEnded": "You've been signed out. Sign in again to do this.",
-    "failed": "Something went wrong. Try again."
+    "failed": "Something went wrong. Try again.",
+    "unpaired": "You've unpaired. Your stats and notes are still on this phone.",
+    "deleting": "Deleting your account…",
+    "appleFailed": "Couldn't reach Apple. Check your connection and try again.",
+    "deleteMessageSolo": "This deletes your name and your account, straight away. Your timer, stats and notes on this phone stay.",
+    "nameHint": "Changes the name your partner sees",
+    "addName": "Add your name"
   }
 }

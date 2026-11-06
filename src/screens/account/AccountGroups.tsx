@@ -9,14 +9,17 @@ import { useHome } from '../../server/home';
 import { usePartnerGlance } from '../../server/partnerGlance';
 import { saveName } from '../pair/pairing';
 import { capText } from '../notes/NoteEditor';
-import { deleteAccount, downloadMyData, unpairPartner, type ActionResult } from './accountActions';
+import { deleteAccount, downloadMyData, unpairPartner, type DeleteResult } from './accountActions';
 
 const LOCALE = language === 'tr' ? 'tr-TR' : 'en-US';
 const NAME_MAX = 60;
 
-function problemLine(result: Exclude<ActionResult, 'ok'>): string {
+const speak = (line: string) => AccessibilityInfo.announceForAccessibility(line);
+
+function problemLine(result: Exclude<DeleteResult, 'ok' | 'cancelled'>): string {
     if (result === 'offline') return t('account.offline');
     if (result === 'session_ended') return t('account.sessionEnded');
+    if (result === 'apple_failed') return t('account.appleFailed');
     return t('account.failed');
 }
 
@@ -29,21 +32,27 @@ export function PartnerGroup() {
     const glanceName = usePartnerGlance((s) => s.glance?.name ?? null);
     const sessionEnded = useAccountStore((s) => s.sessionEnded);
     const [problem, setProblem] = useState<string | null>(null);
+    const [busy, setBusy] = useState(false);
 
-    const name = home.data?.partner?.display_name ?? glanceName ?? t('pair.partner');
+    const known = home.data?.partner?.display_name ?? glanceName;
     const pairedAt = home.data?.couple?.paired_at;
     const date = pairedAt ? new Date(pairedAt).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' }) : null;
 
     const unpair = async () => {
         setProblem(null);
+        setBusy(true);
         const result = await unpairPartner();
-        if (result === 'ok') return;
+        setBusy(false);
+        if (result === 'ok') {
+            speak(t('account.unpaired'));
+            return;
+        }
         const line = problemLine(result);
         setProblem(line);
-        AccessibilityInfo.announceForAccessibility(line);
+        speak(line);
     };
     const askUnpair = () => {
-        Alert.alert(t('account.unpairTitle', { name }), t('account.unpairMessage'), [
+        Alert.alert(t('account.unpairTitle', { name: known ?? t('pair.partnerFallback') }), t('account.unpairMessage'), [
             { text: t('account.cancel'), style: 'cancel' },
             { text: t('account.unpair'), style: 'destructive', onPress: () => void unpair() },
         ]);
@@ -51,32 +60,33 @@ export function PartnerGroup() {
 
     return (
         <ListGroup header={t('account.partnerHeader')} footer={problem ?? undefined}>
-            <InfoRow label={name} value={date ? t('account.paired', { date }) : ''} />
-            {/* Unpairing needs a session. Signing in again is the way back to it, from the row below. */}
-            {sessionEnded ? null : <ButtonRow label={t('account.unpair')} onPress={askUnpair} destructive />}
+            <InfoRow label={known ?? t('pair.partner')} value={date ? t('account.paired', { date }) : ''} />
+            {/* Unpairing needs a session. Signing in again is the way back to it, in the Account group below. */}
+            {sessionEnded ? null : <ButtonRow label={t('account.unpair')} onPress={askUnpair} destructive disabled={busy} />}
         </ListGroup>
     );
 }
 
+/** Apple's button, with the words for someone coming back to their account, whatever they came for. */
+const signInAgain = () => router.push({ pathname: '/pair', params: { returning: '1' } });
+
 /**
  * Your account, whenever there is one, including after unpairing: your name, how you sign in, your data, and deleting
  * it all. Deleting asks first in a native alert saying what goes and what stays, then Apple confirms. With a session
- * that has ended, every action would fail, so there's your name and the way to sign in again. Reached by `React.lazy`.
+ * that has ended, every action needs signing in first, so that's what these rows do. Reached by `React.lazy` only.
  */
 export function AccountGroup() {
     const home = useHome();
     const sessionEnded = useAccountStore((s) => s.sessionEnded);
+    const paired = usePartnerGlance((s) => s.glance !== null);
     const [problem, setProblem] = useState<string | null>(null);
+    const [busy, setBusy] = useState<'asking' | 'delete' | 'download' | 'rename' | null>(null);
     const name = home.data?.me?.display_name ?? '';
 
-    const report = (result: ActionResult) => {
-        if (result === 'ok') {
-            setProblem(null);
-            return;
-        }
+    const fail = (result: Exclude<DeleteResult, 'ok' | 'cancelled'>) => {
         const line = problemLine(result);
         setProblem(line);
-        AccessibilityInfo.announceForAccessibility(line);
+        speak(line);
     };
 
     const rename = () => {
@@ -90,9 +100,11 @@ export function AccountGroup() {
                     onPress: (value?: string) => {
                         const next = capText((value ?? '').trim(), NAME_MAX);
                         if (!next) return;
+                        setBusy('rename');
+                        setProblem(null);
                         void saveName(next).then((result) => {
-                            if (result === 'ok') setProblem(null);
-                            else report(result === 'offline' ? 'offline' : 'failed');
+                            setBusy(null);
+                            if (result !== 'ok') fail(result === 'offline' ? 'offline' : 'failed');
                         });
                     },
                 },
@@ -104,33 +116,54 @@ export function AccountGroup() {
 
     const remove = async () => {
         setProblem(null);
-        const result = await deleteAccount();
-        // Once it's done this group is gone with the account, and Settings says so.
-        if (result === 'cancelled' || result === 'ok') return;
-        report(result);
+        setBusy('asking');
+        const result = await deleteAccount(() => {
+            setBusy('delete');
+            speak(t('account.deleting'));
+        });
+        setBusy(null);
+        if (result === 'cancelled') return;
+        // Settings says so too, at the top of the list, since this group is about to go with the account.
+        if (result === 'ok') speak(t('account.deleted'));
+        else fail(result);
     };
     const askDelete = () => {
-        Alert.alert(t('account.deleteTitle'), t('account.deleteMessage'), [
+        Alert.alert(t('account.deleteTitle'), t(paired ? 'account.deleteMessage' : 'account.deleteMessageSolo'), [
             { text: t('account.cancel'), style: 'cancel' },
             { text: t('account.delete'), style: 'destructive', onPress: () => void remove() },
         ]);
+    };
+
+    const download = async () => {
+        setProblem(null);
+        setBusy('download');
+        const result = await downloadMyData();
+        setBusy(null);
+        if (result !== 'ok') fail(result);
     };
 
     if (sessionEnded) {
         return (
             <ListGroup header={t('account.header')} footer={t('account.sessionEndedFooter')}>
                 <InfoRow label={t('account.name')} value={name} />
-                <ButtonRow label={t('account.signInAgain')} onPress={() => router.push('/pair')} />
+                <ButtonRow label={t('account.signInAgain')} onPress={signInAgain} />
+                <ButtonRow label={t('account.delete')} onPress={signInAgain} destructive />
             </ListGroup>
         );
     }
 
     return (
-        <ListGroup header={t('account.header')} footer={problem ?? undefined}>
-            <InfoRow label={t('account.name')} value={name} onPress={rename} />
+        <ListGroup header={t('account.header')} footer={busy === 'delete' ? t('account.deleting') : problem ?? undefined}>
+            <InfoRow
+                label={t('account.name')}
+                value={name || t('account.addName')}
+                onPress={rename}
+                hint={t('account.nameHint')}
+                disabled={busy !== null}
+            />
             <InfoRow label={t('account.signIn')} value={t('account.signInValue')} />
-            <ButtonRow label={t('account.download')} onPress={() => void downloadMyData().then(report)} />
-            <ButtonRow label={t('account.delete')} onPress={askDelete} destructive />
+            <ButtonRow label={t('account.download')} onPress={() => void download()} disabled={busy !== null} />
+            <ButtonRow label={t('account.delete')} onPress={askDelete} destructive disabled={busy !== null} />
         </ListGroup>
     );
 }

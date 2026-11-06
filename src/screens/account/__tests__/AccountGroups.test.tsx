@@ -22,7 +22,7 @@ const mockDelete = jest.fn();
 const mockDownload = jest.fn();
 jest.mock('../accountActions', () => ({
     unpairPartner: () => mockUnpair(),
-    deleteAccount: () => mockDelete(),
+    deleteAccount: (onConfirmed?: () => void) => mockDelete(onConfirmed),
     downloadMyData: () => mockDownload(),
 }));
 const mockSaveName = jest.fn();
@@ -52,7 +52,7 @@ beforeEach(async () => {
     alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility').mockImplementation(() => {});
     await act(async () => {
-        useAccountStore.setState({ present: true, sessionEnded: false, justDeleted: false });
+        useAccountStore.setState({ present: true, sessionEnded: false, notice: null });
         usePartnerGlance.setState({ glance: { coupleId: 'c', name: 'Deniz', today: null, updatedAt: null, fetchedAt: 0 }, gone: null, notes: [], shown: [] });
     });
 });
@@ -78,6 +78,15 @@ describe('your partner', () => {
         expect(alert.mock.calls[0][1]).toMatch(/notes between you are deleted. Your own stats stay/);
         await confirm();
         expect(mockUnpair).toHaveBeenCalledTimes(1);
+        expect(announce).toHaveBeenCalledWith(expect.stringMatching(/You've unpaired/));
+    });
+
+    it('can\'t be pressed twice while it\'s on its way', async () => {
+        mockUnpair.mockImplementation(() => new Promise(() => {}));
+        await render(<PartnerGroup />);
+        await fireEvent.press(screen.getByRole('button', { name: 'Unpair' }));
+        await confirm();
+        expect(screen.getByRole('button', { name: 'Unpair' }).props.accessibilityState.disabled).toBe(true);
     });
 
     it('says what went wrong, aloud too', async () => {
@@ -113,6 +122,28 @@ describe('your account', () => {
         expect(alert.mock.calls[0][1]).toMatch(/Your timer, stats and notes on this phone stay/);
         await confirm();
         expect(mockDelete).toHaveBeenCalledTimes(1);
+        expect(announce).toHaveBeenCalledWith(expect.stringMatching(/Your account is deleted/));
+    });
+
+    it('says what\'s happening once Apple has said yes, and nothing else can be pressed', async () => {
+        mockDelete.mockImplementation((onConfirmed: () => void) => {
+            onConfirmed();
+            return new Promise(() => {});
+        });
+        await render(<AccountGroup />);
+        await fireEvent.press(screen.getByRole('button', { name: 'Delete account' }));
+        await confirm();
+        expect(screen.getByText('Deleting your account…')).toBeOnTheScreen();
+        expect(announce).toHaveBeenCalledWith('Deleting your account…');
+        expect(screen.getByRole('button', { name: 'Download my data' }).props.accessibilityState.disabled).toBe(true);
+        expect(screen.getByRole('button', { name: 'Delete account' }).props.accessibilityState.disabled).toBe(true);
+    });
+
+    it('tells someone with no partner only what applies to them', async () => {
+        await act(async () => usePartnerGlance.setState({ glance: null }));
+        await render(<AccountGroup />);
+        await fireEvent.press(screen.getByRole('button', { name: 'Delete account' }));
+        expect(alert.mock.calls[0][1]).not.toMatch(/partner/);
     });
 
     it('says nothing if the person cancels at Apple\'s sheet', async () => {
@@ -121,12 +152,14 @@ describe('your account', () => {
         await fireEvent.press(screen.getByRole('button', { name: 'Delete account' }));
         await confirm();
         expect(announce).not.toHaveBeenCalled();
+        expect(screen.queryByText('Deleting your account…')).toBeNull();
     });
 
     it.each([
         ['offline', /You're offline/],
         ['failed', /Something went wrong/],
         ['session_ended', /signed out/],
+        ['apple_failed', /Couldn't reach Apple/],
     ])('says so, aloud too, when deleting comes back %s', async (result, text) => {
         mockDelete.mockResolvedValue(result);
         await render(<AccountGroup />);
@@ -165,12 +198,23 @@ describe('your account', () => {
         prompt.mockRestore();
     });
 
-    it('offers signing in again, and nothing that would fail, once the session has ended', async () => {
+    it('asks for a name when there is none yet', async () => {
+        mockHome = { ...HOME, me: { id: 'm', display_name: null } };
+        await render(<AccountGroup />);
+        expect(screen.getByText('Add your name')).toBeOnTheScreen();
+    });
+
+    it('with an ended session, says deleting is on the other side of signing in, and both rows go there', async () => {
+        (router.push as jest.Mock).mockClear();
         await act(async () => useAccountStore.setState({ sessionEnded: true }));
         await render(<AccountGroup />);
-        expect(screen.queryByRole('button', { name: 'Delete account' })).toBeNull();
         expect(screen.queryByRole('button', { name: 'Download my data' })).toBeNull();
+        expect(screen.getByText(/or to download or delete your data/)).toBeOnTheScreen();
+        const coming = { pathname: '/pair', params: { returning: '1' } };
         await fireEvent.press(screen.getByRole('button', { name: 'Sign in again' }));
-        expect(router.push).toHaveBeenCalledWith('/pair');
+        expect(router.push).toHaveBeenLastCalledWith(coming);
+        await fireEvent.press(screen.getByRole('button', { name: 'Delete account' }));
+        expect(router.push).toHaveBeenCalledTimes(2);
+        expect(router.push).toHaveBeenLastCalledWith(coming);
     });
 });

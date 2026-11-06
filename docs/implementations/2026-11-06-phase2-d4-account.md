@@ -27,8 +27,11 @@ Requirements: [FR-PAR-002](../srs/SRS.md#fr-par-002), [FR-ACC-003](../srs/SRS.md
 |------|--------|
 | `src/screens/account/AccountGroups.tsx` | New: the Your partner and Account groups. Loaded with `React.lazy`, only with an account. |
 | `src/screens/account/accountActions.ts` | New: unpair, delete and download, with statuses. |
+| `src/server/forgetAccount.ts` | New: leaves this phone solo, once the server has deleted the account. Reached by `import()`. |
+| `supabase/functions/delete-account/handler.ts`, `src/__tests__/deleteAccountHandler.test.ts` | An outage at Auth is no longer "not signed in". **Merging this deploys the function.** |
+| `src/screens/pair/PairScreen.tsx` | A `returning` param, for someone coming back to their account from Settings with no partner. |
 | `src/screens/SettingsScreen.tsx` | Places them; the solo "Pair with your partner" row; the line once an account is deleted. |
-| `src/server/account.ts`, `src/server/client.ts` | `justDeleted`, and an ended session only counts for someone with an account. |
+| `src/server/account.ts`, `src/server/client.ts` | The notice in Settings, the deletion marker, and an ended session only counts for someone with an account. |
 | `src/server/partnerGlance.ts`, `src/server/home.ts` | `clearPartner()`, for leaving a couple or an account, and a generation, so a snapshot already on its way can't bring a partner back. |
 | `src/screens/TimerScreen.tsx` | The strip's partner needs an account too. |
 | `src/components/settings/SettingsList.tsx` | `InfoRow`, a label and value with nothing to open. |
@@ -61,9 +64,9 @@ The account stays, so pairing again needs no sign-in. Your partner finds out at 
 4. On success, `forgetAccount()`, in this order, because the flag is what flips the screens:
    - `clearPartner()`, the summary, notes and `shown`;
    - queries on their way cancelled, then `clearHome()`, the query and its persisted copy;
-   - the day reports' queue;
+   - the day reports' queue, and the stored time zone, so a new account's first sign-in sends it again;
    - `clearSession()`, the Keychain;
-   - `justDeleted = true`, and last `setHasAccount(false)`, which clears `sessionEnded` in the same write.
+   - the marker cleared, the notice set, and last `setHasAccount(false)`, which clears `sessionEnded` in the same write.
 
    Each step is independent, and none can stop the next: the account is already gone on the server, so a failure here must still end with the phone solo. `pair_celebrated_v1` stays, since the morph is once per person.
 
@@ -76,7 +79,8 @@ The account stays, so pairing again needs no sign-in. Your partner finds out at 
 | 400 `no_authorization_code` | Step 2 | `failed`. It can't happen from the app |
 | 502 `apple_failed` | Steps 3 and 4 | `failed`, and nothing has changed. Trying again gets a fresh code |
 | 500 `delete_failed` | Step 5: Apple's token is revoked and the account remains, B3's known gap | `failed`. Trying again works while the session does, with a fresh code |
-| No answer | | `offline`. If the server had finished, the next refresh finds no account |
+| No answer | | `offline`, with the marker left up. See below |
+| 502 `auth_unavailable` | Step 1, when Auth itself is down | `failed`, and nothing has changed. It used to be a 401, which ended the session on the phone for an outage |
 
 **If it goes wrong:**
 
@@ -86,7 +90,12 @@ The account stays, so pairing again needs no sign-in. Your partner finds out at 
 | Offline, or the server refuses | A line under the group, and they can try again. Nothing local has changed |
 | B3's known gap: Apple's token revoked, then the delete fails | The same line. Their session still works, and trying again gets a fresh code from Apple. Nothing local has changed |
 | The session has ended | The group offers signing in again first |
-| The app dies between the server's yes and the local clearing | The flag is still set with the account gone. The next refresh ends in `SessionEnded`, the strip offers signing in, and that makes a new account. Local stats and notes are untouched |
+| The answer is lost, or the app dies before clearing | See "A deletion whose answer was lost" below: the next refresh finds out, and the phone goes solo |
+
+**A deletion whose answer was lost.** The server may have finished with the phone none the wiser, and asking that person to sign in would make a new account for someone who just deleted theirs. Two signals, both the server's word, so "nothing local before the server's yes" holds:
+
+- **`me === null` from `home_snapshot`.** `handle_new_user` gives every account a profile in the same transaction, `profiles.id` cascades from `auth.users`, and nothing else deletes a profile, so a valid session with no `me` means the account is gone. `fetchHome` checks this before `syncGlance`, so they don't hear that their partner has gone, and runs `forgetAccount` through `import()`, since that module needs this one.
+- **`SessionEnded` with the marker up,** for when the token has expired too. `account_deletion_pending_v1` is set just before `invoke`, cleared by any answer that says it didn't happen and by any snapshot with `me`, and read only here. It changes nothing visible. A retry in that state counts a refused session as done, since `answerLostBefore` says an earlier try went unanswered. In the rare case that the session really was refused and the account remains, the phone goes solo and says it's deleted, which is wrong; signing in again finds the account, and it can be deleted then.
 
 **The runtime keeps running after this,** with its `AppState` listener, because it starts once per launch and has no stop. So `refreshAll` returns at once with no account, before `syncTimeZone`, which also calls the server. `setSessionEnded(true)` does nothing with no account, and `setHasAccount(false)` clears it in the same store write, because a call can still fail in the moment between the Keychain emptying and the flag going. Otherwise a deleted account would look like an ended session.
 
@@ -94,9 +103,9 @@ The account stays, so pairing again needs no sign-in. Your partner finds out at 
 
 **Your name** edits with `Alert.prompt`, the system's own, capped at 60 characters here and validated on the server by `saveName`.
 
-**With an ended session,** every action here would fail, so the groups show their name and one row, "Sign in again", which opens `/pair`. Deleting needs a session, and this is the way to get one.
+**With an ended session,** every action here needs signing in first. The Account group shows the name, "Sign in again" and "Delete account", which both open `/pair` with `returning`, and its footer says deleting is on the other side, so it can be found as Guideline 5.1.1(v) needs. The sheet then uses the words for coming back, closes itself once signed in, and makes no code.
 
-**The done line.** "Your account is deleted…" can't live in the lazy group, because that unmounts with the flag. `justDeleted` isn't persisted, and `SettingsScreen` shows it under Your partner's solo row until the app next starts.
+**Saying it's done.** "Your account is deleted…" and "You've unpaired…" can't live in the lazy groups, which go or move at that moment. `notice` isn't persisted, and `SettingsScreen` shows it at the top of the list, scrolling there, until the app next starts or you pair again. Both are announced too. While something is on its way the rows are disabled and, for deleting, a footer says so, because a person leaving the app in that silence could cut the call off.
 
 **Motion:** none. These are the system's own alerts and sheets.
 
@@ -119,11 +128,26 @@ None.
 
 - [x] `accountActions`: every status of unpair, delete and download, and `forgetAccount`'s order, including a step failing.
 - [x] The groups: solo, paired and after unpairing; the order in Settings (`settingsAccount.test.tsx`); an ended session.
-- [x] A solo launch evaluates no server code with Settings in place, and with the flag off nothing draws (`settings.test.tsx`).
-- [x] After deletion, a foreground return makes no request and doesn't look like an ended session (`home.test.ts`, `accountActions.test.ts`), and a snapshot already on its way can't bring a partner back.
-- [x] The guards, and the bytecode: 4,577,740 B, which is 17,504 B for D4 and leaves 62,260 B of NFR-PERF-002 for D5 and D6.
+- [x] With pairing on and no account, Settings evaluates no server code (`settingsAccount.test.tsx`), and with the flag off nothing draws (`settings.test.tsx`).
+- [x] After deletion, a foreground return makes no request and doesn't look like an ended session (`home.test.ts`, `accountActions.test.ts`), and a snapshot already on its way can't bring a partner back. A deletion whose answer was lost, by both signals, and the marker's life (`home.test.ts`, `accountActions.test.ts`).
+- [x] The guards, and the bytecode: 4,583,344 B, which is 23,108 B for D4 and leaves 56,656 B of NFR-PERF-002 for D5 and D6.
 - [x] Deletion's server side is B3's pgTAP (`supabase/tests/functions.test.sql`): the partner keeps their history, your notes go, and they see you've gone.
-- [ ] **Needs a device, at Stage F's first build:** Apple's confirmation and a real `delete-account` call, whose code can only be spent once; the partner seeing you've gone; the share sheet saving to Files; the finish review on captures, at the largest text size and with VoiceOver.
+- [ ] **Needs a device, at Stage F's first build:** Apple's confirmation and a real `delete-account` call, whose code can only be spent once; what `home_snapshot` and a refresh really answer for a deleted account, since PostgREST accepting that JWT can't be tested here, though the marker's path reaches the same end if it refuses; what Apple's sheet does offline; the partner seeing you've gone; the share sheet saving to Files; the finish review on captures, at the largest text size and with VoiceOver.
+
+### The finish review, 2026-11-06
+
+**From code only,** by a fresh `impeccable-finish-reviewer`, at `d7c533c`: critique 28/40 (14/20) and native audit 17/20, with nothing Critical on the HIG lens. It confirmed that nothing local changes before the server's yes, that a fetch in flight can't bring a partner back, and that Apple's code has nothing between the sheet and the call and can't be spent twice. Its fixes, all applied:
+
+- "It's done" was off-screen and silent; now it's at the top, scrolled to, and announced.
+- A lost answer stranded the person, with "Sign in again" making a new account; see §3.
+- "Sign in again" opened the pairing pitch and made a code nobody asked for.
+- Any Auth hiccup at the handler's first step ended the session on the phone.
+- No busy state, so a second tap could raise a second Apple sheet.
+- With an ended session, deletion wasn't named anywhere.
+- Two lines that misled: partner wording for someone with no partner, and offline at Apple's sheet reading as a failure.
+- `profile_tz_v1` surviving deletion, and a test the record cited that didn't prove the claim.
+
+**For the copy proof:** `en-US` renders "Paired Nov 5" where the brief writes "Paired 5 Nov", which is the app's existing habit. **For E2's privacy policy:** the export includes notes you received.
 
 ## 7. Related Docs
 

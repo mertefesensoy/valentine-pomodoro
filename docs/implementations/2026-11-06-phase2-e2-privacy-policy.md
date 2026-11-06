@@ -9,7 +9,7 @@ related: [IMPL-2026-11-05-phase2-plan, IMPL-2026-11-06-phase2-d4-account, IMPL-2
 
 # 2026-11-06 — Phase 2 E2: the privacy policy, in English and Turkish
 
-**Status:** Drafted. Waiting for the owner, and §0.2's legal read.
+**Status:** The owner has read the draft. It's pushed so that the app's row can reach the first build, and the task stays open until §0.2's legal read.
 **Branch:** `feat/phase2-e2-privacy-policy`, one pull request into `master`. The website is a separate repository, with its own pull request.
 **Plan task:** [Phase 2 plan §3, E2](2026-11-05-phase2-plan.md#stage-e-reliability-and-policy), [NFR-PRIV-002](../srs/SRS.md#nfr-priv-002). Done when the owner approves the text, after §0.2's legal read.
 
@@ -57,6 +57,13 @@ Apple also asks for a link to the policy inside the app (Guideline 5.1.1(i)). Th
 
 **Facts only.** Legal bases and what KVKK or the GDPR require are for §0.2's reader, so the text states what happens and how to act on it. The Turkish follows the English, so the reader reviews one set of facts.
 
+### What the owner decided, 2026-11-06
+
+- **The draft:** "Reads right, push it (Recommended)".
+- **The legal read:** "I'll arrange it, ask later (Recommended)". It holds up the submission and nothing before it. The draft is a private page the owner can share, at https://claude.ai/artifact/762buDBFbsGjW3EPiBe8Ke.
+- **The website:** "Policy and both home lines (Recommended)".
+- **The text's three commitments** (when notes may be read, under 13, the contact address): "All three are right (Recommended)". The question misspelt the address, and the text has the one the old policy had.
+
 ### Questions for the reader
 
 §0.2 asks someone qualified to read the policy before 1.5.0 ships. These are the things a developer can't settle:
@@ -87,7 +94,9 @@ None.
 - [x] Every row of §3's inventory has a sentence, and every sentence a row.
 - [x] The row opens the policy (`settingsPrivacy.test.tsx`), with the guards green.
 - [x] The bytecode: 4,587,872 B, which is 380 B for E2 and leaves 52,128 B of NFR-PERF-002.
-- [ ] The owner approves the text, after the legal read.
+- [x] The owner has read the draft.
+- [ ] **Before the submission:** someone qualified reads it, the text changes as they advise, and the owner approves it.
+- [ ] The website's pull request is merged and live.
 - [ ] **After the first real sign-in, at F2:** the owner looks at Authentication › Users, and the sentence about email is firmed up.
 
 ## 7. Related Docs

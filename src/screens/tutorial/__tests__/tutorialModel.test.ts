@@ -54,6 +54,7 @@ function referenceWriteOn(): (text: string, who: 'pomo' | 'doro') => { chars: nu
 jest.mock('../../../constants/features', () => ({
     ...jest.requireActual('../../../constants/features'),
     PAIRING_ENABLED: false,
+    STARTUP_REPORTS_ENABLED: false,
 }));
 
 describe('how a line is spoken (assets record §3.4, §4.4)', () => {

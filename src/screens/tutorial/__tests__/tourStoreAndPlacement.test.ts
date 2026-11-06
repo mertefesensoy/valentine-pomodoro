@@ -12,6 +12,7 @@ import { useTourScroll } from '../useTour';
 jest.mock('../../../constants/features', () => ({
     ...jest.requireActual('../../../constants/features'),
     PAIRING_ENABLED: false,
+    STARTUP_REPORTS_ENABLED: false,
 }));
 
 // A 390 × 844 iPhone in portrait inside a tab (the bottom inset includes the tab bar).

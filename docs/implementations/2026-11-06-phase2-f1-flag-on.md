@@ -59,9 +59,9 @@ None.
 
 ## 6. Verification
 
-- [ ] `npx tsc --noEmit`, lint, contrast, and the full Jest suite with the real flag on.
-- [ ] `npx expo config --type introspect`: the entitlement is there, and `UIBackgroundModes` has no `audio`.
-- [ ] Bytecode under 4,640,000 B.
+- [x] `npx tsc --noEmit`, lint with 0 errors, contrast, and the full Jest suite with the real flag on: 89 suites and 899 tests.
+- [x] `npx expo config --type introspect`: `com.apple.developer.applesignin` is there, and there are no `UIBackgroundModes` at all.
+- [x] Bytecode: 4,587,872 B, which is 0 B more than E2 and leaves 52,128 B of NFR-PERF-002.
 - [ ] **On two phones, at F2:** the plan's §6.
 
 ## 7. Related Docs

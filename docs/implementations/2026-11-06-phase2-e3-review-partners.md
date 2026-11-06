@@ -9,7 +9,7 @@ related: [IMPL-2026-11-05-phase2-plan, IMPL-2026-11-05-phase2-b3-functions, ADR-
 
 # 2026-11-06 — Phase 2 E3: partners for App Review
 
-**Status:** Plan. Written before the code.
+**Status:** Built, and passing a local check. CI's pgTAP is the gate, and the real project and a device come later.
 **Branch:** `feat/phase2-e3-review-partners`, one pull request into `master`. **Merging deploys,** since it adds a migration.
 **Plan task:** [Phase 2 plan §3, E3](2026-11-05-phase2-plan.md#stage-e-reliability-and-policy). Done when the reviewer's path works on a clean install, which a device has to show at F2.
 
@@ -70,6 +70,7 @@ None. The 50 minutes are stored as `focus_ms` = 50 × 60,000 = 3,000,000.
 
 ## 6. Verification
 
+- [x] **A local check on PGlite, not CI:** `review_partners.test.sql` 33 of 33, and the existing `functions`, `rls` and `index_review` 80, 35 and 3, with the new migration applied. It stubs `auth.users`, so it can't prove the real table accepts the row.
 - [ ] pgTAP in CI (`supabase/tests/review_partners.test.sql`): no accounts until seeded, three codes that never expire, safe to run twice, a reviewer pairs and sees the day and the note, a real couple gets no note, a second code for a paired partner answers `partner_paired`, and nobody but `postgres` can call them.
 - [ ] The guards.
 - [ ] **On the real project, with the owner, before the submission:** the line runs, it returns three codes, and Authentication › Users still loads.

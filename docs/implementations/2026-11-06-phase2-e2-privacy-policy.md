@@ -96,7 +96,7 @@ None.
 - [x] The bytecode: 4,587,872 B, which is 380 B for E2 and leaves 52,128 B of NFR-PERF-002.
 - [x] The owner has read the draft.
 - [ ] **Before the submission:** someone qualified reads it, the text changes as they advise, and the owner approves it.
-- [ ] The website's pull request is merged and live.
+- [x] The website's pull request is merged and live (its #2, `bb2acd8`). The owner: "Push, PR, merge when green (Recommended)". Read back with a cache-busting parameter: the page says "Last updated: 6 November 2026", and the home page has the new badges and no "No servers".
 - [ ] **After the first real sign-in, at F2:** the owner looks at Authentication › Users, and the sentence about email is firmed up.
 
 ## 7. Related Docs

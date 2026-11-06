@@ -81,7 +81,7 @@ None.
 - [x] The owner's old marks are still there after the republish, read back from the store.
 - [x] The owner's marks are read back and applied, with the guards green.
 - [x] Bytecode: 4,587,492 B, which is 908 B for D6 and leaves 52,508 B of NFR-PERF-002.
-- [x] `npx jest --ci`: 88 suites and 896 tests. One full run lost a Stats test to its 5-second timeout (`stats.test.tsx`, landscape); the suite passed three times alone, and the next full run was clean, so that was load.
+- [x] `npx jest --ci`: 88 suites and 896 tests passed, on the third full run. The first lost a test in `stats.test.tsx` to its 5-second timeout, and that suite then passed three times alone. The second had `useSlotClock.test.tsx` fail to load with Windows' "UNKNOWN: unknown error, read", the flake already seen on `home.test`. Neither touches this change.
 - [ ] **Needs a device, at Stage F's first build:** the line under the code on a narrow phone and at AX sizes, in both languages, and that the sheet doesn't jump when it appears.
 
 ## 7. Related Docs

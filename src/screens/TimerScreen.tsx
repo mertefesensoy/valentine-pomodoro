@@ -124,6 +124,7 @@ export default function TimerScreen() {
   const focused = useScreenFocused();
   const storedGlance = usePartnerGlance((s) => s.glance);
   const gone = usePartnerGlance((s) => s.gone);
+  const noteWaiting = usePartnerGlance((s) => s.notes.length > 0);
   const sessionEnded = useAccountStore((s) => s.sessionEnded);
   const { tokens, isDark } = useTheme();
 
@@ -499,7 +500,12 @@ export default function TimerScreen() {
   const goneLine = PAIRING_ENABLED && !paired && gone
     ? gone.name ? t('partner.gone', { name: gone.name }) : t('partner.goneNoName')
     : null;
-  const notice = paired && sessionEnded ? t('partner.signInAgain') : goneLine;
+  // With Show love notes off, one quiet line says a note is waiting (the owner, 2026-11-06: "Yes, add a quiet line on
+  // the strip"). It's a pointer: the strip opens their day as ever, and the note is a row there, so the line and its
+  // press agree in every state. The Ring gives way when it comes and goes, which the owner accepted.
+  let notice = goneLine;
+  if (paired && sessionEnded) notice = t('partner.signInAgain');
+  else if (glance && noteWaiting && !settings.showLoveNotes) notice = t('partner.noteWaiting', { name: glance.name ?? t('pair.partnerFallback') });
   const openPair = () => {
     if (goneLine) dismissGone();
     if (idle) router.push('/pair');

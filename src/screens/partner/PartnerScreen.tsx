@@ -58,6 +58,8 @@ export default function PartnerScreen() {
     // With Show love notes off, a note waits here instead of appearing by itself (the owner: "It waits on their card",
     // as the frame draws it). The sheet closes first, since one sheet shows at a time (HIG `sheets.md`).
     const openWaitingNote = () => {
+        // A second tap before the sheet has gone would take the next note, and overwrite this one unseen.
+        if (useLoveNoteSheet.getState().note !== null) return;
         const note = takePartnerNote();
         if (!note) return;
         useLoveNoteSheet.getState().open(note.body, nameInSentence);
@@ -120,10 +122,12 @@ export default function PartnerScreen() {
                         <PartnerCard glance={glance} width={cardWidth} fontScale={fontScale} tokens={tokens} />
                     </View>
                     {updated && <Text style={[styles.updated, { color: tokens.inkSoft }]}>{updated}</Text>}
-                    <ListGroup footer={actionsFooter}>
-                        {waitingRow}
-                        {writeRow}
-                    </ListGroup>
+                    {(waitingRow || writeRow) && (
+                        <ListGroup footer={actionsFooter}>
+                            {waitingRow}
+                            {writeRow}
+                        </ListGroup>
+                    )}
                 </>
             )}
         </ScrollView>

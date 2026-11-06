@@ -190,14 +190,46 @@ describe('with Show love notes off', () => {
         expect(usePartnerGlance.getState().notes).toHaveLength(1);
     });
 
-    it('leaves the strip as it is, and pressing it always opens their day', async () => {
+    it('says so on the strip, which still opens their day, where the note is', async () => {
         await setUp({ showLoveNotes: false });
-        expect(screen.queryByText('A note from Deniz is waiting')).toBeNull();
+        expect(screen.getByText('A note from Deniz is waiting')).toBeOnTheScreen();
+        const strip = screen.getByRole('button', { name: /A note from Deniz is waiting/ });
+        expect(strip.props.accessibilityHint).toBe('Opens their day');
         await act(async () => {
-            await fireEvent.press(screen.getByRole('button', { name: /^Deniz/ }));
+            await fireEvent.press(strip);
         });
         expect(push).toHaveBeenCalledWith('/partner');
         expect(usePartnerGlance.getState().notes).toHaveLength(1);
+    });
+
+    it('keeps saying so during a session, and the press still agrees', async () => {
+        await setUp({ showLoveNotes: false });
+        await press('Start focus');
+        expect(screen.getByText('A note from Deniz is waiting')).toBeOnTheScreen();
+        await act(async () => {
+            await fireEvent.press(screen.getByRole('button', { name: /A note from Deniz is waiting/ }));
+        });
+        expect(push).toHaveBeenCalledWith('/partner');
+    });
+
+    it('goes once the note has been read', async () => {
+        await setUp({ showLoveNotes: false });
+        await act(async () => usePartnerGlance.setState({ notes: [] }));
+        expect(screen.queryByText('A note from Deniz is waiting')).toBeNull();
+    });
+
+    it('gives way to an ended session, which needs saying more', async () => {
+        await setUp({ showLoveNotes: false });
+        await act(async () => useAccountStore.setState({ sessionEnded: true }));
+        expect(screen.queryByText('A note from Deniz is waiting')).toBeNull();
+        expect(screen.getByText("Sign in again to update your partner's day.")).toBeOnTheScreen();
+    });
+});
+
+describe('with Show love notes on', () => {
+    it('says nothing on the strip: the note is for after a focus', async () => {
+        await setUp({ showLoveNotes: true });
+        expect(screen.queryByText('A note from Deniz is waiting')).toBeNull();
     });
 });
 

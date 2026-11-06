@@ -626,6 +626,9 @@ export default function FlyModeScreen() {
         });
     }, [markerCoord, cameraMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Leaving Fly with the flag up (Reset settings can) would otherwise open the sheet the next time, with no landing.
+    useEffect(() => () => useLoveNoteSheet.getState().setLandingDue(false), []);
+
     // ── A partner's note on landing: the note is taken only here, with this screen in front, so it can't be used up unseen.
     useEffect(() => {
         if (!partnerLandingDue || !focused) return;

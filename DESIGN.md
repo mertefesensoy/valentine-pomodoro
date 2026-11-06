@@ -443,7 +443,9 @@ Phase 2 D1: a form sheet at the large detent, on `page`, whose steps swap in pla
 Phase 2 D2. **Nothing moves when you pair.** The strip keeps its place and its 72 pt, in the same `paper` field, radius 22, 1.5 pt `edge`, and becomes your partner: one 44 pt Doro at rest at the leading side, their name at 17 pt, and under it up to three 22 pt stickers with "+n" and "75 min today" at 14 pt in `inkSoft`. On Facing Pages the right page carries the same, its label their name, and its sticker at rest, never following your session's pose. The whole strip is one button. Values just change when a refresh lands: no motion, no spinner, no red, and never a comparison.
 
 - **The sheet** is sized to its content, as Modes is: their name, today's postcard in Stats' paper without its Baloo 2 title, and "Updated 12 minutes ago". It opens at once on the last known values.
-- **Quiet lines** in `inkSoft` under the strip's content, never alerts: "You and Deniz aren't paired any more", until tapped, and "Sign in again to update your partner's day".
+- **Quiet lines** in `inkSoft` under the strip's content, never alerts: "You and Deniz aren't paired any more", until tapped; "Sign in again to update your partner's day"; and, with Show love notes off, "A note from Deniz is waiting", which points at the row in their sheet. The strip's press always opens their day. The Ring gives way when a line comes and goes, as it does at any text size.
+- **Writing a note** swaps the sheet's content in place for the editor, with no second sheet: the Notes editor's 280 limit and countdown, one strawberry pill, Cancel in `primaryInk`. "Sent. It appears after Deniz's next focus." replaces the footer.
+- **A note arriving** takes the place of your own in the love-note sheet, titled "A note from Deniz", on the Timer and on landing a flight. It shows once per phone, and closes only when you close it.
 - **Past midnight with no refresh,** the strip says when it was updated instead of calling yesterday's numbers today. The postcard keeps them, under their own date, and owes nothing on a day that's over.
 
 ### The tour (first run)

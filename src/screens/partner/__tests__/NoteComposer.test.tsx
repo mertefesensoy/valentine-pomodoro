@@ -122,6 +122,24 @@ describe('a note waiting, with Show love notes off', () => {
         expect(screen.queryByRole('button', { name: 'A note from Deniz is waiting' })).toBeNull();
     });
 
+    it('can\'t lose one to a double tap, with two waiting', async () => {
+        await act(async () => useSettingsStore.getState().updateSettings({ showLoveNotes: false }));
+        await act(async () => usePartnerGlance.setState({
+            glance,
+            gone: null,
+            notes: [{ id: 'a', body: 'First' }, { id: 'b', body: 'Second' }],
+            shown: [],
+        }));
+        await render(<PartnerScreen />);
+        await flush();
+        const row = screen.getByRole('button', { name: 'A note from Deniz is waiting' });
+        await fireEvent.press(row);
+        await fireEvent.press(row);
+        expect(useLoveNoteSheet.getState().note).toBe('First');
+        expect(usePartnerGlance.getState().notes).toEqual([{ id: 'b', body: 'Second' }]);
+        expect(replace).toHaveBeenCalledTimes(1);
+    });
+
     it('isn\'t offered with notes on: it\'s for after a focus', async () => {
         await openWithANote(true);
         expect(screen.queryByRole('button', { name: 'A note from Deniz is waiting' })).toBeNull();
@@ -138,6 +156,12 @@ describe('with a session that has ended', () => {
         await open();
         expect(screen.queryByRole('button', { name: 'Write Deniz a note' })).toBeNull();
         expect(screen.queryByText('It appears after their next focus.')).toBeNull();
+    });
+
+    it('draws no empty group, with nothing to offer', async () => {
+        await act(async () => useAccountStore.setState({ sessionEnded: true }));
+        await open();
+        expect(screen.queryAllByRole('button').map((b) => b.props.accessibilityLabel)).toEqual(['Close']);
     });
 
     it('says to sign in if it ends while writing, keeping the text', async () => {

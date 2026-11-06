@@ -32,7 +32,7 @@ A paired student, on the Timer between sessions or coming back to the app, wants
 
 **The sheet, opened from the strip.** A form sheet sized to its content, as the Modes sheet is. A postcard in the paper of Stats' today (the date, a row of whole cells with dashed cells for what's still owed to their goal, then one line: "3 sessions · 75 min · goal 100 min"). Then "Updated 12 minutes ago". Then an action group: "Write Deniz a note", with one quiet footer: "It appears after their next focus."
 
-**A note arriving.** After your next focus, in place of a note from your own list, the existing love-note sheet shows it, once, titled with who wrote it. With Show love notes off, no sheet appears, and the card gains "A note from Deniz is waiting", which opens the same sheet.
+**A note arriving.** After your next focus, in place of a note from your own list, the existing love-note sheet shows it, once, titled with who wrote it. With Show love notes off, no sheet appears, and the card gains "A note from Deniz is waiting", a row above Write, which opens the same sheet. **The strip also says so, in one quiet line, and its press still opens their day** (the owner at D3, 2026-11-06: "Yes, add a quiet line on the strip", knowing the Ring moves about 22 pt when it comes and goes).
 
 ## 4. Scope and boundaries
 
@@ -50,6 +50,7 @@ A paired student, on the Timer between sessions or coming back to the app, wants
 - **Writing a note:** the sheet's content swaps in place for the editor, with no second sheet, using the Notes editor's 280 limit and counter. A swipe with text in it asks first. **Sent:** "Sent. It appears after Deniz's next focus." **Too many today:** says so. **Offline:** the text stays, "You're offline. Try again when you're connected."
 - **Partner gone** (they unpaired or deleted their account): at your next refresh, the strip returns to solo, with one quiet line under it until you tap it: "You and Deniz aren't paired any more." Your stats are untouched. Never an alert (`alerts.md`, on launch).
 - **A session that has ended** (added at D2, 2026-11-06, the state the brief didn't list): the account still exists, so the strip keeps the last known values and adds one quiet line, "Sign in again to see your partner's day." The strip opens Apple's button, and signing in finds the couple on the server.
+- **One account on two phones** (the owner at D3, 2026-11-06: "Yes, once per phone"): a note shows once per phone, since nothing blocks on the network before showing it.
 - **Ranges:** 0 to 20+ sessions; names of 1–60 characters, Turkish and emoji included; Turkish at AX5 on an iPhone SE.
 
 ## 6. Interaction and layout

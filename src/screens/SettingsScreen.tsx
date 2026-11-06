@@ -44,6 +44,7 @@ const AccountGroup = lazy(() => import('./account/AccountGroups').then((m) => ({
 
 const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
 const DEVELOPER_URL = 'https://valentine-pomodoro-developer-websit.vercel.app/';
+const PRIVACY_URL = `${DEVELOPER_URL}privacy/`;
 // FR-STA-004: the presets, or any custom goal from 1 to 1,440 minutes; 0 is off (the switch).
 const GOAL_PRESETS = ['25', '50', '75', '100'] as const;
 type GoalSegment = (typeof GOAL_PRESETS)[number] | 'custom';
@@ -457,6 +458,7 @@ export default function SettingsScreen() {
                             value={settings.shareStartupTimings}
                             onValueChange={(on) => updateSettings({ shareStartupTimings: on })}
                         />
+                        <ButtonRow label={t('settings.privacy.policy')} onPress={() => Linking.openURL(PRIVACY_URL).catch(() => {})} />
                     </ListGroup>
                 )}
 

@@ -196,6 +196,7 @@
     "privacy": {
       "header": "Gizlilik",
       "timings": "Açılış sürelerini paylaş",
+      "policy": "Gizlilik politikası",
       "footer": "Uygulamanın ne kadar sürede açıldığını, iPhone modelini, iOS sürümünü ve uygulama sürümünü gönderir. Seni tanıtan hiçbir şey göndermez."
     },
     "about": {

@@ -47,5 +47,6 @@ All eight old `release/*` branches were deleted on 2026-10-30 after every commit
 - ["URGENT: remove the unused audio background mode before the next submission (DEF-009)"](../implementations/2026-11-03-def-009-background-audio-mode.md)
 - ["Phase 2 A2: the PAIRING_ENABLED flag and ADR-0049"](../implementations/2026-11-05-phase2-a2-pairing-flag.md)
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)
+- [2026-11-06 — 1.4.2: the update check finds new versions when they're out](../implementations/2026-11-06-v142-update-check-fix.md)
 - [Release process](RELEASE.md)
 <!-- backlinks:end -->

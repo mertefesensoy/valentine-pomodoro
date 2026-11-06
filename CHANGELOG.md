@@ -32,6 +32,20 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 ### Fixed
 
 - If your phone took over a second to set up a session's end notification, pausing or skipping couldn't cancel it, so a paused session could still alert. That notification can now always be cancelled, in Classic and in Fly (DEF-005).
+- Everything in 1.4.2's update check fix, below.
+
+## [1.4.2] - 2026-11-06
+
+*An iOS patch, dated by its EAS production build (UTC), built from `v1.4.1` rather than from `master`, which holds 1.5.0's unreleased work. Android stays on 1.3.1.*
+
+### Fixed
+
+- **"Check for updates" now finds a new version as soon as it's out.** It could say "You have the latest version" for up to a day after a release, because Apple's servers kept answering with a saved copy (a317109).
+- **The app also looks for a new version when you come back to it,** at most every 6 hours. It used to look only when opened from scratch, which could miss a release for days (a317109).
+
+### Changed
+
+- **An update prompt no longer lands on a running timer.** It waits, and the app asks again the next time you come back. "Check for updates" always answers (a317109).
 
 ## [1.4.1] - 2026-11-05
 

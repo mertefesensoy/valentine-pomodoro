@@ -81,7 +81,7 @@ None.
 - [x] `dueTutorial`: someone on 1.4 gets the 1.5 tour, a new install and 1.3.1 get the general one, and finishing either means nothing more is due.
 - [x] The steps' speakers take turns, and their lines exist in both languages.
 - [x] The tour reaches the strip on the Timer, and a replay during a session skips it (`tutorial15.test.tsx`). Jest never measures, so the opening's rectangle on Facing Pages is for the device.
-- [x] With the flag off, the tutorials are unchanged: `tutorialModel.test.ts`, `tourFlow.test.tsx`, `tourStoreAndPlacement.test.ts` and `tourWorstCase.test.tsx` pass, now mocking the flag off, so that they keep testing the shipped tour after F1.
+- [x] With the flag off, the tutorials' steps are unchanged: `tutorialModel.test.ts`, `tourFlow.test.tsx`, `tourStoreAndPlacement.test.ts` and `tourWorstCase.test.tsx` pass, now mocking the flag off, so that they keep testing the shipped tour after F1.
 - [x] With it on, in `tutorial15.test.tsx`: the walk from Notes through the new step, a kill during the 1.5 tour, a resume from the shipped six steps, closing a sheet, and someone already paired on both layouts.
 - [x] The guards, and the bytecode: 4,586,584 B, which is 3,032 B for D5 and leaves 53,416 B of NFR-PERF-002 for D6.
 - [ ] **Needs a device, at Stage F's first build:** the opening's rectangle on both layouts and at AX sizes; pressing it and coming back; the owner's listening to the new lines.

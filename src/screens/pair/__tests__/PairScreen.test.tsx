@@ -383,6 +383,67 @@ describe('your code and theirs', () => {
         share.mockRestore();
     });
 
+    describe('after you send it', () => {
+        const LINE = 'This page moves on when they type it.';
+
+        it('says the page moves on only once the code has really gone, and says it aloud too', async () => {
+            const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: 'dismissedAction' } as never);
+            mockHome = NAMED;
+            await open({ signedIn: true });
+            await fireEvent.press(screen.getByText('Send my code'));
+            await flush();
+            expect(screen.queryByText(LINE)).toBeNull();
+
+            share.mockResolvedValue({ action: 'sharedAction' } as never);
+            await fireEvent.press(screen.getByText('Send my code'));
+            await flush();
+            expect(screen.getByText(LINE)).toBeOnTheScreen();
+            expect(screen.getByText('Lasts 24 hours')).toBeOnTheScreen();
+            expect(screen.getByLabelText(`Ece. Your code: K, 7, M, P, 2, Q. Lasts 24 hours. ${LINE}`)).toBeOnTheScreen();
+            expect(announce).toHaveBeenCalledWith(LINE);
+            share.mockRestore();
+        });
+
+        it('goes with a new code, which isn\'t the one they have', async () => {
+            const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' } as never);
+            const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+            mockNewCode.mockResolvedValue({ code: 'H4TW9B' });
+            mockHome = NAMED;
+            await open({ signedIn: true });
+            await fireEvent.press(screen.getByText('Send my code'));
+            await flush();
+            expect(screen.getByText(LINE)).toBeOnTheScreen();
+
+            await fireEvent.press(screen.getByText('Make a new code'));
+            const buttons = alert.mock.calls[0][2] as { text: string; onPress?: () => void }[];
+            await act(async () => buttons[1].onPress?.());
+            await flush();
+            expect(screen.queryByText(LINE)).toBeNull();
+            expect(screen.getByText('Lasts 24 hours')).toBeOnTheScreen();
+            share.mockRestore();
+            alert.mockRestore();
+        });
+
+        it('gives way to a failed new code', async () => {
+            const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' } as never);
+            const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+            mockNewCode.mockResolvedValue({ problem: 'offline' });
+            mockHome = NAMED;
+            await open({ signedIn: true });
+            await fireEvent.press(screen.getByText('Send my code'));
+            await flush();
+
+            await fireEvent.press(screen.getByText('Make a new code'));
+            const buttons = alert.mock.calls[0][2] as { text: string; onPress?: () => void }[];
+            await act(async () => buttons[1].onPress?.());
+            await flush();
+            expect(screen.queryByText(LINE)).toBeNull();
+            expect(screen.getByText(/You're offline/)).toBeOnTheScreen();
+            share.mockRestore();
+            alert.mockRestore();
+        });
+    });
+
     it('asks before a new code cancels the one your partner may hold, and says the new one aloud', async () => {
         const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
         mockNewCode.mockResolvedValue({ code: 'H4TW9B' });

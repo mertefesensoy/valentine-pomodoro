@@ -10,8 +10,8 @@ import { useTheme } from '../../theme/useTheme';
 
 // The countdown shows in the note's last 30 characters; VoiceOver hears it at these marks only,
 // never on every keystroke (HIG review).
-const COUNTDOWN_FROM = 30;
-const ANNOUNCE_AT = [30, 10, 0];
+export const COUNTDOWN_FROM = 30;
+export const ANNOUNCE_AT = [30, 10, 0];
 // The header's Cancel, title and Save stop growing here, as the screen titles do and as iOS's own
 // bar buttons do at the accessibility sizes: uncapped, "Vazgeç" and "Kaydet" outgrew a 375 pt
 // iPhone at AX5 and pushed Save off the edge (D2 record §3.13, break-ui #2).

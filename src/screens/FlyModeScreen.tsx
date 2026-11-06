@@ -19,6 +19,8 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { PAIRING_ENABLED } from '../constants/features';
+import { takePartnerNote, usePartnerGlance } from '../server/partnerGlance';
 import {
     View, Text, Pressable, StyleSheet, Platform,
 } from 'react-native';
@@ -238,6 +240,7 @@ export default function FlyModeScreen() {
 
     // Love note shown after landing (null = hidden)
     const [landingLoveNote, setLandingLoveNote] = useState<string | null>(null);
+    const [landingFrom, setLandingFrom] = useState<string | null>(null);
     const lastLoveNoteRef = useRef<string | null>(null);
 
     // Map overlay state
@@ -444,9 +447,17 @@ export default function FlyModeScreen() {
             }
 
             if (settings.showLoveNotes) {
-                const note = pickRandomNote(lastLoveNoteRef.current);
-                lastLoveNoteRef.current = note;
-                setLandingLoveNote(note);
+                // A partner's note goes first (Phase 2 D3). The choice is made here, in the UI: the session knows nothing of it.
+                const fromPartner = PAIRING_ENABLED ? takePartnerNote() : null;
+                if (fromPartner) {
+                    setLandingFrom(usePartnerGlance.getState().glance?.name ?? t('pair.partnerFallback'));
+                    setLandingLoveNote(fromPartner.body);
+                } else {
+                    const note = pickRandomNote(lastLoveNoteRef.current);
+                    lastLoveNoteRef.current = note;
+                    setLandingFrom(null);
+                    setLandingLoveNote(note);
+                }
             }
 
             AdPolicy.recordSessionCompletion().then(() => {
@@ -1082,6 +1093,7 @@ export default function FlyModeScreen() {
             {landingLoveNote && focused && (
                 <LoveNoteCard
                     note={landingLoveNote}
+                    from={landingFrom}
                     onDismiss={() => setLandingLoveNote(null)}
                 />
             )}

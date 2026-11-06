@@ -1,10 +1,12 @@
 // covers: FR-PAR-003, NFR-I18N-001, NFR-A11Y-003
 // break-ui's worst case for your partner's day (Phase 2 D2), kept as a test. Layout itself waits for the TestFlight
 // device check at AX5; this pins that the worst case renders, in Turkish, with the right strings and counts.
-import { act, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Dimensions } from 'react-native';
 
+import { LoveNoteSheet } from '../../../components/loveNote/LoveNoteSheet';
 import { language } from '../../../i18n';
+import { useLoveNoteSheet } from '../../../stores/loveNoteSheetStore';
 import { usePartnerGlance, type PartnerGlance } from '../../../server/partnerGlance';
 import { useTheme } from '../../../theme/useTheme';
 import { PartnerStrip } from '../../classic/PartnerStrip';
@@ -17,7 +19,10 @@ jest.mock('expo-localization', () => ({ getLocales: () => [{ languageCode: 'tr',
 jest.mock('expo-router', () => ({
     ...jest.requireActual('expo-router'),
     router: { push: jest.fn(), back: jest.fn(), canGoBack: () => true },
+    usePreventRemove: jest.fn(),
 }));
+jest.mock('../../../server/client', () => ({ Offline: class extends Error {}, rpc: jest.fn() }));
+jest.mock('../../../server/home', () => ({ refreshHome: jest.fn(async () => {}) }));
 
 const AX5_SE = { width: 320, height: 568, scale: 2, fontScale: 3.1 };
 const LONG_NAME = 'Şule Çağla İğdemiroğlu Öztürkmenoğulları 🍅🌱 Güneşsöğüşçü Ğ';
@@ -70,6 +75,29 @@ describe('your partner\'s day, in Turkish at AX5 on an iPhone SE', () => {
         expect(screen.getByRole('header', { name: LONG_NAME })).toBeOnTheScreen();
         expect(screen.getByText(/42 oturum · 1\.?560 dk · hedef 480 dk/)).toBeOnTheScreen();
         expect(screen.getByText('3 saat önce güncellendi')).toBeOnTheScreen();
+    });
+
+    it('the editor: 280 characters of Turkish and emoji, and no more', async () => {
+        const longest = 'Çağrı, sınavın için çok heyecanlıyım 🍅🌱 '.repeat(10);
+        await act(async () => usePartnerGlance.setState({ glance: glance(), gone: null }));
+        await render(<PartnerScreen />);
+        await act(async () => {});
+        await fireEvent.press(screen.getByRole('button', { name: /için not yaz$/ }));
+        await fireEvent.changeText(screen.getByLabelText(/için notun$/), longest);
+        const value: string = screen.getByLabelText(/için notun$/).props.value;
+        expect(value.length).toBeLessThanOrEqual(280);
+        expect(value.length).toBeGreaterThan(270);
+        // It's cut on a whole character, so the end can't be half an emoji.
+        expect(value.charCodeAt(value.length - 1) & 0xfc00).not.toBe(0xd800);
+    });
+
+    it('the note itself: the longest one, from the longest name', async () => {
+        const longest = 'Çağrı, sınavın için çok heyecanlıyım 🍅🌱 '.repeat(7);
+        await act(async () => useLoveNoteSheet.getState().open(longest, LONG_NAME));
+        await render(<LoveNoteSheet />);
+        expect(screen.getByRole('header', { name: `${LONG_NAME} sana yazdı` })).toBeOnTheScreen();
+        expect(screen.getByText(longest)).toBeOnTheScreen();
+        await act(async () => useLoveNoteSheet.getState().close());
     });
 
     it('the sheet: a person with no name yet', async () => {

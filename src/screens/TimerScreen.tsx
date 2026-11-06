@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator, useWindowDimensions, type LayoutChangeEvent } from "react-native";
 import { PAIRING_ENABLED } from "../constants/features";
 import { useAccountStore } from "../server/account";
-import { dismissGone, usePartnerGlance, wasCelebrated } from "../server/partnerGlance";
+import { dismissGone, takePartnerNote, usePartnerGlance, wasCelebrated } from "../server/partnerGlance";
 import { PartnerDay, PartnerNotice, PartnerStrip, partnerLabel, partnerName } from "./classic/PartnerStrip";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ComponentRef } from "react";
@@ -124,6 +124,7 @@ export default function TimerScreen() {
   const focused = useScreenFocused();
   const storedGlance = usePartnerGlance((s) => s.glance);
   const gone = usePartnerGlance((s) => s.gone);
+  const noteWaiting = usePartnerGlance((s) => s.notes.length > 0);
   const sessionEnded = useAccountStore((s) => s.sessionEnded);
   const { tokens, isDark } = useTheme();
 
@@ -213,7 +214,11 @@ export default function TimerScreen() {
   const loveNoteDue = focused && !goalPopup && showLoveNoteCard && !!lastLoveNote;
   useEffect(() => {
     if (!loveNoteDue || useLoveNoteSheet.getState().note !== null) return;
-    useLoveNoteSheet.getState().open(lastLoveNote!);
+    // A partner's note takes the place of one of your own (Phase 2 D3). The choice is made here, when the sheet is due,
+    // so the session engine knows nothing of it, and your partner's words stay out of its saved state.
+    const fromPartner = PAIRING_ENABLED ? takePartnerNote() : null;
+    if (fromPartner) useLoveNoteSheet.getState().open(fromPartner.body, usePartnerGlance.getState().glance?.name ?? t('pair.partnerFallback'));
+    else useLoveNoteSheet.getState().open(lastLoveNote!);
     router.push("/love-note");
   }, [loveNoteDue, lastLoveNote]);
   useEffect(
@@ -494,7 +499,12 @@ export default function TimerScreen() {
   const goneLine = PAIRING_ENABLED && !paired && gone
     ? gone.name ? t('partner.gone', { name: gone.name }) : t('partner.goneNoName')
     : null;
-  const notice = paired && sessionEnded ? t('partner.signInAgain') : goneLine;
+  // With Show love notes off, a note from your partner waits here instead of appearing by itself (the owner: "It waits
+  // on their card"). The line stays through a session so the Ring doesn't move, but it opens only while idle.
+  const waitingNote = paired && !sessionEnded && noteWaiting && !settings.showLoveNotes;
+  let notice = goneLine;
+  if (paired && sessionEnded) notice = t('partner.signInAgain');
+  else if (glance && waitingNote) notice = t('partner.noteWaiting', { name: glance.name ?? t('pair.partnerFallback') });
   const openPair = () => {
     if (goneLine) dismissGone();
     if (idle) router.push('/pair');
@@ -502,8 +512,19 @@ export default function TimerScreen() {
   // Apple's button when the session has ended, and signing in finds the couple on the server. Not while a session
   // runs: nothing else competes then, and their last known day is still there to read.
   const opensSignIn = sessionEnded && idle;
-  const openPartner = () => router.push(opensSignIn ? '/pair' : '/partner');
-  const partnerHint = opensSignIn ? undefined : t('partner.opensDay');
+  const opensNote = waitingNote && idle;
+  const openPartner = () => {
+    const waiting = opensNote ? takePartnerNote() : null;
+    if (waiting) {
+      useLoveNoteSheet.getState().open(waiting.body, usePartnerGlance.getState().glance?.name ?? t('pair.partnerFallback'));
+      router.push("/love-note");
+      return;
+    }
+    router.push(opensSignIn ? '/pair' : '/partner');
+  };
+  let partnerHint: string | undefined = t('partner.opensDay');
+  if (opensSignIn) partnerHint = undefined;
+  else if (opensNote) partnerHint = t('partner.opensNote');
 
   // The partner who wasn't holding the sheet finds out at a refresh, and gets the morph once, on the Timer, when
   // nothing is running. Any sheet over the Timer unfocuses it, so the phone that pressed Pair can't open a second.

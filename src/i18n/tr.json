@@ -90,7 +90,18 @@
     "goal": "hedef {{n}} dk",
     "a11yGoal_one": "hedef {{count}} dakika",
     "a11yGoal_other": "hedef {{count}} dakika",
-    "readyShort": "Pomo ve Doro hazır"
+    "readyShort": "Pomo ve Doro hazır",
+    "write": "{{name}} için not yaz",
+    "noteFooter": "Bir sonraki odaklanmasının ardından görünür.",
+    "notePlaceholder": "Bir sonraki odaklanmasının ardından görmesi için",
+    "noteField": "{{name}} için notun",
+    "send": "Gönder",
+    "noteSent": "Gönderildi. {{name}} bir sonraki odaklanmasının ardından görecek.",
+    "noteTooMany": "Bugün için çok fazla not oldu. Yarın tekrar dene.",
+    "noteOffline": "Çevrimdışısın. Bağlanınca tekrar dene.",
+    "noteFailed": "Bir şeyler ters gitti. Tekrar dene.",
+    "noteWaiting": "{{name}} sana bir not bıraktı",
+    "opensNote": "Notu açar"
   },
   "spread": {
     "you": "Sen",
@@ -113,7 +124,8 @@
   },
   "loveNote": {
     "title": "Sana bir not",
-    "close": "Kapat"
+    "close": "Kapat",
+    "from": "{{name}} sana yazdı"
   },
   "welcome": {
     "updated": "Günlüğün yeni bir görünüme kavuştu.",

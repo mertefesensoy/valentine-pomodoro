@@ -11,6 +11,8 @@ import { useTheme } from '../../theme/useTheme';
 import { useWindowInsets } from '../../hooks/useWindowInsets';
 import { minTarget, space } from '../../theme/layout';
 import { partnerName, updatedText } from '../classic/PartnerStrip';
+import { ButtonRow, ListGroup } from '../../components/settings/SettingsList';
+import { NoteComposer } from './NoteComposer';
 import { PartnerCard } from './PartnerCard';
 
 /** Before the card has measured itself, a guess that's right for a phone and close for an iPad's sheet. */
@@ -31,6 +33,8 @@ export default function PartnerScreen() {
     // An iPad's form sheet is far narrower than its window, so the card plans from what it measures.
     const [cardWidth, setCardWidth] = useState(Math.min(width, MAX_SHEET_WIDTH) - leftGutter - rightGutter);
     const glance = usePartnerGlance((s) => s.glance);
+    const [writing, setWriting] = useState(false);
+    const [sent, setSent] = useState(false);
 
     const leave = () => {
         if (router.canGoBack()) router.back();
@@ -43,10 +47,15 @@ export default function PartnerScreen() {
 
     if (!glance) return null;
     const updated = updatedText(glance.updatedAt);
+    const nameInSentence = glance.name ?? t('pair.partnerFallback');
 
     return (
         // The library sizes a sheet's root scroll view to the whole sheet, so the sheet's paint reaches its bottom edge.
-        <ScrollView style={{ backgroundColor: tokens.page }} contentContainerStyle={[styles.content, { paddingLeft: leftGutter, paddingRight: rightGutter }]} bounces={false}>
+        <ScrollView style={{ backgroundColor: tokens.page }} contentContainerStyle={[styles.content, { paddingLeft: leftGutter, paddingRight: rightGutter }]}
+            bounces={false}
+            keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets
+        >
             <View style={styles.head}>
                 <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header">
                     {partnerName(glance)}
@@ -64,10 +73,34 @@ export default function PartnerScreen() {
                     </PressableScale>
                 </View>
             </View>
-            <View onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}>
-                <PartnerCard glance={glance} width={cardWidth} fontScale={fontScale} tokens={tokens} />
-            </View>
-            {updated && <Text style={[styles.updated, { color: tokens.inkSoft }]}>{updated}</Text>}
+            {writing ? (
+                // In place, with no second sheet (HIG `sheets.md`). The sheet follows its content's height.
+                <NoteComposer
+                    name={nameInSentence}
+                    onCancel={() => setWriting(false)}
+                    onSent={() => {
+                        setWriting(false);
+                        setSent(true);
+                    }}
+                    onGone={() => setWriting(false)}
+                />
+            ) : (
+                <>
+                    <View onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}>
+                        <PartnerCard glance={glance} width={cardWidth} fontScale={fontScale} tokens={tokens} />
+                    </View>
+                    {updated && <Text style={[styles.updated, { color: tokens.inkSoft }]}>{updated}</Text>}
+                    <ListGroup footer={sent ? t('partner.noteSent', { name: nameInSentence }) : t('partner.noteFooter')}>
+                        <ButtonRow
+                            label={t('partner.write', { name: nameInSentence })}
+                            onPress={() => {
+                                setSent(false);
+                                setWriting(true);
+                            }}
+                        />
+                    </ListGroup>
+                </>
+            )}
         </ScrollView>
     );
 }

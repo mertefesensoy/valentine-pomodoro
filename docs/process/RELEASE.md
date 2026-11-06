@@ -84,6 +84,7 @@ When Android returns (the [roadmap Android track](../roadmap/ROADMAP.md#android-
 - ["Phase 2: GitHub deploys database changes on merge"](../implementations/2026-11-05-phase2-deploy.md)
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)
 - ["Phase 2 F1: pairing on, version 1.5.0"](../implementations/2026-11-06-phase2-f1-flag-on.md)
+- ["Phase 2 F2: the first TestFlight build, and the check on two phones"](../implementations/2026-11-06-phase2-f2-testflight.md)
 - [2026-11-06 — Update check audit: why the app said "latest version 1.4.0"](../implementations/2026-11-06-update-check-audit.md)
 - [2026-11-06 — 1.4.2: the update check finds new versions when they're out](../implementations/2026-11-06-v142-update-check-fix.md)
 - [Branching model](BRANCHING.md)

@@ -15,7 +15,7 @@ The owner's decisions, 2026-11-06, in their words:
 - **Whether to check on returning to the app:** "Yes, every 6 hours at most (Recommended)".
 - **Whether a prompt may appear during a running timer:** "No, wait until it's idle (Recommended)".
 
-`master` already holds 1.5.0's work, including Supabase and new native modules, so 1.4.2 branches from the release tag and goes forward to `master` in its own pull request once it's out.
+`master` already holds 1.5.0's work, including Supabase and new native modules, so 1.4.2 branches from the release tag and goes forward to `master` in its own pull request ("How it ships" in §3 has when).
 
 **What this patch can and can't do:** the fix helps from the release *after* 1.4.2. Phones on 1.4.1 or older still run today's check, so they can take up to 24 hours to see 1.4.2 itself. And App Review takes one version at a time, so 1.5.0 can't be submitted while 1.4.2 is in review.
 
@@ -61,7 +61,7 @@ This covers Apple's CDN and the phone's URL cache together, because both key on 
 1. **CI:** the workflow's `push` trigger covers `master`, `rehaul/**` and `release/**`, and a pull request into `master` would test the merge with 1.5.0's code rather than the build's commit. NFR-REL-003 wants CI green on the build's exact commit, so the commit is also pushed to a short-lived `release/1.4.2`, which is deleted once it has done its job. No workflow file changes.
 2. **Build and tag:** an EAS production build of that commit, then `v1.4.2-tf.<n>`.
 3. **App Store:** the owner submits and releases, then `v1.4.2-submitted` and `v1.4.2` go on the same commit.
-4. **Forward to `master`:** once 1.4.2 is out, in its own pull request, carrying the records too. `ROADMAP.md`'s status line, which `master` has since rewritten, goes with that pull request, to avoid a conflict on this branch.
+4. **Forward to `master`:** the plan was one pull request from this branch once 1.4.2 was out. That changed on 2026-11-06: the 1.5.0 session reported that the owner, asked when the fix should come in, answered "Bring it in now (Recommended)". So that session merges `e76d6bd` into a new branch off 1.5.0's work, keeps the version at 1.5.0, and opens the pull request, and this branch opens none for the fix. The records written after `e76d6bd` change no code. They follow in a small docs pull request once 1.4.2 is live, on the owner's word, along with `ROADMAP.md`'s status line, which `master` has since rewritten.
 
 ## 4. Mathematical / Statistical Details
 
@@ -113,10 +113,12 @@ Physical-device steps are marked.
   - IPA 21,618,493 B, +478 B on build 61.
 - [x] **Physical device, build 62, 2026-11-06: passed, as reported by the owner.** Asked "Did build 62 pass the phone check?", the owner answered "Passed". The device and iOS version weren't reported. The check: installed over the store version, the app opens and its data is intact. The button says "up to date (1.4.2)", since the store is behind it. In Airplane Mode the button says it couldn't check. Start a timer, leave the app and return: the timer is unaffected.
 - [ ] 1.4.2 approved and live. **Submitted 2026-11-06** on build 62 (the owner: "Submitted"); App Review's answer is pending.
+- [ ] The fix on `master`, through the 1.5.0 session's pull request ("How it ships" in §3). When this line was written, `e76d6bd` was on no other GitHub branch.
+- [ ] The records after `e76d6bd` on `master`, in their docs pull request, once 1.4.2 is live.
 - [ ] **Physical device, at the next release:** on a phone with 1.4.2 and automatic updates off, the prompt appears within an hour of the release, and "Update" opens the listing correctly from a Turkish account.
 - [ ] **Physical device, at the next release:** leave the app suspended past 6 hours and return with no timer running: the prompt appears. Return with a timer running: nothing appears until a later return.
 
-These last two can only run once a version newer than 1.4.2 is live, because 1.4.2 is the newest there is until then.
+These last two can only run once a version newer than 1.4.2 is live, because 1.4.2 is the newest there is until then. That version is expected to be 1.5.0, and its session has been asked to put them on its release list.
 
 ### What's New for 1.4.2, for the owner to edit
 

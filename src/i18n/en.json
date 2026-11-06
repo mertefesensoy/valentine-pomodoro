@@ -68,7 +68,8 @@
     "ready": "Pomo & Doro are ready when you are",
     "studying": "Pomo & Doro are studying with you",
     "break": "Pomo & Doro are on a break with you",
-    "paused": "Pomo & Doro are waiting for you"
+    "paused": "Pomo & Doro are waiting for you",
+    "pair": "Pair with your partner"
   },
   "spread": {
     "you": "You",
@@ -364,5 +365,49 @@
       "again": "Ready for a focus? Tap {{start}} when you are.",
       "break": "A break is next. Tap {{start}} when you're ready."
     }
+  },
+  "pair": {
+    "title": "Pair with your partner",
+    "close": "Close",
+    "you": "You",
+    "partner": "Your partner",
+    "partnerFallback": "your partner",
+    "why": "To pair, you each need an account, which keeps your name, time zone, language and what you share.",
+    "notNow": "Not now",
+    "lasts": "Lasts 24 hours",
+    "tapToType": "Tap to type their code",
+    "send": "Send my code",
+    "newCode": "Make a new code",
+    "shareMessage": "Let's pair on Valentine Pomodoro. My code is {{code}}, and it lasts 24 hours. {{url}}",
+    "codeField": "Your partner's code",
+    "codeLabel": "Your code: {{spelled}}",
+    "nameAsk": "What should your partner call you?",
+    "nameWhy": "It's what your partner sees. You can change it later in Settings.",
+    "namePlaceholder": "Your name",
+    "continue": "Continue",
+    "question": "Share your day and write notes to each other?",
+    "confirm": "Pair with {{name}}",
+    "notThem": "That's not them",
+    "samePage": "You and {{name}} are on the same page.",
+    "done": "Done",
+    "art": "Pomo and Doro become the two faces of one diary",
+    "lookAlike": "Codes never use I, L or O.",
+    "error": {
+      "invalid": "That code doesn't match anyone. Check it with them.",
+      "expired": "That code has expired. Ask them for a new one.",
+      "used": "That code has already been used. Ask them for a new one.",
+      "own": "That's your own code. Send it to your partner.",
+      "partnerPaired": "That person is already paired.",
+      "rateLimited": "That's a lot of tries. Try again in an hour.",
+      "offline": "You're offline. Try again when you're connected.",
+      "offlineCode": "You're offline. Your code is safe.",
+      "failed": "Something went wrong. Try again.",
+      "signIn": "Couldn't sign in. Try again."
+    },
+    "checking": "Checking…",
+    "signingIn": "Signing in",
+    "keepCode": "Keep this code",
+    "newCodeAsk": "Make a new code?",
+    "newCodeWhy": "The code you have stops working, even if you've already sent it."
   }
 }

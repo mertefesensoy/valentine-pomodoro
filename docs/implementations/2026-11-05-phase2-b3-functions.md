@@ -63,7 +63,7 @@ Requirements: [FR-PAR-001](../srs/SRS.md#fr-par-001), [FR-PAR-002](../srs/SRS.md
 2. Read the fresh `authorization_code`, which the app gets by asking the person to confirm with Apple.
 3. Sign a client secret (ES256, five minutes, with the `.p8` key) and exchange the code at Apple's `/auth/token`.
 4. Revoke the resulting refresh token at Apple's `/auth/revoke`.
-5. Delete the user (`DELETE /auth/v1/admin/users/{id}`, with the secret key on `apikey`, since Supabase's new keys aren't JWTs). The triggers from B1 do the rest.
+5. Delete the user (`DELETE /auth/v1/admin/users/{id}`, with the secret key on `apikey`, since Supabase's new keys aren't JWTs). The triggers from B1 do the rest. **Checked against the live project on 2026-11-05** with the owner's key, on `GET /auth/v1/admin/users`: `apikey` alone gives 200. The same request with PowerShell's default User-Agent gives 401, "Forbidden use of secret API key in browser", because Supabase refuses a secret key from anything that looks like a browser. An Edge Function's `fetch` doesn't look like one, but a key check run by hand must name its own User-Agent.
 
 If Apple refuses, nothing is deleted, the app says so, and the person can try again. Deletion is last and is one call, so the database is never left half-gone. One gap to know about: if step 4 succeeds and step 5 fails, Apple's token is already revoked while the account remains. A retry still works while the person's Supabase session is valid, because they get a fresh code from Apple. The header step 5 sends is checked against the real project after the first deployment, with one `curl` by the owner.
 

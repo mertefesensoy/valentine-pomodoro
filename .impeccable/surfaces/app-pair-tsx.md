@@ -16,6 +16,12 @@ Surface brief from `/impeccable shape`, Phase 2 A3, 2026-11-05. **Mode: Operate.
 - **The structure:** "Facing pages", chosen over One grouped list and The postcard.
 - **The frames:** "Yes, they're right".
 
+**The owner's decisions at D1's finish review, 2026-11-06,** which change the text below where it says so:
+- **Where the morph plays:** "Inside the sheet". §4 had given it its own route, against the contract's "no cut".
+- **Pomo & Doro at who-it-is:** "Lean toward the middle", where the morph starts them, so nothing moves when you press Pair. It departs from sketch frame 4, which centres them.
+- **VoiceOver's order:** "Use the screen's order". React Native's reordering is off in this build, so §6's order can't be had.
+- **Before a new code:** "Keep the alert", because a new code cancels one your partner may already hold.
+
 ## 1. Job and audience
 
 - **Who arrives:** a student, usually in a long-distance couple, who wants to see their partner's day. They've used the app solo; they're signing in for the first time, only because they chose to pair.
@@ -36,7 +42,7 @@ The sheet is the open spread from the Timer's Facing Pages layout, in the Same P
 
 ## 4. Scope and boundaries
 
-- **Target:** `app/pair.tsx`, a form sheet at the large detent, with its parts in `src/screens/pair/`. The first-pairing morph is its own full-screen route, as the welcome is.
+- **Target:** `app/pair.tsx`, a form sheet at the large detent, with its parts in `src/screens/pair/`. The first-pairing morph plays in this sheet.
 - **Unchanged:** the session engine, the clock store, the tabs.
 - **Not here:** links (Phase 6), a choice of sign-in, anything a solo user sees beyond the strip's line.
 - **Anti-goals:** no form-like list, no "are you the inviter?" question, no stacked sheets, no alert for a mistyped code, no scolding, no emoji in the interface.
@@ -49,7 +55,9 @@ The sheet is the open spread from the Timer's Facing Pages layout, in the Same P
 - **Signed in:** your name on your page, the code in two rows of three, "Lasts 24 hours"; theirs empty. A code that's expired while the sheet was closed is replaced on opening.
 - **Typing:** the right page lifts to flat and the keyboard rises. Letters are shown as typed, in capitals. Anything outside the alphabet is ignored, and I, L and O get a hint: "Codes never use I, L or O."
 - **At six characters** it checks by itself, then shows who. **Errors, always inline on the right page, the cells kept:** no such code; expired ("Ask them for a new one"); already used; your own code; they're already paired; too many tries ("Try again in an hour"); offline ("You're offline. Your code is safe.").
-- **Who it is:** both names and stickers, "Share your day and write notes to each other?", the Pair pill, "That's not them".
+- **Who it is:** both names on the two pages, with Pomo & Doro standing where the morph starts them, "Share your day and write notes to each other?", the Pair pill, "That's not them". Pair ignores presses for its first 500 ms, in case a finger on the falling keyboard lands there.
+- **A session that has ended:** back to Apple's button, whatever the cache still holds. Signing in finds the couple on the server.
+- **Make a new code:** a system alert first, since it cancels the code you have.
 - **While the sheet is open, the inviter's phone checks every 10 s,** so when the partner confirms it moves on by itself. Otherwise it finds out at the next foreground.
 - **Ranges:** names from 1 to 60 characters, Turkish and emoji included; they truncate on the spread at two lines, and never in the sentence that names them. The code is always six characters from 31 symbols.
 
@@ -57,7 +65,7 @@ The sheet is the open spread from the Timer's Facing Pages layout, in the Same P
 
 - **One sheet, steps swap in place** with a 200 ms crossfade. Swipe down or the close button leaves at any step, and nothing is lost: the account and the code stay. The share sheet is the system's, over it.
 - **The right page is one big button** until it's typing. One hidden text field carries the input (`ascii-capable`, all capitals, no autocorrect, paste accepted and cleaned), so VoiceOver and paste work as they do anywhere. The cells are drawn from its value and hidden from VoiceOver.
-- **VoiceOver:** the sheet's title, your name, the code spelled out ("K, 7, M, P, 2, Q"), Send my code, then the field "Your partner's code". Each step's change and each error is announced.
+- **VoiceOver:** the sheet's title, the close button, your name and the code spelled out ("K, 7, M, P, 2, Q"), the field "Your partner's code", Send my code, Make a new code. That's the screen's order, and your page also offers Send my code as a VoiceOver action. Each step's change and each error is announced.
 - **AX sizes (font scale 1.6):** the pages stack, you then your partner, with the same cells. Apple's button and Send my code are never below the fold.
 - **Compact height (iPhone in landscape):** the spread takes the leading side and the actions the trailing side.
 - **iPad:** the form sheet's own width.

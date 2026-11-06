@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator, useWindowDimensions, type LayoutChangeEvent } from "react-native";
+import { PAIRING_ENABLED } from "../constants/features";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ComponentRef } from "react";
 import { router } from "expo-router";
@@ -480,6 +481,9 @@ export default function TimerScreen() {
         )
       : Math.min(ringCap, height * 0.36);
 
+  const showPair = PAIRING_ENABLED && idle;
+  const openPair = () => router.push('/pair');
+
   const face =
     layout === 'spread' ? (
       <SpreadPages
@@ -490,6 +494,7 @@ export default function TimerScreen() {
         progress={ringProgress}
         isBreak={isBreak}
         line={t(partnerLine)}
+        pairAction={showPair ? openPair : undefined}
       >
         {timer(56)}
         {subLine}
@@ -510,19 +515,36 @@ export default function TimerScreen() {
 
   // The partner slot: on the Ring, one paper field with the pair and their line, as the C4
   // sketch draws it (finish review fix 5); Facing Pages carries it on its right page (fix 4).
-  const partner = layout === 'ring' ? (
-    <View
-      style={[styles.partner, { backgroundColor: tokens.paper, borderColor: tokens.edge }]}
-      onLayout={(e) => measured('partner', e)}
-      testID="partner-strip"
-    >
+  const stripBody = (
+    <>
       <View style={styles.pair} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         <PoseSticker who="pomo" pose={pose} width={40} shadow={tokens.stickerShadow} />
         <View style={styles.pairOverlap}>
           <PoseSticker who="doro" pose={pose} width={40} shadow={tokens.stickerShadow} />
         </View>
       </View>
-      <Text style={[styles.partnerLine, { color: tokens.ink }]}>{t(partnerLine)}</Text>
+      <View style={styles.partnerText}>
+        <Text style={[styles.partnerLine, { color: tokens.ink }]}>{t(partnerLine)}</Text>
+        {showPair && <Text style={[styles.pairLine, { color: tokens.primaryInk }]}>{t('partner.pair')}</Text>}
+      </View>
+    </>
+  );
+  const stripStyle = [styles.partner, { backgroundColor: tokens.paper, borderColor: tokens.edge }];
+  const partner = layout === 'ring' ? (
+    <View onLayout={(e) => measured('partner', e)} testID="partner-strip">
+      {showPair ? (
+        <PressableScale
+          onPress={openPair}
+          haptic={false}
+          accessibilityRole="button"
+          accessibilityLabel={`${t(partnerLine)}. ${t('partner.pair')}`}
+          style={stripStyle}
+        >
+          {stripBody}
+        </PressableScale>
+      ) : (
+        <View style={stripStyle}>{stripBody}</View>
+      )}
     </View>
   ) : null;
 
@@ -810,9 +832,16 @@ const styles = StyleSheet.create({
   pairOverlap: {
     marginLeft: -space.s,
   },
-  partnerLine: {
+  partnerText: {
     flex: 1,
+    gap: space.xs / 2,
+  },
+  partnerLine: {
     fontSize: 15,
     fontWeight: '500',
+  },
+  pairLine: {
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

@@ -6,6 +6,7 @@ import { t } from '../../i18n';
 import type { ThemeTokens } from '../../theme/palette';
 import { edgeWidth, radius, space } from '../../theme/layout';
 import { PoseSticker, type Pose } from './PoseSticker';
+import { PressableScale } from '../../components/ui/PressableScale';
 
 type Props = {
     tokens: ThemeTokens;
@@ -17,6 +18,8 @@ type Props = {
     isBreak: boolean;
     /** What Pomo & Doro are doing now: the partner slot's line, on the right page's foot. */
     line: string;
+    /** Pairing's way in, while idle (Phase 2 D1): the partner's page offers it, and only then. */
+    pairAction?: () => void;
     /** The timer and its line, drawn in the spine's frame. */
     children: ReactNode;
 };
@@ -51,7 +54,7 @@ function SpineBar({ progress, color, visible }: { progress: SharedValue<number>;
  * VoiceOver: the labels and stickers are decoration. The frame comes first, then the partner line,
  * as brief §6 orders them (the timer, then the partner slot; HIG review M-2).
  */
-export function SpreadPages({ tokens, width, stacked, pose, progress, isBreak, line, children }: Props) {
+export function SpreadPages({ tokens, width, stacked, pose, progress, isBreak, line, pairAction, children }: Props) {
     const pageW = (width - space.s) / 2;
     const sticker = Math.round(Math.min(pageW * 0.34, 64));
     const paper = { backgroundColor: tokens.paper, borderColor: tokens.edge };
@@ -61,7 +64,14 @@ export function SpreadPages({ tokens, width, stacked, pose, progress, isBreak, l
         </Text>
     );
     const partnerLine = (
-        <Text style={[styles.line, { color: tokens.ink }]}>{line}</Text>
+        <>
+            <Text style={[styles.line, { color: tokens.ink }]}>{line}</Text>
+            {pairAction && (
+                <PressableScale onPress={pairAction} haptic={false} accessibilityRole="button" hitSlop={12}>
+                    <Text style={[styles.line, styles.pairAction, { color: tokens.primaryInk }]}>{t('partner.pair')}</Text>
+                </PressableScale>
+            )}
+        </>
     );
 
     const frame = (
@@ -121,6 +131,7 @@ export function SpreadPages({ tokens, width, stacked, pose, progress, isBreak, l
 }
 
 const styles = css.create({
+    pairAction: { fontWeight: '600', marginTop: space.xs },
     page: { position: 'absolute', top: 0, bottom: 0, borderWidth: edgeWidth },
     pageLeft: {
         left: 0,

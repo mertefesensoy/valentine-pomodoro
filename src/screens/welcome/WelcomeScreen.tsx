@@ -2,170 +2,22 @@ import { useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
 import Animated, {
     Easing,
-    FadeIn,
-    useAnimatedReaction,
     useAnimatedStyle,
-    useDerivedValue,
     useReducedMotion,
     useSharedValue,
     withTiming,
-    type SharedValue,
 } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
 
 import { PressableScale } from '../../components/ui/PressableScale';
-import { Sticker, type StickerArt } from '../../components/stickers/Sticker';
-import { pomoIdle } from '../../components/stickers/art/pomoIdle';
-import { pomoCelebrating } from '../../components/stickers/art/pomoCelebrating';
-import { doroIdle } from '../../components/stickers/art/doroIdle';
-import { doroCelebrating } from '../../components/stickers/art/doroCelebrating';
-import { welcomeCoverColour } from '../../components/stickers/art/welcomeCoverColour';
-import { welcomeCoverReversed } from '../../components/stickers/art/welcomeCoverReversed';
-import { welcomeEdgeLeftColour } from '../../components/stickers/art/welcomeEdgeLeftColour';
-import { welcomeEdgeLeftReversed } from '../../components/stickers/art/welcomeEdgeLeftReversed';
-import { welcomeEdgeRightColour } from '../../components/stickers/art/welcomeEdgeRightColour';
-import { welcomeEdgeRightReversed } from '../../components/stickers/art/welcomeEdgeRightReversed';
-import { welcomePageLeftColour } from '../../components/stickers/art/welcomePageLeftColour';
-import { welcomePageLeftReversed } from '../../components/stickers/art/welcomePageLeftReversed';
-import { welcomePageRightColour } from '../../components/stickers/art/welcomePageRightColour';
-import { welcomePageRightReversed } from '../../components/stickers/art/welcomePageRightReversed';
 import { t } from '../../i18n';
-import { useSettingsStore } from '../../stores/settingsStore';
 import { useUiStore } from '../../stores/uiStore';
 import { useTheme } from '../../theme/useTheme';
 import { fonts } from '../../theme/type';
 import { radius, space } from '../../theme/layout';
-import {
-    ASPECT,
-    CHARACTER_ORIGIN,
-    CHARACTER_SIZE,
-    DIARY_ORIGIN,
-    DURATION,
-    FEET,
-    LAND_MS,
-    PARTICLE_COUNT,
-    SPREAD_ORIGIN,
-    characterPose,
-    diaryPose,
-    headroom,
-    linePose,
-    particlePose,
-    type Who,
-} from './choreography';
-
-// The art box is the mark's own artboard (784 × 576), so the layers stack into it exactly;
-// the spine sits at its horizontal centre, which is the default transform origin.
-const LAYERS = {
-    colour: {
-        edgeLeft: welcomeEdgeLeftColour, edgeRight: welcomeEdgeRightColour,
-        pageLeft: welcomePageLeftColour, pageRight: welcomePageRightColour, cover: welcomeCoverColour,
-    },
-    reversed: {
-        edgeLeft: welcomeEdgeLeftReversed, edgeRight: welcomeEdgeRightReversed,
-        pageLeft: welcomePageLeftReversed, pageRight: welcomePageRightReversed, cover: welcomeCoverReversed,
-    },
-} satisfies Record<string, Record<string, StickerArt>>;
-
-const POSES = { pomo: { idle: pomoIdle, joy: pomoCelebrating }, doro: { idle: doroIdle, joy: doroCelebrating } } as const;
-
-type Box = { w: number; h: number };
-
-const SPARKLE = 8;
-
-function Layer({ art, width, style }: { art: StickerArt; width: number; style?: object }) {
-    return (
-        <Animated.View style={[StyleSheet.absoluteFill, styles.flat, style]}>
-            <Sticker art={art} width={width} />
-        </Animated.View>
-    );
-}
-
-/**
- * The diary (choreography.ts): it squashes about its foot and slides to centre (the outer view),
- * the cover turns on the spine in perspective and hands over to the left page at edge-on, the right
- * page shows once the cover lifts, and the spread bumps as it takes in the faces (the inner view).
- */
-function Diary({ p, box, layers }: { p: SharedValue<number>; box: Box; layers: (typeof LAYERS)['colour'] }) {
-    const perspective = box.w * 3;
-    // The pose once a frame; the five layers' styles read it.
-    const pose = useDerivedValue(() => diaryPose(p.get()));
-    const outer = useAnimatedStyle(() => {
-        const d = pose.get();
-        return { transform: [{ translateX: d.shiftX * box.w }, { scaleX: d.sx }, { scaleY: d.sy }] };
-    });
-    const inner = useAnimatedStyle(() => {
-        const d = pose.get();
-        return { transform: [{ translateY: d.dip * box.h }, { scale: d.bump }] };
-    });
-    const right = useAnimatedStyle(() => ({ opacity: pose.get().rightOpacity }));
-    const left = useAnimatedStyle(() => {
-        const d = pose.get();
-        return { opacity: d.leftOpacity, transform: [{ perspective }, { rotateY: `${d.leftAngle}deg` }] };
-    });
-    const cover = useAnimatedStyle(() => {
-        const d = pose.get();
-        return { opacity: d.coverOpacity, transform: [{ perspective }, { rotateY: `${d.coverAngle}deg` }] };
-    });
-    return (
-        <Animated.View style={[StyleSheet.absoluteFill, { transformOrigin: DIARY_ORIGIN }, outer]}>
-            <Animated.View style={[StyleSheet.absoluteFill, { transformOrigin: SPREAD_ORIGIN }, inner]}>
-                <Layer art={layers.edgeLeft} width={box.w} style={left} />
-                <Layer art={layers.edgeRight} width={box.w} style={right} />
-                <Layer art={layers.pageLeft} width={box.w} style={left} />
-                <Layer art={layers.pageRight} width={box.w} style={right} />
-                <Layer art={layers.cover} width={box.w} style={cover} />
-            </Animated.View>
-        </Animated.View>
-    );
-}
-
-/** Pomo or Doro, placed by the feet and squashed and stretched about them, crossfading into joy on landing. */
-function Character({ who, p, box, room }: { who: Who; p: SharedValue<number>; box: Box; room: number }) {
-    const size = box.w * CHARACTER_SIZE;
-    const pose = useDerivedValue(() => characterPose(who, p.get(), room));
-    const body = useAnimatedStyle(() => {
-        const c = pose.get();
-        return {
-            opacity: c.opacity,
-            transform: [
-                { translateX: c.x * box.w - size / 2 },
-                { translateY: c.y * box.h - FEET * size },
-                { rotate: `${c.rot}deg` },
-                { scaleX: c.sx },
-                { scaleY: c.sy },
-            ],
-        };
-    });
-    const joy = useAnimatedStyle(() => ({ opacity: pose.get().celebrate }));
-    return (
-        <Animated.View style={[styles.character, { width: size, height: size, transformOrigin: CHARACTER_ORIGIN }, body]}>
-            <Sticker art={POSES[who].idle} width={size} />
-            <Animated.View style={[StyleSheet.absoluteFill, joy]}>
-                <Sticker art={POSES[who].joy} width={size} />
-            </Animated.View>
-        </Animated.View>
-    );
-}
-
-/** One sparkle from a face as the spread takes Pomo & Doro in. */
-function Sparkle({ i, p, box, colour }: { i: number; p: SharedValue<number>; box: Box; colour: string }) {
-    const style = useAnimatedStyle(() => {
-        const s = particlePose(i, p.get());
-        return {
-            opacity: s.opacity,
-            transform: [
-                { translateX: s.x * box.w - SPARKLE / 2 },
-                { translateY: s.y * box.h - SPARKLE / 2 },
-                { rotate: `${s.rot}deg` },
-                { scale: s.scale },
-            ],
-        };
-    });
-    return <Animated.View style={[styles.sparkle, { backgroundColor: colour }, style]} />;
-}
+import { ASPECT, DURATION, LAND_MS, headroom, linePose } from './choreography';
+import { MorphArt, useMorphHaptic } from './MorphStage';
 
 /**
  * The one-time v1.4 welcome (Phase 1 D1; welcome brief `.impeccable/surfaces/app-welcome-tsx.md`):
@@ -180,7 +32,7 @@ function Sparkle({ i, p, box, colour }: { i: number; p: SharedValue<number>; box
  * - VoiceOver: the art is one element, then the line, then Start.
  */
 export function WelcomeScreen() {
-    const { tokens, isDark } = useTheme();
+    const { tokens } = useTheme();
     const { width, height, fontScale } = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const reduced = useReducedMotion();
@@ -192,10 +44,6 @@ export function WelcomeScreen() {
     const artScale = fontScale >= 1.6 ? 0.6 : 1;
     const boxW = Math.round(artScale * (compactHeight ? Math.min(width * 0.42, (height - insets.top - insets.bottom) / ASPECT * 0.6) : Math.min(width * 0.78, 420)));
     const box = { w: boxW, h: Math.round(boxW * ASPECT) };
-    const layers = LAYERS[isDark ? 'reversed' : 'colour'];
-    // Pomo's sparkles are strawberry over the cocoa pages; over the dark theme's strawberry pages
-    // they would vanish, so there they are milk-white glints. Doro's matcha shows on both.
-    const pomoSparkle = isDark ? tokens.stickerEdge : tokens.primary;
     // Seated on the closed cover, Pomo & Doro stand up to 0.28 of the art's height above it, and Pomo's
     // leap peaks 0.14 higher (`headroom`). The art keeps that much headroom, so the ScrollView never clips them
     // (the largest text sizes push the art to the top); a compact height also flattens the arcs.
@@ -210,15 +58,7 @@ export function WelcomeScreen() {
     }, [p, reduced]);
 
     // One soft tap on the frame Pomo's feet reach the page.
-    const tapHaptic = () => {
-        if (useSettingsStore.getState().settings.haptics) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).catch(() => {});
-    };
-    useAnimatedReaction(
-        () => p.get() >= LAND_MS,
-        (met, was) => {
-            if (met && was === false) scheduleOnRN(tapHaptic);
-        },
-    );
+    useMorphHaptic(p, LAND_MS);
 
     const line = useAnimatedStyle(() => {
         const l = linePose(p.get());
@@ -230,23 +70,7 @@ export function WelcomeScreen() {
         if (router.canGoBack()) router.back();
     };
 
-    const art = (
-        <Animated.View
-            entering={reduced ? FadeIn.duration(300) : undefined}
-            style={{ width: box.w, height: box.h }}
-            accessible
-            accessibilityRole="image"
-            accessibilityLabel={t('welcome.art')}
-        >
-            <Diary p={p} box={box} layers={layers} />
-            {!reduced && <Character who="pomo" p={p} box={box} room={room} />}
-            {!reduced && <Character who="doro" p={p} box={box} room={room} />}
-            {!reduced &&
-                Array.from({ length: PARTICLE_COUNT }, (_, i) => (
-                    <Sparkle key={i} i={i} p={p} box={box} colour={i < PARTICLE_COUNT / 2 ? pomoSparkle : tokens.success} />
-                ))}
-        </Animated.View>
-    );
+    const art = <MorphArt p={p} box={box} room={room} reduced={reduced} label={t('welcome.art')} />;
 
     return (
         <View style={[styles.screen, { backgroundColor: tokens.page, paddingTop: insets.top + space.xl, paddingBottom: insets.bottom + space.l }]}>
@@ -281,10 +105,6 @@ const styles = StyleSheet.create({
     artSlot: { alignItems: 'center', justifyContent: 'center' },
     side: { alignItems: 'center', gap: space.xl },
     sideCompact: { flex: 1 },
-    character: { position: 'absolute', left: 0, top: 0 },
-    // Each turning face hides its back natively; the opacity switch at edge-on keeps it exact.
-    flat: { backfaceVisibility: 'hidden' },
-    sparkle: { position: 'absolute', left: 0, top: 0, width: SPARKLE, height: SPARKLE, borderRadius: 2 },
     line: { fontFamily: fonts.semiBold, fontSize: 28, lineHeight: 36, textAlign: 'center' },
     start: {
         minHeight: 56,

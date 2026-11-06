@@ -27,6 +27,14 @@ export function sheetOptions(tokens: ThemeTokens) {
     return {
         loveNote: { ...SHEET, contentStyle: { backgroundColor: tokens.paper } },
         modes: { ...SHEET, contentStyle: { backgroundColor: tokens.page } },
+        // The pairing sheet (Phase 2 D1) holds a flow and a keyboard, so it takes the full height.
+        pair: {
+            presentation: 'formSheet',
+            sheetAllowedDetents: [1] as number[],
+            sheetGrabberVisible: false,
+            headerShown: false,
+            contentStyle: { backgroundColor: tokens.page },
+        },
         // The note editor (D2 Notes contract) is for writing, so it takes the full height, as
         // compose sheets do (`sheets.md`), and draws its own Cancel and Save header. It follows
         // the keyboard from inside (`automaticallyAdjustKeyboardInsets`).

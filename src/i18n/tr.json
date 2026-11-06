@@ -68,7 +68,8 @@
     "ready": "Pomo ve Doro hazır, sen ne zaman istersen",
     "studying": "Pomo ve Doro seninle çalışıyor",
     "break": "Pomo ve Doro seninle molada",
-    "paused": "Pomo ve Doro seni bekliyor"
+    "paused": "Pomo ve Doro seni bekliyor",
+    "pair": "Partnerinle eşleş"
   },
   "spread": {
     "you": "Sen",
@@ -364,5 +365,49 @@
       "again": "Bir odağa hazır mısın? Hazır olunca {{start}} düğmesine dokun.",
       "break": "Sırada bir mola var. Hazır olunca {{start}} düğmesine dokun."
     }
+  },
+  "pair": {
+    "title": "Partnerinle eşleş",
+    "close": "Kapat",
+    "you": "Sen",
+    "partner": "Partnerin",
+    "partnerFallback": "partnerin",
+    "why": "Eşleşmek için ikinizin de bir hesabı olmalı; hesabında adın, saat dilimin, dilin ve paylaştıkların durur.",
+    "notNow": "Şimdi değil",
+    "lasts": "24 saat geçerli",
+    "tapToType": "Onun kodunu yazmak için dokun",
+    "send": "Kodumu gönder",
+    "newCode": "Yeni kod oluştur",
+    "shareMessage": "Valentine Pomodoro'da eşleşelim. Kodum {{code}}, 24 saat geçerli. {{url}}",
+    "codeField": "Partnerinin kodu",
+    "codeLabel": "Kodun: {{spelled}}",
+    "nameAsk": "Partnerin sana nasıl seslensin?",
+    "nameWhy": "Partnerin bunu görür. Sonra Ayarlar'dan değiştirebilirsin.",
+    "namePlaceholder": "Adın",
+    "continue": "Devam",
+    "question": "Gününüzü paylaşıp birbirinize not yazmak ister misiniz?",
+    "confirm": "{{name}} ile eşleş",
+    "notThem": "O değil",
+    "samePage": "{{name}} ile aynı sayfadasınız.",
+    "done": "Tamam",
+    "art": "Pomo ile Doro tek bir günlüğün iki yüzü oluyor",
+    "lookAlike": "Kodlarda I, L ve O kullanılmaz.",
+    "error": {
+      "invalid": "Bu kod kimseyle eşleşmedi. Ondan kontrol etmesini iste.",
+      "expired": "Bu kodun süresi dolmuş. Ondan yenisini iste.",
+      "used": "Bu kod daha önce kullanılmış. Ondan yenisini iste.",
+      "own": "Bu senin kendi kodun. Partnerine gönder.",
+      "partnerPaired": "Bu kişi zaten eşleşmiş.",
+      "rateLimited": "Çok fazla deneme oldu. Bir saat sonra tekrar dene.",
+      "offline": "Çevrimdışısın. Bağlanınca tekrar dene.",
+      "offlineCode": "Çevrimdışısın. Kodun güvende.",
+      "failed": "Bir şeyler ters gitti. Tekrar dene.",
+      "signIn": "Giriş yapılamadı. Tekrar dene."
+    },
+    "checking": "Denetleniyor…",
+    "signingIn": "Giriş yapılıyor",
+    "keepCode": "Bu kodu tut",
+    "newCodeAsk": "Yeni kod oluşturulsun mu?",
+    "newCodeWhy": "Elindeki kod, göndermiş olsan bile çalışmaz olur."
   }
 }

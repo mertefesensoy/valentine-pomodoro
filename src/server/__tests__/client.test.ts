@@ -259,6 +259,15 @@ describe('refreshing', () => {
         await expect(client.rpc('home_snapshot')).rejects.toMatchObject({ name: 'SessionEnded' });
         expect(require('../account').hasAccount()).toBe(true);
     });
+
+    it('says the session has ended, so a screen can offer that, until the next sign-in', async () => {
+        const client = await signedIn(1);
+        const { useAccountStore } = require('../account');
+        expect(useAccountStore.getState().sessionEnded).toBe(false);
+        when(REFRESH, { status: 400 });
+        await expect(client.rpc('home_snapshot')).rejects.toMatchObject({ name: 'SessionEnded' });
+        expect(useAccountStore.getState().sessionEnded).toBe(true);
+    });
 });
 
 describe('a bad connection never ends a session', () => {

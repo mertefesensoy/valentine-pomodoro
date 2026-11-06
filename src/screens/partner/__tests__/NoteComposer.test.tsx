@@ -3,7 +3,12 @@
 import { AccessibilityInfo, ActionSheetIOS } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
+import { router } from 'expo-router';
+
+import { useAccountStore } from '../../../server/account';
 import { usePartnerGlance, type PartnerGlance } from '../../../server/partnerGlance';
+import { useLoveNoteSheet } from '../../../stores/loveNoteSheetStore';
+import { useSettingsStore } from '../../../stores/settingsStore';
 import PartnerScreen from '../PartnerScreen';
 
 jest.setTimeout(30_000);
@@ -11,7 +16,7 @@ jest.setTimeout(30_000);
 const mockPreventRemove = jest.fn();
 jest.mock('expo-router', () => ({
     ...jest.requireActual('expo-router'),
-    router: { push: jest.fn(), back: jest.fn(), canGoBack: () => true },
+    router: { push: jest.fn(), back: jest.fn(), replace: jest.fn(), canGoBack: () => true },
     usePreventRemove: (...args: unknown[]) => mockPreventRemove(...args),
 }));
 let mockIds = 0;
@@ -20,7 +25,8 @@ const mockRpc = jest.fn();
 const mockRefresh = jest.fn(async () => {});
 jest.mock('../../../server/client', () => {
     class Offline extends Error {}
-    return { Offline, rpc: (...args: unknown[]) => mockRpc(...args) };
+    class SessionEnded extends Error {}
+    return { Offline, SessionEnded, rpc: (...args: unknown[]) => mockRpc(...args) };
 });
 jest.mock('../../../server/home', () => ({ refreshHome: () => mockRefresh() }));
 const FIELD = 'Your note to Deniz';
@@ -81,15 +87,110 @@ describe('in their sheet', () => {
     });
 });
 
+describe('a note waiting, with Show love notes off', () => {
+    const replace = router.replace as jest.Mock;
+    beforeEach(() => replace.mockClear());
+    afterEach(async () => {
+        await act(async () => {
+            useSettingsStore.getState().updateSettings({ showLoveNotes: true });
+            useLoveNoteSheet.getState().close();
+        });
+    });
+
+    async function openWithANote(showLoveNotes: boolean) {
+        await act(async () => useSettingsStore.getState().updateSettings({ showLoveNotes }));
+        await act(async () => usePartnerGlance.setState({ glance, gone: null, notes: [{ id: 'n', body: 'Good luck' }], shown: [] }));
+        await render(<PartnerScreen />);
+        await flush();
+    }
+
+    it('is a row above Write, as the frame draws it', async () => {
+        await openWithANote(false);
+        const buttons = screen.getAllByRole('button');
+        const waiting = buttons.indexOf(screen.getByRole('button', { name: 'A note from Deniz is waiting' }));
+        const write = buttons.indexOf(screen.getByRole('button', { name: 'Write Deniz a note' }));
+        expect(waiting).toBeGreaterThan(-1);
+        expect(write).toBe(waiting + 1);
+    });
+
+    it('closes this sheet for the note\'s, once, so there\'s one sheet at a time', async () => {
+        await openWithANote(false);
+        await fireEvent.press(screen.getByRole('button', { name: 'A note from Deniz is waiting' }));
+        expect(replace).toHaveBeenCalledWith('/love-note');
+        expect(useLoveNoteSheet.getState()).toMatchObject({ note: 'Good luck', from: 'Deniz' });
+        expect(usePartnerGlance.getState().notes).toEqual([]);
+        expect(screen.queryByRole('button', { name: 'A note from Deniz is waiting' })).toBeNull();
+    });
+
+    it('isn\'t offered with notes on: it\'s for after a focus', async () => {
+        await openWithANote(true);
+        expect(screen.queryByRole('button', { name: 'A note from Deniz is waiting' })).toBeNull();
+    });
+});
+
+describe('with a session that has ended', () => {
+    afterEach(async () => {
+        await act(async () => useAccountStore.setState({ sessionEnded: false }));
+    });
+
+    it('doesn\'t offer to write, since it could only fail', async () => {
+        await act(async () => useAccountStore.setState({ sessionEnded: true }));
+        await open();
+        expect(screen.queryByRole('button', { name: 'Write Deniz a note' })).toBeNull();
+        expect(screen.queryByText('It appears after their next focus.')).toBeNull();
+    });
+
+    it('says to sign in if it ends while writing, keeping the text', async () => {
+        const { SessionEnded } = jest.requireMock<{ SessionEnded: new () => Error }>('../../../server/client');
+        mockRpc.mockRejectedValue(new SessionEnded());
+        await startWriting('Good luck');
+        await fireEvent.press(screen.getByText('Send'));
+        await flush();
+        expect(screen.getByText(/Sign in again from the Timer/)).toBeOnTheScreen();
+        expect(screen.getByLabelText(FIELD).props.value).toBe('Good luck');
+    });
+});
+
 describe('sending', () => {
-    it('sends what was written, trimmed, and says when it\'ll appear', async () => {
+    it('sends what was written, trimmed, and says aloud when it\'ll appear', async () => {
         mockRpc.mockResolvedValue({ status: 'ok' });
         await startWriting('  Good luck today  ');
         await fireEvent.press(screen.getByText('Send'));
         await flush();
         expect(mockRpc).toHaveBeenCalledWith('send_note', { p_client_id: 'client-1', p_body: 'Good luck today' });
         expect(screen.getByText("Sent. It appears after Deniz's next focus.")).toBeOnTheScreen();
+        expect(announce).toHaveBeenCalledWith("Sent. It appears after Deniz's next focus.");
         expect(screen.queryByLabelText(FIELD)).toBeNull();
+    });
+
+    it('gets a new id when the words change after a failed try: a known id would keep the old words', async () => {
+        const { Offline } = jest.requireMock<{ Offline: new () => Error }>('../../../server/client');
+        mockRpc.mockRejectedValueOnce(new Offline());
+        mockRpc.mockResolvedValueOnce({ status: 'ok' });
+        await startWriting('Good lcuk');
+        await fireEvent.press(screen.getByText('Send'));
+        await flush();
+        await fireEvent.changeText(screen.getByLabelText(FIELD), 'Good luck');
+        await fireEvent.press(screen.getByText('Send'));
+        await flush();
+        expect(mockRpc.mock.calls[0][1].p_client_id).not.toBe(mockRpc.mock.calls[1][1].p_client_id);
+        expect(mockRpc.mock.calls[1][1].p_body).toBe('Good luck');
+    });
+
+    it('can\'t be discarded on its way, since that couldn\'t be honoured', async () => {
+        const sheet = jest.spyOn(ActionSheetIOS, 'showActionSheetWithOptions').mockImplementation(() => {});
+        mockRpc.mockImplementation(() => new Promise(() => {}));
+        await startWriting('Good luck');
+        const send = screen.getByRole('button', { name: 'Send' });
+        // fireEvent would wait for the handler, which this test holds open.
+        await act(async () => {
+            void fireEvent.press(send);
+        });
+        await fireEvent.press(screen.getByText('Cancel'));
+        expect(sheet).not.toHaveBeenCalled();
+        mockPreventRemove.mock.calls.at(-1)?.[1]({ repeat: jest.fn() });
+        expect(sheet).not.toHaveBeenCalled();
+        sheet.mockRestore();
     });
 
     it('doesn\'t send nothing', async () => {

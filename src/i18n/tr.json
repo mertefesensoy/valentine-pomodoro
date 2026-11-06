@@ -101,7 +101,7 @@
     "noteOffline": "Çevrimdışısın. Bağlanınca tekrar dene.",
     "noteFailed": "Bir şeyler ters gitti. Tekrar dene.",
     "noteWaiting": "{{name}} sana bir not bıraktı",
-    "opensNote": "Notu açar"
+    "noteSignIn": "Bunu göndermek için Zamanlayıcı'dan yeniden giriş yap."
   },
   "spread": {
     "you": "Sen",

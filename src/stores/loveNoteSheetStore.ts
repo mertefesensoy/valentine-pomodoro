@@ -13,6 +13,9 @@ import { create } from 'zustand';
 export interface LoveNoteSheetStore {
     note: string | null;
     from: string | null;
+    /** A partner's note is waiting for Fly's screen to be in front (Phase 2 D3). */
+    landingDue: boolean;
+    setLandingDue(due: boolean): void;
     open(note: string, from?: string): void;
     close(): void;
 }
@@ -20,6 +23,8 @@ export interface LoveNoteSheetStore {
 export const useLoveNoteSheet = create<LoveNoteSheetStore>()((set) => ({
     note: null,
     from: null,
+    landingDue: false,
+    setLandingDue: (landingDue) => set({ landingDue }),
     open: (note, from) => set({ note, from: from ?? null }),
     close: () => set({ note: null, from: null }),
 }));

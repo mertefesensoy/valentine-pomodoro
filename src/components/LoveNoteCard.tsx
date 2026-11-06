@@ -7,12 +7,10 @@ import { t } from '../i18n';
 
 interface LoveNoteCardProps {
     note: string;
-    /** Who wrote it, for a partner's note (Phase 2 D3). It then waits to be closed: it won't come again. */
-    from?: string | null;
     onDismiss: () => void;
 }
 
-export default function LoveNoteCard({ note, from, onDismiss }: LoveNoteCardProps) {
+export default function LoveNoteCard({ note, onDismiss }: LoveNoteCardProps) {
     const { tokens } = useTheme();
     // Created once, without reading a ref during render (Phase 1 B5).
     const fadeAnim = useAnimatedValue(0);
@@ -34,14 +32,13 @@ export default function LoveNoteCard({ note, from, onDismiss }: LoveNoteCardProp
             }),
         ]).start();
 
-        // Auto-dismiss after 8 seconds, for one of your own notes.
-        if (from) return;
+        // Auto-dismiss after 8 seconds
         const timer = setTimeout(() => {
             onDismiss();
         }, 8000);
 
         return () => clearTimeout(timer);
-    }, [fadeAnim, scaleAnim, onDismiss, from]);
+    }, [fadeAnim, scaleAnim, onDismiss]);
 
     return (
         <Animated.View
@@ -65,11 +62,6 @@ export default function LoveNoteCard({ note, from, onDismiss }: LoveNoteCardProp
                 <View style={styles.heartIcon}>
                     <Icon glyph={heart} size={48} color={tokens.primaryInk} />
                 </View>
-                {from && (
-                    <Text style={[styles.noteFrom, { color: tokens.inkSoft }]} accessibilityRole="header">
-                        {t('loveNote.from', { name: from })}
-                    </Text>
-                )}
                 <Text style={[styles.noteText, { color: tokens.ink }]}>{note}</Text>
                 <TouchableOpacity style={styles.closeButton} onPress={onDismiss}>
                     <Text style={styles.closeButtonText}>{t('loveNote.close')}</Text>
@@ -80,12 +72,6 @@ export default function LoveNoteCard({ note, from, onDismiss }: LoveNoteCardProp
 }
 
 const styles = StyleSheet.create({
-    noteFrom: {
-        fontSize: 15,
-        fontWeight: '600',
-        textAlign: 'center',
-        marginBottom: 8,
-    },
     overlay: {
         position: 'absolute',
         top: 0,

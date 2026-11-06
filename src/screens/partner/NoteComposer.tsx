@@ -15,6 +15,7 @@ const PROBLEM: Record<string, string> = {
     rate_limited: 'partner.noteTooMany',
     offline: 'partner.noteOffline',
     failed: 'partner.noteFailed',
+    session_ended: 'partner.noteSignIn',
 };
 
 /**
@@ -32,8 +33,9 @@ export function NoteComposer({ name, onCancel, onSent, onGone }: {
 }) {
     const { tokens } = useTheme();
     const [text, setText] = useState('');
-    // One per note, kept across retries, so a retry after a lost answer can't send twice.
-    const [clientId] = useState(() => Crypto.randomUUID());
+    // Kept across retries of the same words, so a retry after a lost answer can't send twice. New words get a new id:
+    // the server answers "ok" to an id it knows, whatever the text, which would call a correction sent and drop it.
+    const attempt = useRef<{ id: string; body: string } | null>(null);
     const [sending, setSending] = useState(false);
     const [problem, setProblem] = useState<string | null>(null);
     const left = NOTE_MAX_LENGTH - text.length;
@@ -67,6 +69,8 @@ export function NoteComposer({ name, onCancel, onSent, onGone }: {
     };
     usePreventRemove(canSend && !exiting, ({ repeat }) => {
         if (leaving.current) return repeat();
+        // On its way already: "discard" couldn't be honoured, so the removal waits for the answer.
+        if (sending) return;
         askDiscard(() => {
             leave();
             repeat();
@@ -74,6 +78,7 @@ export function NoteComposer({ name, onCancel, onSent, onGone }: {
     });
 
     const cancel = () => {
+        if (sending) return;
         if (!canSend) return onCancel();
         askDiscard(() => {
             leave();
@@ -85,7 +90,8 @@ export function NoteComposer({ name, onCancel, onSent, onGone }: {
         if (!canSend || sending) return;
         setSending(true);
         setProblem(null);
-        const result = await sendNote(clientId, body);
+        if (attempt.current?.body !== body) attempt.current = { id: Crypto.randomUUID(), body };
+        const result = await sendNote(attempt.current.id, body);
         setSending(false);
         if (result === 'ok') {
             leave();
@@ -127,6 +133,7 @@ export function NoteComposer({ name, onCancel, onSent, onGone }: {
             <PressableScale
                 onPress={send}
                 accessibilityRole="button"
+                accessibilityLabel={t('partner.send')}
                 accessibilityState={{ disabled: !canSend, busy: sending }}
                 style={[styles.pill, { backgroundColor: tokens.primary, opacity: canSend ? 1 : 0.5 }]}
             >

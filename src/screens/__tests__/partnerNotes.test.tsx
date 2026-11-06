@@ -2,6 +2,7 @@
 // A note from your partner arriving (Phase 2 D3): at the Timer's and Fly's own moments, once, with the session engine
 // knowing nothing of it.
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { AppState } from 'react-native';
 import { router } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -106,8 +107,14 @@ async function completeFocus() {
     await tick(61_000);
 }
 
+// React Native's Jest preset leaves this as a mock function.
+const setAppState = (state: string) => {
+    (AppState as unknown as { currentState: string }).currentState = state;
+};
+
 beforeEach(async () => {
     await resetStorage();
+    setAppState('active');
     push.mockClear();
     mockFlushShown.mockClear();
     useLoveNoteSheet.getState().close();
@@ -176,48 +183,31 @@ describe('after your next focus', () => {
 });
 
 describe('with Show love notes off', () => {
-    it('shows no sheet after a focus, and it waits on their strip', async () => {
+    it('shows no sheet after a focus, and the note keeps waiting', async () => {
         await setUp({ showLoveNotes: false });
-        expect(screen.getByText('A note from Deniz is waiting')).toBeOnTheScreen();
         await completeFocus();
         expect(screen.queryByText(PARTNER_NOTE)).toBeNull();
         expect(usePartnerGlance.getState().notes).toHaveLength(1);
     });
 
-    it('opens the same sheet from the strip, once, and then the strip opens their day', async () => {
+    it('leaves the strip as it is, and pressing it always opens their day', async () => {
         await setUp({ showLoveNotes: false });
-        const strip = screen.getByRole('button', { name: /A note from Deniz is waiting/ });
-        expect(strip.props.accessibilityHint).toBe('Opens the note');
-        await act(async () => {
-            await fireEvent.press(strip);
-        });
-        expect(screen.getByText(PARTNER_NOTE)).toBeOnTheScreen();
-        expect(push).toHaveBeenCalledWith('/love-note');
-        expect(usePartnerGlance.getState().notes).toEqual([]);
-
-        await press('Close');
-        push.mockClear();
         expect(screen.queryByText('A note from Deniz is waiting')).toBeNull();
         await act(async () => {
             await fireEvent.press(screen.getByRole('button', { name: /^Deniz/ }));
         });
         expect(push).toHaveBeenCalledWith('/partner');
-    });
-
-    it('keeps the line through a session, so the Ring doesn\'t move, and opens their day then instead', async () => {
-        await setUp({ showLoveNotes: false });
-        await press('Start focus');
-        expect(screen.getByText('A note from Deniz is waiting')).toBeOnTheScreen();
-        await act(async () => {
-            await fireEvent.press(screen.getByRole('button', { name: /A note from Deniz is waiting/ }));
-        });
-        expect(push).toHaveBeenCalledWith('/partner');
         expect(usePartnerGlance.getState().notes).toHaveLength(1);
     });
+});
 
-    it('says nothing on the strip with notes on: the note is for after a focus', async () => {
+describe('with the app behind', () => {
+    it('shows your own note, and leaves your partner\'s for a focus you\'ll see', async () => {
+        setAppState('background');
         await setUp({ showLoveNotes: true });
-        expect(screen.queryByText('A note from Deniz is waiting')).toBeNull();
+        await completeFocus();
+        expect(usePartnerGlance.getState().notes).toHaveLength(1);
+        expect(screen.queryByText(PARTNER_NOTE)).toBeNull();
     });
 });
 
@@ -244,22 +234,22 @@ describe('on landing a flight', () => {
         await act(async () => useUiStore.getState().setActiveMode('default'));
     });
 
-    it('shows your partner\'s note on the landing card, who it\'s from, and it waits to be closed', async () => {
+    it('shows your partner\'s note in the same sheet as on the Timer, which scrolls and stays until closed', async () => {
         await setUp({ showLoveNotes: true });
         await fly();
         expect(screen.getByText(PARTNER_NOTE)).toBeOnTheScreen();
-        expect(screen.getByText('A note from Deniz')).toBeOnTheScreen();
+        expect(screen.getByRole('header', { name: 'A note from Deniz' })).toBeOnTheScreen();
+        expect(push).toHaveBeenCalledWith('/love-note');
         expect(usePartnerGlance.getState().notes).toEqual([]);
 
-        // Your own landing note leaves by itself after 8 s. This one only comes once.
         await tick(9_000);
         expect(screen.getByText(PARTNER_NOTE)).toBeOnTheScreen();
     });
 
-    it('still lands on one of your own when there\'s none from them', async () => {
+    it('still lands on your own card when there\'s none from them', async () => {
         await setUp({ showLoveNotes: true, notes: [] });
         await fly();
-        expect(screen.queryByText('A note from Deniz')).toBeNull();
+        expect(screen.queryByRole('header', { name: 'A note from Deniz' })).toBeNull();
         expect(screen.getByText('Close')).toBeOnTheScreen();
     });
 });

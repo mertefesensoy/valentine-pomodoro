@@ -28,9 +28,9 @@ Requirement: [FR-NTE-003](../srs/SRS.md#fr-nte-003). "Done when": a note shows o
 | `src/server/partnerGlance.ts` | The waiting notes join the summary, with the ids shown but not yet confirmed, so a note can't come back. |
 | `src/server/noteDelivery.ts` | New: tells the server which notes have been shown, and retries. Reached by `import()` only. |
 | `src/server/runtime.ts` | Sends what's queued at each refresh. |
-| `src/stores/loveNoteSheetStore.ts`, `src/components/loveNote/LoveNoteSheet.tsx`, `src/components/LoveNoteCard.tsx` | The note carries who wrote it, for the title. Phase 1's own notes read as before. |
-| `src/screens/TimerScreen.tsx`, `src/screens/FlyModeScreen.tsx` | When a note is due, a partner's goes first. The strip's line when Show love notes is off. |
-| `src/screens/classic/PartnerStrip.tsx` | That line, on the strip. |
+| `src/stores/loveNoteSheetStore.ts`, `src/components/loveNote/LoveNoteSheet.tsx` | The note carries who wrote it, for the title. Phase 1's own notes read as before. |
+| `src/screens/TimerScreen.tsx`, `src/screens/FlyModeScreen.tsx` | When a note is due and the app is in front, a partner's goes first, in the same sheet on both. |
+| `src/screens/notes/NoteEditor.tsx` | Exports its countdown's marks, so the composer shares them. |
 | `src/screens/partner/PartnerScreen.tsx`, `src/screens/partner/NoteComposer.tsx`, `src/screens/partner/notes.ts` | New: the action row and the editor, in place in the sheet. |
 | `src/i18n/en.json`, `src/i18n/tr.json` | The words, drafts for the copy proof (D6). |
 | Tests | Below. |
@@ -39,19 +39,20 @@ Requirement: [FR-NTE-003](../srs/SRS.md#fr-nte-003). "Done when": a note shows o
 
 ## 3. Implementation Approach
 
-**The choice is made in the UI, when the sheet is due,** as the brief says. `useTimer` still picks one of your own notes and reports it due, and `TimerScreen`'s effect that opens the sheet is where a partner's note takes its place. Wrapping the picker would persist your partner's words into `lastLoveNote`, so it isn't touched. Fly's landing note is the same moment in `FlyModeScreen`, and takes a partner's note the same way.
+**The choice is made in the UI, when the sheet is due,** as the brief says. `useTimer` still picks one of your own notes and reports it due, and `TimerScreen`'s effect that opens the sheet is where a partner's note takes its place. Wrapping the picker would persist your partner's words into `lastLoveNote`, so it isn't touched. Fly's landing note is the same moment in `FlyModeScreen`, but a partner's note goes to the same sheet rather than Fly's card, which doesn't scroll and is 1.4's. A long note there could put Close off-screen with no other way out, now that it can't leave by itself. The note is taken only with Fly in front.
 
 **How a note reaches the Timer.** `TimerScreen` can't import `home.ts` (ADR-0049's rule), so the summary carries the waiting notes. `syncGlance` stays its one writer.
 
-**Exactly once.** Three things have to hold:
+**Exactly once, on a phone.** Four things have to hold:
 
 - `takePartnerNote()` moves the oldest note out of `notes` and its id into `shown`, synchronously, in one store write, before the sheet opens. A second focus can't find it.
 - `syncGlance` filters a snapshot's notes by `shown`, so a refresh that lands before the server has heard can't bring it back. An id leaves `shown` once a snapshot no longer lists it, which means the server has it.
+- A note is taken only with the app in front. A session ending just after the phone locks still runs this code, and iOS could then kill the app with the note used up unseen.
 - `flushShown()` calls `mark_note_shown` for each id in `shown`. It's marked on opening, not on closing, so a person who kills the app with the note open doesn't see it twice. It runs at once, and again at each refresh, so offline just means later. The function is idempotent ("the first time counts").
 
-**Show love notes off.** `useTimer` never reports a note due, so the sheet can't carry it. The strip gains a quiet line, "A note from Deniz is waiting", and pressing the strip opens the same sheet, marking it shown the same way. Press it again and it's their day, as usual. The line keeps its place during a session so the Ring doesn't move, but it opens only while idle, since nothing else competes during a session, and then the strip opens their day. An ended session's line goes first.
+**Show love notes off.** `useTimer` never reports a note due, so the sheet can't carry it. The partner's sheet gains a row, "A note from Deniz is waiting", above Write, as the approved frame draws it, and pressing it closes that sheet for the note's (`router.replace`), marking it shown the same way. The strip doesn't change, so its press always opens their day, and it doesn't grow when a refresh brings a note.
 
-**Writing.** `PartnerScreen` holds a `writing` flag, and the content swaps in place with no second sheet (H-3). The sheet stays `fitToContents`, which follows content height as it changes (`RNSScreen.mm:518`). `NoteComposer` reuses the Notes editor's cap and countdown: `capText`, `NOTE_MAX_LENGTH`, the same marks for VoiceOver. A client id is made once per note with `Crypto.randomUUID()` and kept across retries, because `send_note` is idempotent on it, so a retry after a lost answer can't send twice. A swipe with text in it asks first, by `usePreventRemove`, as the Notes editor does. Reached by `React.lazy` only, as the sheet is.
+**Writing.** `PartnerScreen` holds a `writing` flag, and the content swaps in place with no second sheet (H-3). The sheet stays `fitToContents`, which follows content height as it changes (`RNSScreen.mm:518`). `NoteComposer` reuses the Notes editor's cap and countdown: `capText`, `NOTE_MAX_LENGTH`, the same marks for VoiceOver. A client id is kept across retries of the same words, because `send_note` is idempotent on it, so a retry after a lost answer can't send twice. New words get a new id, because the server answers "ok" to an id it knows whatever the text, which would call a correction sent and drop it: the worst case is two notes, both of which the person wrote. While a note is on its way, Cancel, the close button and a swipe wait for the answer, since "discard" couldn't be honoured. A swipe with text in it asks first, by `usePreventRemove`, as the Notes editor does. Reached by `React.lazy` only, as the sheet is.
 
 | `send_note` says | The sheet does |
 |------------------|----------------|
@@ -59,6 +60,7 @@ Requirement: [FR-NTE-003](../srs/SRS.md#fr-nte-003). "Done when": a note shows o
 | `rate_limited` | Keeps the text, and says there have been too many today |
 | Offline | Keeps the text, and says so |
 | `not_paired` | Refreshes, which is how the strip's "gone" path starts, and the sheet closes itself |
+| The session has ended | Keeps the text, and says to sign in again from the Timer. The Write row isn't offered at all once it's known |
 | Anything else | Keeps the text, and says to try again |
 
 **Motion:** none, by the surface's gate. The swap is the system's own resize.
@@ -74,7 +76,8 @@ None beyond the 280 limit: `capText` counts UTF-16 units and won't split a chara
 | Replace the note at the sheet's moment, in the UI | Wrap `pickRandomNote` | The brief's own words, and it keeps a partner's words out of the persisted pomodoro state and the engine out of it |
 | Mark shown on opening | On closing | A note someone has seen and then killed the app on would otherwise appear again. It's meant to be once |
 | Keep the waiting notes in the summary | Have the Timer read the query lazily | The Timer must evaluate no server code on a solo launch, and the summary is already there, with one writer |
-| "It waits on their card" is the strip's line, and the strip opens it | A row in the sheet, which would stack a sheet on a sheet | The strip is the partner's card on the Timer, and H-3 allows one sheet at a time |
+| "It waits on their card" is a row in their sheet | A line on the Timer's strip, which I built first | The frame the owner approved draws the row, with the strip unchanged. The strip's line made the Ring jump, disagreed with its press during a session, and a double tap could use up a note unseen. `sheets.md` asks only to close the first sheet before showing the next, which `router.replace` does |
+| A partner's note on Fly uses the sheet | Fly's own card | The card doesn't scroll, and has 1.4's hard colours and motion. Keeping one surface also keeps one way of closing |
 | Show love notes off doesn't hide a partner's note altogether | Dropping it, or holding it silently | The owner's answer. The setting is about your own notes appearing by themselves; a note someone wrote you still reaches you, when you choose |
 
 ## 6. Verification
@@ -87,8 +90,22 @@ None beyond the 280 limit: `capText` counts UTF-16 units and won't split a chara
 - [x] Composing: every row of §3's table, the client id kept across retries, the cap, a swipe with text asks first.
 - [x] A solo launch still evaluates no server code, and the session engine's tests pass untouched.
 - [x] Break-ui's worst case (`partnerWorstCase.test.tsx`): 280 characters of Turkish and emoji in the sheet and the editor, cut on a whole character, from a 60-character name, at AX5 on an iPhone SE. Whether it lays out well waits for the device.
-- [x] The guards, and the bytecode: 4,558,728 B, which is 12,600 B for D3 and leaves 81,272 B of NFR-PERF-002 for D4 to D6.
+- [x] The guards, and the bytecode: 4,559,740 B, which is 13,612 B for D3 and leaves 80,260 B of NFR-PERF-002 for D4 to D6.
 - [ ] **Needs a device, at Stage F's first build:** a note showing once on both phones; the content-sized sheet with the keyboard up, by name, since it can't be read from code; the finish review on captures, at the largest text size, with Reduce Motion and with VoiceOver.
+
+### The finish review, 2026-11-06
+
+**From code only,** so nothing visual is marked passed. As first built: critique 28/40 (14/20), native audit 15/20, which misses NFR-UX-003's 16, and one HIG Critical, Fly's card leaving Close off-screen. It confirmed that the session engine is untouched, and that a note can't show twice on one phone. Its fixes, all applied:
+
+- **The waiting note was in the wrong place.** The approved frame draws a row in their sheet with the strip unchanged, and I'd put a line on the strip. See §5.
+- **Fly's card:** a long note could trap the screen, since D3 had removed its timer, and a note taken while Fly wasn't in front could be lost. Fly now uses the same sheet, and `LoveNoteCard` is back as it shipped.
+- **Three ways a note could be lost or wrong:** a session ending behind a locked phone using one up, "Discard" still sending a note already on its way, and an edited retry saying "Sent" while delivering the old words.
+- **An ended session** got "Try again", which could never work, so the Write row goes and the line says to sign in.
+- "Sent" spoken, and the spinner named, for VoiceOver.
+
+**A known limit, for the owner:** with one account on two phones, a phone that hasn't refreshed can show a note the other has already shown, because nothing may block on the network before showing it. So it's once per phone, and a refresh clears it. It doesn't affect the sender and recipient check.
+
+**Needs a device, by name:** `fitToContents` with the composer and keyboard, including the sheet's lift, the caret as the field grows, and Send and Cancel staying in view; `router.replace('/love-note')` from the sheet; the sheet closing itself with text in it; a note showing once across the two phones, with a killed app and in airplane mode; VoiceOver's focus after each swap and after "Sent"; AX5 Turkish on an SE for the composer and a 280-character note; whether a sheet growing line by line feels busy, in which case the field gets a fixed height.
 
 ## 7. Related Docs
 

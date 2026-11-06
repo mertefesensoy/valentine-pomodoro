@@ -101,7 +101,7 @@
     "noteOffline": "You're offline. Try again when you're connected.",
     "noteFailed": "Something went wrong. Try again.",
     "noteWaiting": "A note from {{name}} is waiting",
-    "opensNote": "Opens the note"
+    "noteSignIn": "Sign in again from the Timer to send this."
   },
   "spread": {
     "you": "You",

@@ -21,8 +21,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PAIRING_ENABLED } from '../constants/features';
 import { takePartnerNote, usePartnerGlance } from '../server/partnerGlance';
+import { useLoveNoteSheet } from '../stores/loveNoteSheetStore';
 import {
-    View, Text, Pressable, StyleSheet, Platform,
+    AppState, View, Text, Pressable, StyleSheet, Platform,
 } from 'react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -240,7 +241,8 @@ export default function FlyModeScreen() {
 
     // Love note shown after landing (null = hidden)
     const [landingLoveNote, setLandingLoveNote] = useState<string | null>(null);
-    const [landingFrom, setLandingFrom] = useState<string | null>(null);
+    const partnerLandingDue = useLoveNoteSheet((s) => s.landingDue);
+    const sheetNoteOpen = useLoveNoteSheet((s) => s.note !== null);
     const lastLoveNoteRef = useRef<string | null>(null);
 
     // Map overlay state
@@ -447,15 +449,15 @@ export default function FlyModeScreen() {
             }
 
             if (settings.showLoveNotes) {
-                // A partner's note goes first (Phase 2 D3). The choice is made here, in the UI: the session knows nothing of it.
-                const fromPartner = PAIRING_ENABLED ? takePartnerNote() : null;
-                if (fromPartner) {
-                    setLandingFrom(usePartnerGlance.getState().glance?.name ?? t('pair.partnerFallback'));
-                    setLandingLoveNote(fromPartner.body);
+                // A partner's note goes first (Phase 2 D3), in the same sheet as on the Timer, once this screen is in
+                // front. The choice is made here, in the UI: the session knows nothing of it. With the app behind,
+                // it waits for a focus you'll see.
+                const partnerWaiting = PAIRING_ENABLED && AppState.currentState === 'active' && usePartnerGlance.getState().notes.length > 0;
+                if (partnerWaiting) {
+                    useLoveNoteSheet.getState().setLandingDue(true);
                 } else {
                     const note = pickRandomNote(lastLoveNoteRef.current);
                     lastLoveNoteRef.current = note;
-                    setLandingFrom(null);
                     setLandingLoveNote(note);
                 }
             }
@@ -624,12 +626,22 @@ export default function FlyModeScreen() {
         });
     }, [markerCoord, cameraMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // ── A partner's note on landing: the note is taken only here, with this screen in front, so it can't be used up unseen.
+    useEffect(() => {
+        if (!partnerLandingDue || !focused) return;
+        useLoveNoteSheet.getState().setLandingDue(false);
+        const fromPartner = takePartnerNote();
+        if (!fromPartner) return;
+        useLoveNoteSheet.getState().open(fromPartner.body, usePartnerGlance.getState().glance?.name ?? t('pair.partnerFallback'));
+        router.push('/love-note');
+    }, [partnerLandingDue, focused]);
+
     // ── Show interstitial ad after flight completion
     // Wait for any love note overlay to be dismissed first — never stack UI layers
     useEffect(() => {
         if (adRequests === adsServedRef.current) return;
         if (timerRunning || paused) return; // safety gate
-        if (landingLoveNote) return;        // wait for love note to close
+        if (landingLoveNote || partnerLandingDue || sheetNoteOpen) return; // wait for love note to close
         if (!focused) return;               // and for the Timer tab to be shown
 
         // Served before showing, so a re-run can't show a second ad for them.
@@ -637,7 +649,7 @@ export default function FlyModeScreen() {
         AdManager.showIfReady(() => {
             // onClose: ambient sound already stopped, nothing else to do
         });
-    }, [adRequests, timerRunning, paused, landingLoveNote, focused]);
+    }, [adRequests, timerRunning, paused, landingLoveNote, partnerLandingDue, sheetNoteOpen, focused]);
 
     // ── Cleanup on unmount ─────────────────────────────────────────────────
     // Session clock persists clock state automatically — no FLY_SESSION save needed.
@@ -1093,7 +1105,6 @@ export default function FlyModeScreen() {
             {landingLoveNote && focused && (
                 <LoveNoteCard
                     note={landingLoveNote}
-                    from={landingFrom}
                     onDismiss={() => setLandingLoveNote(null)}
                 />
             )}

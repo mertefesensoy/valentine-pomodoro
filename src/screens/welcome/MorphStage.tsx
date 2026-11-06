@@ -117,7 +117,14 @@ function Diary({ p, box, layers }: { p: SharedValue<number>; box: MorphBox; laye
 }
 
 /** Pomo or Doro, placed by the feet and squashed and stretched about them, crossfading into joy on landing. */
-function Character({ who, p, box, room }: { who: Who; p: SharedValue<number>; box: MorphBox; room: number }) {
+function Character({ who, p, box, room, hold }: {
+    who: Who;
+    p: SharedValue<number>;
+    box: MorphBox;
+    room: number;
+    /** Held still on paper rather than passing through: only the joyful pose, with the sticker lift in this colour. */
+    hold?: { shadow: string };
+}) {
     const size = box.w * CHARACTER_SIZE;
     const pose = useDerivedValue(() => characterPose(who, p.get(), room));
     const body = useAnimatedStyle(() => {
@@ -136,9 +143,9 @@ function Character({ who, p, box, room }: { who: Who; p: SharedValue<number>; bo
     const joy = useAnimatedStyle(() => ({ opacity: pose.get().celebrate }));
     return (
         <Animated.View style={[styles.character, { width: size, height: size, transformOrigin: CHARACTER_ORIGIN }, body]}>
-            <Sticker art={POSES[who].idle} width={size} />
+            {!hold && <Sticker art={POSES[who].idle} width={size} />}
             <Animated.View style={[StyleSheet.absoluteFill, joy]}>
-                <Sticker art={POSES[who].joy} width={size} />
+                <Sticker art={POSES[who].joy} width={size} shadow={hold?.shadow} />
             </Animated.View>
         </Animated.View>
     );
@@ -163,13 +170,14 @@ function Sparkle({ i, p, box, colour }: { i: number; p: SharedValue<number>; box
 
 /**
  * Just Pomo & Doro at this point of the timeline, for a stage that draws its own pages. Pairing's who-it-is holds
- * them still at the frame the morph starts from, so nothing moves when the drawing takes over. No side effects.
+ * them still at the frame the morph starts from, so nothing moves when the drawing takes over. The lift doesn't
+ * change a sticker's layout box, so they stay registered. No side effects.
  */
-export function MorphCharacters({ p, box, room }: { p: SharedValue<number>; box: MorphBox; room: number }) {
+export function MorphCharacters({ p, box, room, shadow }: { p: SharedValue<number>; box: MorphBox; room: number; shadow: string }) {
     return (
         <>
-            <Character who="pomo" p={p} box={box} room={room} />
-            <Character who="doro" p={p} box={box} room={room} />
+            <Character who="pomo" p={p} box={box} room={room} hold={{ shadow }} />
+            <Character who="doro" p={p} box={box} room={room} hold={{ shadow }} />
         </>
     );
 }

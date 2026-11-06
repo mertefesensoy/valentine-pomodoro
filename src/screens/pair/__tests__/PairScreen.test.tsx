@@ -1,7 +1,7 @@
 // covers: FR-PAR-001, FR-ACC-002
 // The pairing sheet's steps (Phase 2 D1). The server's side is pinned in pairing.test.ts and pgTAP; these pin
 // what a person sees at each step, and that nothing happens until they press Pair.
-import { AccessibilityInfo, Alert, Dimensions, Share } from 'react-native';
+import { AccessibilityInfo, Alert, Dimensions, Share, StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 
 import PairScreen from '../PairScreen';
@@ -315,6 +315,21 @@ describe('your code and theirs', () => {
         alert.mockRestore();
     });
 
+    it('shows a failed new code on your page, though the old code is still there', async () => {
+        const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+        mockNewCode.mockResolvedValue({ problem: 'offline' });
+        mockHome = NAMED;
+        await open({ signedIn: true });
+        await fireEvent.press(screen.getByText('Make a new code'));
+        const buttons = alert.mock.calls[0][2] as { text: string; onPress?: () => void }[];
+        await act(async () => buttons[1].onPress?.());
+        await flush();
+        expect(screen.getByText(/You're offline/)).toBeOnTheScreen();
+        expect(screen.getByLabelText(/Your code: K, 7, M, P, 2, Q\. You're offline/)).toBeOnTheScreen();
+        expect(screen.queryByText('Lasts 24 hours')).toBeNull();
+        alert.mockRestore();
+    });
+
     it('says why a look-alike did nothing', async () => {
         await open({ signedIn: true });
         await fireEvent.changeText(screen.getByLabelText(CODE_FIELD), 'O');
@@ -514,6 +529,14 @@ describe('the layouts', () => {
     });
 
     // The Jest window is font scale 2.
+    it('keeps the same room for the actions at every step, so Done lands where Pair was', async () => {
+        await act(async () => Dimensions.set({ window: PHONE, screen: PHONE }));
+        mockHome = PAIRED;
+        await open({ signedIn: true });
+        const block = StyleSheet.flatten(screen.getByTestId('pair-actions').props.style);
+        expect(block.minHeight).toBe(56 + space.s + 44);
+    });
+
     it('pins them at the largest text sizes as well, so they\'re never below the fold', async () => {
         await open({ signedIn: false });
         expect(screen.getByText('Continue with Apple')).toBeOnTheScreen();

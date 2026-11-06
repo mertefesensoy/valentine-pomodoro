@@ -330,6 +330,9 @@ export default function PairScreen() {
         }
         previewed.current = clean;
         whoShownAt.current = Date.now();
+        // A sheet that opened on a couple since gone is at the timeline's end, where Pomo & Doro aren't drawn.
+        p.set(MORPH_START_MS);
+        hapticArmed.set(false);
         // The field is about to unmount, and its blur wouldn't reach us.
         setTyping(false);
         setInviterName(result.inviterName);
@@ -515,7 +518,7 @@ export default function PairScreen() {
                             accessibilityElementsHidden
                             importantForAccessibility="no-hide-descendants"
                         >
-                            <MorphCharacters p={p} box={box} room={1} />
+                            <MorphCharacters p={p} box={box} room={1} shadow={tokens.stickerShadow} />
                         </View>
                     )}
                 </View>
@@ -535,12 +538,12 @@ export default function PairScreen() {
         const leftLabel = [
             myName,
             shownCode ? t('pair.codeLabel', { spelled: spelled(shownCode) }) : null,
-            shownCode ? t('pair.lasts') : codeProblemText,
+            codeProblemText ?? (shownCode ? t('pair.lasts') : null),
         ].filter(Boolean).join('. ');
 
         let leftLine = <ActivityIndicator color={tokens.inkSoft} />;
-        if (shownCode) leftLine = <Text style={[styles.mini, { color: tokens.inkSoft }]}>{t('pair.lasts')}</Text>;
-        else if (codeProblemText) leftLine = <Text style={[styles.pageProblem, { color: tokens.ink }]}>{codeProblemText}</Text>;
+        if (codeProblemText) leftLine = <Text style={[styles.pageProblem, { color: tokens.ink }]}>{codeProblemText}</Text>;
+        else if (shownCode) leftLine = <Text style={[styles.mini, { color: tokens.inkSoft }]}>{t('pair.lasts')}</Text>;
 
         let rightLine = <Text style={[styles.mini, { color: tokens.inkSoft }]}>{t('pair.tapToType')}</Text>;
         if (checking) rightLine = <Text style={[styles.mini, { color: tokens.inkSoft }]}>{t('pair.checking')}</Text>;
@@ -607,9 +610,10 @@ export default function PairScreen() {
     const actionsBlock = (
         <Animated.View
             key={`actions-${view}`}
+            testID="pair-actions"
             entering={STEP_IN}
             exiting={STEP_OUT}
-            style={[styles.actions, sideBySide && styles.sideActions]}
+            style={[styles.actions, pinned && styles.actionsPinned, sideBySide && styles.sideActions]}
         >
             {actions}
         </Animated.View>
@@ -658,8 +662,10 @@ const styles = StyleSheet.create({
     sideMain: { flex: SIDE_MAIN },
     sideActions: { flex: SIDE_ACTIONS },
     actions: { gap: space.s },
-    // Room for a pill and a link at every step, so Done sits where Pair was.
-    pinned: { paddingHorizontal: space.l, paddingTop: space.s, minHeight: PILL_HEIGHT + space.s + minTarget },
+    pinned: { paddingHorizontal: space.l, paddingTop: space.s },
+    // Room for a pill and a link at every step, so Done sits where Pair was. It's on the block, not the padded
+    // wrapper, whose minHeight would include the padding and let the block's height decide after all.
+    actionsPinned: { minHeight: PILL_HEIGHT + space.s + minTarget },
     morphStage: { position: 'absolute', top: 0, alignSelf: 'center' },
     pageInner: { flex: 1, alignSelf: 'stretch', alignItems: 'center', gap: space.s },
     who: { fontSize: 13, fontWeight: '600', textAlign: 'center' },

@@ -88,7 +88,7 @@ cellScale = 1.2 when stacked, otherwise min(1, pageRoom / CODE_WIDTH)
 
 where W is the window's width. Stacked pages have the whole width to themselves, which is why they can scale up.
 
-**Bytecode.** `npx expo export --platform ios --dump-sourcemap` gives **4,526,056 B**, which is 68,736 B more than C3's 4,457,320 B and 113,944 B under NFR-PERF-002's 4,640,000 B. That's what D2 to D6 have left between them.
+**Bytecode.** `npx expo export --platform ios --dump-sourcemap` gives **4,526,660 B**, which is 69,340 B more than C3's 4,457,320 B and 113,340 B under NFR-PERF-002's 4,640,000 B. That's what D2 to D6 have left between them.
 
 ## 5. Design Decisions
 
@@ -110,9 +110,9 @@ where W is the window's width. Stacked pages have the whole width to themselves,
 ## 6. Verification
 
 - [x] The flow's tests (`src/screens/pair/__tests__/`: sign-in, cancel, offline, name, code, share, new code, each error, who-it-is, Pair, Reduce Motion, pinned actions, the morph), the solo launch through the router, and the guards.
-- [x] Bytecode: 4,526,056 B, under the 4,640,000 B ceiling.
+- [x] Bytecode: 4,526,660 B, under the 4,640,000 B ceiling.
 - [x] **Finish review from code,** by `impeccable-finish-reviewer`, in two passes, with its findings below.
-- [ ] **Needs a device, at Stage F's first build:** the finish review on captures, at the largest text size, with Reduce Motion and with VoiceOver: first viewport and the gap above the pinned actions, the close button's look, the window's bottom inset inside the sheet, both themes, iPad's width, the keyboard falling during the crossfade, paste and the `oneTimeCode` bar, swipe to dismiss, the actual VoiceOver order and focus after each swap, the morph's feel and haptic, Sign in with Apple against the real project with a hidden name and a second sign-in, and the inviter's phone moving on by itself.
+- [ ] **Needs a device, at Stage F's first build:** the finish review on captures, at the largest text size, with Reduce Motion and with VoiceOver: first viewport and the gap above the pinned actions, the close button's look, the window's bottom inset inside the sheet, both themes, iPad's width, the keyboard falling during the crossfade, paste and the `oneTimeCode` bar, swipe to dismiss, the actual VoiceOver order and focus after each swap, the morph's feel and haptic, how the paper-to-drawing crossfade reads and how close the pair sit at the spine, whether Pair's 500 ms guard ever eats a real press, Sign in with Apple against the real project with a hidden name and a second sign-in, and the inviter's phone moving on by itself.
 
 ### The finish review, 2026-11-06
 
@@ -122,8 +122,9 @@ where W is the window's width. Stacked pages have the whole width to themselves,
 |------|----|----------|--------------|-------------|
 | First | `71b011b` | 28/40 (14/20), two HIG Criticals | Not run | Fix |
 | Verdict | `f3cb25b` | 32/40 (16/20), no Critical from code | **16/20,** which meets NFR-UX-003 with no margin, and is provisional until VoiceOver is checked on a device | Fix, motion blocked on four rows |
+| Third, on those items only | `a8cb0e3` | Not rescored | Not rescored | Fix: the four items below |
 
-The verdict pass's items are all in `a8cb0e3`: Pomo & Doro's registration, Pair's jump, the false sign-in line, the last known code, the fades' ease-out, one haptic at Pair, no double entrance on opening, no polling during the morph, the landscape gutters, the stuck `typing` state, and "That's not them" during Pair. The scores above predate these fixes, and haven't been rerun.
+The verdict pass's items went into `a8cb0e3`: Pomo & Doro's registration, Pair's jump, the false sign-in line, the last known code, the fades' ease-out, one haptic at Pair, no double entrance on opening, no polling during the morph, the landscape gutters, the stuck `typing` state, and "That's not them" during Pair. The third pass accepted all but one of these, and found three more and one line outside its list, all fixed after it: the reserved room was on the padded wrapper, so Done still sat 42 pt below Pair; the held stickers had no lift and the idle pose under them; a sheet opened on a couple since gone drew no characters at who-it-is; and a failed Make a new code showed nothing while a code was on the page. **The reviewer's last disposition is therefore "fix", and it hasn't seen these four,** whose checks are the tests here plus the device list. The scores above predate all of this.
 
 **HIG findings, from the first pass, and what became of them:** the close button's target, resolved by moving its corner onto a wrapper, since `PressableScale` styles its inner view; unannounced steps and errors, resolved; VoiceOver's order, accepted by the owner; the Facing Pages way in, resolved at about 45 pt with `hitSlop={12}`.
 

@@ -254,7 +254,7 @@ describe('the tutorials (the owner’s per-version rule)', () => {
                 for (const goalOn of [false, true])
                     for (const flyAvailable of [false, true])
                         for (const weekEmpty of [false, true])
-                            for (const breakNext of [false, true]) contexts.push({ audience, replay, goalOn, flyAvailable, weekEmpty, breakNext });
+                            for (const breakNext of [false, true]) contexts.push({ paired: false, audience, replay, goalOn, flyAvailable, weekEmpty, breakNext });
         const lines = new Map<string, Record<string, string>>();
         for (const s of GENERAL.steps)
             for (const beat of [s.lead, s.here])

@@ -397,6 +397,15 @@
       "first": "Ready for your first focus? Tap {{start}} when you are.",
       "again": "Ready for a focus? Tap {{start}} when you are.",
       "break": "A break is next. Tap {{start}} when you're ready."
+    },
+    "pair": {
+      "lead": "One more thing on {{tab}}. Tap the tab to go back.",
+      "here": "You can pair with your partner here, and see each other's day.",
+      "paired": "This is your partner's day. Tap it to see it all, or to write them a note."
+    },
+    "v15": {
+      "pair": "New! Pair with your partner here, and see each other's day.",
+      "notes": "Then you can leave each other notes. They appear after a focus."
     }
   },
   "pair": {

@@ -100,8 +100,9 @@ export const useTourStore = create<TourStore>()((set, get) => ({
         if (get().run) return;
         if (replay) {
             const all = GENERAL.steps.map((_, i) => i);
-            // A session running or paused: the presets are hidden and the invitation can't happen.
-            const steps = sessionActive ? all.filter((i) => GENERAL.steps[i].id !== 'presets' && GENERAL.steps[i].id !== 'invite') : all;
+            // A session running or paused: the presets are hidden, the invitation can't happen, and nor can pairing.
+            const skipped = ['presets', 'invite', 'pair'];
+            const steps = sessionActive ? all.filter((i) => !skipped.includes(GENERAL.steps[i].id)) : all;
             set({ run: { tutorialId: GENERAL.id, steps, at: 0, beat: beatOf(GENERAL.steps[steps[0]]), replay: true, resumed: false, introduced: false }, muted: false });
             return;
         }

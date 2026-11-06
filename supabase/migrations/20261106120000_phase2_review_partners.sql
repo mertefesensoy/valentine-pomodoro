@@ -17,7 +17,8 @@ $$;
 revoke all on function public.review_partner_ids() from public, anon, authenticated;
 
 -- home_snapshot shows a partner's row only for today in their time zone, and a review can outlast a
--- day, so a daily job writes it again. With no partners it writes nothing.
+-- day, so a job writes it again. It runs every 6 hours, as "Updated 22 hours ago" on their day would
+-- make a demo look dead. With no partners it writes nothing.
 create function public.refresh_review_partner_days() returns void
     language sql security definer set search_path = ''
 as $$
@@ -29,7 +30,7 @@ as $$
 $$;
 revoke all on function public.refresh_review_partner_days() from public, anon, authenticated;
 
-select cron.schedule('review-partner-days', '5 0 * * *', $$select public.refresh_review_partner_days()$$);
+select cron.schedule('review-partner-days', '5 */6 * * *', $$select public.refresh_review_partner_days()$$);
 
 -- Makes what's missing and returns the open codes, so running it again is safe, and is how a used code
 -- gets replaced. The accounts have no email, password or Apple identity, so nobody can sign in as them.

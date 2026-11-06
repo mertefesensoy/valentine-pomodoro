@@ -64,6 +64,9 @@ Two rules for reading the statuses:
 | [ADR-0046](0046-display-face-baloo-2.md) | Baloo 2 for the timer, headings and sticker captions; the system face for everything else | accepted | 2026-10-30 |
 | [ADR-0047](0047-same-page-mark-and-the-colon-characters.md) | The Same Page mark, Pomo & Doro as The Colon's two round characters, and no tomato anywhere | accepted | 2026-10-30 |
 | [ADR-0048](0048-in-house-translator.md) | An in-house translator over i18next, for English and Turkish | accepted | 2026-10-30 |
+| [ADR-0049](0049-account-only-at-pairing.md) | An account only at pairing, with Sign in with Apple only, and pairing by code only | accepted | 2026-11-05 |
+| [ADR-0050](0050-small-client-and-no-sentry.md) | A small Supabase client of our own, and no Sentry, in 1.5.0 | accepted | 2026-11-05 |
+| [ADR-0051](0051-anonymous-start-up-reports.md) | Anonymous start-up reports from every install, with two random groups | accepted | 2026-11-05 |
 
 **Where the decisions come from:**
 - **v1 (2026-01-07):** [`DECISIONS.md`](../../../DECISIONS.md). Its open questions Q1–Q3 are answered in ADR-0003 and ADR-0027 (Q1), ADR-0008 (Q2) and ADR-0014 (Q3).

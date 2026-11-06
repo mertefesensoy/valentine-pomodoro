@@ -16,6 +16,8 @@ export const DEFAULT_SETTINGS = {
     // Classic's layout (Phase 1 D1): The Ring by default, so existing installs, which have
     // no stored value, keep the Ring; the merge in settingsStore fills it in.
     classicLayout: 'ring' as const,
+    // The anonymous start-up report (ADR-0051): on by default, with a switch in Settings › Privacy.
+    shareStartupTimings: true,
 };
 
 // The default love notes for a fresh install (FR-NTE-002; D2 Notes contract): 20, as in v1, with no

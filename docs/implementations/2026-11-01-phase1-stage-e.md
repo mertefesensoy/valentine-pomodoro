@@ -48,8 +48,11 @@ related: [IMPL-2026-10-29-phase1-plan, IMPL-2026-10-30-phase1-stage-d, IMPL-2026
 
   > Hello, and thank you for the review. Version 1.4.0 includes bug fixes, so we'd like it approved at this time, please. The app has no feature that needs persistent background audio. The "audio" entry in UIBackgroundModes was added by default by our audio library's configuration, and the app's sounds stop when it moves to the background. We will remove the "audio" setting from UIBackgroundModes in our next update. Thank you!
 - **R3 done: 1.4.0 is live** (found 2026-11-05). The owner: "wait but 1.4.0 is already live". The public App Store lookup confirms it in both the US and Turkish storefronts: version 1.4.0, released 2026-11-04T14:45:37Z. Apple accepted the reply and approved build 59, the only build ever submitted. So build 60 is retired, and the fix ships as 1.4.1 ([DEF-009's record](2026-11-03-def-009-background-audio-mode.md)). R4–R6 are still to do.
+- **1.4.1 submitted** (2026-11-05, the owner: "Submitted"), on build 61, with `v1.4.1-submitted` on `4c39732`. It removes the entry behind App Review's finding ([DEF-009's record](2026-11-03-def-009-background-audio-mode.md)).
+- **A featuring nomination** went in on 2026-11-04, the day 1.4.0 went live ([record](2026-11-04-featuring-nomination.md)).
 - **R4 done** (2026-11-05, the owner: "Yes, go ahead"). `v1.4.0`, annotated, on `bce65cc`, pushed by name. The GitHub Release is https://github.com/mertefesensoy/valentine-pomodoro/releases/tag/v1.4.0, with the CHANGELOG section as its notes and its relative links made absolute. `master` had already moved at M3. The tag rests on build 59 being the only build ever submitted (the owner: "i did not submit yet").
-- **R6, in part** (2026-11-05): the ROADMAP's milestone and status, the release date in the CHANGELOG, NFR-PERF-002 amended to 4,292,868 B, the READMEs, and RELEASE.md and BRANCHING.md. **Left:** B7's cold-start TTI, which the owner hasn't sent, and deleting `rehaul/v2`, on the owner's word (the main checkout is on it).
+- **The docs for R4–R6 are on `master`** through [pull request #2](https://github.com/mertefesensoy/valentine-pomodoro/pull/2) (`4c39732`), the first pull request under BRANCHING.md's rules, together with 1.4.1's version bump.
+- **R6, in part** (2026-11-05): the ROADMAP's milestone and status, the release date in the CHANGELOG, NFR-PERF-002 amended to 4,292,868 B, the READMEs, and RELEASE.md and BRANCHING.md. **`rehaul/v2` is deleted** (2026-11-05, on the owner's word), here and on GitHub. Its last commit, `c184337`, is on `master`, and the main checkout is now on `master`. **Left:** B7's cold-start TTI, which the owner hasn't sent.
 - **R5 skipped** (2026-11-05), covered by the owner's "Yes, go ahead": the question said it included skipping this step. Setting `latestVersion` to 1.4.0, as planned, would show Android users on 1.3.1 an update that doesn't exist, because Android reads `update.json` (`src/hooks/useUpdateCheck.ts`) and stays on 1.3.1. iOS doesn't need the change:
   - from 1.3.1 on, iOS asks Apple's lookup, which now answers 1.4.0;
   - iOS 1.0.3–1.3.0 reads `update.json`, is already prompted by its 1.3.1, and its link opens the App Store, which now serves 1.4.0.
@@ -413,7 +416,7 @@ Filled in at E3: the bytecode's size against NFR-PERF-002's ceiling, as (size �
 - [x] S1–S3: every Stage D record Done; the tour's verdict ship.
 - [x] M1–M2: the merge on `rehaul/v2`, guards green, §9 applied.
 - [ ] E1–E4: as above, each recorded here. All done but E3's cold-start TTI, which the owner hasn't sent.
-- [ ] R1–R6: the release candidate checked, submitted, approved, released and tagged. `update.json` stays as it is, by decision (R5). Deleting `rehaul/v2` is left (R6).
+- [x] R1–R6: the release candidate checked, submitted, approved, released and tagged. `update.json` stays as it is, by decision (R5). `rehaul/v2` is deleted (R6).
 
 ## 7. Related Docs
 

@@ -92,11 +92,15 @@ section { display: grid; gap: 14px; scroll-margin-top: 150px; }
 .pill.ok { background: var(--ok); color: var(--on-ok); }
 .pill.change { background: var(--primary-soft); color: var(--primary-ink); }
 .en { color: var(--ink-soft); font-size: .92rem; overflow-wrap: anywhere; }
+.slip-note { font-size: .88rem; color: var(--ink-soft); background: var(--field); border-radius: 10px; padding: 7px 10px; }
+.slip-note b { color: var(--ink); font-weight: 600; }
+.about { color: var(--ink-soft); max-width: 62ch; }
 .tr { font-size: 1.08rem; font-weight: 500; overflow-wrap: anywhere; }
 .ph { font: .8em var(--mono); background: var(--field); border: 1px solid var(--edge); border-radius: 6px; padding: 0 4px; white-space: nowrap; }
 .proposed { border-left: 3px solid var(--primary-ink); padding: 4px 0 4px 10px; display: grid; gap: 2px; }
 .proposed .label { font-size: .75rem; color: var(--primary-ink); font-weight: 600; letter-spacing: .03em; text-transform: uppercase; }
 .proposed .note { color: var(--ink-soft); font-size: .9rem; }
+.proposed .text-en { font-size: .95rem; }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 button.act {
   font: 600 .92rem var(--body); min-height: 40px; padding: 0 14px; border-radius: 999px; cursor: pointer;
@@ -132,7 +136,12 @@ main[data-filter="todo"] .slip:not([data-status="none"]) { display: none; }
 main[data-filter="change"] .slip:not([data-status="change"]) { display: none; }
 main[data-filter="todo"] .note-group:not(:has(.slip[data-status="none"])) { display: none; }
 main[data-filter="change"] .note-group:not(:has(.slip[data-status="change"])) { display: none; }
-main:not([data-filter="all"]) .questions { display: none; }
+main[data-filter="change"] .questions { display: none; }
+main[data-filter="todo"] .question[data-answered="true"] { display: none; }
+main[data-filter="todo"] .questions:not(:has(.question:not([data-answered="true"]))) { display: none; }
+/* A finished section's heading would only be in the way. */
+main[data-filter="todo"] section:not(.questions):not(:has(.slip[data-status="none"])) { display: none; }
+main[data-filter="change"] section:not(:has(.slip[data-status="change"])) { display: none; }
 .empty-filter { color: var(--ink-soft); }
 footer { color: var(--ink-soft); font-size: .85rem; }
 @media (prefers-reduced-motion: no-preference) { .track i { transition: width .25s ease-out; } }
@@ -140,11 +149,11 @@ footer { color: var(--ink-soft); font-size: .85rem; }
 
 <div class="wrap">
   <header class="intro">
-    <span class="eyebrow">Phase 1 · D1 to D5 · before build 57</span>
-    <h1>Turkish copy proof</h1>
-    <p>Every Turkish string in the app, beside its English, and the 20 default love notes in both languages. Mark each one <b>Looks right</b>, or suggest a change: write the Turkish you want and, if it helps, why. Your answers save as you go, and Claude reads them back to apply them.</p>
-    <p>Your marks from the first review are kept. Two sets have none yet, and <b>To review</b> shows just those: D3's strings (Fly, the notifications, the update prompt and the Language row) and D5's tour, Pomo &amp; Doro's lines as they speak them, with the bubble's words. A tour line is at most 110 characters in Turkish, and no word in it runs past 10 letters, so it fits the largest text size.</p>
-    <p>Grey chips such as <span class="ph">count</span> are filled in by the app (a number, a name). Keep them in your version.</p>
+    <span class="eyebrow">Version 1.5 · before its first TestFlight build</span>
+    <h1>Copy proof</h1>
+    <p>Every string in the app in English and Turkish, and the default love notes. Mark a string <b>Looks right</b> when both languages read well, or suggest a change in either language and, if it helps, say why. Your answers save as you go, and Claude reads them back to apply them.</p>
+    <p>Reviewed and applied on 6 November 2026: the 114 strings new in 1.5 (pairing, your partner’s day and notes, your account, the start-up timings switch, and the tour’s new lines), and the question about the pairing sheet. Your marks from earlier reviews are kept. A tour line is at most 110 characters in Turkish, and no word in it runs past 10 letters, so it fits the largest text size.</p>
+    <p>Grey chips such as <span class="ph">count</span> are filled in by the app (a number, a name). Keep them in your version. A note from Claude on a string says what to look at.</p>
   </header>
 
   <div class="bar" role="region" aria-label="Progress and filters">
@@ -155,8 +164,8 @@ footer { color: var(--ink-soft); font-size: .85rem; }
     <div class="track" aria-hidden="true"><i id="fill"></i></div>
     <div class="controls">
       <div class="seg" role="group" aria-label="Show">
-        <button type="button" data-filter="all" aria-pressed="true">All</button>
-        <button type="button" data-filter="todo" aria-pressed="false">To review</button>
+        <button type="button" data-filter="todo" aria-pressed="true">To review</button>
+        <button type="button" data-filter="all" aria-pressed="false">All</button>
         <button type="button" data-filter="change" aria-pressed="false">Changes</button>
       </div>
     </div>
@@ -165,7 +174,7 @@ footer { color: var(--ink-soft); font-size: .85rem; }
 
   <p class="notice" id="notice" hidden></p>
 
-  <main id="main" data-filter="all" class="wrap"></main>
+  <main id="main" data-filter="todo" class="wrap"></main>
 
   <footer id="foot"></footer>
 </div>
@@ -190,13 +199,14 @@ footer { color: var(--ink-soft); font-size: .85rem; }
   const slips = new Map();         // id -> {el, item, lang}
   let counter = 0;
 
-  function slipHTML(id, label, en, tr, lang) {
+  function slipHTML(id, label, en, tr, lang, note) {
     const uid = 's' + (++counter);
     return `<article class="slip" data-id="${esc(id)}" data-status="none" id="${safeId(id)}">
       <div class="slip-head"><code class="key">${esc(label)}</code><span class="pill" hidden></span></div>
       ${en !== null ? `<p class="en" lang="en">${marked(en)}</p>` : ''}
       <p class="tr" lang="${lang}">${marked(tr)}</p>
-      <div class="proposed" hidden><span class="label">Your version</span><span class="text" lang="${lang}"></span><span class="note"></span></div>
+      ${note ? `<p class="slip-note"><b>From Claude:</b> ${esc(note)}</p>` : ''}
+      <div class="proposed" hidden><span class="label">Your version</span><span class="text" lang="${lang}"></span><span class="text-en" lang="en" hidden></span><span class="note"></span></div>
       <div class="actions">
         <button type="button" class="act primary" data-act="ok">Looks right</button>
         <button type="button" class="act" data-act="edit">Suggest a change</button>
@@ -205,6 +215,7 @@ footer { color: var(--ink-soft); font-size: .85rem; }
       <form class="edit" hidden>
         <label for="${uid}-t">Your ${lang === 'tr' ? 'Turkish' : 'English'}</label>
         <textarea id="${uid}-t" lang="${lang}"></textarea>
+        ${en !== null ? `<label for="${uid}-e">Your English</label><textarea id="${uid}-e" class="en-edit" lang="en"></textarea>` : ''}
         <label for="${uid}-n">Why, if it helps (optional)</label>
         <input type="text" id="${uid}-n">
         <p class="warn" hidden></p>
@@ -219,7 +230,7 @@ footer { color: var(--ink-soft); font-size: .85rem; }
 
   // Build the page once; verdicts only update slips in place.
   let html = '';
-  html += `<section class="questions" id="questions"><div class="section-head"><h2>Two questions</h2><span class="meta">from the polish pass</span></div>`;
+  html += `<section class="questions" id="questions"><div class="section-head"><h2>Questions</h2><span class="meta">all answered</span></div>`;
   for (const q of DATA.questions) {
     html += `<div class="question" data-q="${q.id}"><h3>${esc(q.title)}</h3><p>${esc(q.body)}</p><div class="choices" role="radiogroup" aria-label="${esc(q.title)}">`;
     q.choices.forEach((c, i) => {
@@ -240,8 +251,8 @@ footer { color: var(--ink-soft); font-size: .85rem; }
   html += `</div></section>`;
 
   for (const s of DATA.sections) {
-    html += `<section id="${s.id}"><div class="section-head"><h2>${esc(s.title)}</h2><span class="meta" data-meta="${s.id}"></span></div><div class="list">`;
-    for (const it of s.items) html += slipHTML(it.id, it.id, it.en, it.tr, 'tr');
+    html += `<section id="${s.id}"><div class="section-head"><h2>${esc(s.title)}</h2><span class="meta" data-meta="${s.id}"></span></div>${s.about ? `<p class="about">${esc(s.about)}</p>` : ''}<div class="list">`;
+    for (const it of s.items) html += slipHTML(it.id, it.id, it.en, it.tr, 'tr', it.note);
     html += `</div></section>`;
   }
   main.innerHTML = html;
@@ -249,14 +260,17 @@ footer { color: var(--ink-soft); font-size: .85rem; }
   for (const el of main.querySelectorAll('.slip')) {
     const id = el.dataset.id;
     let original;
+    let originalEn = null;
     const n = id.match(/^note-(en|tr)-(.+)$/);
     if (n) {
       const note = DATA.notes.find((x) => x.n === n[2]);
       original = n[1] === 'en' ? note.en : note.tr;
     } else {
-      original = DATA.sections.flatMap((s) => s.items).find((x) => x.id === id).tr;
+      const item = DATA.sections.flatMap((s) => s.items).find((x) => x.id === id);
+      original = item.tr;
+      originalEn = item.en;
     }
-    slips.set(id, { el, original });
+    slips.set(id, { el, original, originalEn });
   }
 
   const sectionIds = (sid) => (sid === 'notes'
@@ -279,6 +293,9 @@ footer { color: var(--ink-soft); font-size: .85rem; }
     prop.hidden = status !== 'change';
     if (status === 'change') {
       prop.querySelector('.text').textContent = v.text || '';
+      const propEn = prop.querySelector('.text-en');
+      propEn.hidden = !v.textEn;
+      propEn.textContent = v.textEn ? 'English: ' + v.textEn : '';
       prop.querySelector('.note').textContent = v.note ? 'Why: ' + v.note : '';
     }
     const busy = pending.has(id) || readOnly || !col;
@@ -308,6 +325,7 @@ footer { color: var(--ink-soft); font-size: .85rem; }
   function paintQuestions() {
     for (const q of DATA.questions) {
       const v = verdicts.get(q.id);
+      main.querySelector(`.question[data-q="${q.id}"]`).dataset.answered = String(!!v);
       for (const r of main.querySelectorAll(`input[name="${q.id}"]`)) {
         r.checked = v ? String(v.choice) === r.value : false;
         r.disabled = readOnly || !col || pending.has(q.id);
@@ -373,6 +391,8 @@ footer { color: var(--ink-soft); font-size: .85rem; }
     } else if (act === 'edit') {
       const v = verdicts.get(id);
       form.querySelector('textarea').value = v?.status === 'change' ? v.text : slips.get(id).original;
+      const enEdit = form.querySelector('.en-edit');
+      if (enEdit) enEdit.value = v?.status === 'change' && v.textEn ? v.textEn : slips.get(id).originalEn;
       form.querySelector('input').value = v?.status === 'change' ? (v.note || '') : '';
       form.querySelector('.warn').hidden = true;
       form.hidden = false;
@@ -395,7 +415,23 @@ footer { color: var(--ink-soft); font-size: .85rem; }
       warn.hidden = false;
       return;
     }
-    const lost = placeholders(slips.get(id).original).filter((p) => !placeholders(text).includes(p));
+    const { original, originalEn } = slips.get(id);
+    const enEdit = form.querySelector('.en-edit');
+    const textEn = enEdit ? enEdit.value.trim() : null;
+    if (enEdit && !textEn) {
+      warn.textContent = 'Write the English you want, or press Cancel.';
+      warn.hidden = false;
+      return;
+    }
+    if (text === original && (!enEdit || textEn === originalEn) && !note) {
+      warn.textContent = 'Nothing has changed yet. Edit a line, say why, or press Cancel.';
+      warn.hidden = false;
+      return;
+    }
+    const lost = [...new Set([
+      ...placeholders(original).filter((p) => !placeholders(text).includes(p)),
+      ...(enEdit ? placeholders(originalEn).filter((p) => !placeholders(textEn).includes(p)) : []),
+    ])];
     if (lost.length && !form.dataset.confirmed) {
       warn.innerHTML = `Your version leaves out ${lost.map((p) => `<span class="ph">${esc(p)}</span>`).join(', ')}, which the app fills in. Add ${lost.length > 1 ? 'them' : 'it'} back as {{${esc(lost[0])}}}, or press Save change again to keep it out.`;
       warn.hidden = false;
@@ -403,7 +439,9 @@ footer { color: var(--ink-soft); font-size: .85rem; }
       return;
     }
     delete form.dataset.confirmed;
-    if (await write(id, { status: 'change', text, note }, el)) form.hidden = true;
+    const body = { status: 'change', text, note };
+    if (enEdit && textEn !== originalEn) body.textEn = textEn;
+    if (await write(id, body, el)) form.hidden = true;
   });
 
   main.addEventListener('change', async (e) => {

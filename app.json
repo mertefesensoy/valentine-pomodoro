@@ -2,7 +2,7 @@
   "expo": {
     "name": "Valentine Pomodoro",
     "slug": "valentine-pomodoro",
-    "version": "1.4.2",
+    "version": "1.5.0",
     "orientation": "default",
     "experiments": {
       "reactCompiler": true
@@ -16,6 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.bengisu.valentinepomodoro",
+      "usesAppleSignIn": true,
       "buildNumber": "6",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -128,12 +129,15 @@
         }
       ],
       "expo-localization",
-      "expo-router"
+      "expo-router",
+      "expo-secure-store"
     ],
     "extra": {
       "eas": {
         "projectId": "a0599a9f-4e3f-41a3-8942-a00d37847444"
       },
+      "supabaseUrl": "https://mwftolngrxmmcbwpbaut.supabase.co",
+      "supabasePublishableKey": "sb_publishable_cSX5gsf-TwznJ-qtxVfYpg__JTflou9",
       "admobInterstitialIdIos": "ca-app-pub-9990246025309322/6160253938",
       "admobInterstitialIdAndroid": "ca-app-pub-3940256099942544/1033173712",
       "admobBannerIdIos": "ca-app-pub-9990246025309322/9961240442",

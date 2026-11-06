@@ -21,6 +21,7 @@ import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
  */
 export function LoveNoteSheet() {
     const note = useLoveNoteSheet((s) => s.note);
+    const from = useLoveNoteSheet((s) => s.from);
     const { tokens } = useTheme();
 
     const close = () => {
@@ -37,7 +38,7 @@ export function LoveNoteSheet() {
             <View style={styles.head}>
                 <Sticker art={pomoCelebrating} width={44} />
                 <Text style={[styles.title, { color: tokens.ink }]} accessibilityRole="header">
-                    {t('loveNote.title')}
+                    {from ? t('loveNote.from', { name: from }) : t('loveNote.title')}
                 </Text>
             </View>
             <Text style={[styles.note, { color: tokens.ink }]}>{note}</Text>

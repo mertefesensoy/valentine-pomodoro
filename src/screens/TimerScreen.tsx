@@ -1,4 +1,8 @@
-import { View, Text, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator, useWindowDimensions, type LayoutChangeEvent } from "react-native";
+import { AppState, View, Text, StyleSheet, Alert, Platform, ScrollView, StatusBar, ActivityIndicator, useWindowDimensions, type LayoutChangeEvent } from "react-native";
+import { PAIRING_ENABLED } from "../constants/features";
+import { useAccountStore } from "../server/account";
+import { dismissGone, takePartnerNote, usePartnerGlance, wasCelebrated } from "../server/partnerGlance";
+import { PartnerDay, PartnerNotice, PartnerStrip, partnerLabel, partnerName } from "./classic/PartnerStrip";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ComponentRef } from "react";
 import { router } from "expo-router";
@@ -118,6 +122,11 @@ export default function TimerScreen() {
   // in front of the user waits until Timer is focused: the goal moment, the
   // love note and the interstitial. Always true outside a navigator.
   const focused = useScreenFocused();
+  const storedGlance = usePartnerGlance((s) => s.glance);
+  const gone = usePartnerGlance((s) => s.gone);
+  const noteWaiting = usePartnerGlance((s) => s.notes.length > 0);
+  const sessionEnded = useAccountStore((s) => s.sessionEnded);
+  const hasAccount = useAccountStore((s) => s.present);
   const { tokens, isDark } = useTheme();
 
   // Interstitials the ad policy has allowed, one per completion it said yes
@@ -206,7 +215,12 @@ export default function TimerScreen() {
   const loveNoteDue = focused && !goalPopup && showLoveNoteCard && !!lastLoveNote;
   useEffect(() => {
     if (!loveNoteDue || useLoveNoteSheet.getState().note !== null) return;
-    useLoveNoteSheet.getState().open(lastLoveNote!);
+    // A partner's note takes the place of one of your own (Phase 2 D3). The choice is made here, when the sheet is due,
+    // so the session engine knows nothing of it, and your partner's words stay out of its saved state. Only with the
+    // app in front: a session ending just after the phone locks would otherwise use the note up unseen, and it waits.
+    const fromPartner = PAIRING_ENABLED && AppState.currentState === 'active' ? takePartnerNote() : null;
+    if (fromPartner) useLoveNoteSheet.getState().open(fromPartner.body, usePartnerGlance.getState().glance?.name ?? t('pair.partnerFallback'));
+    else useLoveNoteSheet.getState().open(lastLoveNote!);
     router.push("/love-note");
   }, [loveNoteDue, lastLoveNote]);
   useEffect(
@@ -457,6 +471,7 @@ export default function TimerScreen() {
   const todayRef = useRef<ComponentRef<typeof View>>(null);
   const modesRef = useRef<ComponentRef<typeof View>>(null);
   const startRef = useRef<ComponentRef<typeof View>>(null);
+  const partnerRef = useRef<ComponentRef<typeof View>>(null);
   const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
   const { track: trackScroll, scrollBy } = useTourScroll(tourHere, (y) => scrollRef.current?.scrollTo({ y, animated: true }));
   const rows = useRef({ visible: 0, top: 0, partner: 0, today: 0, controls: 0 });
@@ -480,6 +495,36 @@ export default function TimerScreen() {
         )
       : Math.min(ringCap, height * 0.36);
 
+  // Your partner, from the small summary the first frame can read (Phase 2 D2). With the flag off, or solo, it's empty.
+  const glance = PAIRING_ENABLED && hasAccount ? storedGlance : null;
+  const paired = glance !== null;
+  const showPair = PAIRING_ENABLED && idle && !paired;
+  const goneLine = PAIRING_ENABLED && !paired && gone
+    ? gone.name ? t('partner.gone', { name: gone.name }) : t('partner.goneNoName')
+    : null;
+  // With Show love notes off, one quiet line says a note is waiting (the owner, 2026-11-06: "Yes, add a quiet line on
+  // the strip"). It's a pointer: the strip opens their day as ever, and the note is a row there, so the line and its
+  // press agree in every state. The Ring gives way when it comes and goes, which the owner accepted.
+  let notice = goneLine;
+  if (paired && sessionEnded) notice = t('partner.signInAgain');
+  else if (glance && noteWaiting && !settings.showLoveNotes) notice = t('partner.noteWaiting', { name: glance.name ?? t('pair.partnerFallback') });
+  const openPair = () => {
+    if (goneLine) dismissGone();
+    if (idle) router.push('/pair');
+  };
+  // Apple's button when the session has ended, and signing in finds the couple on the server. Not while a session
+  // runs: nothing else competes then, and their last known day is still there to read.
+  const opensSignIn = sessionEnded && idle;
+  const openPartner = () => router.push(opensSignIn ? '/pair' : '/partner');
+  const partnerHint = opensSignIn ? undefined : t('partner.opensDay');
+
+  // The partner who wasn't holding the sheet finds out at a refresh, and gets the morph once, on the Timer, when
+  // nothing is running. Any sheet over the Timer unfocuses it, so the phone that pressed Pair can't open a second.
+  const celebrate = paired && !sessionEnded && idle && focused && !wasCelebrated();
+  useEffect(() => {
+    if (celebrate) router.push('/pair');
+  }, [celebrate]);
+
   const face =
     layout === 'spread' ? (
       <SpreadPages
@@ -490,6 +535,21 @@ export default function TimerScreen() {
         progress={ringProgress}
         isBreak={isBreak}
         line={t(partnerLine)}
+        pairAction={showPair ? openPair : undefined}
+        paired={
+          glance
+            ? {
+                name: partnerName(glance),
+                day: <PartnerDay glance={glance} tokens={tokens} centered />,
+                label: notice ? `${partnerLabel(glance)}. ${notice}` : partnerLabel(glance),
+                hint: partnerHint,
+                onPress: openPartner,
+              }
+            : undefined
+        }
+        notice={notice ? <PartnerNotice text={notice} tokens={tokens} centered /> : undefined}
+        onDismissNotice={goneLine ? dismissGone : undefined}
+        partnerRef={partnerRef}
       >
         {timer(56)}
         {subLine}
@@ -510,19 +570,44 @@ export default function TimerScreen() {
 
   // The partner slot: on the Ring, one paper field with the pair and their line, as the C4
   // sketch draws it (finish review fix 5); Facing Pages carries it on its right page (fix 4).
-  const partner = layout === 'ring' ? (
-    <View
-      style={[styles.partner, { backgroundColor: tokens.paper, borderColor: tokens.edge }]}
-      onLayout={(e) => measured('partner', e)}
-      testID="partner-strip"
-    >
+  // With the Pair line beneath it the strip has room for one short line, as the frame draws, so it stays at 72 pt and
+  // the Ring doesn't move at Start or on pairing. The usual line is too long for that at any size.
+  const stripLine = showPair ? 'partner.readyShort' : partnerLine;
+  const stripBody = (
+    <>
       <View style={styles.pair} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         <PoseSticker who="pomo" pose={pose} width={40} shadow={tokens.stickerShadow} />
         <View style={styles.pairOverlap}>
           <PoseSticker who="doro" pose={pose} width={40} shadow={tokens.stickerShadow} />
         </View>
       </View>
-      <Text style={[styles.partnerLine, { color: tokens.ink }]}>{t(partnerLine)}</Text>
+      <View style={styles.partnerText}>
+        <Text style={[styles.partnerLine, showPair && styles.partnerLineWithPair, { color: tokens.ink }]}>{t(stripLine)}</Text>
+        {showPair && <Text style={[styles.pairLine, { color: tokens.primaryInk }]}>{t('partner.pair')}</Text>}
+        {goneLine && <PartnerNotice text={goneLine} tokens={tokens} />}
+      </View>
+    </>
+  );
+  const stripStyle = [styles.partner, { backgroundColor: tokens.paper, borderColor: tokens.edge }];
+  const partner = layout === 'ring' ? (
+    // It has to stretch itself: `styles.centre` centres its children, and the strip's own `alignSelf` only stretches
+    // it inside this view.
+    <View ref={partnerRef} collapsable={false} style={styles.partnerSlot} onLayout={(e) => measured('partner', e)} testID="partner-strip">
+      {glance ? (
+        <PartnerStrip glance={glance} notice={notice} hint={partnerHint} onPress={openPartner} tokens={tokens} />
+      ) : showPair || goneLine ? (
+        <PressableScale
+          onPress={openPair}
+          haptic={false}
+          accessibilityRole="button"
+          accessibilityLabel={[t(stripLine), showPair ? t('partner.pair') : null, goneLine].filter(Boolean).join('. ')}
+          style={stripStyle}
+        >
+          {stripBody}
+        </PressableScale>
+      ) : (
+        <View style={stripStyle}>{stripBody}</View>
+      )}
     </View>
   ) : null;
 
@@ -574,7 +659,7 @@ export default function TimerScreen() {
     const next = presetSegments[presetIndex + by];
     if (next) choosePreset(next.value, false);
   };
-  const tourTargets: Partial<Record<'presets' | 'today' | 'modes' | 'start', TourTargetSpec>> = {
+  const tourTargets: Partial<Record<'presets' | 'today' | 'modes' | 'start' | 'partner', TourTargetSpec>> = {
     presets: {
       ref: presetsRef,
       radius: radius.m,
@@ -588,6 +673,13 @@ export default function TimerScreen() {
     },
     today: { ref: todayRef, radius: radius.m, a11y: { label: todayLabel(todayCount, sessionsToGoal), role: 'text' } },
     modes: { ref: modesRef, radius: minTarget / 2, a11y: { label: t('modes.button'), role: 'button', onActivate: () => router.push('/modes') } },
+    partner: {
+      ref: partnerRef,
+      radius: radius.l,
+      a11y: glance
+        ? { label: notice ? `${partnerLabel(glance)}. ${notice}` : partnerLabel(glance), hint: partnerHint, role: 'button', onActivate: openPartner }
+        : { label: goneLine ? `${t('partner.pair')}. ${goneLine}` : t('partner.pair'), role: 'button', onActivate: openPair },
+    },
     start: { ref: startRef, radius: 28, a11y: { label: primaryLabel, role: 'button', onActivate: handlePrimaryAction } },
   };
 
@@ -792,6 +884,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  partnerSlot: {
+    alignSelf: 'stretch',
+  },
   partner: {
     alignSelf: 'stretch',
     flexDirection: 'row',
@@ -810,9 +905,22 @@ const styles = StyleSheet.create({
   pairOverlap: {
     marginLeft: -space.s,
   },
-  partnerLine: {
+  partnerText: {
     flex: 1,
+    gap: space.xs / 2,
+  },
+  partnerLine: {
     fontSize: 15,
     fontWeight: '500',
+  },
+  // With the Pair line beneath it, as the frame draws them.
+  partnerLineWithPair: {
+    fontSize: 14,
+    lineHeight: 19,
+  },
+  pairLine: {
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: '600',
   },
 });

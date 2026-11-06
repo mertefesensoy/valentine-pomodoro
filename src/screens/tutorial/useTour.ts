@@ -3,7 +3,7 @@ import { AccessibilityInfo, type NativeScrollEvent, type NativeSyntheticEvent } 
 
 import { runAfterInteractive } from '../../startup/deferredStartup';
 import { useUiStore } from '../../stores/uiStore';
-import { currentBeat, useTourStore } from './tourStore';
+import { currentBeat, currentStep, useTourStore } from './tourStore';
 import { dueTutorial, type TourScreen } from './tutorials';
 
 /**
@@ -61,6 +61,20 @@ export function useTourReach(screen: TourScreen, focused: boolean): void {
     useEffect(() => {
         if (focused) useTourStore.getState().reachScreen(screen);
     }, [focused, screen]);
+}
+
+/**
+ * For a sheet the tour's lit strip can open (Phase 2 D5): closing it moves the tour on, as the Modes sheet does, so
+ * someone who has just signed in and seen their code isn't told again to pair. Only from the step that says so.
+ */
+export function useTourMoveOnClose(): void {
+    useEffect(
+        () => () => {
+            const s = useTourStore.getState();
+            if (s.run && s.run.beat === 'here' && currentStep(s.run)?.id === 'pair') s.next();
+        },
+        [],
+    );
 }
 
 /**

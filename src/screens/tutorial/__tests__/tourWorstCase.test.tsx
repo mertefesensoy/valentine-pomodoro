@@ -21,6 +21,12 @@ import { currentStep, useTourStore } from '../tourStore';
 
 // jest.mock calls are hoisted above these imports, so the Turkish locale is in place before i18n loads.
 jest.mock('expo-localization', () => ({ getLocales: () => [{ languageCode: 'tr', languageTag: 'tr-TR' }] }));
+// The tour as v1.4 shipped it. tutorial15.test.tsx covers it with pairing on.
+jest.mock('../../../constants/features', () => ({
+    ...jest.requireActual('../../../constants/features'),
+    PAIRING_ENABLED: false,
+    STARTUP_REPORTS_ENABLED: false,
+}));
 jest.mock('../../../hooks/useUpdateCheck', () => ({ useUpdateCheck: () => ({ checkForUpdates: jest.fn() }) }));
 jest.mock('expo-notifications', () => ({
     ...jest.requireActual('expo-notifications'),

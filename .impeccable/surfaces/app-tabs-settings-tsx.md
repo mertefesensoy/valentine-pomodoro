@@ -78,6 +78,20 @@ Visited rarely, with a purpose: set the durations, the daily goal, the reminder 
 - **Whether Notifications and the daily reminder share a group.** Proposed: Notifications stays a master switch in "Sound and feel", and the reminder group dims when it's off.
 - **Copy:** every string is an i18n key in English and Turkish, sentence case.
 
+## Phase 2 addition (1.5.0, A3)
+
+Three new groups, built in D4 and C4. The owner confirmed the frame, 2026-11-05 ("Yes, they're right").
+
+- **Your partner:** solo, one action row, "Pair with your partner". Paired, a row with their name and "Paired 5 Nov", then Unpair, destructive. Unpair confirms in a native alert that names what happens: you stop seeing each other's day, the notes between you are deleted, and your own stats stay.
+- **Account,** shown only when an account exists, including after unpairing:
+  - **Name:** your name, editable; it's what your partner sees.
+  - **Sign-in:** "Using Sign in with Apple" (`sign-in-with-apple.md`: indicate when people are signed in).
+  - **Download my data:** JSON through the share sheet (FR-ACC-004).
+  - **Delete account,** destructive: a native alert saying what goes and what stays on this phone, then Apple's own confirmation, then a line saying it's done. The app returns to solo with every local note and stat in place.
+- **Privacy:** "Share start-up timings", a switch, on by default (ADR-0051). The footer says what it sends, in plain words. It isn't touched by Reset settings: a privacy choice stays as the person set it.
+- **Order:** Your partner comes first in the list once paired, and after Love notes while solo. Account follows Your partner. Privacy sits just above About.
+- **No sign-out** in 1.5.0: there's no second device or sign-in method to move to, and a signed-out paired phone would stop reporting without saying so. Unpair and Delete are the two ways out.
+
 ## Direction contract
 
 **Resolved since the brief:**

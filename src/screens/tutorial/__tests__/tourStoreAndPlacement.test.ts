@@ -8,6 +8,13 @@ import { act, renderHook } from '@testing-library/react-native';
 import { currentBeat, currentStep, isLastBeat, useTourStore } from '../tourStore';
 import { useTourScroll } from '../useTour';
 
+// The tour as v1.4 shipped it. tutorial15.test.tsx covers it with pairing on.
+jest.mock('../../../constants/features', () => ({
+    ...jest.requireActual('../../../constants/features'),
+    PAIRING_ENABLED: false,
+    STARTUP_REPORTS_ENABLED: false,
+}));
+
 // A 390 × 844 iPhone in portrait inside a tab (the bottom inset includes the tab bar).
 const PHONE: Insets = { top: 47, bottom: 83, left: 0, right: 0 };
 const base = (over: Partial<PlaceInput>): PlaceInput => ({

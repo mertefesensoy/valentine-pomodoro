@@ -14,11 +14,13 @@
  * its line as an i18n key chosen for the moment (T-6).
  */
 
+import { PAIRING_ENABLED } from '../../constants/features';
+
 export type TourScreen = 'timer' | 'stats' | 'notes';
 /** The tab routes a lead points at. */
 export type TourTab = 'index' | 'stats' | 'notes';
-/** The in-screen openings: the presets, today's row, Modes and Start focus on the Timer; the week on Stats; Add on Notes. */
-export type TourOpening = 'presets' | 'today' | 'modes' | 'start' | 'week' | 'add';
+/** The in-screen openings: the presets, today's row, Modes, Start focus and the partner strip on the Timer; the week on Stats; Add on Notes. */
+export type TourOpening = 'presets' | 'today' | 'modes' | 'start' | 'partner' | 'week' | 'add';
 export type Speaker = 'pomo' | 'doro';
 /** The speaker's face for a beat: an expression from the tour kit (assets record §3.2). */
 export type Face = 'wave' | 'happy' | 'curious' | 'point' | 'excited' | 'wink' | 'proud';
@@ -34,6 +36,8 @@ export type LineContext = {
     weekEmpty: boolean;
     /** The Timer's next phase is a break, so its button reads Start break (break-ui #1). */
     breakNext: boolean;
+    /** There's a partner on this phone, so the strip is them (Phase 2 D5). */
+    paired: boolean;
 };
 
 /** An i18n key, and the controls' own labels it names (keys, so Turkish follows the control). */
@@ -47,7 +51,7 @@ export type Beat = {
 };
 
 export type TourStep = {
-    id: 'presets' | 'today' | 'modes' | 'stats' | 'notes' | 'invite';
+    id: 'presets' | 'today' | 'modes' | 'stats' | 'notes' | 'invite' | 'pair' | 'pairNotes';
     speaker: Speaker;
     lead?: Beat;
     here: Beat;
@@ -63,12 +67,8 @@ export type Tutorial = {
 
 const MODES = { modes: 'modes.button', ring: 'modes.ring', spread: 'modes.spread', fly: 'modes.fly' };
 
-/** The general tutorial (brief §3; T-11's six steps). Odd steps are Pomo's, even ones Doro's. */
-export const GENERAL: Tutorial = {
-    id: 'general',
-    version: '1.4',
-    kind: 'general',
-    steps: [
+/** The general tutorial's steps as v1.4 shipped them (brief §3; T-11's six). Odd steps are Pomo's, even ones Doro's. */
+const GENERAL_STEPS: readonly TourStep[] = [
         {
             id: 'presets',
             speaker: 'pomo',
@@ -152,11 +152,76 @@ export const GENERAL: Tutorial = {
                         : { key: !c.replay && c.audience === 'fresh' ? 'tour.invite.first' : 'tour.invite.again', names: { start: 'controls.startFocus' } },
             },
         },
+];
+
+/**
+ * The general tutorial with pairing in it (Phase 2 D5), for new installs and anyone who has seen no tutorial. The new
+ * step comes before the last, which keeps the end an invitation to focus. It brings its own lead back to the Timer,
+ * and the last step goes to Pomo so that the pair keep taking turns. Pure.
+ */
+export function withPairStep(steps: readonly TourStep[]): readonly TourStep[] {
+    const invite = steps[steps.length - 1];
+    return [
+        ...steps.slice(0, -1),
+        {
+            id: 'pair',
+            speaker: 'doro',
+            lead: {
+                screen: 'notes',
+                target: { tab: 'index' },
+                face: 'proud',
+                line: () => ({ key: 'tour.pair.lead', names: { tab: 'tabs.timer' } }),
+            },
+            here: {
+                screen: 'timer',
+                target: { opening: 'partner' },
+                face: 'happy',
+                line: (c) => ({ key: c.paired ? 'tour.pair.paired' : 'tour.pair.here' }),
+            },
+        },
+        { id: invite.id, speaker: 'pomo', here: invite.here },
+    ];
+}
+
+export const GENERAL: Tutorial = {
+    id: 'general',
+    version: '1.4',
+    kind: 'general',
+    steps: PAIRING_ENABLED ? withPairStep(GENERAL_STEPS) : GENERAL_STEPS,
+};
+
+/** The 1.5 tutorial, for someone updating (Phase 2 D5; the owner: "Two steps, as described"): one idea each, at the strip. */
+export const VERSION_1_5: Tutorial = {
+    id: 'v1.5',
+    version: '1.5',
+    kind: 'version',
+    steps: [
+        {
+            id: 'pair',
+            speaker: 'pomo',
+            here: {
+                screen: 'timer',
+                target: { opening: 'partner' },
+                face: 'wave',
+                line: (c) => ({ key: c.paired ? 'tour.pair.paired' : 'tour.v15.pair' }),
+            },
+        },
+        {
+            id: 'pairNotes',
+            speaker: 'doro',
+            here: {
+                screen: 'timer',
+                target: { opening: 'partner' },
+                face: 'happy',
+                // Pairing is what the step before suggests, and its opening is live.
+                line: (c) => ({ key: c.paired ? 'tour.v15.notesPaired' : 'tour.v15.notes' }),
+            },
+        },
     ],
 };
 
-/** Every tutorial, oldest first. v1.4 ships the general one only. */
-export const TUTORIALS: readonly Tutorial[] = [GENERAL];
+/** Every tutorial, oldest first. v1.4 ships the general one only, and 1.5 adds its own with the feature it's about. */
+export const TUTORIALS: readonly Tutorial[] = PAIRING_ENABLED ? [GENERAL, VERSION_1_5] : [GENERAL];
 
 /**
  * The Modes sheet's own bubble at the Modes step (T-4): Pomo, still speaking. One line: Fly isn't

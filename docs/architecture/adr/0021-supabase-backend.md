@@ -4,10 +4,12 @@ title: Supabase as the backend
 status: accepted
 date: 2026-10-29
 owner: Mert Efe Şensoy
-related: [ADR-0022, ADR-0023, ADR-0025, ADR-0029, IMPL-2026-10-29-couples-rehaul-plan]
+related: [ADR-0022, ADR-0023, ADR-0025, ADR-0029, ADR-0049, ADR-0050, ADR-0051, IMPL-2026-10-29-couples-rehaul-plan]
 ---
 
 # ADR-0021: Supabase as the backend
+
+> **Status note:** the decision for Supabase stands. **The Auth bullet below is replaced by [ADR-0049](0049-account-only-at-pairing.md)** (the owner, 2026-11-05): no anonymous sign-in, an account only at pairing, and Sign in with Apple only.
 
 ## Context
 
@@ -46,5 +48,10 @@ The plan's design on top of it (Phase 2; not built):
 
 ## Backlinks
 <!-- backlinks:start -->
+- [An account only at pairing, with Sign in with Apple only, and pairing by code only](0049-account-only-at-pairing.md)
+- [A small Supabase client of our own, and no Sentry, in 1.5.0](0050-small-client-and-no-sentry.md)
 - [Architecture decision records](README.md)
+- ["Phase 2 A2: the PAIRING_ENABLED flag and ADR-0049"](../../implementations/2026-11-05-phase2-a2-pairing-flag.md)
+- ["Phase 2 B1: supabase/ in the repo, and this phase's tables"](../../implementations/2026-11-05-phase2-b1-tables.md)
+- ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../../implementations/2026-11-05-phase2-plan.md)
 <!-- backlinks:end -->

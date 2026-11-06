@@ -4,7 +4,35 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [Unreleased]
 
-*Nothing since 1.4.2.*
+## [1.5.0] - 2026-11-06
+
+*The iOS release of the v2 rehaul's Phase 2. In TestFlight, not yet released: this is the first build's date, and the release date goes here when it's out.*
+
+**What's new for you**
+
+- **Pair with your partner.** Sign in with Apple, then send your 6-character code or type theirs. It lasts 24 hours, and you see who it is before you pair.
+- **See your partner's day:** their name, today's stickers and minutes, and their goal, on the Timer and in a sheet of its own.
+- **Write your partner a note.** It appears after their next focus.
+- **You still don't need an account.** Without one, your timer, stats and notes stay on your phone, as they always have.
+- **Your account is yours:** unpair, download your data or delete your account in Settings, any time.
+- **A short tour** from Pomo & Doro of what's new, for anyone updating.
+- **Start-up timings:** the app sends an anonymous report of how quickly it opened. Nothing in it identifies you, and a switch in Settings turns it off.
+- **A new privacy policy,** in English and Turkish, linked from Settings.
+
+**The engineering record**, by stage, follows. Each stage's record is in `docs/implementations/`.
+
+### Added
+
+- **Stage A:** the size budget, a ceiling of 4,640,000 B on the bytecode, with no Sentry and no `supabase-js` (ADR-0050).
+- **Stage B:** the Supabase project in Frankfurt: tables, row-level security tested by pgTAP in CI, the functions, deletion through an Edge Function that revokes Apple's token, and deployment on merge. Anonymous start-up reports, kept 90 days (ADR-0051).
+- **Stage C:** a small client of our own on `fetch`, Sign in with Apple, the home snapshot with TanStack Query, a queue for a paired person's day, and the start-up report with its two groups.
+- **Stage D:** the pairing sheet, your partner's day, notes to your partner, the account screens, the 1.5 tour, and every new string through the owner's copy proof.
+- **Stage E:** the privacy policy, and partners for App Review, seeded by hand and never in the repository.
+
+### Fixed
+
+- If your phone took over a second to set up a session's end notification, pausing or skipping couldn't cancel it, so a paused session could still alert. That notification can now always be cancelled, in Classic and in Fly (DEF-005).
+- Everything in 1.4.2's update check fix, below.
 
 ## [1.4.2] - 2026-11-06
 
@@ -27,11 +55,17 @@ Its changes are listed under [1.4.2].
 
 ## [1.4.1] - 2026-11-05
 
-*An iOS patch, dated by its EAS production build (UTC). Android stays on 1.3.1.*
+*An iOS patch: TestFlight build 61, live on the App Store on 2026-11-05 at 19:04 UTC, dated by its EAS production build (UTC). Android stays on 1.3.1.*
 
 ### Fixed
 
 - The app no longer declares the `audio` background mode, which nothing used. `expo-audio`'s plugin added it by default, and App Review flagged it under Guideline 2.5.4 (DEF-009, 5c2fe1c). Sounds work as before: they stop when you leave the app.
+
+## [1.4.1-tf.61] - 2026-11-05
+
+*iOS TestFlight build 61, the release candidate, a pre-release and not a store release, source 4c39732. Built with EAS (build db76113a) and uploaded to App Store Connect for TestFlight (submission fb2ea06e); device check on a physical iPhone, 2026-11-05: passed, as reported by the owner.*
+
+Its changes are listed under [1.4.1].
 
 ## [1.4.0] - 2026-11-02
 
@@ -484,6 +518,7 @@ Two later fixes on the same branch were never built: functional state updates fo
 
 [Unreleased]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.1...master
 [1.4.1]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0...v1.4.1
+[1.4.1-tf.61]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0...v1.4.1-tf.61
 [1.4.0]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.3.1...v1.4.0
 [1.4.0-tf.60]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.59...v1.4.0-tf.60
 [1.4.0-tf.59]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0-tf.58...v1.4.0-tf.59

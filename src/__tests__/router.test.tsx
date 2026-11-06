@@ -14,6 +14,7 @@ import { useNotesStore } from '../stores/notesStore';
 import { useUiStore } from '../stores/uiStore';
 import { StrawberryMilk } from '../theme/palette';
 import { resetStorage } from '../__fixtures__/storage/resetStorage';
+import { latestTutorialVersion } from '../screens/tutorial/tutorials';
 import { save, STORAGE_KEYS } from '../utils/storage';
 
 // The real app/ routes (Phase 1 B6): the root layout with src/App.tsx, the
@@ -177,7 +178,7 @@ beforeEach(async () => {
     // welcome.test.tsx covers the welcome's gate. The tour follows the welcome, so it is marked
     // seen too (D5; the tutorial's tests cover its gate).
     await save(STORAGE_KEYS.WELCOME, { seen: true });
-    await save(STORAGE_KEYS.TUTORIAL, { seen: '1.4' });
+    await save(STORAGE_KEYS.TUTORIAL, { seen: latestTutorialVersion() });
     urlListener = null;
     mockNotificationTap = null;
     mockPrerenders.length = 0;

@@ -19,6 +19,8 @@ import { StoreGate } from './stores/StoreGate';
 import { useUiStore } from './stores/uiStore';
 import { AdManager } from './ads/AdManager';
 import { markFirstFrame } from './startup/deferredStartup';
+import { scheduleStartupReport } from './startup/startupReport';
+import { schedulePairedRuntime } from './server/startPaired';
 
 // GitHub Pages URL for update.json
 const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
@@ -73,6 +75,12 @@ function ThemedApp({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     SplashScreen.hideAsync();
   }, []);
+
+  // After the interactive mark, so it can't move the time it reports (Phase 2 C4, ADR-0051).
+  React.useEffect(() => scheduleStartupReport(), []);
+
+  // Someone with an account gets the paired runtime; a solo launch reads one flag and stops (ADR-0049).
+  React.useEffect(() => schedulePairedRuntime(), []);
 
   return (
     // The navigator draws its backgrounds from the Sticker Diary tokens (Phase 1 D1)

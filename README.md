@@ -58,12 +58,13 @@ Native `ios/` and `android/` folders are generated from `app.json` and are not c
 
 ## Privacy
 
-v1.x keeps all data on the device. It does contact these services:
-- **Apple's iTunes Lookup API**, to check for a newer version.
-- **GitHub Pages**, to fetch `update.json`.
-- **Google AdMob**, for capped interstitial ads, which are non-personalised.
+[`privacy-policy.md`](privacy-policy.md) says exactly what the app collects, in English and Turkish. In short:
 
-There is no account and no analytics. v2 adds optional accounts and sync, with a new privacy policy (SRS NFR-PRIV-001/002).
+- **Without an account,** the timer, stats and notes stay on the phone. From 1.5.0, the app sends one anonymous report of how quickly it opened after a normal launch, which a Settings switch turns off.
+- **With an account,** which exists only for pairing, Supabase keeps your name, your time zone and language, your pairing, your days while paired, and your notes to your partner, in Frankfurt. You can download it all or delete it in the app.
+- **Other services:** Apple's iTunes Lookup API on iOS and GitHub Pages' `update.json` on Android, to check for a newer version; Apple Maps in Fly Mode; and Google AdMob, for capped ads, which are non-personalised.
+
+There is no third-party analytics, and no tracking prompt (SRS NFR-PRIV-001/002).
 
 ## License
 

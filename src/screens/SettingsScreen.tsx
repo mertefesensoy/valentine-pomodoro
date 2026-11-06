@@ -1,4 +1,7 @@
-import { useEffect, useRef, useState, type ComponentRef } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState, type ComponentRef } from 'react';
+import { PAIRING_ENABLED, STARTUP_REPORTS_ENABLED } from '../constants/features';
+import { useAccountStore } from '../server/account';
+import { usePartnerGlance } from '../server/partnerGlance';
 import {
     AccessibilityInfo,
     Alert,
@@ -35,8 +38,13 @@ import { fonts } from '../theme/type';
 import { space } from '../theme/layout';
 import { useTheme } from '../theme/useTheme';
 
+// Only ever lazy: they pull in the client and the query, which a solo launch must not evaluate (ADR-0049).
+const PartnerGroup = lazy(() => import('./account/AccountGroups').then((m) => ({ default: m.PartnerGroup })));
+const AccountGroup = lazy(() => import('./account/AccountGroups').then((m) => ({ default: m.AccountGroup })));
+
 const UPDATE_JSON_URL = 'https://mertefesensoy.github.io/valentine-pomodoro/update.json';
 const DEVELOPER_URL = 'https://valentine-pomodoro-developer-websit.vercel.app/';
+const PRIVACY_URL = `${DEVELOPER_URL}privacy/`;
 // FR-STA-004: the presets, or any custom goal from 1 to 1,440 minutes; 0 is off (the switch).
 const GOAL_PRESETS = ['25', '50', '75', '100'] as const;
 type GoalSegment = (typeof GOAL_PRESETS)[number] | 'custom';
@@ -70,6 +78,9 @@ const WHEEL_MOTION_REDUCED: LayoutAnimationConfig = { duration: 200, create: WHE
  * gift screen used to, and the 1.5 s long-press to the start-up probe, Phase 1 B7), and Reset.
  */
 export default function SettingsScreen() {
+    const hasAccount = useAccountStore((s) => s.present);
+    const accountNotice = useAccountStore((s) => s.notice);
+    const paired = usePartnerGlance((s) => s.glance !== null) && PAIRING_ENABLED && hasAccount;
     const settings = useSettingsStore((s) => s.settings);
     const updateSettings = useSettingsStore((s) => s.updateSettings);
     const reminder = useSettingsStore((s) => s.reminder);
@@ -112,6 +123,10 @@ export default function SettingsScreen() {
         scroll.current?.scrollTo({ y: Math.max(0, columnY + goalY - space.s), animated: !reduced });
         useSettingsFocus.getState().clear();
     }, [focusSection, columnY, goalY, reduced]);
+
+    useEffect(() => {
+        if (accountNotice) scroll.current?.scrollTo({ y: 0, animated: !reduced });
+    }, [accountNotice, reduced]);
 
     const animateWheels = () => LayoutAnimation.configureNext(reduced ? WHEEL_MOTION_REDUCED : WHEEL_MOTION);
     const toggle = (wheel: Wheel) => {
@@ -243,6 +258,19 @@ export default function SettingsScreen() {
                     {t('settings.title')}
                 </Text>
 
+                {/* What just happened, where it can be seen: the groups have just moved or gone from under the finger. */}
+                {PAIRING_ENABLED && accountNotice && !paired && (
+                    <Text style={[styles.notice, { color: tokens.ink }]}>{t(`account.${accountNotice}`)}</Text>
+                )}
+
+                {/* Once paired, your partner and your account come first (the brief's Phase 2 addition). */}
+                {paired && (
+                    <Suspense fallback={null}>
+                        <PartnerGroup />
+                        <AccountGroup />
+                    </Suspense>
+                )}
+
                 <ListGroup header={t('settings.timer.header')} footer={t('settings.timer.footer')}>
                     {durationRow('focus', t('settings.timer.focus'))}
                     {durationRow('shortBreak', t('settings.timer.shortBreak'))}
@@ -372,6 +400,18 @@ export default function SettingsScreen() {
                     />
                 </ListGroup>
 
+                {/* Solo, they follow Love notes, and the account stays after unpairing. */}
+                {PAIRING_ENABLED && !paired && (
+                    <ListGroup header={t('account.partnerHeader')}>
+                        <ButtonRow label={t('partner.pair')} onPress={() => router.push('/pair')} />
+                    </ListGroup>
+                )}
+                {PAIRING_ENABLED && hasAccount && !paired && (
+                    <Suspense fallback={null}>
+                        <AccountGroup />
+                    </Suspense>
+                )}
+
                 {/* Classic's layout (D1 brief §3): the same choice as the Modes sheet's. */}
                 <ListGroup header={t('settings.appearance.header')} footer={t('settings.appearance.footer')}>
                     <View style={styles.segmentRow}>
@@ -411,6 +451,17 @@ export default function SettingsScreen() {
                     />
                 </ListGroup>
 
+                {STARTUP_REPORTS_ENABLED && (
+                    <ListGroup header={t('settings.privacy.header')} footer={t('settings.privacy.footer')}>
+                        <SwitchRow
+                            label={t('settings.privacy.timings')}
+                            value={settings.shareStartupTimings}
+                            onValueChange={(on) => updateSettings({ shareStartupTimings: on })}
+                        />
+                        <ButtonRow label={t('settings.privacy.policy')} onPress={() => Linking.openURL(PRIVACY_URL).catch(() => {})} />
+                    </ListGroup>
+                )}
+
                 <ListGroup
                     header={t('settings.about.header')}
                     footer={
@@ -444,6 +495,7 @@ const styles = StyleSheet.create({
     column: { gap: space.xl },
     title: { fontFamily: fonts.semiBold, fontSize: 34, lineHeight: 42, paddingHorizontal: space.xs },
     segmentRow: { paddingHorizontal: space.l, paddingVertical: space.m, gap: space.s },
+    notice: { fontSize: 15, lineHeight: 20, fontWeight: '500', paddingHorizontal: space.xs },
     caption: { fontSize: 13, fontWeight: '600' },
     footer: { fontSize: 13, lineHeight: 18, paddingHorizontal: space.l },
     footerBlock: { gap: space.xs },

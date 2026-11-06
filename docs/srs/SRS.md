@@ -151,7 +151,8 @@ These were rejected in the [rehaul plan §3.5](../implementations/2026-10-29-cou
 |---------|-------|---------|--------|
 | v1.3.1 | — | The current App Store version | Released 2026-05-11 |
 | **v1.4.0** | 1 | The design system, local re-architecture (MMKV, stores, re-render fix, Expo Router), the Classic redesign, presets, EN/TR, sounds. iOS only | Released on iOS on 2026-11-04, on build 59 |
-| v1.5+ | 2–6 | Accounts and pairing, shared room and presence, modes, Plus, web. The version per phase is TBD | Planned |
+| v1.5.0 | 2 | Accounts at pairing with Sign in with Apple, pairing by code, your partner's day, notes to your partner. iOS only ([plan](../implementations/2026-11-05-phase2-plan.md)) | Planned |
+| v1.6+ | 3–6 | Shared room and presence, modes, Plus, web. The version per phase is TBD | Planned |
 | v2.0.0 | 7 | Public launch under the new name and brand | Planned |
 | Android | 3b | All `deferred` requirements | Deferred |
 
@@ -306,11 +307,10 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 #### FR-NTF-001
 **Statement:** When notifications are on, starting or resuming a session shall schedule one local notification for its end, and pause, skip, reset or a mode switch shall cancel that one notification only.
 **Pri:** Must · **Target:** v1 · **Status:** implemented
-**Known deviation:** DEF-005; see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
 **Accept:**
-- A paused session never fires a notification.
+- A paused session never fires a notification, including one whose scheduling took over 1 s (DEF-005, fixed in Phase 2 A4).
 - Other scheduled notifications (the daily reminder) survive.
-**Verify:** D: [Phase 4 test guide](../archive/PHASE4_TEST.md) Tests A–C · **Source:** DECISIONS.md #4
+**Verify:** T: `src/hooks/__tests__/lateNotificationId.test.tsx`; D: [Phase 4 test guide](../archive/PHASE4_TEST.md) Tests A–C · **Source:** DECISIONS.md #4
 
 #### FR-NTF-002
 **Statement:** The user shall be able to enable a daily reminder at a chosen time with quiet hours. A reminder time inside the quiet hours moves to the quiet-hours end.
@@ -392,7 +392,7 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 
 #### FR-NTE-003
 **Statement:** Notes written by a partner shall be delivered to the other partner and shown after **their** focus sessions.
-**Pri:** Must · **Target:** Phase 3 · **Status:** planned · **Source:** PLAN-REHAUL §3.5 #1
+**Pri:** Must · **Target:** Phase 2, delivered when the partner's app next refreshes; pushes wait for Phase 3 · **Status:** planned · **Verify:** T; D (two physical phones) · **Source:** PLAN-REHAUL §3.5 #1; the owner, 2026-11-05 ("Add it to 1.5.0")
 
 #### 3.2.5 Settings and personalisation (SET)
 
@@ -503,8 +503,8 @@ AsyncStorage stays untouched for one release as a fallback.
 **Pri:** Must · **Target:** Phase 1 (B2) · **Status:** implemented (`dd1e894`; device check passed on `v1.4.0-tf.43`, 2026-10-30) · **Verify:** T: `src/utils/__tests__/storageMigration.test.ts`, `src/utils/__tests__/storage.test.ts` over every A3 fixture · **Source:** PLAN-PHASE1 B2, [B2 doc](../implementations/2026-10-29-phase1-b2-mmkv-migration.md)
 
 #### FR-MIG-003
-**Statement:** On first sign-in, local stats and notes shall be uploaded once, guarded by an idempotency key.
-**Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** PLAN-REHAUL §7 Phase 2
+**Statement:** When a feature first needs them, local stats history and notes shall be uploaded once, guarded by an idempotency key.
+**Pri:** Must · **Target:** Phase 3 · **Status:** planned · **Source:** PLAN-REHAUL §7 Phase 2; the owner, 2026-11-05 ("Wait for 1.6.0")
 
 #### 3.2.10 Accounts (ACC)
 
@@ -513,8 +513,8 @@ AsyncStorage stays untouched for one release as a fallback.
 **Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** PLAN-REHAUL §3.2
 
 #### FR-ACC-002
-**Statement:** Users shall start with anonymous sign-in and be able to link Sign in with Apple, Google or an email magic link without losing data.
-**Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** PLAN-REHAUL §4.1
+**Statement:** Users shall create an account only when they choose to pair, with Sign in with Apple. Email and Google wait for Android or web. A solo user has no account, and sends nothing to the server except the anonymous start-up report ([NFR-PERF-008](#nfr-perf-008)).
+**Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** the owner, 2026-11-05 ([Phase 2 plan](../implementations/2026-11-05-phase2-plan.md) §0.1 and §0.3; it replaces anonymous sign-in, PLAN-REHAUL §4.1)
 
 #### FR-ACC-003
 **Statement:** Users shall be able to delete their account inside the app. Deletion cascades through their data and dissolves the couple; the partner keeps their own history.
@@ -527,12 +527,16 @@ AsyncStorage stays untouched for one release as a fallback.
 #### 3.2.11 Pairing (PAR)
 
 #### FR-PAR-001
-**Statement:** A user shall be able to invite a partner with a link or a 6-character code (no look-alike characters) that expires and can be used once. Opening the link shall open the app if installed, otherwise the store or the web app.
-**Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** PLAN-REHAUL §4.3, §4.7
+**Statement:** A user shall be able to invite a partner with a 6-character code (no look-alike characters) that expires and can be used once, shared as text. From Phase 6, a link shall also work: opening it shall open the app if installed, otherwise the store or the web app.
+**Pri:** Must · **Target:** Phase 2 (the code), Phase 6 (the link) · **Status:** planned · **Source:** PLAN-REHAUL §4.3, §4.7; the owner, 2026-11-05 ("Codes only for now")
 
 #### FR-PAR-002
 **Statement:** A user shall belong to at most one couple at a time, and either partner shall be able to unpair.
 **Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Source:** schema `couple_members unique (user_id)`
+
+#### FR-PAR-003
+**Statement:** A paired user shall see their partner's name and today's stickers, minutes and goal, read-only, refreshed when the app comes to the foreground. A solo user sends none of this to the server.
+**Pri:** Must · **Target:** Phase 2 · **Status:** planned · **Verify:** T: `src/server/__tests__/home.test.ts`, `src/server/__tests__/dayReports.test.ts`, `src/server/__tests__/soloLaunch.test.tsx`; D (two physical phones) · **Source:** the owner, 2026-11-05 ([Phase 2 plan](../implementations/2026-11-05-phase2-plan.md) §0.1)
 
 #### 3.2.12 Shared session and presence (SYN)
 
@@ -640,7 +644,7 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 - `/.well-known/apple-app-site-association` and `assetlinks.json`
 - the privacy policy and terms in EN and TR
 
-**Pri:** Must · **Target:** Phase 2/6 · **Status:** planned
+**Pri:** Must · **Target:** Phase 2 (the privacy policy), Phase 6 (`/invite/[code]` and the `.well-known` files) · **Status:** planned
 
 #### 3.2.17 Navigation (NAV)
 
@@ -665,10 +669,10 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 
 #### NFR-PERF-001
 **Statement:** Cold-start time-to-interactive shall be ≤ 1.0 s on an iPhone 12-class device.
-**Target:** Phase 1 E3 · **Status:** planned (baseline TBD: the B7 probe ran on TestFlight builds 46 and 47, 2026-10-30, and its numbers are still to be recorded) · **Verify:** D: the B7 start-up probe on a TestFlight build. TTI is the first idle moment after the root's first layout, in ms from the JS bundle's start (`executeJavaScriptBundleEntryPointStart`), the median of ≥ 12 clean cold starts; the owner set this reading of the 1.0 s target on 2026-10-30. The B7 before/after comparison uses the same moment measured from the probe's own start, which needs no native marker ([B7 record §4](../implementations/2026-10-30-phase1-b7-deferred-startup.md#4-mathematical--statistical-details)). The native time before the bundle starts isn't measured (no Mac for Instruments). T: `src/startup/__tests__/deferredStartup.test.ts`, `src/startup/__tests__/probeStats.test.ts`, `src/startup/__tests__/StartupDiagnostics.test.tsx` · **Source:** PLAN-REHAUL §6.2, PLAN-PHASE1 B7
+**Target:** Phase 1 E3 · **Status:** planned (no baseline from 1.4.x: the B7 probe ran on TestFlight builds 46 and 47, 2026-10-30, and its numbers were never recorded. The owner chose field collection over hand-timed runs, 2026-11-05 ([A1 record §3.3](../implementations/2026-11-05-phase2-a0-a1-baselines-budget.md)), so the first numbers come from 1.5.0's TestFlight builds) · **Verify:** D: the B7 start-up probe on a TestFlight build. TTI is the first idle moment after the root's first layout, in ms from the JS bundle's start (`executeJavaScriptBundleEntryPointStart`), the median of ≥ 12 clean cold starts; the owner set this reading of the 1.0 s target on 2026-10-30. The B7 before/after comparison uses the same moment measured from the probe's own start, which needs no native marker ([B7 record §4](../implementations/2026-10-30-phase1-b7-deferred-startup.md#4-mathematical--statistical-details)). The native time before the bundle starts isn't measured (no Mac for Instruments). T: `src/startup/__tests__/deferredStartup.test.ts`, `src/startup/__tests__/probeStats.test.ts`, `src/startup/__tests__/StartupDiagnostics.test.tsx` · **Source:** PLAN-REHAUL §6.2, PLAN-PHASE1 B7
 
 #### NFR-PERF-002
-**Statement:** The startup JavaScript (Hermes bytecode) shall be no larger than 1.4.2's measured size: iOS 4,293,508 B (amended 2026-11-06, the owner, 640 B above 1.4.0's 4,292,868 B for the update check fix; amended 2026-11-05 to 1.4.0's size; before that the SDK 58 baseline, 3,856,208 B), measured with `npx expo export --platform ios --platform android --dump-sourcemap`.
+**Statement:** The startup JavaScript (Hermes bytecode) of 1.5.0 shall be no larger than 4,640,000 B on iOS (the owner, 2026-11-05, [Phase 2 A1](../implementations/2026-11-05-phase2-a0-a1-baselines-budget.md): "Lean"; 1.4.2 is 4,293,508 B, which the owner allowed on 2026-11-06, 640 B above 1.4.0 for the update check fix; before that it was what 1.4.0 shipped, 4,292,868 B, and before that the SDK 58 baseline, 3,856,208 B), measured with `npx expo export --platform ios --platform android --dump-sourcemap`.
 **Target:** Phase 1 · **Status:** implemented (met by B1b `0d63145`, held after B2 `dd1e894`: iOS 3,430,632 B, −11.0 % against the baseline; Android 3,518,464 B. Re-measured at E3 before release. **Not met after B6** (2026-10-30): iOS 3,894,148 B, 37,940 B (0.98 %) over the baseline, all of it Expo Router ([B6 record §4.2](../implementations/2026-10-30-phase1-b6-expo-router.md#42-the-bytecode)); with B7 merged, 3,912,916 B (56,708 B, 1.47 % over). **Accepted for now by the owner, 2026-10-30, and revisited at E3** with B7's TTI numbers in hand (B6 §7.1, option a). D1 (2026-10-30): iOS 4,026,408 B with the in-house translator (ADR-0048), 4.41 % over the limit (D1 record §4.1); D1 after its finish fixes was 4,050,408 B, 5.04 % over; D2 built: 4,112,584 B, 6.65 % over (D2 record §3.9); build 56: 4,139,364 B, 7.34 % over. **At E3 (2026-11-01): iOS 4,287,144 B, 11.18 % over** the 3,856,208 B ceiling, +147,780 B since build 56, almost all of it D5's tour art ([Stage E record](../implementations/2026-11-01-phase1-stage-e.md) §4). **The owner accepted it, 2026-11-02 ("Ship build 59"), so the ceiling is amended to the shipped size.** That figure was build 58's code; `bce65cc`, the source of build 59, measures 4,292,868 B, 11.32 % over the old ceiling, with the choice-C mark from the merge. 1.4.1 measures 4,292,796 B. 1.4.2 measures 4,293,508 B ([1.4.2 record](../implementations/2026-11-06-v142-update-check-fix.md) §6).) · **Verify:** A: the [B1b record](../implementations/2026-10-29-phase1-b1b-airports-asset.md) and the [B2 record](../implementations/2026-10-29-phase1-b2-mmkv-migration.md) bytecode tables · **Source:** [SDK 58 upgrade §6.1](../implementations/2026-10-29-expo-sdk-58-upgrade.md#61-local-gates-all-passed-at-every-step)
 
 #### NFR-PERF-003
@@ -697,9 +701,13 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 
 **Target:** Phase 6 · **Status:** planned · **Verify:** T (Lighthouse CI) · **Source:** baseline in `docs/baselines/2026-10-29/`
 
+#### NFR-PERF-008
+**Statement:** The app shall measure cold start on real phones. After each clean cold start, an install shall send one report holding only its start-up group, its time to interactive, the iPhone model, the iOS version and the app build, with no identifier. A Settings switch, on by default, turns it off, and then the app sends nothing. Each install joins one of two groups once, at random, half and half.
+**Target:** Phase 2 · **Status:** planned · **Verify:** T: `supabase/tests/startup_reports.test.sql`, `src/startup/__tests__/startupReport.test.ts`; D: reports arrive from TestFlight · **Source:** the owner, 2026-11-05 ([ADR-0051](../architecture/adr/0051-anonymous-start-up-reports.md))
+
 #### NFR-REL-001
 **Statement:** Crash-free sessions shall be ≥ 99.8 %.
-**Target:** Phase 2 (Sentry) · **Status:** planned · **Verify:** A
+**Target:** Phase 2 · **Status:** planned · **Verify:** A: App Store Connect's crash data; there is no Sentry ([ADR-0050](../architecture/adr/0050-small-client-and-no-sentry.md))
 
 #### NFR-REL-002
 **Statement:** No update shall lose user data. See [FR-MIG-001](#fr-mig-001).
@@ -718,7 +726,7 @@ Plus adds Fly Together, the Study-date Room and the Shared Pet, all themes, full
 **Target:** now · **Status:** implemented · **Verify:** I
 
 #### NFR-PRIV-001
-**Statement:** Data shall be minimised. Analytics events are bucketed, carry no personal data and are kept for 90 days. There is no third-party tracking, so no App Tracking Transparency prompt.
+**Statement:** Data shall be minimised. Analytics events are bucketed, carry no personal data and are kept for 90 days. There is no third-party tracking, so no App Tracking Transparency prompt. In 1.5.0 the only such data is the start-up report ([NFR-PERF-008](#nfr-perf-008)).
 **Target:** Phase 2 · **Status:** planned · **Source:** PLAN-REHAUL §4.3
 
 #### NFR-PRIV-002
@@ -779,11 +787,11 @@ These are places where the code at `5b10a78` doesn't fully meet a requirement ma
 | DEF-002 | FR-STA-002 | The de-duplication key `lastAppliedSessionId` isn't restored when stats load, so it only protects within one run. Across a restart, only the clock's `endAt` guard prevents a double credit. | `useStats.ts:118–145` rebuilds state without it | Low | **Fixed** in Phase 1 B3 (`71d836f`) |
 | DEF-003 | FR-STA-005 | The streak's "yesterday" is computed from the current date, not the credited day. A goal reached by a session that started before midnight and finished after it can reset the streak to 1. | `useStats.ts` (`yesterdayKeyDate = new Date()`), versus the credited `dayKey` | Low | **Fixed** in Phase 1 B3 (`7863e50`) |
 | DEF-004 | FR-TMR-005 | **Reproduced in Phase 1 B3, and wider than suspected:** a session of **either** kind that ends while the app is killed is cleared on relaunch with no credit. `NavigationContainer` renders nothing until `Linking.getInitialURL()` resolves (up to 150 ms), so the screens subscribe after the clock's cold-start completion has fired. Since B2's MMKV load (microtasks) this happens every time; on v1.3.1 it was a race. Affects TestFlight build 43. | `useSessionClock.ts` mount effect; React Navigation 7.5.1 `NavigationContainer.tsx:121–135`; B1 lazy load | **High** (since B2) | **Fixed** in Phase 1 B3 (`e04cc8c`): completions wait for a handler of their kind ([B3 §0](../implementations/2026-10-30-phase1-b3-zustand-stores.md)); device check passed on `v1.4.0-tf.44`, 2026-10-30. Under Expo Router (B6) the iOS navigator no longer waits for the launch URL; the fix stays load-bearing for Fly's lazy load, deep-link launches into another tab, and Android ([B6 §3.7](../implementations/2026-10-30-phase1-b6-expo-router.md#37-def-004-under-expo-router)) |
-| DEF-005 | FR-NTF-001 | When scheduling the session-end notification takes more than 1 s, its id is dropped. That notification can't be cancelled, so a paused or skipped session may still alert. | `useTimer.ts:158–170` (`Promise.race` with a 1 s timeout) | Low–Medium | **Open.** Moved out of B3: it is notification scheduling, not store state. Not in B4, which doesn't touch scheduling. Slot TBD (owner); D1 rebuilds Classic's start path |
+| DEF-005 | FR-NTF-001 | When scheduling the session-end notification takes more than 1 s, its id is dropped. That notification can't be cancelled, so a paused or skipped session may still alert. | `useTimer.ts:158–170` (`Promise.race` with a 1 s timeout), and the same race in `useTimer.ts`'s start and both of `FlyModeScreen.tsx`'s calls | Low–Medium | **Fixed in Phase 2 A4, for 1.5.0** (the owner, 2026-11-05: "Fix it in 1.5.0"). All four places now use `scheduleSlotEnd` and `rescheduleSlotEnd` in `useNotifications.ts`: a late id is kept on a running slot, or cancelled if the slot has moved on ([A4 record](../implementations/2026-11-05-phase2-a4-def-005.md)) |
 | DEF-006 | FR-ADS-001 | The Stats screen shows an AdMob **banner** outside `AdPolicy`, including during a running session; the requirement covers interstitials only. | `StatsScreen.tsx:297` | Product decision | Phase 1 D2: keep it under the policy, or remove it |
 | DEF-007 | FR-SET-001 | The `sound` setting has no effect yet (sounds arrive in D4), and the tab bar's haptic ignores the Haptics setting. | `tabPressHaptic.ts` (was `HapticTab.tsx`, until B6); no reader of `settings.sound` | Low | Sound **fixed** in Phase 1 D4: the Sound switch plays and silences the three UI sounds (`0e70b1a`; device check passed on `v1.4.0-tf.56` and `v1.4.0-tf.58`); haptics **fixed** in B3 (`ca21ef0`; device check passed on `v1.4.0-tf.44`, 2026-10-30) |
 | DEF-008 | FR-SET-001 | **Found on TestFlight build 46 (2026-10-30), present since v1:** on iPhone the five Settings number fields (the durations, "Long break every N sessions", the custom goal) open the number pad, which has no return key, and nothing in Settings dismissed it. A field couldn't be left once edited, so its value applied only on the next tap elsewhere. | `SettingsScreen.tsx` at `v1.3.1` and `3369418`: `keyboardType="number-pad"`, no `keyboardDismissMode`, accessory view or `Keyboard.dismiss()` | Medium | **Fixed** 2026-10-30: a "Done" bar above the number pad and dismiss on scroll ([record](../implementations/2026-10-30-settings-keyboard-dismiss.md)); device check passed on TestFlight build 47 (2026-10-30). Reopened by the build 48 device check: on the New Architecture an `InputAccessoryView` binds to the first input carrying its `nativeID` and no other, so the shared Done bar reached Focus only. Fixed 2026-10-30 (`cec4319`) with one bar per field. **Closed in D2:** Settings sets every bounded number on the system wheel (`@react-native-picker/picker`), so no number field opens the number pad, and the deprecated `InputAccessoryView` is gone |
-| DEF-009 | — (App Store Review Guideline 2.5.4) | **Found by App Review, 2026-11-03, on 1.4.0 (59):** the app declares `audio` in `UIBackgroundModes`, but nothing in it plays in the background. Every `setAudioModeAsync` call leaves `shouldPlayInBackground` at its default, `false`, so the UI sounds, the babble and Fly's hum stop when the app leaves the foreground. | `app.json` lists `"expo-audio"` with no options (since `c7135f3`, SDK 56); `expo-audio` 58.0.10 `plugin/build/withAudio.js:22` defaults `enableBackgroundPlayback` to `true` and pushes `audio` at `:28–35` | **High:** the next submission is rejected while it remains | **Fixed in code, not yet submitted** (`5c2fe1c`, pinned by `src/constants/__tests__/appConfig.test.ts`). The owner asked Apple to approve build 59 as is (2026-11-03); Apple approved it, and 1.4.0 went live on 2026-11-04, so the fix ships in 1.4.1 ([record](../implementations/2026-11-03-def-009-background-audio-mode.md)) |
+| DEF-009 | — (App Store Review Guideline 2.5.4) | **Found by App Review, 2026-11-03, on 1.4.0 (59):** the app declares `audio` in `UIBackgroundModes`, but nothing in it plays in the background. Every `setAudioModeAsync` call leaves `shouldPlayInBackground` at its default, `false`, so the UI sounds, the babble and Fly's hum stop when the app leaves the foreground. | `app.json` lists `"expo-audio"` with no options (since `c7135f3`, SDK 56); `expo-audio` 58.0.10 `plugin/build/withAudio.js:22` defaults `enableBackgroundPlayback` to `true` and pushes `audio` at `:28–35` | **High:** the next submission is rejected while it remains | **Closed, 2026-11-05.** Fixed in `5c2fe1c`, pinned by `src/constants/__tests__/appConfig.test.ts`. 1.4.1 (build 61) passed App Review with no 2.5.4 finding and went live at 2026-11-05T19:04:08Z ([record](../implementations/2026-11-03-def-009-background-audio-mode.md)) |
 | DEF-009 | FR-ADS-001 | The Stats banner didn't show on TestFlight build 46 (it did on build 45). The interstitial works. Nothing in the banner's code or B7's proved a cause. | Device report, build 46; [B6 §9.1](../implementations/2026-10-30-phase1-b6-expo-router.md) | Medium | **Fixed** 2026-10-30: the banner shows on TestFlight build 47 (owner-reported). The B6 fix (`63f1db2`: `1fc37d8`, `16a6752`, `1865f75`) makes it wait for Stats' first focus and reports its load result in B7's hidden panel. Build 46's cause is unconfirmed, since that panel line wasn't recorded ([B6 §6.6](../implementations/2026-10-30-phase1-b6-expo-router.md)) |
 
 ---
@@ -813,6 +821,7 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 |---------|------|--------|
 | 1.0 | 2026-10-30 | First SRS: as-built v1.3.1 + Phase 0/1 work, and the v2 rehaul requirements from PLAN-REHAUL and PLAN-PHASE1 |
 | 1.1 | 2026-11-02 | Phase 1 Stage D applied at its merge ([Stage D plan](../implementations/2026-10-30-phase1-stage-d.md) §9): FR-ONB-001 and FR-ONB-002 added (§3.2.18); FR-TMR-010, FR-STA-003, FR-SET-001 and FR-SET-005 amended; FR-SET-002, FR-SET-004, FR-SET-005, FR-NTE-002, NFR-I18N-001 and NFR-UX-003 implemented; DEF-007 and DEF-008 closed |
+| 1.2 | 2026-11-05 | Phase 2: the owner's decisions while building ([plan §0.3](../implementations/2026-11-05-phase2-plan.md#03-changed-while-building-2026-11-05)): NFR-PERF-008 added; NFR-PERF-001, NFR-PERF-002, NFR-REL-001, NFR-PRIV-001, FR-ACC-002 and FR-PAR-003 amended |
 
 ## Backlinks
 <!-- backlinks:start -->
@@ -821,6 +830,9 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - [Valentine Pomodoro](../../README.md)
 - [Documentation map](../README.md)
 - [Architecture — Valentine Pomodoro (as built, and the v2 target)](../architecture/ARCHITECTURE.md)
+- [An account only at pairing, with Sign in with Apple only, and pairing by code only](../architecture/adr/0049-account-only-at-pairing.md)
+- [A small Supabase client of our own, and no Sentry, in 1.5.0](../architecture/adr/0050-small-client-and-no-sentry.md)
+- [Anonymous start-up reports from every install, with two random groups](../architecture/adr/0051-anonymous-start-up-reports.md)
 - [Original v1 implementation plan (2026-01-07)](../history/2026-01-07-v1-plan.md)
 - [Documentation system, release history and branch cleanup](../implementations/2026-10-30-documentation-system.md)
 - ["Phase 1 B3: Zustand stores, hydrated synchronously from MMKV"](../implementations/2026-10-30-phase1-b3-zustand-stores.md)
@@ -833,6 +845,26 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - ["Phase 1 Stage D (D1–D4): the screens in the Sticker Diary design, plan"](../implementations/2026-10-30-phase1-stage-d.md)
 - ["Settings: the number pad can be dismissed (DEF-008)"](../implementations/2026-10-30-settings-keyboard-dismiss.md)
 - ["URGENT: remove the unused audio background mode before the next submission (DEF-009)"](../implementations/2026-11-03-def-009-background-audio-mode.md)
+- ["Phase 2 A0 and A1: the baselines on 1.4.1, and the size budget for 1.5.0"](../implementations/2026-11-05-phase2-a0-a1-baselines-budget.md)
+- ["Phase 2 A2: the PAIRING_ENABLED flag and ADR-0049"](../implementations/2026-11-05-phase2-a2-pairing-flag.md)
+- ["Phase 2 A3: the design of pairing, your partner's day and the account screens"](../implementations/2026-11-05-phase2-a3-design.md)
+- ["Phase 2 A4: a slow session-end notification keeps its id (DEF-005)"](../implementations/2026-11-05-phase2-a4-def-005.md)
+- ["Phase 2 B1: supabase/ in the repo, and this phase's tables"](../implementations/2026-11-05-phase2-b1-tables.md)
+- ["Phase 2 B2: row-level security, tested with pgTAP in CI"](../implementations/2026-11-05-phase2-b2-rls.md)
+- ["Phase 2 B3: the database functions and the delete-account Edge Function"](../implementations/2026-11-05-phase2-b3-functions.md)
+- ["Phase 2 B4: the table and function for anonymous start-up reports"](../implementations/2026-11-05-phase2-b4-startup-reports.md)
+- ["Phase 2 C1: the small Supabase client, and Sign in with Apple"](../implementations/2026-11-05-phase2-c1-client.md)
+- ["Phase 2 C2: TanStack Query for paired users only, and a launch test for solo users"](../implementations/2026-11-05-phase2-c2-home.md)
+- ["Phase 2 C3: a paired person's day reaches the server"](../implementations/2026-11-05-phase2-c3-report-day.md)
+- ["Phase 2 C4: the phone's side of the anonymous start-up report"](../implementations/2026-11-05-phase2-c4-startup-report.md)
+- ["Phase 2 D1: Sign in with Apple and pairing by code"](../implementations/2026-11-05-phase2-d1-pairing.md)
+- ["Phase 2: GitHub deploys database changes on merge"](../implementations/2026-11-05-phase2-deploy.md)
+- ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)
+- ["Phase 2 D2: your partner's day"](../implementations/2026-11-06-phase2-d2-partner.md)
+- ["Phase 2 D3: notes to your partner"](../implementations/2026-11-06-phase2-d3-notes.md)
+- ["Phase 2 D4: your account: unpair, delete, and download your data"](../implementations/2026-11-06-phase2-d4-account.md)
+- ["Phase 2 D5: the 1.5 version tutorial"](../implementations/2026-11-06-phase2-d5-tutorial.md)
+- ["Phase 2 E2: the privacy policy, in English and Turkish"](../implementations/2026-11-06-phase2-e2-privacy-policy.md)
 - [2026-11-06 — Update check audit: why the app said "latest version 1.4.0"](../implementations/2026-11-06-update-check-audit.md)
 - [2026-11-06 — 1.4.2: the update check finds new versions when they're out](../implementations/2026-11-06-v142-update-check-fix.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)

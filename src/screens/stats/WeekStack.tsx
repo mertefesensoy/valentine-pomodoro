@@ -39,7 +39,7 @@ export function dayLabel(key: string, stats: DayStats, today: boolean): string {
     return parts.join(', ');
 }
 
-function Stickers({ count, size, max, tokens }: { count: number; size: number; max: number; tokens: ThemeTokens }) {
+export function Stickers({ count, size, max, tokens }: { count: number; size: number; max: number; tokens: ThemeTokens }) {
     const shown = Math.min(count, max);
     return (
         <>

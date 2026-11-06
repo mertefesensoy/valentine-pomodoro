@@ -20,6 +20,8 @@ export default function RootLayout() {
         <Stack.Screen name="love-note" options={sheets.loveNote} />
         <Stack.Screen name="modes" options={sheets.modes} />
         <Stack.Screen name="note-editor" options={sheets.noteEditor} />
+        <Stack.Screen name="pair" options={sheets.pair} />
+        <Stack.Screen name="partner" options={sheets.partner} />
         {/* The one-time v1.4 welcome: full screen, in and out by a fade, closed only by Start (welcome brief). */}
         <Stack.Screen name="welcome" options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false }} />
         <Stack.Screen name="+not-found" options={{ headerShown: true, title: '404' }} />

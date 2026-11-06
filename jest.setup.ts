@@ -84,6 +84,13 @@ jest.mock('expo-audio', () => ({
 // src/utils/__tests__/airportAsset.test.ts unmocks this and checks the native calls.
 // (The `mock` prefix is what lets the hoisted factory read this module variable.)
 const mockAirportAssetPath: string = require('path').join(__dirname, 'src/assets/data/airports.jsonasset');
+// With the start-up reports on, an install draws its group at random (ADR-0051), so a launch would be
+// a coin flip between the two start-up orders. Suites about the reports turn them on themselves. A
+// suite with its own mock of this file must name this flag too (Phase 2 F1's record).
+jest.mock('./src/constants/features', () => ({
+    ...jest.requireActual('./src/constants/features'),
+    STARTUP_REPORTS_ENABLED: false,
+}));
 jest.mock('./src/utils/airportAsset', () => ({
     readAirportsAsset: async () => require('fs').readFileSync(mockAirportAssetPath, 'utf8'),
 }));

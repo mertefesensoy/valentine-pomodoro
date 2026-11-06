@@ -9,10 +9,11 @@ related: [SRS, ARCHITECTURE, IMPL-2026-10-29-couples-rehaul-plan, IMPL-2026-10-2
 
 # Roadmap
 
-**Where we are (2026-11-02):**
+**Where we are (2026-11-05):**
+- Phase 2 (v1.5.0) has an approved [plan](../implementations/2026-11-05-phase2-plan.md), and a new session is building it.
 - Phase 0 is done.
-- Phase 1 (v1.4.0, iOS): Stage A is done. B1, B1b and B2 are done, and their device check passed on TestFlight build 43. B3 is done, and its device check passed on TestFlight build 44. B4 and B5 are done and pushed, and their device check passed on TestFlight build 45 (2026-10-30). B6 and B7 are done and merged into `rehaul/v2` (2026-10-30); On TestFlight build 46 (2026-10-30) B7's device check passed, but B6's failed two items: tab switches flicker, and the tab bar turns dark on Notes in light mode. The B6 fix (`63f1db2`) and the Settings keyboard fix (DEF-008) passed their device check on TestFlight build 47 (2026-10-30); B7's TTI numbers are still to be recorded. Stage C (design, C1–C5) is done, approved by the owner at every gate, and merged into `rehaul/v2` (2026-10-30). The brand kit (`brand/`: marks, lockups, app icons, characters, web and guide files in SVG, PNG, PDF and EPS, CC BY-ND 4.0) is done (2026-10-30). Stage D (the screens in the Sticker Diary design, D1–D5) is done: each task shipped on its finish verdict and the owner's device check through TestFlight build 58 (`v1.4.0-tf.58`). The owner closed the stage on 2026-11-02, and it merged into `rehaul/v2` as `96ce9dd` the same day. Stage E shipped it: 1.4.0 went live on the App Store on 2026-11-04, on build 59 (`v1.4.0`). B7's TTI numbers and deleting `rehaul/v2` are what's left of the stage.
-- The App Store has v1.4.0 (build 59, live 2026-11-04); Android stays on 1.3.1. 1.4.1, a patch with DEF-009's fix, is next. On TestFlight, `v1.4.0-tf.42` passed the A0 device check, and `v1.4.0-tf.43` (B1, B1b, B2) passed its device check on 2026-10-30. `v1.4.0-tf.44` (B3) and `v1.4.0-tf.45` (B4, B5) passed their device checks on 2026-10-30. Builds 48–58 (`v1.4.0-tf.48`–`v1.4.0-tf.58`) carried Stage D; build 58 passed its device check on 2026-11-01, visual and sound.
+- Phase 1 (v1.4.0, iOS): Stage A is done. B1, B1b and B2 are done, and their device check passed on TestFlight build 43. B3 is done, and its device check passed on TestFlight build 44. B4 and B5 are done and pushed, and their device check passed on TestFlight build 45 (2026-10-30). B6 and B7 are done and merged into `rehaul/v2` (2026-10-30); On TestFlight build 46 (2026-10-30) B7's device check passed, but B6's failed two items: tab switches flicker, and the tab bar turns dark on Notes in light mode. The B6 fix (`63f1db2`) and the Settings keyboard fix (DEF-008) passed their device check on TestFlight build 47 (2026-10-30); B7's TTI numbers are still to be recorded. Stage C (design, C1–C5) is done, approved by the owner at every gate, and merged into `rehaul/v2` (2026-10-30). The brand kit (`brand/`: marks, lockups, app icons, characters, web and guide files in SVG, PNG, PDF and EPS, CC BY-ND 4.0) is done (2026-10-30). Stage D (the screens in the Sticker Diary design, D1–D5) is done: each task shipped on its finish verdict and the owner's device check through TestFlight build 58 (`v1.4.0-tf.58`). The owner closed the stage on 2026-11-02, and it merged into `rehaul/v2` as `96ce9dd` the same day. Stage E shipped it: 1.4.0 went live on the App Store on 2026-11-04, on build 59 (`v1.4.0`). B7's TTI numbers are what's left of the stage.
+- The App Store has v1.4.1 (build 61, live 2026-11-05), a patch with DEF-009's fix; 1.4.0 (build 59) went live on 2026-11-04. Android stays on 1.3.1.
 
 This page is the **single status board**. Each phase links to its plan, which holds the task detail; each task's "done" evidence lives in its implementation record. **Update the status here in the same commit as the work.** Requirements per phase are in the [SRS](../srs/SRS.md) (field `Target`).
 
@@ -22,7 +23,7 @@ This page is the **single status board**. Each phase links to its plan, which ho
 |-----------|---------|-----------|----------|--------|
 | M0 Foundation | — (internal) | — | Tests, CI, SDK 58, CNG, cleanup | **Done** 2026-10-29 |
 | **M1 Redesign + local re-architecture** | **1.4.0** | iOS | Phase 1 | **Released** 2026-11-04 |
-| M2 Accounts and pairing | 1.5.0 (proposed) | iOS | Phase 2 | Planned |
+| M2 Accounts and pairing | 1.5.0 | iOS | Phase 2 | Planned |
 | M3 Studying together | 1.6.0 (proposed) | iOS | Phase 3 | Planned |
 | M4 Modes | 1.7–1.9 (proposed) | iOS | Phase 4a–4e | Planned |
 | M5 Plus | 1.10 (proposed) | iOS | Phase 5 | Planned |
@@ -68,7 +69,7 @@ Plan: [Phase 1 plan](../implementations/2026-10-29-phase1-plan.md) (approved 202
 | | D3 EN/TR: every string in English and Turkish, a raw-text check, and the in-app language choice | **Done** 2026-11-02 ([D3](../implementations/2026-11-01-phase1-d3-en-tr.md)); the copy review applied; device check passed on build 56 at the default text size and on build 58 at the largest |
 | | D4 SoundCraft sounds: focus start, break start, completion; Fly's loop re-encoded and made seamless; Classic plays the three sounds | **Done** 2026-11-02. Made on `phase1/d4-sounds` from `a739f93` ([D4](../implementations/2026-10-30-phase1-d4-sounds.md)); `scripts/sound/build.mjs --check` byte-identical; 0.85–1.1 s and 10.9–13.7 KB each; Fly 1.19 MB → 549 KB, now a seamless loop; approved by the owner on 2026-10-30 ("All approved, seamless"); merged as `362b930` and wired in `0e70b1a` ([D4 wiring](../implementations/2026-11-01-phase1-d4-wiring.md)); device check passed on builds 56 and 58: the silent switch, the music mix and the Sound switch |
 | | D5 the first-run tutorial: Pomo & Doro show you around, with their tour expressions and babble voices (`FR-ONB-001`, `FR-ONB-002`) | **Done** 2026-11-02 ([D5 assets](../implementations/2026-11-01-phase1-d5-assets.md), [D5](../implementations/2026-11-01-phase1-d5-tutorial.md)); critique 35/40, audit 18/20, HIG Excellent, motion clean; device check passed on build 58; finish verdict ship. Stage D merged into `rehaul/v2` as `96ce9dd` |
-| E — Verify and ship | E1 migration on an iPhone · E2 device checklist · E3 measurements · E4 release prep | **Released** on 2026-11-04, on build 59; B7's TTI numbers and deleting `rehaul/v2` are left ([Stage E](../implementations/2026-11-01-phase1-stage-e.md)): Stage D closed (S1–S3) and merged (M1); E1 accepted by the owner without a fresh run; E3's bytecode measured at 11.18 % over NFR-PERF-002, the owner's decision pending |
+| E — Verify and ship | E1 migration on an iPhone · E2 device checklist · E3 measurements · E4 release prep | **Released** on 2026-11-04, on build 59; B7's TTI numbers are left ([Stage E](../implementations/2026-11-01-phase1-stage-e.md)): Stage D closed (S1–S3) and merged (M1); E1 accepted by the owner without a fresh run; E3's bytecode measured at 11.18 % over NFR-PERF-002, the owner's decision pending |
 
 **Exit criteria** (the Phase 1 plan's "Phase 1 exit"):
 - the timer guards are green
@@ -83,17 +84,17 @@ Plan: [Phase 1 plan](../implementations/2026-10-29-phase1-plan.md) (approved 202
 
 ### Phase 2 — Backend, accounts and pairing · Planned
 
-From [rehaul plan §7](../implementations/2026-10-29-couples-rehaul-plan.md#7-roadmap). Requirements: FR-ACC-*, FR-PAR-*, FR-MIG-003, NFR-SEC-001, NFR-PRIV-*.
+Plan: [Phase 2 plan](../implementations/2026-11-05-phase2-plan.md) (approved 2026-11-05), which changes [rehaul plan §7](../implementations/2026-10-29-couples-rehaul-plan.md#7-roadmap). Requirements: FR-ACC-*, FR-PAR-*, FR-NTE-003, NFR-SEC-001, NFR-PRIV-*.
 
-- **Needs from you:** a Supabase project and a custom domain.
-- **Work:** the schema, RLS and pgTAP tests; anonymous sign-in, then Apple, Google or email; account deletion and data export; local-to-cloud upload; invite links and the website `/invite`; Sentry; the new privacy policy.
+- **Needs from you:** Sign in with Apple in the developer portal, and a second iPhone (the plan's §0.2). The Supabase project exists.
+- **Work:** the schema, RLS and pgTAP tests; Sign in with Apple only when pairing; pairing by code; your partner's day; notes to your partner; account deletion and data export; anonymous start-up reports with two groups; the new privacy policy. No Sentry, and a small client in place of `supabase-js` (the plan's §0.3).
 - **Inherits from Phase 1:** the pages-to-logo morph (Pomo & Doro become the Same Page mark) plays at the first pairing, reusing the v1.4 welcome screen's choreography ([Phase 1 Stage D plan](../implementations/2026-10-30-phase1-stage-d.md) §3.2.11; owner, 2026-10-30).
 
 ### Phase 3 — Shared room and presence · Planned
 
-Requirements: FR-SYN-*, FR-SOC-001, FR-NTE-003, FR-STA-007, FR-NTF-004, NFR-PERF-006.
+Requirements: FR-SYN-*, FR-SOC-001, FR-MIG-003, FR-STA-007, FR-NTF-004, NFR-PERF-006.
 
-The server-owned session engine, clock-offset sync, Realtime, server pushes, presence, intentions, cheers, partner notes and the couple streak. It is verified on two physical phones.
+The server-owned session engine, clock-offset sync, Realtime, server pushes, presence, intentions, cheers, pushes for partner notes, uploading stats history and notes, and the couple streak. It is verified on two physical phones.
 
 ### Phase 4 — Modes · Planned
 
@@ -150,6 +151,7 @@ Polish and harden passes, a Realtime load test, Maestro end-to-end tests, the re
 - [MMKV for local storage, with a one-time migration from AsyncStorage](../architecture/adr/0030-mmkv-storage.md)
 - [2026-10-29 — v2 Couples Rehaul: Plan](../implementations/2026-10-29-couples-rehaul-plan.md)
 - [Documentation system, release history and branch cleanup](../implementations/2026-10-30-documentation-system.md)
+- ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)
 - [Release process](../process/RELEASE.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Status snapshot 2026-10-30](../status/2026-10-30-status.md)

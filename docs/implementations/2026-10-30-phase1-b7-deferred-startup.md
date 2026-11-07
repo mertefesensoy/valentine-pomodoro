@@ -458,6 +458,7 @@ In the Stage B tests bullet, before "Jest runs 134 tests in 26 suites at B5", ad
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](2026-11-05-phase2-plan.md)
 - [2026-11-06 — Update check audit: why the app said "latest version 1.4.0"](2026-11-06-update-check-audit.md)
 - [2026-11-06 — 1.4.2: the update check finds new versions when they're out](2026-11-06-v142-update-check-fix.md)
+- ["Phase 2 F3: what 1.5.0 measures on real phones and on the real project"](2026-11-07-phase2-f3-measures.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)

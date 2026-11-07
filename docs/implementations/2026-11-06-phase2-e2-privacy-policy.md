@@ -97,7 +97,7 @@ None.
 - [x] The owner has read the draft.
 - [ ] **Before the submission:** someone qualified reads it, the text changes as they advise, and the owner approves it.
 - [x] The website's pull request is merged and live (its #2, `bb2acd8`). The owner: "Push, PR, merge when green (Recommended)". Read back with a cache-busting parameter: the page says "Last updated: 6 November 2026", and the home page has the new badges and no "No servers".
-- [ ] **After the first real sign-in, at F2:** the owner looks at Authentication › Users, and the sentence about email is firmed up.
+- [ ] **After the first real sign-in, at F2:** the owner looks at Authentication › Users, and the sentence about email is firmed up. So is "Your name: what you type", since on build 63 Apple supplied the name and the step was skipped.
 
 ## 7. Related Docs
 

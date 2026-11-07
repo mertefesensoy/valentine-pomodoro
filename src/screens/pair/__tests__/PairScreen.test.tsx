@@ -123,6 +123,17 @@ afterEach(() => {
     jest.spyOn(Date, 'now').mockRestore();
 });
 
+describe('inside a native form sheet', () => {
+    // Jest does no native layout, so this holds the structure: see the record of 2026-11-07.
+    it('keeps its scroll view off the chain of first children that react-native-screens searches', async () => {
+        await open({ signedIn: false });
+        const root = screen.getByTestId('pair-root', { includeHiddenElements: true });
+        const first = root.children[0] as { props: { testID?: string } };
+        expect(first.props.testID).toBe('pair-first-child');
+        expect(screen.getByTestId('pair-scroll')).toBeOnTheScreen();
+    });
+});
+
 describe('before sign-in', () => {
     it('says why, and offers Apple\'s own button and a way out', async () => {
         await open({ signedIn: false });

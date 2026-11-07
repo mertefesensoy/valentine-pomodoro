@@ -96,7 +96,7 @@ The codes come from the owner's run of `seed_review_partners()` near the submiss
 
 | Apple's data type | What it is here | Linked to you | Purpose |
 |-------------------|-----------------|---------------|---------|
-| Contact Info › Name | The name you type | Yes | App Functionality |
+| Contact Info › Name | Your first name, from Apple or as you type it | Yes | App Functionality |
 | Identifiers › User ID | The Apple identifier and account id | Yes | App Functionality |
 | User Content › Other User Content | Notes to your partner | Yes | App Functionality |
 | Usage Data › Product Interaction | Each day's focus time, sessions and goal, while paired | Yes | App Functionality |
@@ -132,7 +132,7 @@ None.
 
 - [ ] The owner reads these, and says they're right.
 - [ ] The owner sets them in App Store Connect.
-- [ ] The labels and the policy still agree with what the two-phone check found about email.
+- [x] The labels and the policy still agree with what the two-phone check found about email: "Empty, no addresses", so no email row.
 
 ## 7. Related Docs
 

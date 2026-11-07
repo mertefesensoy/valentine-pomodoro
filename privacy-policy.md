@@ -1,6 +1,6 @@
 # Valentine Pomodoro Privacy Policy
 
-**Last updated:** 6 November 2026
+**Last updated:** 7 November 2026
 
 [Türkçesi aşağıda.](#valentine-pomodoro-gizlilik-politikası)
 
@@ -32,8 +32,8 @@ Reports are deleted after 90 days. To stop them, turn off **Share start-up timin
 
 You need an account only to pair. You make it with Sign in with Apple, and we keep:
 
-- **Your Apple sign-in:** an identifier Apple creates for this app, when your account was made and when you last signed in. The sign-in system also keeps the IP address and app details of each signed-in session. We don't ask Apple for your email address. If Apple includes it anyway, it's stored here.
-- **Your name:** what you type, up to 60 characters. You can change it in Settings.
+- **Your Apple sign-in:** an identifier Apple creates for this app, when your account was made and when you last signed in. The sign-in system also keeps the IP address and app details of each signed-in session. We don't ask Apple for your email address, and we don't receive one.
+- **Your name:** the first name you let Apple share when you first sign in, or what you type, up to 60 characters. You can change it in Settings.
 - **Your time zone and language.**
 - **Your pairing:** who you're paired with, and since when.
 - **Your codes:** the 6-character code you send your partner, which lasts 24 hours. An unused code is deleted about a day after it expires, and a used one stays until you delete your account. We also count wrong codes for an hour, to limit guessing.
@@ -80,7 +80,7 @@ Questions, or anything you can't do in the app: sensoymertefe@gmail.com
 
 # Valentine Pomodoro Gizlilik Politikası
 
-**Son güncelleme:** 6 Kasım 2026
+**Son güncelleme:** 7 Kasım 2026
 
 Valentine Pomodoro, Mert Efe Şensoy'un yaptığı bir odak zamanlayıcısıdır. Bu politika, uygulamanın iPhone'da verilerinle ne yaptığını anlatır. Bazı maddeler 1.5.0 sürümüyle başlar ve bunu belirtir. 1.5.0'dan önceki sürümlerde hesap yoktur ve sunucularımıza hiçbir şey gönderilmez.
 
@@ -110,8 +110,8 @@ Raporlar 90 gün sonra silinir. Durdurmak için Ayarlar'da, Gizlilik altındaki 
 
 Hesap yalnızca eşleşmek için gerekir. Hesabı Apple ile Giriş Yap'la açarsın ve şunları saklarız:
 
-- **Apple girişin:** Apple'ın bu uygulama için oluşturduğu bir kimlik, hesabının açıldığı ve en son giriş yaptığın zaman. Giriş sistemi ayrıca açık her oturumun IP adresini ve uygulama bilgilerini tutar. Apple'dan e-posta adresini istemeyiz. Apple yine de gönderirse burada saklanır.
-- **Adın:** yazdığın ad, en fazla 60 karakter. Ayarlar'dan değiştirebilirsin.
+- **Apple girişin:** Apple'ın bu uygulama için oluşturduğu bir kimlik, hesabının açıldığı ve en son giriş yaptığın zaman. Giriş sistemi ayrıca açık her oturumun IP adresini ve uygulama bilgilerini tutar. Apple'dan e-posta adresini istemeyiz ve bize ulaşmaz.
+- **Adın:** ilk girişte Apple'ın paylaşmasına izin verdiğin ilk adın ya da yazdığın ad, en fazla 60 karakter. Ayarlar'dan değiştirebilirsin.
 - **Saat dilimin ve dilin.**
 - **Eşleşmen:** kiminle eşleştiğin ve ne zamandan beri.
 - **Kodların:** partnerine gönderdiğin, 24 saat geçerli 6 karakterlik kod. Kullanılmayan kod, süresi dolduktan yaklaşık bir gün sonra silinir; kullanılan kod, hesabını silene kadar kalır. Tahmin denemelerini sınırlamak için yanlış kodları da bir saat boyunca sayarız.

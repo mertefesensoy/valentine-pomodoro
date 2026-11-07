@@ -6,7 +6,7 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [1.5.0] - 2026-11-06
 
-*The iOS release of the v2 rehaul's Phase 2. In TestFlight, not yet released: this is the first build's date, and the release date goes here when it's out.*
+*The iOS release of the v2 rehaul's Phase 2. Submitted to App Review on 2026-11-08 (build 64), not yet released: this is the first build's date, and the release date goes here when it's out.*
 
 **What's new for you**
 

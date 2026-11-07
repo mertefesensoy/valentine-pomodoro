@@ -72,10 +72,10 @@ None. The 50 minutes are stored as `focus_ms` = 50 × 60,000 = 3,000,000.
 ## 6. Verification
 
 - [x] **A local check on PGlite, not CI:** `review_partners.test.sql` 33 of 33, and the existing `functions`, `rls` and `index_review` 80, 35 and 3, with the new migration applied. It stubs `auth.users`, so it can't prove the real table accepts the row.
-- [ ] pgTAP in CI (`supabase/tests/review_partners.test.sql`): no accounts until seeded, three codes that never expire, safe to run twice, a reviewer pairs and sees the day and the note, a real couple gets no note, a second code for a paired partner answers `partner_paired`, and nobody but `postgres` can call them.
-- [ ] The guards.
-- [ ] **A dry run on the real project, with the owner, after the deploy:** the line runs and returns three codes, Authentication › Users still loads, and `remove_review_partners()` takes them away. Nobody can reach them meanwhile, since the flag is off.
-- [ ] **On a device, at F2:** a clean install signs in, types a code, sees "Review Partner", pairs, sees the day, and gets the note after a focus.
+- [x] pgTAP in CI (`supabase/tests/review_partners.test.sql`): no accounts until seeded, three codes that never expire, safe to run twice, a reviewer pairs and sees the day and the note, a real couple gets no note, a second code for a paired partner answers `partner_paired`, and nobody but `postgres` can call them.
+- [x] The guards.
+- [x] **A dry run on the real project, with the owner, after the deploy,** marked as working on build 64 (`r-seed`, `r-remove`), and the server counted the seed's calls: the line runs and returns three codes, Authentication › Users still loads, and `remove_review_partners()` takes them away. Nobody can reach them meanwhile, since the flag is off.
+- [ ] **On a device, at F2, moved to F5:** the owner's `r-pair` and `r-note` are marked as working, but the server has no record of that pairing ([F2's record](2026-11-06-phase2-f2-testflight.md)). A clean install signs in, types a code, sees "Review Partner", pairs, sees the day, and gets the note after a focus.
 
 ## 7. Related Docs
 

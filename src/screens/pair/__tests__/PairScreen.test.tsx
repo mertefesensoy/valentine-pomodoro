@@ -155,12 +155,115 @@ describe('the plane scene', () => {
         }
     };
 
-    it('fills the space on the sign-in step and the code step, hidden from VoiceOver', async () => {
+    it('shows on the sign-in step, hidden from VoiceOver and taking no touches', async () => {
         await onPhone(async () => {
             await open({ signedIn: false });
             expect(scene()!.props.accessibilityElementsHidden).toBe(true);
+            expect(scene()!.props.pointerEvents).toBe('none');
             await given(300);
             expect(art()).not.toBeNull();
+        });
+    });
+
+    it('shows on the code step', async () => {
+        await onPhone(async () => {
+            mockHome = NAMED;
+            await open({ signedIn: true });
+            await given(300);
+            expect(art()).not.toBeNull();
+        });
+    });
+
+    // Jest does no layout, so this holds the structure: art with a size of its own would hold the slot open.
+    it('can\'t hold its slot open: the art is out of the flow, and the slot clips it', async () => {
+        await onPhone(async () => {
+            await open({ signedIn: false });
+            await given(300);
+            expect(StyleSheet.flatten(art()!.props.style).position).toBe('absolute');
+            expect(StyleSheet.flatten(scene()!.props.style)).toMatchObject({ flex: 1, overflow: 'hidden' });
+        });
+    });
+
+    it('goes when the space shrinks under the limit', async () => {
+        await onPhone(async () => {
+            await open({ signedIn: false });
+            await given(300);
+            expect(art()).not.toBeNull();
+            await given(90);
+            expect(art()).toBeNull();
+        });
+    });
+
+    it('leaves out the name step, which has the keyboard', async () => {
+        await onPhone(async () => {
+            mockHome = NAMELESS;
+            await open({ signedIn: true });
+            expect(screen.getByText('What should your partner call you?')).toBeOnTheScreen();
+            expect(scene()).toBeNull();
+        });
+    });
+
+    it('leaves out who-it-is, which already draws the pair', async () => {
+        await onPhone(async () => {
+            mockHome = NAMED;
+            mockPreview.mockResolvedValue({ inviterName: 'Deniz' });
+            await open({ signedIn: true });
+            expect(scene()).not.toBeNull();
+            await fireEvent.changeText(screen.getByLabelText(CODE_FIELD), 'H4TW9B');
+            await flush();
+            expect(screen.getByText('Pair with Deniz')).toBeOnTheScreen();
+            expect(scene()).toBeNull();
+        });
+    });
+
+    it('leaves out the morph, which has the mark', async () => {
+        await onPhone(async () => {
+            mockHome = PAIRED;
+            await open({ signedIn: true });
+            expect(scene()).toBeNull();
+        });
+    });
+
+    it('leaves out a landscape iPhone, where Pomo stays on the page', async () => {
+        const was = Dimensions.get('window');
+        const landscape = { width: 852, height: 393, scale: 3, fontScale: 1 };
+        await act(async () => Dimensions.set({ window: landscape, screen: landscape }));
+        try {
+            await open({ signedIn: false });
+            expect(scene()).toBeNull();
+            expect(screen.getByTestId('pair-page-pomo', { includeHiddenElements: true })).toBeTruthy();
+        } finally {
+            await act(async () => Dimensions.set({ window: was, screen: was }));
+        }
+    });
+
+    it('leaves out someone back with a partner on this phone, whose pages hold the pair', async () => {
+        await onPhone(async () => {
+            await act(async () => usePartnerGlance.setState({ glance: { coupleId: 'c', name: 'Deniz', today: null, updatedAt: null, fetchedAt: 0 }, gone: null }));
+            await open({ signedIn: true, sessionEnded: true });
+            expect(scene()).toBeNull();
+            expect(screen.getByTestId('pair-page-pomo', { includeHiddenElements: true })).toBeTruthy();
+            await act(async () => usePartnerGlance.setState({ glance: null, gone: null }));
+        });
+    });
+
+    it('moves Pomo off the page only where the scene draws them', async () => {
+        await onPhone(async () => {
+            await open({ signedIn: false });
+            expect(screen.queryByTestId('pair-page-pomo', { includeHiddenElements: true })).toBeNull();
+        });
+    });
+
+    it('stops the sheet being dragged while typing a code, and lets it go after', async () => {
+        await onPhone(async () => {
+            mockHome = NAMED;
+            await open({ signedIn: true });
+            const scroll = () => screen.getByTestId('pair-scroll');
+            expect(scroll().props.scrollEnabled).toBe(true);
+            await act(async () => screen.getByLabelText(CODE_FIELD).props.onFocus());
+            expect(scroll().props.scrollEnabled).toBe(false);
+            await act(async () => screen.getByLabelText(CODE_FIELD).props.onBlur());
+            expect(scroll().props.scrollEnabled).toBe(true);
         });
     });
 
@@ -172,9 +275,10 @@ describe('the plane scene', () => {
         });
     });
 
-    it('steps aside at the largest text sizes', async () => {
+    it('steps aside at the largest text sizes, where Pomo stays on the page', async () => {
         await open({ signedIn: false });
         expect(scene()).toBeNull();
+        expect(screen.getByTestId('pair-page-pomo', { includeHiddenElements: true })).toBeTruthy();
     });
 });
 

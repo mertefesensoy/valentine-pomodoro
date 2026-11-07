@@ -11,7 +11,7 @@ describe('planeScale', () => {
         expect(planeScale(800, 900)).toBe(1.3);
     });
 
-    it('can still draw the smallest space it accepts, at a size that reads', () => {
-        expect(planeScale(361, MIN_SCENE_HEIGHT)).toBeGreaterThan(0.4);
+    it('scales to the smallest space it accepts', () => {
+        expect(planeScale(361, MIN_SCENE_HEIGHT)).toBeCloseTo(MIN_SCENE_HEIGHT / 280);
     });
 });

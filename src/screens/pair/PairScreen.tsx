@@ -444,6 +444,8 @@ export default function PairScreen() {
 
     // Someone whose session ended, with a partner on this phone: the pages hold the pair, as they did.
     const backWithPartner = returning && lastGlance !== null;
+    // With no scene, at the largest text sizes and on a landscape iPhone, Pomo stays on your page.
+    const pagesHoldPomo = backWithPartner || stacked || !pinned;
     let body: ReactNode;
     let actions: ReactNode;
     if (view === 'morph') {
@@ -461,12 +463,12 @@ export default function PairScreen() {
             <>
                 <Spread
                     stacked={stacked}
-                    pageMinHeight={backWithPartner ? undefined : SIGNIN_PAGE_HEIGHT}
+                    pageMinHeight={pagesHoldPomo ? undefined : SIGNIN_PAGE_HEIGHT}
                     left={
                         <View style={styles.pageInner}>
                             <Text style={[styles.who, { color: tokens.inkSoft }]}>{t('pair.you')}</Text>
-                            {backWithPartner ? (
-                                <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                            {pagesHoldPomo ? (
+                                <View testID="pair-page-pomo" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
                                     <PoseSticker who="pomo" pose="idle" width={STICKER} shadow={tokens.stickerShadow} />
                                 </View>
                             ) : (
@@ -689,7 +691,9 @@ export default function PairScreen() {
                 <ScrollView
                     testID="pair-scroll"
                     style={styles.root}
-                    contentContainerStyle={[styles.content, { paddingLeft: gutterLeft, paddingRight: gutterRight }]}
+                    contentContainerStyle={[styles.content, showScene && styles.contentFill, { paddingLeft: gutterLeft, paddingRight: gutterRight }]}
+                    // Filling the sheet leaves room to drag once the keyboard adds its inset, which would take the title away.
+                    scrollEnabled={!(showScene && typing)}
                     keyboardShouldPersistTaps="handled"
                     automaticallyAdjustKeyboardInsets
                     bounces={false}
@@ -706,7 +710,11 @@ export default function PairScreen() {
                         </Animated.View>
                         {!pinned && actionsBlock}
                     </View>
-                    {showScene && <PlaneScene tokens={tokens} />}
+                    {showScene && (
+                        <Animated.View key="plane-scene" entering={STEP_IN} exiting={STEP_OUT} style={styles.sceneSlot}>
+                            <PlaneScene tokens={tokens} />
+                        </Animated.View>
+                    )}
                 </ScrollView>
                 {pinned && <View style={[styles.pinned, { paddingBottom: Math.max(insets.bottom, space.l) }]}>{actionsBlock}</View>}
             </View>
@@ -717,8 +725,10 @@ export default function PairScreen() {
 const styles = StyleSheet.create({
     root: { flex: 1 },
     firstChild: { position: 'absolute', width: 0, height: 0 },
-    // flexGrow lets the plane scene take whatever height the steps leave.
-    content: { flexGrow: 1, paddingTop: space.m, paddingBottom: space.xl, gap: space.m },
+    content: { paddingTop: space.m, paddingBottom: space.xl, gap: space.m },
+    // Only with the plane scene, which takes whatever height the step leaves.
+    contentFill: { flexGrow: 1 },
+    sceneSlot: { flex: 1 },
     head: { minHeight: minTarget, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: minTarget },
     title: { fontSize: 17, fontWeight: '600', textAlign: 'center' },
     closeCorner: { position: 'absolute', right: 0, top: 4 },

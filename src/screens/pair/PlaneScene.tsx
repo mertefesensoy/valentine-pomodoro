@@ -29,6 +29,10 @@ export function planeScale(width: number, height: number): number {
  *
  *   in : `tokens`. It measures its own space, which only a flex slot in the parent can give it.
  *   out: nothing until it has measured, and nothing under `MIN_SCENE_HEIGHT`.
+ *
+ * The art is positioned absolutely, so it can never hold the slot open. A slot whose child sets its height stays at
+ * that height once the content grows, overflowing past the buttons (the finish review, in Yoga; D1's Ring in builds
+ * 51 to 55). The clip covers the one layout pass where the old art is taller than the new space.
  */
 export function PlaneScene({ tokens }: { tokens: ThemeTokens }) {
     const [space, setSpace] = useState<{ width: number; height: number } | null>(null);
@@ -38,6 +42,7 @@ export function PlaneScene({ tokens }: { tokens: ThemeTokens }) {
     };
     const scale = space ? planeScale(space.width, space.height) : 0;
     const shows = space !== null && space.height >= MIN_SCENE_HEIGHT;
+    const artWidth = PLANE_ARTBOARD.w * scale;
     const mascot = (x: number, y: number) => ({
         left: (x - MASCOT.width / 2) * scale,
         top: (y - MASCOT.width / 2) * scale,
@@ -52,13 +57,16 @@ export function PlaneScene({ tokens }: { tokens: ThemeTokens }) {
             pointerEvents="none"
         >
             {shows && (
-                <View testID="pair-scene-art" style={{ width: PLANE_ARTBOARD.w * scale, height: PLANE_ARTBOARD.h * scale }}>
+                <View
+                    testID="pair-scene-art"
+                    style={[styles.art, { left: (space.width - artWidth) / 2, width: artWidth, height: PLANE_ARTBOARD.h * scale }]}
+                >
                     <Svg width="100%" height="100%" viewBox={`0 0 ${PLANE_ARTBOARD.w} ${PLANE_ARTBOARD.h}`}>
                         <Path d={planeArt.route} fill={tokens.edgeStrong} />
                         <Path d={planeArt.heartBig} fill={tokens.accent} />
                         <Path d={planeArt.heartSmall} fill={tokens.primary} />
-                        <Path d={planeArt.planeLow} fill={tokens.primarySoft} stroke={tokens.edgeStrong} strokeWidth={EDGE} strokeLinejoin="round" />
-                        <Path d={planeArt.planeTop} fill={tokens.paper} stroke={tokens.edgeStrong} strokeWidth={EDGE} strokeLinejoin="round" />
+                        <Path d={planeArt.planeLow} fill={tokens.primarySoft} stroke={tokens.edgeStrong} strokeWidth={EDGE / scale} strokeLinejoin="round" />
+                        <Path d={planeArt.planeTop} fill={tokens.paper} stroke={tokens.edgeStrong} strokeWidth={EDGE / scale} strokeLinejoin="round" />
                     </Svg>
                     <View style={[styles.mascot, mascot(MASCOT.pomo.x, MASCOT.pomo.y)]}>
                         <Sticker art={pomoIdle} width={MASCOT.width * scale} shadow={tokens.stickerShadow} />
@@ -73,6 +81,7 @@ export function PlaneScene({ tokens }: { tokens: ThemeTokens }) {
 }
 
 const styles = StyleSheet.create({
-    slot: { flex: 1, alignItems: 'center', justifyContent: 'flex-end' },
+    slot: { flex: 1, overflow: 'hidden' },
+    art: { position: 'absolute', bottom: 0 },
     mascot: { position: 'absolute' },
 });

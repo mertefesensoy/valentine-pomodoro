@@ -37,9 +37,9 @@ They asked for "a design improvement with VectorCraft". Of three sketched direct
 
 **The drawing.** `scripts/art/pair-plane.mjs sources` writes one SVG per colour on a 361 × 280 artboard: the route, the plane's two wings and two hearts. `node scripts/art/build.mjs art/jobs/pair.json` exports them through VectorCraft, into the committed `.vectorcraft` sources and SVGs, and `pair-plane.mjs module` writes their paths into `planeArt.ts`. **Only that job runs:** a bare `build.mjs` would re-export every approved asset with VectorCraft 0.21, whose bytes differ, which is the failure another session owns.
 
-**The scene.** `PlaneScene` is a flex slot at the end of the scroll view's content, whose `contentContainerStyle` now has `flexGrow: 1`. The slot takes whatever height the step leaves, measures itself, and scales the artboard to fit, sitting at the bottom. Nothing inside it has a size of its own, so it can't push the content into scrolling. That avoids the trap of a flex slot whose child sets its height.
+**The scene.** `PlaneScene` is a flex slot at the end of the scroll view's content, whose `contentContainerStyle` has `flexGrow: 1` only while the scene shows. The slot takes whatever height the step leaves, measures itself, and scales the artboard to fit, sitting at the bottom. **The art is positioned absolutely, and the slot clips it,** so the art can't hold the slot open when the content above grows. That's the trap of a flex slot whose child sets its height, D1's Ring in builds 51 to 55, and the first version of this scene fell into it. The scene crossfades with the steps, and the sheet doesn't scroll while a code is being typed, because filling the sheet leaves a scroll range once the keyboard adds its inset.
 
-**Who's drawn where.** Pomo and Doro use the existing `pomoIdle` and `doroIdle` stickers, so they lift and add no art. The sign-in step's pages drop to 120 pt with one dashed cell each. **One exception:** someone whose session has ended with a partner on this phone keeps the pair on the pages, as before, and no scene, since it's rare and the pages there say who's who.
+**Who's drawn where.** Pomo and Doro use the existing `pomoIdle` and `doroIdle` stickers, so they lift and add no art. The sign-in step's pages drop to 120 pt with one dashed cell each. **Where there's no scene,** at the largest text sizes and on a landscape iPhone, Pomo stays on your page at the normal height, as before. Someone whose session has ended with a partner on this phone keeps the pair on the pages, and no scene, since it's rare and the pages there say who's who.
 
 **When it's left out:** font scale 1.6 and up, a landscape iPhone, under 120 pt, the who-it-is step, which already draws the pair, the name step, which has the keyboard, and the morph.
 
@@ -56,15 +56,24 @@ The scene's scale is $s = \min(W/361,\ H/280,\ 1.3)$, for a slot of $W \times H$
 | A paper plane. The owner: "2. A paper plane between you" | The diary filling the sheet; the pair holding it up | The owner's choice from the sketches |
 | Still for now. The owner: "Still plane now, flight after (Recommended)" | Flying when the code is sent | Build 64 carries a fix nobody has seen yet, and a flight can only be judged on a phone |
 | One source per colour, drawn at run time in tokens | A sticker with fixed fills, through `build-icon-components.mjs` | That pipeline fixes fills or takes one ink, and this has four tokens and two themes. **A deviation from ADR-0027's "themes remap global swatches":** the provenance stays in VectorCraft, and the theming is at render, as `Spread` already is |
-| 11 KB of bytecode for the route's dots as exported | Storing the dots' centres and building the path at run time | About 6 KB less, but it would break the line from the export to the module, and 40 KB is left |
+| The art out of the flow | The slot sized by the art, as first built | Real Yoga, in the finish review: overflow on an iPhone SE at every sign-in, with the mascots clipped at the buttons, and the 120 pt rule never firing once the art had drawn |
+| Pomo stays on the page with no scene | Leaving the pages empty there | The first version left two dashed cells and no character at the largest text sizes, an unforced regression from build 63 |
+| 11 KB of bytecode for the route's dots as exported | Storing the dots' centres and building the path at run time | About 6 KB less, but it would break the line from the export to the module, and about 40 KB is left |
 
 ## 6. Verification
 
-- [x] `npx tsc --noEmit`, lint with 0 errors, contrast, and `npx jest --ci`: 91 suites and 937 tests.
+- [x] `npx tsc --noEmit`, lint with 0 errors, contrast, and `npx jest --ci`: 91 suites and 947 tests.
 - [x] `node scripts/art/check-budgets.mjs`: 138 assets, none over.
-- [x] Bytecode: 4,599,608 B, which is 10,896 B for this, and leaves 40,392 B of NFR-PERF-002.
-- [x] A true-size mockup from the real exports, on three phones and in both themes: on a 393 pt iPhone the scene has about 315 pt, on a Pro Max about 395, and on an iPhone SE about 130.
-- [ ] The finish reviewer, from code.
+- [x] Bytecode: 4,600,208 B, which is 11,496 B for this, and leaves 39,792 B of NFR-PERF-002.
+- [x] A true-size mockup from the real exports, on three phones and in both themes. From the styles, a 393 pt iPhone has about 343 pt of room at sign-in and 314 at the code step. An iPhone SE has about 158 and 129, depending on its real sheet height, so whether 120 pt is the right limit is for the device.
+- [x] The finish reviewer, from code, at `9de1363`: critique 30/40 and native audit 15/20, under NFR-UX-003's 16/20, disposition fix. It ran the layout in real Yoga with RN's errata on. Its fixes, all applied:
+  - The art held its slot open, so the content overflowed on small iPhones.
+  - The scene cut while everything else crossfaded.
+  - The largest text sizes and a landscape iPhone lost the pair altogether.
+  - `flexGrow` opened a scroll range under the keyboard, on every step.
+  - The tests claimed more than they proved: now every state where the scene is absent has one, and so do the structure and `pointerEvents`.
+  - The docs still described the old pages, and the plane's edge scaled with the art.
+  - The route stopped well above Doro.
 - [ ] **On a device, build 64:** how it looks on every phone size, in both themes; the jump in its size from the sign-in step to the code step; and nothing about it getting in the way of typing a code.
 
 ## 7. Related Docs

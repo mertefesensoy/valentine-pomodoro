@@ -9,11 +9,11 @@ related: [SRS, ARCHITECTURE, IMPL-2026-10-29-couples-rehaul-plan, IMPL-2026-10-2
 
 # Roadmap
 
-**Where we are (2026-11-05):**
+**Where we are (2026-11-06):**
 - Phase 2 (v1.5.0) has an approved [plan](../implementations/2026-11-05-phase2-plan.md), and a new session is building it.
 - Phase 0 is done.
 - Phase 1 (v1.4.0, iOS): Stage A is done. B1, B1b and B2 are done, and their device check passed on TestFlight build 43. B3 is done, and its device check passed on TestFlight build 44. B4 and B5 are done and pushed, and their device check passed on TestFlight build 45 (2026-10-30). B6 and B7 are done and merged into `rehaul/v2` (2026-10-30); On TestFlight build 46 (2026-10-30) B7's device check passed, but B6's failed two items: tab switches flicker, and the tab bar turns dark on Notes in light mode. The B6 fix (`63f1db2`) and the Settings keyboard fix (DEF-008) passed their device check on TestFlight build 47 (2026-10-30); B7's TTI numbers are still to be recorded. Stage C (design, C1–C5) is done, approved by the owner at every gate, and merged into `rehaul/v2` (2026-10-30). The brand kit (`brand/`: marks, lockups, app icons, characters, web and guide files in SVG, PNG, PDF and EPS, CC BY-ND 4.0) is done (2026-10-30). Stage D (the screens in the Sticker Diary design, D1–D5) is done: each task shipped on its finish verdict and the owner's device check through TestFlight build 58 (`v1.4.0-tf.58`). The owner closed the stage on 2026-11-02, and it merged into `rehaul/v2` as `96ce9dd` the same day. Stage E shipped it: 1.4.0 went live on the App Store on 2026-11-04, on build 59 (`v1.4.0`). B7's TTI numbers are what's left of the stage.
-- The App Store has v1.4.1 (build 61, live 2026-11-05), a patch with DEF-009's fix; 1.4.0 (build 59) went live on 2026-11-04. Android stays on 1.3.1.
+- The App Store has v1.4.2 (build 62, live 2026-11-06), a patch that [fixes the update check](../implementations/2026-11-06-v142-update-check-fix.md); 1.4.1 (build 61) went live on 2026-11-05 with DEF-009's fix, and 1.4.0 (build 59) on 2026-11-04. Android stays on 1.3.1.
 
 This page is the **single status board**. Each phase links to its plan, which holds the task detail; each task's "done" evidence lives in its implementation record. **Update the status here in the same commit as the work.** Requirements per phase are in the [SRS](../srs/SRS.md) (field `Target`).
 

@@ -36,7 +36,7 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [1.4.2] - 2026-11-06
 
-*An iOS patch, dated by its EAS production build (UTC), built from `v1.4.1` rather than from `master`, which holds 1.5.0's unreleased work. Android stays on 1.3.1.*
+*An iOS patch: TestFlight build 62, live on the App Store on 2026-11-06 at 19:20 UTC, dated by its EAS production build (UTC), built from `v1.4.1` rather than from `master`, which holds 1.5.0's unreleased work. Android stays on 1.3.1.*
 
 ### Fixed
 
@@ -46,6 +46,12 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 ### Changed
 
 - **An update prompt no longer lands on a running timer.** It waits, and the app asks again the next time you come back. "Check for updates" always answers (a317109).
+
+## [1.4.2-tf.62] - 2026-11-06
+
+*iOS TestFlight build 62, the release candidate, a pre-release and not a store release, source e76d6bd. Built with EAS (build f71942e6) and uploaded to App Store Connect for TestFlight (submission 13012651); device check on a physical iPhone, 2026-11-06: passed, as reported by the owner.*
+
+Its changes are listed under [1.4.2].
 
 ## [1.4.1] - 2026-11-05
 

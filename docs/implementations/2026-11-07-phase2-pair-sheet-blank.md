@@ -61,6 +61,11 @@ None.
 |----------|------------------------|--------------|
 | An empty first child | The scroll view as a direct child, beside the buttons (the library's case 1) | Case 1 sizes it to the whole sheet, under the buttons. The scroll view would then need padding as tall as the measured buttons, and more of the layout would rest on the library |
 | Nothing else changes | Reordering so the buttons come first | VoiceOver reads in view order, so it would read the buttons before the title |
+| If build 64 is still blank, the library's own footer (`unstable_sheetFooter`) with the scroll view as root | Doing that now | It's a refactor, since the footer renders outside the screen's state. It waits until the simple fix has been tried |
+
+**What this costs:** the same search feeds `RNSScrollEdgeEffectApplicator`, so this sheet doesn't get iOS 26's scroll-edge effect. Its content rarely scrolls, so that's small.
+
+**What else the owner's answers showed:** "No, it skipped that". Apple sends a name at an Apple ID's first sign-in, so the name step didn't appear. It'll first show on a device when someone signs in again after deleting their account, since Apple sends a name only once. E2's policy says "Your name: what you type", which needs firming up along with its sentence about email.
 
 ## 6. Verification
 

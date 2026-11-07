@@ -97,6 +97,7 @@ None.
 - [x] The owner has read the draft.
 - [ ] **Before the submission:** someone qualified reads it, the text changes as they advise, and the owner approves it.
 - [x] The website's pull request is merged and live (its #2, `bb2acd8`). The owner: "Push, PR, merge when green (Recommended)". Read back with a cache-busting parameter: the page says "Last updated: 6 November 2026", and the home page has the new badges and no "No servers".
+- [x] **On the Free plan (plan §0.4):** the sentence about backups is removed in both languages, on the website too, since Free has none. The owner: "Remove, push, merge (Recommended)".
 - [x] **After the first real sign-in, at F2:** the owner looked at Authentication › Users on build 64: "Empty, no addresses". Sign-in only asks Apple for the name (`appleSignIn.ts`), so the sentence about email is firmed up to say we don't receive one. "Your name" now says Apple can supply it, since on build 63 it did and the step was skipped.
 
 ## 7. Related Docs

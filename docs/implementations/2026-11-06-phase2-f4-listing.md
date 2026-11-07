@@ -76,11 +76,11 @@ The codes come from the owner's run of `seed_review_partners()` near the submiss
 > You don't need an account for the timer, stats and notes. An account is needed only to pair with a partner, using Sign in with Apple.
 >
 > To test pairing, we've set up demo partners, since pairing takes two people:
-> 1. On the Timer, tap "Pair with your partner", and sign in with Apple. You can then enter any name.
+> 1. On the Timer, tap "Pair with your partner", and sign in with Apple. If it asks for a name, enter any name.
 > 2. Tap the right-hand page and type this code: <CODE-1>. Each code works once, so use <CODE-2> or <CODE-3> if you need another.
 > 3. You see "Review Partner". Tap Pair.
 > 4. The Timer now shows Review Partner's day. Tap it to see their day and to write them a note.
-> 5. Finish a focus. To make that quick, set Focus to 1 minute in Settings › Timer. A sample note from Review Partner appears afterwards. Nobody reads or answers the notes you send to it.
+> 5. Finish a focus. To make that quick, set Focus to 1 minute in Settings › Timer, and choose Custom on the Timer. A sample note from Review Partner appears afterwards. Nobody reads or answers the notes you send to it.
 >
 > Account deletion (Guideline 5.1.1(v)): Settings › Account › Delete account. It asks you to confirm, then Apple asks, then the account is deleted at once and its Apple token is revoked. Download my data and Unpair are in the same place.
 >

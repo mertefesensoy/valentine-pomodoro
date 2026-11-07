@@ -49,7 +49,7 @@ Data travels encrypted, and the database's rules keep it between you and your pa
 All three are in Settings.
 
 - **Unpair.** You stop seeing each other's days, and the notes between you are deleted. You each keep your own days.
-- **Delete account.** Your name, days, codes, pairing and the notes between you and your partner are deleted straight away, and we ask Apple to revoke this app's sign-in. Your partner keeps their own days, and sees that you've gone. Backups can hold deleted data for up to 7 days, until they expire. The timer, stats and notes on your phone stay.
+- **Delete account.** Your name, days, codes, pairing and the notes between you and your partner are deleted straight away, and we ask Apple to revoke this app's sign-in. Your partner keeps their own days, and sees that you've gone. The timer, stats and notes on your phone stay.
 - **Download my data.** Gives you a JSON file with your profile, your pairing date and your partner's name, your days, and the notes you wrote and received.
 
 We keep an account until you delete it. If you can't get into the app, write to us.
@@ -127,7 +127,7 @@ Veriler şifreli olarak iletilir ve veritabanının kuralları bunları senin ve
 Üçü de Ayarlar'dadır.
 
 - **Eşleşmeyi kaldır.** Birbirinizin gününü artık göremezsiniz ve aranızdaki notlar silinir. İkiniz de kendi günlerinizi saklarsınız.
-- **Hesabı sil.** Adın, günlerin, kodların, eşleşmen ve partnerinle aranızdaki notlar hemen silinir ve Apple'dan bu uygulamanın giriş iznini iptal etmesini isteriz. Partnerin kendi günlerini saklar ve ayrıldığını görür. Silinen veriler, yedeklerin süresi dolana kadar en fazla 7 gün yedeklerde kalabilir. Telefonundaki zamanlayıcın, istatistiklerin ve notların kalır.
+- **Hesabı sil.** Adın, günlerin, kodların, eşleşmen ve partnerinle aranızdaki notlar hemen silinir ve Apple'dan bu uygulamanın giriş iznini iptal etmesini isteriz. Partnerin kendi günlerini saklar ve ayrıldığını görür. Telefonundaki zamanlayıcın, istatistiklerin ve notların kalır.
 - **Verilerimi indir.** Profilini, eşleşme tarihini ve partnerinin adını, günlerini, yazdığın ve aldığın notları içeren bir JSON dosyası verir.
 
 Hesabını silene kadar saklarız. Uygulamaya giremiyorsan bize yaz.

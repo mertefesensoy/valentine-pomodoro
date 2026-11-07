@@ -40,7 +40,6 @@ import { usePartnerGlance } from '../../server/partnerGlance';
 import { fetchHome, HOME_KEY, homeClient } from '../../server/home';
 import { useTheme } from '../../theme/useTheme';
 import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
-import { PoseSticker } from '../classic/PoseSticker';
 import { useTourMoveOnClose } from '../tutorial/useTour';
 import { ASPECT, DURATION, linePose } from '../welcome/choreography';
 import { MorphArt, MorphCharacters, useMorphHaptic } from '../welcome/MorphStage';
@@ -59,6 +58,8 @@ import {
     wasCelebrated,
     type ProblemStatus,
 } from './pairing';
+import { PoseSticker } from '../classic/PoseSticker';
+import { PlaneScene } from './PlaneScene';
 import { Page, Spread } from './Spread';
 
 const STORE_URL = 'https://apps.apple.com/app/id6757491918';
@@ -69,6 +70,8 @@ const COMPACT_HEIGHT = 500;
 const SIDE_MAIN = 6;
 const SIDE_ACTIONS = 5;
 const STICKER = 72;
+/** The pages before sign-in hold a label and a cell each, so they give the room to the scene. */
+const SIGNIN_PAGE_HEIGHT = 120;
 const PILL_HEIGHT = 56;
 
 /** On this frame of the welcome's timeline the pair have landed on the open spread, in their joyful pose. */
@@ -224,6 +227,9 @@ export default function PairScreen() {
     else if (me && !me.display_name) view = 'name';
     else view = step;
 
+    // The field can go with no blur, when a check moves on or a session ends, and the flag mustn't outlive it.
+    if (typing && view !== 'pages') setTyping(false);
+
     const stacked = fontScale >= STACK_FONT_SCALE;
     const sideBySide = height < COMPACT_HEIGHT;
     const pinned = !sideBySide && view !== 'name';
@@ -357,8 +363,6 @@ export default function PairScreen() {
         // A sheet that opened on a couple since gone is at the timeline's end, where Pomo & Doro aren't drawn.
         p.set(MORPH_START_MS);
         hapticArmed.set(false);
-        // The field is about to unmount, and its blur wouldn't reach us.
-        setTyping(false);
         setInviterName(result.inviterName);
         setStep('confirm');
     };
@@ -439,6 +443,10 @@ export default function PairScreen() {
         </View>
     );
 
+    // Someone whose session ended, with a partner on this phone: the pages hold the pair, as they did.
+    const backWithPartner = returning && lastGlance !== null;
+    // With no scene, at the largest text sizes and on a landscape iPhone, Pomo stays on your page.
+    const pagesHoldPomo = backWithPartner || stacked || !pinned;
     let body: ReactNode;
     let actions: ReactNode;
     if (view === 'morph') {
@@ -456,12 +464,17 @@ export default function PairScreen() {
             <>
                 <Spread
                     stacked={stacked}
+                    pageMinHeight={pagesHoldPomo ? undefined : SIGNIN_PAGE_HEIGHT}
                     left={
                         <View style={styles.pageInner}>
                             <Text style={[styles.who, { color: tokens.inkSoft }]}>{t('pair.you')}</Text>
-                            <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-                                <PoseSticker who="pomo" pose="idle" width={STICKER} shadow={tokens.stickerShadow} />
-                            </View>
+                            {pagesHoldPomo ? (
+                                <View testID="pair-page-pomo" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                                    <PoseSticker who="pomo" pose="idle" width={STICKER} shadow={tokens.stickerShadow} />
+                                </View>
+                            ) : (
+                                <DashedCell />
+                            )}
                         </View>
                     }
                     right={
@@ -469,7 +482,7 @@ export default function PairScreen() {
                             <Text style={[styles.who, { color: tokens.inkSoft }]} numberOfLines={2}>
                                 {lastGlance ? lastPartner : t('pair.partner')}
                             </Text>
-                            {returning && lastGlance ? (
+                            {backWithPartner ? (
                                 <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
                                     <PoseSticker who="doro" pose="idle" width={STICKER} shadow={tokens.stickerShadow} />
                                 </View>
@@ -479,8 +492,11 @@ export default function PairScreen() {
                         </View>
                     }
                 />
-                <Text style={[styles.why, { color: tokens.ink }]}>{t(returning ? 'pair.returnWhy' : 'pair.why')}</Text>
-                {signingIn && <ActivityIndicator color={tokens.inkSoft} accessibilityLabel={t('pair.signingIn')} />}
+                <View>
+                    <Text style={[styles.why, { color: tokens.ink }]}>{t(returning ? 'pair.returnWhy' : 'pair.why')}</Text>
+                    {/* Out of the flow: in it, pressing Apple's button would shrink the plane on a small iPhone. */}
+                    {signingIn && <ActivityIndicator style={styles.signingIn} color={tokens.inkSoft} accessibilityLabel={t('pair.signingIn')} />}
+                </View>
                 {signInProblem && <Text style={[styles.problem, { color: tokens.ink }]}>{signInProblem}</Text>}
             </>
         );
@@ -654,6 +670,8 @@ export default function PairScreen() {
         );
     }
 
+    // Who-it-is already draws the pair, the name step has the keyboard, and the morph has the mark.
+    const showScene = (view === 'pages' || (view === 'signin' && !backWithPartner)) && pinned && !stacked;
     const centred = view === 'morph';
     const actionsBlock = (
         <Animated.View
@@ -677,7 +695,9 @@ export default function PairScreen() {
                 <ScrollView
                     testID="pair-scroll"
                     style={styles.root}
-                    contentContainerStyle={[styles.content, { paddingLeft: gutterLeft, paddingRight: gutterRight }]}
+                    contentContainerStyle={[styles.content, showScene && styles.contentFill, { paddingLeft: gutterLeft, paddingRight: gutterRight }]}
+                    // Filling the sheet leaves room to drag once the keyboard adds its inset, which would take the title away.
+                    scrollEnabled={!(showScene && typing)}
                     keyboardShouldPersistTaps="handled"
                     automaticallyAdjustKeyboardInsets
                     bounces={false}
@@ -694,6 +714,11 @@ export default function PairScreen() {
                         </Animated.View>
                         {!pinned && actionsBlock}
                     </View>
+                    {showScene && (
+                        <Animated.View key="plane-scene" testID="pair-scene-slot" entering={STEP_IN} exiting={STEP_OUT} style={styles.sceneSlot}>
+                            <PlaneScene tokens={tokens} />
+                        </Animated.View>
+                    )}
                 </ScrollView>
                 {pinned && <View style={[styles.pinned, { paddingBottom: Math.max(insets.bottom, space.l) }]}>{actionsBlock}</View>}
             </View>
@@ -705,6 +730,9 @@ const styles = StyleSheet.create({
     root: { flex: 1 },
     firstChild: { position: 'absolute', width: 0, height: 0 },
     content: { paddingTop: space.m, paddingBottom: space.xl, gap: space.m },
+    // Only with the plane scene, which takes whatever height the step leaves.
+    contentFill: { flexGrow: 1 },
+    sceneSlot: { flex: 1 },
     head: { minHeight: minTarget, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: minTarget },
     title: { fontSize: 17, fontWeight: '600', textAlign: 'center' },
     closeCorner: { position: 'absolute', right: 0, top: 4 },
@@ -725,6 +753,8 @@ const styles = StyleSheet.create({
     mini: { fontSize: 13, lineHeight: 18, textAlign: 'center' },
     pageProblem: { fontSize: 13, lineHeight: 18, fontWeight: '500', textAlign: 'center' },
     why: { fontSize: 17, lineHeight: 23 },
+    // Below the sentence, in what the content leaves under it: the gap to the scene, or its bottom padding.
+    signingIn: { position: 'absolute', top: '100%', alignSelf: 'center', marginTop: space.xs },
     note: { fontSize: 13, lineHeight: 18 },
     problem: { fontSize: 15, lineHeight: 20, fontWeight: '500' },
     question: { fontSize: 17, lineHeight: 23, fontWeight: '600' },

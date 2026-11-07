@@ -134,6 +134,50 @@ describe('inside a native form sheet', () => {
     });
 });
 
+describe('the plane scene', () => {
+    const scene = () => screen.queryByTestId('pair-scene', { includeHiddenElements: true });
+    const art = () => screen.queryByTestId('pair-scene-art', { includeHiddenElements: true });
+    const given = async (height: number) => {
+        await act(async () => {
+            await fireEvent(scene()!, 'layout', { nativeEvent: { layout: { width: 361, height } } });
+        });
+    };
+
+    // The window in Jest is at font scale 2, where the pages stack and the scene steps aside.
+    const onPhone = async (run: () => Promise<void>) => {
+        const was = Dimensions.get('window');
+        const phone = { width: 393, height: 852, scale: 3, fontScale: 1 };
+        await act(async () => Dimensions.set({ window: phone, screen: phone }));
+        try {
+            await run();
+        } finally {
+            await act(async () => Dimensions.set({ window: was, screen: was }));
+        }
+    };
+
+    it('fills the space on the sign-in step and the code step, hidden from VoiceOver', async () => {
+        await onPhone(async () => {
+            await open({ signedIn: false });
+            expect(scene()!.props.accessibilityElementsHidden).toBe(true);
+            await given(300);
+            expect(art()).not.toBeNull();
+        });
+    });
+
+    it('stays out of a space too small to read', async () => {
+        await onPhone(async () => {
+            await open({ signedIn: false });
+            await given(90);
+            expect(art()).toBeNull();
+        });
+    });
+
+    it('steps aside at the largest text sizes', async () => {
+        await open({ signedIn: false });
+        expect(scene()).toBeNull();
+    });
+});
+
 describe('before sign-in', () => {
     it('says why, and offers Apple\'s own button and a way out', async () => {
         await open({ signedIn: false });

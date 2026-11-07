@@ -40,7 +40,6 @@ import { usePartnerGlance } from '../../server/partnerGlance';
 import { fetchHome, HOME_KEY, homeClient } from '../../server/home';
 import { useTheme } from '../../theme/useTheme';
 import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
-import { PoseSticker } from '../classic/PoseSticker';
 import { useTourMoveOnClose } from '../tutorial/useTour';
 import { ASPECT, DURATION, linePose } from '../welcome/choreography';
 import { MorphArt, MorphCharacters, useMorphHaptic } from '../welcome/MorphStage';
@@ -59,6 +58,8 @@ import {
     wasCelebrated,
     type ProblemStatus,
 } from './pairing';
+import { PoseSticker } from '../classic/PoseSticker';
+import { PlaneScene } from './PlaneScene';
 import { Page, Spread } from './Spread';
 
 const STORE_URL = 'https://apps.apple.com/app/id6757491918';
@@ -69,6 +70,8 @@ const COMPACT_HEIGHT = 500;
 const SIDE_MAIN = 6;
 const SIDE_ACTIONS = 5;
 const STICKER = 72;
+/** The pages before sign-in hold a label and a cell each, so they give the room to the scene. */
+const SIGNIN_PAGE_HEIGHT = 120;
 const PILL_HEIGHT = 56;
 
 /** On this frame of the welcome's timeline the pair have landed on the open spread, in their joyful pose. */
@@ -439,6 +442,8 @@ export default function PairScreen() {
         </View>
     );
 
+    // Someone whose session ended, with a partner on this phone: the pages hold the pair, as they did.
+    const backWithPartner = returning && lastGlance !== null;
     let body: ReactNode;
     let actions: ReactNode;
     if (view === 'morph') {
@@ -456,12 +461,17 @@ export default function PairScreen() {
             <>
                 <Spread
                     stacked={stacked}
+                    pageMinHeight={backWithPartner ? undefined : SIGNIN_PAGE_HEIGHT}
                     left={
                         <View style={styles.pageInner}>
                             <Text style={[styles.who, { color: tokens.inkSoft }]}>{t('pair.you')}</Text>
-                            <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-                                <PoseSticker who="pomo" pose="idle" width={STICKER} shadow={tokens.stickerShadow} />
-                            </View>
+                            {backWithPartner ? (
+                                <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                                    <PoseSticker who="pomo" pose="idle" width={STICKER} shadow={tokens.stickerShadow} />
+                                </View>
+                            ) : (
+                                <DashedCell />
+                            )}
                         </View>
                     }
                     right={
@@ -469,7 +479,7 @@ export default function PairScreen() {
                             <Text style={[styles.who, { color: tokens.inkSoft }]} numberOfLines={2}>
                                 {lastGlance ? lastPartner : t('pair.partner')}
                             </Text>
-                            {returning && lastGlance ? (
+                            {backWithPartner ? (
                                 <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
                                     <PoseSticker who="doro" pose="idle" width={STICKER} shadow={tokens.stickerShadow} />
                                 </View>
@@ -654,6 +664,8 @@ export default function PairScreen() {
         );
     }
 
+    // Who-it-is already draws the pair, the name step has the keyboard, and the morph has the mark.
+    const showScene = (view === 'pages' || (view === 'signin' && !backWithPartner)) && pinned && !stacked;
     const centred = view === 'morph';
     const actionsBlock = (
         <Animated.View
@@ -694,6 +706,7 @@ export default function PairScreen() {
                         </Animated.View>
                         {!pinned && actionsBlock}
                     </View>
+                    {showScene && <PlaneScene tokens={tokens} />}
                 </ScrollView>
                 {pinned && <View style={[styles.pinned, { paddingBottom: Math.max(insets.bottom, space.l) }]}>{actionsBlock}</View>}
             </View>
@@ -704,7 +717,8 @@ export default function PairScreen() {
 const styles = StyleSheet.create({
     root: { flex: 1 },
     firstChild: { position: 'absolute', width: 0, height: 0 },
-    content: { paddingTop: space.m, paddingBottom: space.xl, gap: space.m },
+    // flexGrow lets the plane scene take whatever height the steps leave.
+    content: { flexGrow: 1, paddingTop: space.m, paddingBottom: space.xl, gap: space.m },
     head: { minHeight: minTarget, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: minTarget },
     title: { fontSize: 17, fontWeight: '600', textAlign: 'center' },
     closeCorner: { position: 'absolute', right: 0, top: 4 },

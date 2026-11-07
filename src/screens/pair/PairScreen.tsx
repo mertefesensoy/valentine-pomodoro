@@ -227,6 +227,9 @@ export default function PairScreen() {
     else if (me && !me.display_name) view = 'name';
     else view = step;
 
+    // The field can go with no blur, when a check moves on or a session ends, and the flag mustn't outlive it.
+    if (typing && view !== 'pages') setTyping(false);
+
     const stacked = fontScale >= STACK_FONT_SCALE;
     const sideBySide = height < COMPACT_HEIGHT;
     const pinned = !sideBySide && view !== 'name';
@@ -360,8 +363,6 @@ export default function PairScreen() {
         // A sheet that opened on a couple since gone is at the timeline's end, where Pomo & Doro aren't drawn.
         p.set(MORPH_START_MS);
         hapticArmed.set(false);
-        // The field is about to unmount, and its blur wouldn't reach us.
-        setTyping(false);
         setInviterName(result.inviterName);
         setStep('confirm');
     };
@@ -491,8 +492,11 @@ export default function PairScreen() {
                         </View>
                     }
                 />
-                <Text style={[styles.why, { color: tokens.ink }]}>{t(returning ? 'pair.returnWhy' : 'pair.why')}</Text>
-                {signingIn && <ActivityIndicator color={tokens.inkSoft} accessibilityLabel={t('pair.signingIn')} />}
+                <View>
+                    <Text style={[styles.why, { color: tokens.ink }]}>{t(returning ? 'pair.returnWhy' : 'pair.why')}</Text>
+                    {/* Out of the flow: in it, pressing Apple's button would shrink the plane on a small iPhone. */}
+                    {signingIn && <ActivityIndicator style={styles.signingIn} color={tokens.inkSoft} accessibilityLabel={t('pair.signingIn')} />}
+                </View>
                 {signInProblem && <Text style={[styles.problem, { color: tokens.ink }]}>{signInProblem}</Text>}
             </>
         );
@@ -711,7 +715,7 @@ export default function PairScreen() {
                         {!pinned && actionsBlock}
                     </View>
                     {showScene && (
-                        <Animated.View key="plane-scene" entering={STEP_IN} exiting={STEP_OUT} style={styles.sceneSlot}>
+                        <Animated.View key="plane-scene" testID="pair-scene-slot" entering={STEP_IN} exiting={STEP_OUT} style={styles.sceneSlot}>
                             <PlaneScene tokens={tokens} />
                         </Animated.View>
                     )}
@@ -749,6 +753,8 @@ const styles = StyleSheet.create({
     mini: { fontSize: 13, lineHeight: 18, textAlign: 'center' },
     pageProblem: { fontSize: 13, lineHeight: 18, fontWeight: '500', textAlign: 'center' },
     why: { fontSize: 17, lineHeight: 23 },
+    // Below the sentence, in what the content leaves under it: the gap to the scene, or its bottom padding.
+    signingIn: { position: 'absolute', top: '100%', alignSelf: 'center', marginTop: space.xs },
     note: { fontSize: 13, lineHeight: 18 },
     problem: { fontSize: 15, lineHeight: 20, fontWeight: '500' },
     question: { fontSize: 17, lineHeight: 23, fontWeight: '600' },

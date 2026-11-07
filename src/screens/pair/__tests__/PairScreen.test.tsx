@@ -184,6 +184,46 @@ describe('the plane scene', () => {
         });
     });
 
+    // `given` hands the slot a size, so nothing else here would notice if these went, and on a phone no scene would draw.
+    it('gets its height from the content\'s flexGrow and its own flex, only while it shows', async () => {
+        const content = () => StyleSheet.flatten(screen.getByTestId('pair-scroll').props.contentContainerStyle);
+        await onPhone(async () => {
+            await open({ signedIn: false });
+            expect(content().flexGrow).toBe(1);
+            expect(StyleSheet.flatten(screen.getByTestId('pair-scene-slot').props.style).flex).toBe(1);
+        });
+    });
+
+    it('has no flexGrow without the scene, so the other steps have no drag range under the keyboard', async () => {
+        await onPhone(async () => {
+            mockHome = NAMELESS;
+            await open({ signedIn: true });
+            expect(scene()).toBeNull();
+            expect(StyleSheet.flatten(screen.getByTestId('pair-scroll').props.contentContainerStyle).flexGrow).toBeUndefined();
+        });
+    });
+
+    it('fades in and out, as the steps do', async () => {
+        await onPhone(async () => {
+            await open({ signedIn: false });
+            const slot = screen.getByTestId('pair-scene-slot');
+            expect(slot.props.entering).toBeDefined();
+            expect(slot.props.exiting).toBeDefined();
+        });
+    });
+
+    it('isn\'t resized by pressing Apple\'s button: the spinner is out of the flow', async () => {
+        await onPhone(async () => {
+            mockSignIn.mockReturnValue(new Promise(() => {}));
+            await open({ signedIn: false });
+            // A block, since returning the press would have `act` wait on a sign-in that never ends.
+            await act(async () => {
+                mockApple.press();
+            });
+            expect(StyleSheet.flatten(screen.getByLabelText('Signing in').props.style).position).toBe('absolute');
+        });
+    });
+
     it('goes when the space shrinks under the limit', async () => {
         await onPhone(async () => {
             await open({ signedIn: false });
@@ -264,6 +304,18 @@ describe('the plane scene', () => {
             expect(scroll().props.scrollEnabled).toBe(false);
             await act(async () => screen.getByLabelText(CODE_FIELD).props.onBlur());
             expect(scroll().props.scrollEnabled).toBe(true);
+        });
+    });
+
+    it('lets go of the drag lock if the session ends with the field focused', async () => {
+        await onPhone(async () => {
+            mockHome = NAMED;
+            await open({ signedIn: true });
+            await act(async () => screen.getByLabelText(CODE_FIELD).props.onFocus());
+            expect(screen.getByTestId('pair-scroll').props.scrollEnabled).toBe(false);
+            await act(async () => useAccountStore.setState({ present: false }));
+            expect(scene()).not.toBeNull();
+            expect(screen.getByTestId('pair-scroll').props.scrollEnabled).toBe(true);
         });
     });
 

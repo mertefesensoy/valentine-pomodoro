@@ -22,6 +22,8 @@ Surface brief from `/impeccable shape`, Phase 2 A3, 2026-11-05. **Mode: Operate.
 - **VoiceOver's order:** "Use the screen's order". React Native's reordering is off in this build, so §6's order can't be had.
 - **Before a new code:** "Keep the alert", because a new code cancels one your partner may already hold.
 
+**The owner's direction after build 63, 2026-11-07:** "2. A paper plane between you", from three sketched directions (https://claude.ai/artifact/6QvYtJ5kdriaDTikUNPkmm), after asking for "a design improvement with VectorCraft" because the empty stretch "makes it less alive". It changes §5's first state and the first viewport, as below.
+
 ## 1. Job and audience
 
 - **Who arrives:** a student, usually in a long-distance couple, who wants to see their partner's day. They've used the app solo; they're signing in for the first time, only because they chose to pair.
@@ -49,7 +51,8 @@ The sheet is the open spread from the Timer's Facing Pages layout, in the Same P
 
 ## 5. States and ranges
 
-- **Before sign-in:** the spread (your page with Pomo, theirs with one dashed cell), why, Apple's button, Not now.
+- **Before sign-in:** the spread at a shorter height (each page with one dashed cell), why, the plane scene, Apple's button, Not now. Pomo and Doro move off the pages into the scene, so nobody is drawn twice.
+- **The plane scene:** on the sign-in step and the code step only. It fills the space between the content and the buttons: Pomo at the lower left, Doro at the lower right, lifted, as stickers are, and a dotted route looping from one to the other, with a paper plane on it and two small hearts. The route, plane and hearts lie flat, in the theme's tokens. It's decoration, hidden from VoiceOver. It's left out at the largest text sizes, on a landscape iPhone, and whenever the space is under 120 pt, which happens on small iPhones. Who-it-is already draws the pair, the name step has the keyboard, and the morph has the mark.
 - **Sign-in cancelled:** back to the same screen, with no message. **Sign-in failed or offline:** an inline line above the button, and it can be pressed again.
 - **No name from Apple** (hidden, or a second sign-in): your page asks "What should your partner call you?" with one field, 1–60 characters, saying it's needed because that's what your partner sees.
 - **Signed in:** your name on your page, the code in two rows of three, "Lasts 24 hours"; theirs empty. A code that's expired while the sheet was closed is replaced on opening.
@@ -86,7 +89,7 @@ OWN-WORLD: The sheet is `page`. Two `paper` pages lean 1° toward the spine, out
 
 STORY: Why an account, in one sentence. Sign in with Apple. Your code is already there, and theirs is one tap away. Send or type. See exactly who it is. Pair. The pages close, and you're on the same page.
 
-FIRST VIEWPORT: iPhone portrait, a form sheet at the large detent. The title "Pair with your partner", the close button at the trailing corner. Then the spread at full column width, about 230 pt tall: the left page's name, two rows of three cells, "Lasts 24 hours"; the right page's "Your partner", two rows of three dashed cells, "Tap to type their code". Under it, Send my code, the primary pill at thumb height, and the "Make a new code" link. Before sign-in, the pages hold Pomo and one dashed cell, then why, then Apple's button at the same height. Signature interaction: confirming closes the two pages into the Same Page mark, from the spread on screen, with no cut.
+FIRST VIEWPORT: iPhone portrait, a form sheet at the large detent. The title "Pair with your partner", the close button at the trailing corner. Then the spread at full column width, about 230 pt tall: the left page's name, two rows of three cells, "Lasts 24 hours"; the right page's "Your partner", two rows of three dashed cells, "Tap to type their code". Then the plane scene, filling what's left. Under it, Send my code, the primary pill at thumb height, and the "Make a new code" link. Before sign-in, shorter pages hold one dashed cell each, then why, then the scene, then Apple's button at the same height. Signature interaction: confirming closes the two pages into the Same Page mark, from the spread on screen, with no cut.
 
 FORM: Facing pages, the seventh on my ordered list of seven, dealt as the lead and locked by the owner. seed:0039ebbffa7e05be
 

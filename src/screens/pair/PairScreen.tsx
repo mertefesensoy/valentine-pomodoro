@@ -669,7 +669,11 @@ export default function PairScreen() {
     return (
         // The sheet's own rise is the first step's entrance, so that one doesn't fade as well.
         <LayoutAnimationConfig skipEntering>
-            <View style={[styles.root, { backgroundColor: tokens.page }]}>
+            <View testID="pair-root" style={[styles.root, { backgroundColor: tokens.page }]}>
+                {/* react-native-screens walks down a sheet's first children looking for a scroll view, and one that isn't the
+                    sheet's root gets forced to the screen's frame, which left this sheet blank above its buttons (build 63).
+                    Something else first ends the walk, so the layout stands. */}
+                <View testID="pair-first-child" collapsable={false} style={styles.firstChild} />
                 <ScrollView
                     testID="pair-scroll"
                     style={styles.root}
@@ -699,6 +703,7 @@ export default function PairScreen() {
 
 const styles = StyleSheet.create({
     root: { flex: 1 },
+    firstChild: { position: 'absolute', width: 0, height: 0 },
     content: { paddingTop: space.m, paddingBottom: space.xl, gap: space.m },
     head: { minHeight: minTarget, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: minTarget },
     title: { fontSize: 17, fontWeight: '600', textAlign: 'center' },

@@ -13,6 +13,9 @@
  *     strip showed the theme's page colour or the system material (build 48, F2).
  *   - Each sheet's root is a ScrollView: the library sizes a sheet's root scroll view to the whole
  *     sheet, so the sheet's own paint reaches its bottom edge as well.
+ *   - A sheet whose scroll view can't be its root must keep it off the chain of first children, as
+ *     `pair` does: the library forces one it finds there to the screen's frame, and build 63's pairing
+ *     sheet came out blank above its buttons.
  */
 import type { ThemeTokens } from '../theme/palette';
 

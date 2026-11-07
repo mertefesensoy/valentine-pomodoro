@@ -65,7 +65,8 @@ None.
 ## 6. Verification
 
 - [x] The other sheets (`ModeSheet`, `LoveNoteSheet`, `NoteEditor`, `PartnerScreen`) have the scroll view as their root, so the fallback can't reach them. The only nested one was this.
-- [ ] `PairScreen.test.tsx`, and the guards.
+- [x] `PairScreen.test.tsx` holds the structure, and the guards are green. A test can't show the sheet itself.
+- [x] `npx jest --ci`: 90 suites and 931 tests. Bytecode: 4,588,712 B, leaving 51,288 B of NFR-PERF-002.
 - [ ] **On a device, build 64:** the sign-in step, your code and theirs show properly, the title and close button are there, and tapping the right-hand page brings up the keyboard.
 
 ## 7. Related Docs

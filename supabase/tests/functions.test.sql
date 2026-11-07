@@ -118,10 +118,12 @@ select is((select public.preview_invite((select code from expired)) ->> 'status'
 
 -- report_day: a day can only grow.
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}';
-select is((select public.report_day(current_date, 1500000, 1, false, 100) ->> 'status'), 'ok', 'a report is saved');
-select is((select public.report_day(current_date, 1500000, 1, false, 100) ->> 'status'), 'ok', 'a replay is accepted');
-select is((select public.report_day(current_date, 3000000, 2, true, 100) ->> 'status'), 'ok', 'a later report is saved');
-select is((select public.report_day(current_date, 1500000, 1, false, 100) ->> 'status'), 'ok', 'an out-of-order report is accepted');
+-- Ana's phone reports her own date. Her profile is in Istanbul, so `current_date`, the session's date, is a day behind
+-- hers from 21:00 to midnight UTC, and home_snapshot below would find no today.
+select is((select public.report_day((now() at time zone 'Europe/Istanbul')::date, 1500000, 1, false, 100) ->> 'status'), 'ok', 'a report is saved');
+select is((select public.report_day((now() at time zone 'Europe/Istanbul')::date, 1500000, 1, false, 100) ->> 'status'), 'ok', 'a replay is accepted');
+select is((select public.report_day((now() at time zone 'Europe/Istanbul')::date, 3000000, 2, true, 100) ->> 'status'), 'ok', 'a later report is saved');
+select is((select public.report_day((now() at time zone 'Europe/Istanbul')::date, 1500000, 1, false, 100) ->> 'status'), 'ok', 'an out-of-order report is accepted');
 select results_eq(
     $$select focus_ms, sessions, goal_hit from public.daily_stats where owner_id = '00000000-0000-0000-0000-00000000000a'$$,
     $$values (3000000::bigint, 2, true)$$,

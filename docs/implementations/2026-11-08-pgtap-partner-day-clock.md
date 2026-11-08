@@ -1,7 +1,7 @@
 ---
 id: IMPL-2026-11-08-pgtap-partner-day-clock
 title: "pgTAP: a partner's today read back by the partner's own date, so the test can't fail late in the UTC evening"
-status: in-progress
+status: done
 date: 2026-11-08
 owner: Mert Efe Şensoy
 related: [IMPL-2026-11-05-phase2-plan, IMPL-2026-11-07-phase2-f5-submission]
@@ -9,7 +9,7 @@ related: [IMPL-2026-11-05-phase2-plan, IMPL-2026-11-07-phase2-f5-submission]
 
 # 2026-11-08 — pgTAP: a partner's today, read back by the partner's own date
 
-**Status:** In progress.
+**Status:** Done, merged in #39.
 **Branch:** `fix/pgtap-partner-day-clock`, one pull request into `master`.
 **Found by:** CI's `db` job on PR #38, which changes only docs, at 23:41 UTC on 2026-11-07.
 
@@ -51,8 +51,8 @@ For a zone with offset $o$ hours, its local date differs from the UTC date when 
 
 - [x] The local pre-check (PGlite, never committed), at 23:57 UTC with the session zone set to `Pacific/Honolulu`: the old file fails test 55 exactly as CI did, `not ok (NULL vs 2) - and holds their today`, and the new one passes all 80.
 - [x] The same, with no zone set: 80 of 80, and every other test file passes as before.
-- [ ] CI's `db` job on this pull request.
-- [ ] **Deploying this:** a change under `supabase/` triggers `deploy-supabase.yml`, which runs `supabase db push` (no new migration, so nothing to apply) and redeploys `delete-account` unchanged.
+- [x] CI's `db` job on #39: green, with `check` and `perf`.
+- [x] **Deploying this:** a change under `supabase/` triggers `deploy-supabase.yml`, which runs `supabase db push` (no new migration, so nothing to apply) and redeploys `delete-account` unchanged. Its run on `4ba9979` succeeded, every step, with the owner's OK given knowing App Review was under way.
 
 ## 7. Related Docs
 

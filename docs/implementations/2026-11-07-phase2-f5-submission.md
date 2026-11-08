@@ -9,7 +9,7 @@ related: [IMPL-2026-11-05-phase2-plan, IMPL-2026-11-06-phase2-e2-privacy-policy,
 
 # 2026-11-07 — Phase 2 F5: shipping 1.5.0 on Supabase's Free plan, the submission and the release
 
-**Status:** In progress. The owner has chosen the Free plan. The qualified read, the submission and the release are still ahead.
+**Status:** Submitted to App Review on 2026-11-08, build 64, tagged `v1.5.0-submitted`. Apple's answer and the release are ahead.
 **Branch:** `docs/phase2-f5-free-plan`, then a pull request for each later step.
 **Plan task:** [Phase 2 plan §3, F5](2026-11-05-phase2-plan.md#stage-f-verify-and-ship), changed by [§0.4](2026-11-05-phase2-plan.md#04-changed-before-shipping-2026-11-07).
 
@@ -67,11 +67,11 @@ None.
 ## 6. Verification
 
 - [x] The sentence is gone from `privacy-policy.md` in both languages.
-- [ ] The website says the same, read back with a cache-busting parameter.
-- [ ] The qualified read, on the live page. The owner: "Still arranging, ask later (Recommended)".
-- [ ] The live version looked up just before submitting.
-- [ ] App Review's path tried once on a phone, when the codes are seeded.
-- [ ] The owner submits, in their own words, and `v1.5.0-submitted` is tagged.
+- [x] The website says the same, read back with a cache-busting parameter once its #4 was merged: no sentence about backups, and "Last updated: 7 November 2026".
+- [ ] The qualified read: **not done.** The owner submitted without it: "Submitted without it", having been told that any legal risk from the policy's wording is theirs, and that a read can still change the page later with no new build.
+- [x] The live version looked up while the owner was in App Store Connect, 2026-11-08: 1.4.2, so nothing was in review.
+- [x] App Review's path tried once on a phone, when the codes were seeded. The owner: "Yes, it worked". The server's count wasn't read again afterwards.
+- [x] The owner submitted: "I've submitted it", build "1.5.0 (64)". The tag `v1.5.0-submitted` is on `16aaed7`, as `v1.5.0-tf.64` is, with the owner's "Tag and push it (Recommended)".
 - [ ] The release, `v1.5.0`, the GitHub Release, and `remove_review_partners()`.
 - [ ] Section 9 of the checklist, on a device kept on 1.4.2. The owner: "I'll set one up (Recommended)".
 

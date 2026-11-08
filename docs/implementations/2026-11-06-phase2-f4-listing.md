@@ -9,7 +9,7 @@ related: [IMPL-2026-11-05-phase2-plan, IMPL-2026-11-01-phase1-stage-e, IMPL-2026
 
 # 2026-11-06 — Phase 2 F4: the App Store listing for 1.5.0
 
-**Status:** Drafted. The owner sets it in App Store Connect, after the two-phone check.
+**Status:** Set in App Store Connect by the owner, and submitted on 2026-11-08.
 **Branch:** `feat/phase2-f4-listing`, one pull request into `master`.
 **Plan task:** [Phase 2 plan §3, F4](2026-11-05-phase2-plan.md#stage-f-verify-and-ship). Claude drafts, and the owner sets it.
 
@@ -130,8 +130,8 @@ None.
 
 ## 6. Verification
 
-- [ ] The owner reads these, and says they're right.
-- [ ] The owner sets them in App Store Connect.
+- [ ] The owner reads these, and says they're right. Not asked on its own: they used them as drafted, through the fill-in page, and asked only about the privacy labels' Device ID, which stays AdMob's answer.
+- [x] The owner set them in App Store Connect and submitted: "I've submitted it".
 - [x] The labels and the policy still agree with what the two-phone check found about email: "Empty, no addresses", so no email row.
 
 ## 7. Related Docs

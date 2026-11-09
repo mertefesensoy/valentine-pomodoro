@@ -9,7 +9,7 @@ related: [IMPL-2026-11-05-phase2-plan, IMPL-2026-11-06-phase2-d4-account, IMPL-2
 
 # 2026-11-06 — Phase 2 E2: the privacy policy, in English and Turkish
 
-**Status:** Live, and 1.5.0 is submitted with it. §0.2's legal read wasn't done: the owner submitted without it.
+**Status:** Live, and 1.5.0 is submitted with it. §0.2's legal read wasn't done: the owner waived it for 1.5.0.
 **Branch:** `feat/phase2-e2-privacy-policy`, one pull request into `master`. The website is a separate repository, with its own pull request.
 **Plan task:** [Phase 2 plan §3, E2](2026-11-05-phase2-plan.md#stage-e-reliability-and-policy), [NFR-PRIV-002](../srs/SRS.md#nfr-priv-002). Done when the owner approves the text, after §0.2's legal read.
 
@@ -95,7 +95,7 @@ None.
 - [x] The row opens the policy (`settingsPrivacy.test.tsx`), with the guards green.
 - [x] The bytecode: 4,587,872 B, which is 380 B for E2 and leaves 52,128 B of NFR-PERF-002.
 - [x] The owner has read the draft.
-- [ ] **Before the submission:** someone qualified reads it, the text changes as they advise, and the owner approves it. **Not done:** the owner submitted without it, "Submitted without it" ([F5's record](2026-11-07-phase2-f5-submission.md)). A read can still come, and change the page without a new build.
+- [ ] **Before the submission:** someone qualified reads it, the text changes as they advise, and the owner approves it. **Not done:** the owner submitted without it, "Submitted without it" ([F5's record](2026-11-07-phase2-f5-submission.md)). For the release too, the owner: "Waive it for 1.5.0". A read can still come, and change the page without a new build.
 - [x] The website's pull request is merged and live (its #2, `bb2acd8`). The owner: "Push, PR, merge when green (Recommended)". Read back with a cache-busting parameter: the page says "Last updated: 6 November 2026", and the home page has the new badges and no "No servers".
 - [x] **On the Free plan (plan §0.4):** the sentence about backups is removed in both languages, on the website too, since Free has none. The owner: "Remove, push, merge (Recommended)".
 - [x] **After the first real sign-in, at F2:** the owner looked at Authentication › Users on build 64: "Empty, no addresses". Sign-in only asks Apple for the name (`appleSignIn.ts`), so the sentence about email is firmed up to say we don't receive one. "Your name" now says Apple can supply it, since on build 63 it did and the step was skipped.

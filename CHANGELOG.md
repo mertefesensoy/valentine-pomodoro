@@ -4,9 +4,9 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [Unreleased]
 
-## [1.5.0] - 2026-11-06
+## [1.5.0] - 2026-11-07
 
-*The iOS release of the v2 rehaul's Phase 2. Submitted to App Review on 2026-11-08 (build 64), not yet released: this is the first build's date, and the release date goes here when it's out.*
+*The iOS release of the v2 rehaul's Phase 2: TestFlight build 64, live on the App Store on 2026-11-10 at 13:22 UTC, dated by its EAS production build (UTC). Android stays on 1.3.1.*
 
 **What's new for you**
 
@@ -516,7 +516,8 @@ Two later fixes on the same branch were never built: functional state updates fo
 - A circular progress ring, haptics and button animations (d836c0a).
 - The app icon, splash screen and EAS build configuration, on Expo SDK 54 with React Native 0.81.5 (42409bf, adc5bb3, 40489e2, 4278bd6).
 
-[Unreleased]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.1...master
+[Unreleased]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.5.0...master
+[1.5.0]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.2...v1.5.0
 [1.4.1]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0...v1.4.1
 [1.4.1-tf.61]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.4.0...v1.4.1-tf.61
 [1.4.0]: https://github.com/mertefesensoy/valentine-pomodoro/compare/v1.3.1...v1.4.0

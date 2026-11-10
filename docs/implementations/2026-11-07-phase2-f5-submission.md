@@ -1,7 +1,7 @@
 ---
 id: IMPL-2026-11-07-phase2-f5-submission
 title: "Phase 2 F5: shipping 1.5.0 on Supabase's Free plan, the submission and the release"
-status: in-progress
+status: done
 date: 2026-11-07
 owner: Mert Efe Şensoy
 related: [IMPL-2026-11-05-phase2-plan, IMPL-2026-11-06-phase2-e2-privacy-policy, IMPL-2026-11-06-phase2-f4-listing, IMPL-2026-11-06-phase2-f2-testflight, RELEASE, ADR-0021]
@@ -9,7 +9,7 @@ related: [IMPL-2026-11-05-phase2-plan, IMPL-2026-11-06-phase2-e2-privacy-policy,
 
 # 2026-11-07 — Phase 2 F5: shipping 1.5.0 on Supabase's Free plan, the submission and the release
 
-**Status:** Submitted to App Review on 2026-11-08, build 64, tagged `v1.5.0-submitted`. Apple's answer and the release are ahead.
+**Status:** Released. App Review approved build 64, and 1.5.0 has been live on the App Store since 2026-11-10 at 13:22 UTC, in the US and Turkish stores alike.
 **Branch:** `docs/phase2-f5-free-plan`, then a pull request for each later step.
 **Plan task:** [Phase 2 plan §3, F5](2026-11-05-phase2-plan.md#stage-f-verify-and-ship), changed by [§0.4](2026-11-05-phase2-plan.md#04-changed-before-shipping-2026-11-07).
 
@@ -72,8 +72,8 @@ None.
 - [x] The live version looked up while the owner was in App Store Connect, 2026-11-08: 1.4.2, so nothing was in review.
 - [x] App Review's path tried once on a phone, when the codes were seeded. The owner: "Yes, it worked". The server's count wasn't read again afterwards.
 - [x] The owner submitted: "I've submitted it", build "1.5.0 (64)". The tag `v1.5.0-submitted` is on `16aaed7`, as `v1.5.0-tf.64` is, with the owner's "Tag and push it (Recommended)".
-- [ ] The release, `v1.5.0`, the GitHub Release, and `remove_review_partners()`.
-- [ ] Section 9 of the checklist, on a device kept on 1.4.2. The owner: "I'll set one up (Recommended)".
+- [x] The release, looked up with a cache-busting parameter: 1.5.0, released 2026-11-10T13:22:08Z. The owner: "1.5.0 is out and launched. Everything works as intended and i got the update prompt :)". The tag `v1.5.0` is on `16aaed7`, with the owner's "Tag and push it (Recommended)", and the GitHub Release follows this record's merge ("Publish it (Recommended)"). `remove_review_partners()`: the owner, "It's done".
+- [x] Section 9 of the checklist, on a device kept on 1.4.2. The owner: "I'll set one up (Recommended)", then "i got the update prompt", which is `z-prompt`. `z-return`, the prompt on coming back after 6 hours, wasn't reported on its own; its tests pinned it in 1.4.2.
 
 ## 7. Related Docs
 

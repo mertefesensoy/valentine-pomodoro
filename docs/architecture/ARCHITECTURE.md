@@ -322,6 +322,7 @@ stateDiagram-v2
 | `useGiftMode` | → `{ hasSeenGiftMode, isReady, dismiss }`. Defaults to "seen" until loaded, so the modal doesn't flash. | `useGiftMode.ts:5–37` |
 | `useFlyModeAudio` | `(soundKey, active, enabled)`. Loops `fly-ambient.m4a` while both flags are true. Sets the audio mode so it plays in silent mode and mixes with other audio. Releases the player on unmount. | `useFlyModeAudio.ts:39–83` |
 | `useResponsive` | → `{ width, height, isLandscape, isTablet (narrow side ≥ 600), isShortViewport (height < 500) }` | `useResponsive.ts:16–25` |
+| `useKeepScreenAwake` | `(active)`, since 1.5.1 (DEF-010, FR-TMR-011). Mounted once, by `StoreGate`. Holds the keep-awake tag `valentine-pomodoro-session` while the active slot runs with its end ahead (`isSessionRunning`), and releases it otherwise. It subscribes to the session store outside React and runs the native calls one after another. It's app-wide and foreground only, with no background mode. | `useKeepScreenAwake.ts:27–32,59–81` |
 
 ### 5.6 Screens
 

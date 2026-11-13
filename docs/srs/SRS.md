@@ -302,6 +302,18 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 - Choosing Custom applies the durations typed in Settings, which no preset overwrites; editing one in Settings selects Custom.
 **Verify:** T: `src/constants/__tests__/presets.test.tsx`, `src/screens/__tests__/classic.test.tsx`, `src/screens/__tests__/settingsKeyboard.test.tsx` · **Source:** the owner, 2026-10-30 (build 48 device check)
 
+#### FR-TMR-011
+**Statement:** While a session runs and the app is in the foreground, the screen shall not dim or lock by itself, in Classic (either layout) and in Fly, on every tab.
+**Pri:** Must · **Target:** 1.5.1 · **Status:** implemented (1.5.1; its TestFlight device check is pending)
+**Known deviation:** DEF-010, fixed in 1.5.1; see [§3.4](#34-known-deviations-as-built-found-2026-10-30).
+**Accept:**
+- A running focus, break or flight keeps the screen on, whatever Auto-Lock is set to and with Low Power Mode on.
+- A paused, stopped or finished session lets the screen lock again at the Auto-Lock interval.
+- An ended session that waits for its handler (DEF-004) doesn't keep the screen on.
+- The side button still locks the phone, and the session keeps running.
+- No background mode is added for this (DEF-009).
+**Verify:** T: `src/hooks/__tests__/useKeepScreenAwake.test.tsx`; D: a TestFlight build with Auto-Lock at 30 s, never a dev build, which keeps the screen on by itself ([the fix §6](../implementations/2026-11-12-v151-screen-sleep-fix.md)) · **Source:** the owner's report, 2026-11-12; [the audit](../implementations/2026-11-12-screen-sleep-audit.md)
+
 #### 3.2.2 Notifications and reminders (NTF)
 
 #### FR-NTF-001
@@ -793,6 +805,7 @@ These are places where the code at `5b10a78` doesn't fully meet a requirement ma
 | DEF-008 | FR-SET-001 | **Found on TestFlight build 46 (2026-10-30), present since v1:** on iPhone the five Settings number fields (the durations, "Long break every N sessions", the custom goal) open the number pad, which has no return key, and nothing in Settings dismissed it. A field couldn't be left once edited, so its value applied only on the next tap elsewhere. | `SettingsScreen.tsx` at `v1.3.1` and `3369418`: `keyboardType="number-pad"`, no `keyboardDismissMode`, accessory view or `Keyboard.dismiss()` | Medium | **Fixed** 2026-10-30: a "Done" bar above the number pad and dismiss on scroll ([record](../implementations/2026-10-30-settings-keyboard-dismiss.md)); device check passed on TestFlight build 47 (2026-10-30). Reopened by the build 48 device check: on the New Architecture an `InputAccessoryView` binds to the first input carrying its `nativeID` and no other, so the shared Done bar reached Focus only. Fixed 2026-10-30 (`cec4319`) with one bar per field. **Closed in D2:** Settings sets every bounded number on the system wheel (`@react-native-picker/picker`), so no number field opens the number pad, and the deprecated `InputAccessoryView` is gone |
 | DEF-009 | — (App Store Review Guideline 2.5.4) | **Found by App Review, 2026-11-03, on 1.4.0 (59):** the app declares `audio` in `UIBackgroundModes`, but nothing in it plays in the background. Every `setAudioModeAsync` call leaves `shouldPlayInBackground` at its default, `false`, so the UI sounds, the babble and Fly's hum stop when the app leaves the foreground. | `app.json` lists `"expo-audio"` with no options (since `c7135f3`, SDK 56); `expo-audio` 58.0.10 `plugin/build/withAudio.js:22` defaults `enableBackgroundPlayback` to `true` and pushes `audio` at `:28–35` | **High:** the next submission is rejected while it remains | **Closed, 2026-11-05.** Fixed in `5c2fe1c`, pinned by `src/constants/__tests__/appConfig.test.ts`. 1.4.1 (build 61) passed App Review with no 2.5.4 finding and went live at 2026-11-05T19:04:08Z ([record](../implementations/2026-11-03-def-009-background-audio-mode.md)) |
 | DEF-009 | FR-ADS-001 | The Stats banner didn't show on TestFlight build 46 (it did on build 45). The interstitial works. Nothing in the banner's code or B7's proved a cause. | Device report, build 46; [B6 §9.1](../implementations/2026-10-30-phase1-b6-expo-router.md) | Medium | **Fixed** 2026-10-30: the banner shows on TestFlight build 47 (owner-reported). The B6 fix (`63f1db2`: `1fc37d8`, `16a6752`, `1865f75`) makes it wait for Stats' first focus and reports its load result in B7's hidden panel. Build 46's cause is unconfirmed, since that panel line wasn't recorded ([B6 §6.6](../implementations/2026-10-30-phase1-b6-expo-router.md)) |
+| DEF-010 | FR-TMR-011 | **Reported by the owner, 2026-11-12, on 1.5.0 (64), present since v1:** nothing in the app keeps the screen on, so iOS's Auto-Lock (30 s to 5 min with no touch) locks the phone in every session, in Ring, the facing pages and Fly. The lock stops Fly's hum and holds the finish sound and the love note until unlock. Development builds hide it: Expo's dev wrapper keeps the screen awake. (The two rows above share the ID DEF-009; this one is DEF-010.) | No idle-timer code at `v1.5.0` or in any commit; `expo/src/launch/registerRootComponent.tsx:42-45`; [the audit](../implementations/2026-11-12-screen-sleep-audit.md) | High | **Fixed in 1.5.1:** `useKeepScreenAwake`, mounted by StoreGate, holds the screen while a session runs ([the fix](../implementations/2026-11-12-v151-screen-sleep-fix.md)); the TestFlight device check is pending |
 
 ---
 
@@ -867,6 +880,8 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - ["Phase 2 E2: the privacy policy, in English and Turkish"](../implementations/2026-11-06-phase2-e2-privacy-policy.md)
 - [2026-11-06 — Update check audit: why the app said "latest version 1.4.0"](../implementations/2026-11-06-update-check-audit.md)
 - [2026-11-06 — 1.4.2: the update check finds new versions when they're out](../implementations/2026-11-06-v142-update-check-fix.md)
+- [2026-11-12 — Screen sleep audit: why the phone locks itself during a session (DEF-010)](../implementations/2026-11-12-screen-sleep-audit.md)
+- [2026-11-12 — 1.5.1: the screen stays on while a session runs (DEF-010)](../implementations/2026-11-12-v151-screen-sleep-fix.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Documentation conventions](../process/DOCS.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)

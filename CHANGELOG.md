@@ -4,6 +4,14 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-11-13
+
+*An iOS patch, dated by its EAS production build (UTC); the build number and the release are added here once known. Android stays on 1.3.1.*
+
+### Fixed
+
+- **Your screen stays on while a session runs.** Before, your phone dimmed and locked itself after your Auto-Lock time, in the Ring, the facing pages and Fly. That turned off the timer and stopped Fly's cabin hum. Now the screen stays on through every focus, break and flight, and it can lock again once you pause or the session ends. The side button still locks your phone whenever you want (DEF-010).
+
 ## [1.5.0] - 2026-11-07
 
 *The iOS release of the v2 rehaul's Phase 2: TestFlight build 64, live on the App Store on 2026-11-10 at 13:22 UTC, dated by its EAS production build (UTC). Android stays on 1.3.1.*

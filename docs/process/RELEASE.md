@@ -88,6 +88,8 @@ When Android returns (the [roadmap Android track](../roadmap/ROADMAP.md#android-
 - [2026-11-06 — Update check audit: why the app said "latest version 1.4.0"](../implementations/2026-11-06-update-check-audit.md)
 - [2026-11-06 — 1.4.2: the update check finds new versions when they're out](../implementations/2026-11-06-v142-update-check-fix.md)
 - ["Phase 2 F5: shipping 1.5.0 on Supabase's Free plan, the submission and the release"](../implementations/2026-11-07-phase2-f5-submission.md)
+- [2026-11-12 — Screen sleep audit: why the phone locks itself during a session (DEF-010)](../implementations/2026-11-12-screen-sleep-audit.md)
+- [2026-11-12 — 1.5.1: the screen stays on while a session runs (DEF-010)](../implementations/2026-11-12-v151-screen-sleep-fix.md)
 - [Branching model](BRANCHING.md)
 - [Evaluation — xtool (cross-platform Xcode replacement) vs staying on Expo/EAS](../proposals/xtool-evaluation.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)

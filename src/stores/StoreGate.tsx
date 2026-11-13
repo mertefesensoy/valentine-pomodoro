@@ -3,6 +3,7 @@ import { ensureMigrated, isStorageMigrated } from '../utils/storageMigration';
 import { hydrateStores } from './hydrateStores';
 import { useReminderScheduler } from './reminderScheduler';
 import { useSessionClockEngine } from './clockStore';
+import { useKeepScreenAwake } from '../hooks/useKeepScreenAwake';
 
 /**
  * The root of the app's state (Phase 1 B3). Renders its children only once the
@@ -16,7 +17,8 @@ import { useSessionClockEngine } from './clockStore';
  *   is still up then (it hides on Navigation's onReady, a child of this gate).
  *
  * It also mounts, once, the side effects AppProvider used to host: the session
- * clock engine and the daily reminder's scheduler.
+ * clock engine and the daily reminder's scheduler. Since 1.5.1 it also mounts
+ * the screen's keep-awake while a session runs (DEF-010).
  *
  * Holds no app state itself and provides no context; components read the
  * stores directly. Mount exactly one, at the root.
@@ -54,6 +56,7 @@ export function StoreGate({ children }: { children: ReactNode }) {
 
     useSessionClockEngine(ready);
     useReminderScheduler(ready);
+    useKeepScreenAwake(ready);
 
     return ready ? children : null;
 }

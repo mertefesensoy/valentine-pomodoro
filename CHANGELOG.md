@@ -4,7 +4,9 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [Unreleased]
 
-The planned 1.5.1, an iOS patch.
+## [1.5.1] - 2026-11-13
+
+*An iOS patch, dated by its EAS production build (UTC); the build number and the release are added here once known. Android stays on 1.3.1.*
 
 ### Fixed
 

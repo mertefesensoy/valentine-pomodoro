@@ -1,6 +1,6 @@
 # 2026-11-12 — 1.5.1: the screen stays on while a session runs (DEF-010)
 
-**Status:** In progress. The code, tests and docs are done; the TestFlight build, its device check, the App Store's "What's New" copy and the submission remain ([§6.3](#63-release-steps-left)).
+**Status:** In progress. The code, tests and docs are done, along with the changelog's 1.5.1 section and the store text for the owner. The TestFlight build, its device check and the submission remain ([§6.3](#63-release-steps-left)).
 **Branch:** `fix/1.5.1-screen-sleep`, cut from `master` at `ef915de` (`v1.5.0` plus docs)
 
 ---
@@ -154,10 +154,19 @@ A dev build stays awake whatever the code does ([audit §3.3](2026-11-12-screen-
 
 ### 6.3 Release steps left
 
-1. The App Store's "What's New" for 1.5.1, in English and Turkish, through the owner's copy proof.
-2. `CHANGELOG.md`: "Unreleased" becomes `## [1.5.1] - <build date>` (RELEASE.md §3).
-3. The EAS production build. Its build number comes from EAS. Then TestFlight, the device check in §6.2, and the tags `v1.5.1-tf.N`, `v1.5.1-submitted` and `v1.5.1` (RELEASE.md §2).
-4. `update.json` stays at 1.3.1, because Android reads it.
+1. [x] `CHANGELOG.md`: "Unreleased" became `## [1.5.1] - 2026-11-13`, the planned build date (RELEASE.md §3). The italic line gets the build number and the release once they're known.
+2. [ ] The EAS production build, from `master` after the merge. Its build number comes from EAS. Then TestFlight, the device check in §6.2, and the tags `v1.5.1-tf.N`, `v1.5.1-submitted` and `v1.5.1` (RELEASE.md §2).
+3. [ ] **The owner:** in App Store Connect, the 1.5.1 version with the "What's New" text and the review notes below, then submit for review.
+4. [ ] `update.json` stays at 1.3.1, because Android reads it.
+
+**"What's New" for 1.5.1,** for the owner to edit. As with 1.4.1 and 1.4.2, store text for a patch goes here rather than through the copy proof. The names follow the app's own strings (`modes.classic`, `fly`, `settings…ambient`).
+
+- **English:** Your screen now stays on while a session runs, in Classic and in Fly, so your phone no longer locks itself mid-focus and cuts off the timer or Fly's ambient sounds. Pause or finish, and your phone locks as usual.
+- **Türkçe:** Bir oturum sürerken ekranın artık açık kalıyor, Klasik'te de Uçuş'ta da. Telefonun odaklanırken kendi kendine kilitlenip zamanlayıcıyı ya da Uçuş'un ortam seslerini kesmiyor. Duraklattığında ya da oturum bittiğinde telefonun her zamanki gibi kilitlenir.
+
+**App Review notes for 1.5.1.** Keep the existing notes (the review partners, sign-in) as they are, and put this at the top:
+
+> Version 1.5.1 changes one thing. While a focus session, a break or a Fly flight is running and the app is in the foreground, the app keeps the screen from auto-locking (expo-keep-awake, which sets UIApplication.isIdleTimerDisabled). Pausing or ending the session restores normal auto-lock, and the side button still locks the phone. There are no new permissions, no background modes and no new data collection.
 
 ### 6.4 The full checks
 

@@ -26,6 +26,7 @@ import { useTheme } from "../theme/useTheme";
 import { type } from "../theme/type";
 import { edgeWidth, minTarget, radius, space } from "../theme/layout";
 import { useScreenFocused } from "../hooks/useScreenFocus";
+import { INTERSTITIAL_SETTLE_MS } from "../ads/AdConfig";
 import { AdManager } from "../ads/AdManager";
 import { AdPolicy } from "../ads/AdPolicy";
 import { PRESETS, choosePresetPatch, classicLayoutOf, customDurationsOf, presetChoiceOf, type PresetChoice } from "../constants/presets";
@@ -210,11 +211,23 @@ export default function TimerScreen() {
   //   for one day), cleared when the moment has played (1.4 s).
   // - The love note waits for the goal moment, then goes to the /love-note
   //   sheet; the sheet reports back when it closes, however it closes.
+  //   It opens once per note due (DEF-011, 1.5.2): see sheetOpenedRef.
   const goalPopup = goalHitPulse;
 
   const loveNoteDue = focused && !goalPopup && showLoveNoteCard && !!lastLoveNote;
+  // Whether the sheet has been handed this completion's note: set as it opens, cleared once the note is dismissed
+  // (`showLoveNoteCard` false). Neither the store nor `showLoveNoteCard` can say so in the commit that matters: closing
+  // the sheet pops its route and gives this screen its focus back in one commit, the route's cleanup empties the store
+  // just before this effect runs, and `showLoveNoteCard` turns false only at the next render. Without the latch the
+  // note looked due and unshown there, and a second sheet opened, with your partner's next note or your own (DEF-011).
+  const sheetOpenedRef = useRef(false);
   useEffect(() => {
-    if (!loveNoteDue || useLoveNoteSheet.getState().note !== null) return;
+    if (!showLoveNoteCard) {
+      sheetOpenedRef.current = false;
+      return;
+    }
+    if (!loveNoteDue || sheetOpenedRef.current || useLoveNoteSheet.getState().note !== null) return;
+    sheetOpenedRef.current = true;
     // A partner's note takes the place of one of your own (Phase 2 D3). The choice is made here, when the sheet is due,
     // so the session engine knows nothing of it, and your partner's words stay out of its saved state. Only with the
     // app in front: a session ending just after the phone locks would otherwise use the note up unseen, and it waits.
@@ -222,7 +235,7 @@ export default function TimerScreen() {
     if (fromPartner) useLoveNoteSheet.getState().open(fromPartner.body, usePartnerGlance.getState().glance?.name ?? t('pair.partnerFallback'));
     else useLoveNoteSheet.getState().open(lastLoveNote!);
     router.push("/love-note");
-  }, [loveNoteDue, lastLoveNote]);
+  }, [loveNoteDue, lastLoveNote, showLoveNoteCard]);
   useEffect(
     () =>
       useLoveNoteSheet.subscribe((s, prev) => {
@@ -230,22 +243,6 @@ export default function TimerScreen() {
       }),
     [dismissLoveNote],
   );
-
-  // The interstitial: shown once no overlay is up, for requests not yet
-  // served. Marking the requests served before showing means a re-run of the
-  // effect can't show a second ad for them.
-  const adsServedRef = useRef(0);
-  useEffect(() => {
-    if (adRequests === adsServedRef.current) return;
-    if (!focused) return;
-    if (goalPopup || showLoveNoteCard) return;
-
-    adsServedRef.current = adRequests;
-    AdManager.showIfReady(() => {
-      // Callback after ad is closed (or if it failed/skipped)
-      // We could resume music or do other cleanup here if needed
-    });
-  }, [adRequests, goalPopup, showLoveNoteCard, focused]);
 
   // The sticker placement's success haptic and its completion sound, on the frame its sticker
   // lands: a completion while Timer is in front (HIG D1-L1: once per completion; each follows its
@@ -279,6 +276,27 @@ export default function TimerScreen() {
 
   const paused = !isRunning && remainingMs !== null && remainingMs < totalMs;
   const idle = !isRunning && !paused;
+
+  // The interstitial, for requests not yet served: shown once the Timer has
+  // been calm for INTERSTITIAL_SETTLE_MS, in front, idle (neither running nor
+  // paused), with no goal moment or note due. The wait lets a sheet that has
+  // just closed finish leaving, since iOS refuses to present the ad over one
+  // still in motion (DEF-011, 1.5.2). Anything that ends the calm cancels the
+  // wait, and the request waits for the next calm moment: the session's end,
+  // a Reset, or a Skip that leaves the next phase idle. Marking the requests
+  // served as the ad is asked for means a re-run can't show a second ad.
+  const adsServedRef = useRef(0);
+  useEffect(() => {
+    if (adRequests === adsServedRef.current) return;
+    if (!focused || !idle) return;
+    if (goalPopup || showLoveNoteCard) return;
+
+    const settle = setTimeout(() => {
+      adsServedRef.current = adRequests;
+      AdManager.showIfReady(() => {});
+    }, INTERSTITIAL_SETTLE_MS);
+    return () => clearTimeout(settle);
+  }, [adRequests, goalPopup, showLoveNoteCard, focused, idle]);
 
   // The one-time v1.4 welcome, on a calm entry only: Timer in front, idle, in Classic, with
   // nothing pending after a completion (welcome brief §4; HIG W-H1).

@@ -90,6 +90,7 @@ When Android returns (the [roadmap Android track](../roadmap/ROADMAP.md#android-
 - ["Phase 2 F5: shipping 1.5.0 on Supabase's Free plan, the submission and the release"](../implementations/2026-11-07-phase2-f5-submission.md)
 - [2026-11-12 — Screen sleep audit: why the phone locks itself during a session (DEF-010)](../implementations/2026-11-12-screen-sleep-audit.md)
 - [2026-11-12 — 1.5.1: the screen stays on while a session runs (DEF-010)](../implementations/2026-11-12-v151-screen-sleep-fix.md)
+- [2026-11-15 — 1.5.2: one note after each focus, and the ad that follows it (DEF-011)](../implementations/2026-11-15-v152-note-sheet-once.md)
 - [Branching model](BRANCHING.md)
 - [Evaluation — xtool (cross-platform Xcode replacement) vs staying on Expo/EAS](../proposals/xtool-evaluation.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)

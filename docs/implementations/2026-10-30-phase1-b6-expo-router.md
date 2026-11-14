@@ -817,6 +817,7 @@ Tabs are still loaded only when first opened or once start-up has gone idle, and
 - ["Phase 1 Stage C (C1–C4): the Sticker Diary design system, display face, Classic brief and art"](2026-10-30-phase1-stage-c-design.md)
 - ["Settings: the number pad can be dismissed (DEF-008)"](2026-10-30-settings-keyboard-dismiss.md)
 - [2026-11-12 — Screen sleep audit: why the phone locks itself during a session (DEF-010)](2026-11-12-screen-sleep-audit.md)
+- [2026-11-15 — 1.5.2: one note after each focus, and the ad that follows it (DEF-011)](2026-11-15-v152-note-sheet-once.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)

@@ -51,34 +51,42 @@ export const AdManager = {
         if (_isLoaded || _isLoading) return;
 
         _isLoading = true;
-        _interstitial = InterstitialAd.createForAdRequest(INTERSTITIAL_ID, {
+        const ad = InterstitialAd.createForAdRequest(INTERSTITIAL_ID, {
             requestNonPersonalizedAdsOnly: true,
         });
+        _interstitial = ad;
 
-        const unsubscribeLoaded = _interstitial.addAdEventListener(AdEventType.LOADED, () => {
+        // The load's own pair: both go once it has loaded or failed, so an error after show() is the show's alone.
+        const offLoaded = ad.addAdEventListener(AdEventType.LOADED, () => {
+            offLoaded();
+            offError();
             _isLoaded = true;
             _isLoading = false;
-            unsubscribeLoaded();
             markStartup('ads.loaded'); // the first one only: the B7 probe's readiness mark
             if (__DEV__) console.log('[AdManager] Interstitial loaded');
         });
 
-        const unsubscribeError = _interstitial.addAdEventListener(AdEventType.ERROR, (error: any) => {
+        const offError = ad.addAdEventListener(AdEventType.ERROR, (error: unknown) => {
+            offLoaded();
+            offError();
             _isLoaded = false;
             _isLoading = false;
-            _interstitial = null;
-            unsubscribeError();
+            if (_interstitial === ad) _interstitial = null;
             if (__DEV__) console.warn('[AdManager] Load error', error);
         });
 
-        _interstitial.load();
+        ad.load();
     },
 
     /**
-     * Checks checks policy caps AND if ad is loaded.
-     * If yes, shows it and returns true.
-     * If no, returns false (caller should proceed silently).
-     * @param onClose Callback when ad is closed OR if show fails/skips
+     * Shows the loaded interstitial when the policy allows it.
+     *
+     *   in : `onClose`, run once when this is over, whatever happened: skipped, closed, or refused.
+     *   out: true when show() was called, false when skipped (no ad due or none loaded; `onClose` has already run).
+     *   side effects: an ad is shown once at most, so it is spent as show() is called. Closed, it counts as seen
+     *        (`AdPolicy.recordAdShown`) and the next loads a second later. Refused, which iOS does while a sheet is
+     *        still leaving (DEF-011), whether as an error event or a rejected show(), it isn't counted and the next
+     *        loads at once, so the next completion has one ready.
      */
     showIfReady(onClose: () => void): boolean {
         // 1. Check Policy
@@ -97,29 +105,32 @@ export const AdManager = {
             return false;
         }
 
-        // 3. Show
+        // 3. Show. The ad is spent from here: the next show needs the next load.
         const ad = _interstitial;
+        _interstitial = null;
+        _isLoaded = false;
 
-        const unsubscribeClosed = ad.addAdEventListener(AdEventType.CLOSED, () => {
-            _isLoaded = false;
-            _interstitial = null;
-            unsubscribeClosed();
-
-            // Record success to Update Policy
-            AdPolicy.recordAdShown().catch(() => { });
-
+        let over = false;
+        const finish = (seen: boolean, error?: unknown) => {
+            if (over) return;
+            over = true;
+            offClosed();
+            offError();
+            if (seen) AdPolicy.recordAdShown().catch(() => { });
+            else if (__DEV__) console.warn('[AdManager] Show failed', error);
             onClose();
-
-            // Preload next one
-            setTimeout(() => this.preload(), 1000);
-        });
+            if (seen) setTimeout(() => AdManager.preload(), 1000);
+            else AdManager.preload();
+        };
+        const offClosed = ad.addAdEventListener(AdEventType.CLOSED, () => finish(true));
+        const offError = ad.addAdEventListener(AdEventType.ERROR, (error: unknown) => finish(false, error));
 
         try {
-            ad.show();
+            // A promise from the native module: it rejects when there's no view controller to present from.
+            Promise.resolve(ad.show()).catch((e: unknown) => finish(false, e));
             return true;
         } catch (e) {
-            if (__DEV__) console.warn('[AdManager] Show exception', e);
-            onClose();
+            finish(false, e);
             return false;
         }
     }

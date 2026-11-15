@@ -107,6 +107,14 @@ jest.mock('react-native-nitro-modules', () => ({
     },
 }));
 
+// 1.5.2: Jest runs as an iPhone, never as the iPad app on a Mac, so no test
+// renders the Mac banner or loses the Stats one unless it mocks this itself.
+// The detection is tested on its own in src/platform/__tests__/isMac.test.ts.
+jest.mock('./src/platform/isMac', () => ({
+    IS_MAC: false,
+    detectMac: () => false,
+}));
+
 // AdMob resolves its TurboModule at import time. Only the exports the app uses
 // (src/ads/*, StatsScreen) are stubbed; ads never load in tests.
 jest.mock('react-native-google-mobile-ads', () => ({

@@ -32,3 +32,10 @@ const productionBannerId = Platform.select({
 export const BANNER_ID = __DEV__
     ? TestIds.BANNER
     : (productionBannerId ?? TestIds.BANNER);
+
+/**
+ * How long a Mac window must keep its width before the Mac banner asks for an ad of that width, in ms (1.5.2). A
+ * change of the banner's `width` makes the SDK request a new ad, so a drag of the window's edge, which changes the width
+ * every frame, would send a request per frame. With this wait it sends one, once the resize has ended.
+ */
+export const MAC_BANNER_RESIZE_SETTLE_MS = 1000;

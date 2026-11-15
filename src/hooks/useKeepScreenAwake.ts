@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
+import { holdMacDisplay, releaseMacDisplay } from '../../modules/mac-display-awake';
 import { useSessionStore } from '../stores/sessionStore';
 import type { SessionClockState } from '../types';
 
@@ -55,6 +56,10 @@ function enqueue(call: () => Promise<unknown>): void {
  *   only in the foreground; iOS ignores the setting in the background, and
  *   expo-keep-awake drops it there and restores it on return. Nothing here
  *   needs a background mode (DEF-009).
+ * - **On a Mac (1.5.2):** the same moments also hold and release the Mac
+ *   display (`modules/mac-display-awake`), since a Mac is reported to ignore
+ *   the idle timer for an iPad app. The native side does nothing unless the
+ *   app runs on a Mac, so an iPhone's calls are the same as in 1.5.1.
  */
 export function useKeepScreenAwake(active: boolean): void {
     useEffect(() => {
@@ -65,6 +70,8 @@ export function useKeepScreenAwake(active: boolean): void {
             const wanted = isSessionRunning(useSessionStore.getState().clock, Date.now());
             if (wanted === held) return;
             held = wanted;
+            if (wanted) holdMacDisplay();
+            else releaseMacDisplay();
             enqueue(wanted ? () => activateKeepAwakeAsync(KEEP_AWAKE_TAG) : () => deactivateKeepAwake(KEEP_AWAKE_TAG));
         };
 
@@ -74,6 +81,7 @@ export function useKeepScreenAwake(active: boolean): void {
             unsubscribe();
             if (held) {
                 held = false;
+                releaseMacDisplay();
                 enqueue(() => deactivateKeepAwake(KEEP_AWAKE_TAG));
             }
         };

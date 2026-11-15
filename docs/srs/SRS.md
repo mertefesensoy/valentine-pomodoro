@@ -108,6 +108,7 @@ These were rejected in the [rehaul plan §3.5](../implementations/2026-10-29-cou
 ### 2.3 Operating environment
 
 - **iOS 16.4 or later** (the Expo SDK 58 minimum), iPhone and iPad, portrait and landscape.
+- **Macs with Apple silicon (M1 or later, macOS 12 or later)**, as the iPad app in a resizable window ("Designed for iPad"). It's the same binary. Apple offers it there by default, and the store listed it there on 2026-11-13 ([the Mac audit](../implementations/2026-11-13-mac-version-audit.md)). Since 1.5.2, the app tells a Mac apart only for its banner and its display (FR-ADS-003, FR-TMR-011).
 - **Web (Phase 6):** current Safari, Chrome, Firefox and Edge.
 - **Android (deferred):** the targets in [§3b of the Phase 1 plan](../implementations/2026-10-29-phase1-plan.md#3b-deferred-android-after-v14).
 
@@ -123,7 +124,7 @@ These were rejected in the [rehaul plan §3.5](../implementations/2026-10-29-cou
 **iOS first.** v1.4 ships to iOS only. Android waits until Google Play's rule for new personal accounts can be met: at least 12 testers opted in to a closed test for 14 consecutive days. Source: PLAN-PHASE1 §0.
 
 #### CON-004
-**No Mac.** Every iOS build and device check goes through EAS Build and TestFlight, each with the owner's go-ahead.
+**No Mac for building.** Every iOS build and device check goes through EAS Build and TestFlight, each with the owner's go-ahead. Since 2026-11-15, the owner has an Apple silicon Mac for TestFlight checks of the Mac app, but none for building or for Xcode.
 
 #### CON-005
 **Store rules.**
@@ -312,7 +313,8 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 - An ended session that waits for its handler (DEF-004) doesn't keep the screen on.
 - The side button still locks the phone, and the session keeps running.
 - No background mode is added for this (DEF-009).
-**Verify:** T: `src/hooks/__tests__/useKeepScreenAwake.test.tsx`; D: a TestFlight build with Auto-Lock at 30 s, never a dev build, which keeps the screen on by itself ([the fix §6](../implementations/2026-11-12-v151-screen-sleep-fix.md)) · **Source:** the owner's report, 2026-11-12; [the audit](../implementations/2026-11-12-screen-sleep-audit.md)
+- **On a Mac (since 1.5.2):** a running session also keeps the Mac's display from sleeping, through `modules/mac-display-awake`. A Mac is reported to ignore the idle timer for an iPad app. On an iPhone or iPad that module does nothing.
+**Verify:** T: `src/hooks/__tests__/useKeepScreenAwake.test.tsx` (since 1.5.2, the Mac calls too); D: a TestFlight build with Auto-Lock at 30 s, never a dev build, which keeps the screen on by itself ([the fix §6](../implementations/2026-11-12-v151-screen-sleep-fix.md)); D: on a Mac, with the display set to sleep after 1 minute ([1.5.2's Mac record](../implementations/2026-11-15-v152-mac.md)) · **Source:** the owner's report, 2026-11-12; [the audit](../implementations/2026-11-12-screen-sleep-audit.md)
 
 #### 3.2.2 Notifications and reminders (NTF)
 
@@ -495,6 +497,16 @@ NFR categories: `PERF`, `REL`, `SEC`, `PRIV`, `A11Y`, `I18N`, `UX`, `MAINT`, `PO
 #### FR-ADS-002
 **Statement:** No ad request shall be made before Google UMP consent is resolved in the EEA, the UK and Switzerland. Non-personalised ads shall be served when consent is declined.
 **Pri:** Must · **Target:** Phase 5 · **Status:** planned · **Source:** PLAN-REHAUL §4.6. Prior work exists in tag `archive/ios-ads-consent-1.2.3`.
+
+#### FR-ADS-003
+**Statement:** On a Mac (the iPad app on Apple silicon), the app shall show one always-on banner at the bottom of the window, on every tab, with the screens laid out above it. Stats shall show no banner of its own there. The interstitial shall follow FR-ADS-001 as on an iPhone.
+**Pri:** Should · **Target:** 1.5.2 · **Status:** implemented (1.5.2; untested on a Mac)
+**Accept:**
+- Only on a Mac: no iPhone or iPad screen changes.
+- The banner is as wide as the window, and after a resize it takes the new width about a second after the resize ends.
+- With no ad, it takes no space.
+- It asks for non-personalised ads only, once the ads SDK has started.
+**Verify:** T: `src/ads/__tests__/macBanner.test.tsx`; T: `src/__tests__/macRouter.test.tsx` (exactly one banner on every tab, on the real navigator); T: `src/platform/__tests__/isMac.test.ts`; D: on a Mac, from TestFlight ([the record §6.2](../implementations/2026-11-15-v152-mac.md)) · **Source:** the owner, 2026-11-15 ("for macs only we should have always a ad banner at the bottom", and "Both"); [the Mac audit §9](../implementations/2026-11-13-mac-version-audit.md)
 
 #### 3.2.9 Storage and migration (MIG)
 
@@ -886,6 +898,8 @@ The v1 on-device keys and their shapes are pinned by the A3 fixtures (`src/__fix
 - [2026-11-06 — 1.4.2: the update check finds new versions when they're out](../implementations/2026-11-06-v142-update-check-fix.md)
 - [2026-11-12 — Screen sleep audit: why the phone locks itself during a session (DEF-010)](../implementations/2026-11-12-screen-sleep-audit.md)
 - [2026-11-12 — 1.5.1: the screen stays on while a session runs (DEF-010)](../implementations/2026-11-12-v151-screen-sleep-fix.md)
+- [2026-11-13 — Mac version audit: can Valentine Pomodoro ship on the Mac?](../implementations/2026-11-13-mac-version-audit.md)
+- [2026-11-15 — 1.5.2 on the Mac: an always-on banner, and the display kept on](../implementations/2026-11-15-v152-mac.md)
 - [2026-11-15 — 1.5.2: one note after each focus, and the ad that follows it (DEF-011)](../implementations/2026-11-15-v152-note-sheet-once.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Documentation conventions](../process/DOCS.md)

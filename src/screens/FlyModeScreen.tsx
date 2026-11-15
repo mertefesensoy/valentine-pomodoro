@@ -57,6 +57,7 @@ import { useSlotSharedValues } from '../hooks/useSlotClock';
 import { useNotesStore } from '../stores/notesStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useStatsStore } from '../stores/statsStore';
+import { INTERSTITIAL_SETTLE_MS } from '../ads/AdConfig';
 import { AdManager } from '../ads/AdManager';
 import { AdPolicy } from '../ads/AdPolicy';
 import { flightLandedContent, useNotifications } from '../hooks/useNotifications';
@@ -640,18 +641,23 @@ export default function FlyModeScreen() {
     }, [partnerLandingDue, focused]);
 
     // ── Show interstitial ad after flight completion
-    // Wait for any love note overlay to be dismissed first — never stack UI layers
+    // Wait for any love note overlay to be dismissed first — never stack UI layers. Then, as on the Timer, wait
+    // INTERSTITIAL_SETTLE_MS more: a partner's note is the native /love-note sheet, and iOS refuses to present the ad
+    // while that sheet is still leaving (DEF-011, 1.5.2). Anything that ends the calm cancels the wait.
     useEffect(() => {
         if (adRequests === adsServedRef.current) return;
         if (timerRunning || paused) return; // safety gate
         if (landingLoveNote || partnerLandingDue || sheetNoteOpen) return; // wait for love note to close
         if (!focused) return;               // and for the Timer tab to be shown
 
-        // Served before showing, so a re-run can't show a second ad for them.
-        adsServedRef.current = adRequests;
-        AdManager.showIfReady(() => {
-            // onClose: ambient sound already stopped, nothing else to do
-        });
+        const settle = setTimeout(() => {
+            // Served as it's asked for, so a re-run can't show a second ad for them.
+            adsServedRef.current = adRequests;
+            AdManager.showIfReady(() => {
+                // onClose: ambient sound already stopped, nothing else to do
+            });
+        }, INTERSTITIAL_SETTLE_MS);
+        return () => clearTimeout(settle);
     }, [adRequests, timerRunning, paused, landingLoveNote, partnerLandingDue, sheetNoteOpen, focused]);
 
     // ── Cleanup on unmount ─────────────────────────────────────────────────

@@ -1,13 +1,17 @@
 import { useContext, useEffect } from 'react';
-import { ActionSheetIOS, Text } from 'react-native';
+import { ActionSheetIOS, AppState, Text } from 'react-native';
 // The router's testing library installs its own mocks when imported (expo-linking
 // among them), so it comes before the modules it mocks.
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { NavigationContext } from 'expo-router/react-navigation';
+import { INTERSTITIAL_SETTLE_MS } from '../ads/AdConfig';
 import { AdManager } from '../ads/AdManager';
 import { useHasBeenFocused, useScreenFocused } from '../hooks/useScreenFocus';
+import { useAccountStore } from '../server/account';
+import { usePartnerGlance } from '../server/partnerGlance';
+import { useLoveNoteSheet } from '../stores/loveNoteSheetStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useStatsStore } from '../stores/statsStore';
 import { useNotesStore } from '../stores/notesStore';
@@ -15,6 +19,7 @@ import { useUiStore } from '../stores/uiStore';
 import { StrawberryMilk } from '../theme/palette';
 import { resetStorage } from '../__fixtures__/storage/resetStorage';
 import { latestTutorialVersion } from '../screens/tutorial/tutorials';
+import { appStorage } from '../utils/appStorage';
 import { save, STORAGE_KEYS } from '../utils/storage';
 
 // The real app/ routes (Phase 1 B6): the root layout with src/App.tsx, the
@@ -71,6 +76,8 @@ jest.mock('../hooks/useUpdateCheck', () => ({
 jest.mock('../ads/AdManager', () => ({
     AdManager: { init: jest.fn(async () => {}), preload: jest.fn(), showIfReady: jest.fn(() => false) },
 }));
+// A partner's note tells the server it was shown (Phase 2 D3); no network here.
+jest.mock('../server/noteDelivery', () => ({ flushShown: jest.fn(async () => {}) }));
 // The policy says yes to every completion: what's tested is when Timer asks.
 jest.mock('../ads/AdPolicy', () => ({
     AdPolicy: {
@@ -349,7 +356,126 @@ describe('tabs render late, then never hide', () => {
         expect(screen.getByText(LOVE_NOTE_CLOSE)).toBeOnTheScreen();
         expect(AdManager.showIfReady).not.toHaveBeenCalled();
         await act(async () => fireEvent.press(screen.getByText(LOVE_NOTE_CLOSE)));
+        await act(async () => {});
+        // The sheet opens once (DEF-011): closing it leaves the Timer in front, with no second sheet on its way.
+        expect(result.getPathname()).toBe('/');
+        expect(screen.queryByText(LOVE_NOTE_CLOSE)).toBeNull();
+        expect(useLoveNoteSheet.getState().note).toBeNull();
+        // The ad waits for the sheet to finish leaving, since iOS can't present it over a sheet in motion (DEF-011).
+        expect(AdManager.showIfReady).not.toHaveBeenCalled();
+        await tick(INTERSTITIAL_SETTLE_MS - 100);
+        expect(AdManager.showIfReady).not.toHaveBeenCalled();
+        await tick(100);
         expect(AdManager.showIfReady).toHaveBeenCalledTimes(1);
+        expect(result.getPathname()).toBe('/');
+        await tick(30_000);
+        expect(AdManager.showIfReady).toHaveBeenCalledTimes(1);
+    });
+});
+
+// covers: FR-NTE-003, FR-NTE-001, FR-ADS-001
+// DEF-011, reported by the owner on 1.5.0: after a focus, a partner's note showed, then the ad failed, then a second
+// sheet opened, with their second note, or the app's own when they had sent one. Closing the sheet pops its route and
+// gives Timer its focus back in one commit, and the route's cleanup empties the sheet's store just before Timer's
+// effect looks at it, so the note looked due and unshown. Only the real navigator moves focus, so this runs here.
+describe("a partner's note on the real navigator", () => {
+    const CLOSE = 'Close';
+    const FIRST = 'Good luck with your exam today';
+    const SECOND = 'Dinner at eight?';
+    const appState = AppState as unknown as { currentState: string };
+    let savedAppState: string;
+
+    beforeEach(() => {
+        savedAppState = appState.currentState;
+        appState.currentState = 'active';
+    });
+    afterEach(async () => {
+        appState.currentState = savedAppState;
+        jest.mocked(AdManager.showIfReady).mockImplementation(() => false);
+        await act(async () => {
+            usePartnerGlance.setState({ glance: null, gone: null, notes: [], shown: [] });
+            useAccountStore.setState({ present: false, sessionEnded: false });
+            useLoveNoteSheet.getState().close();
+        });
+    });
+
+    async function completeFocusWith(notes: { id: string; body: string }[]) {
+        const result = await launch(null);
+        await act(() => {
+            appStorage.set('pair_celebrated_v1', 'c');
+            useAccountStore.setState({ present: true, sessionEnded: false });
+            usePartnerGlance.setState({
+                glance: { coupleId: 'c', name: 'Deniz', today: null, updatedAt: null, fetchedAt: Date.now() },
+                gone: null,
+                notes,
+                shown: [],
+            });
+            useSettingsStore.getState().updateSettings({
+                durations: { ...useSettingsStore.getState().settings.durations, focus: 1 },
+                showLoveNotes: true,
+            });
+            // Below the goal, so the note comes straight after the focus.
+            useStatsStore.getState().setGoalMinutes(600);
+        });
+        await act(async () => fireEvent.press(screen.getByText('Start focus')));
+        await tick(61_000);
+        return result;
+    }
+
+    async function close() {
+        await act(async () => fireEvent.press(screen.getByText(CLOSE)));
+        await act(async () => {});
+    }
+
+    it('one note from them shows alone: no note of your own follows it', async () => {
+        const result = await completeFocusWith([{ id: 'n1', body: FIRST }]);
+        expect(result.getPathname()).toBe('/love-note');
+        expect(screen.getByText(FIRST)).toBeOnTheScreen();
+        expect(screen.getByRole('header', { name: 'A note from Deniz' })).toBeOnTheScreen();
+
+        await close();
+        expect(result.getPathname()).toBe('/');
+        expect(screen.queryByText(CLOSE)).toBeNull();
+        expect(useLoveNoteSheet.getState().note).toBeNull();
+        await tick(30_000);
+        expect(result.getPathname()).toBe('/');
+        expect(usePartnerGlance.getState().shown).toEqual(['n1']);
+    });
+
+    it('with two waiting, one shows; the other waits for your next focus, and the ad comes with no sheet in its way', async () => {
+        // Where the app is when the ad is asked for: the Timer, with no note in the sheet or on its way.
+        const atAd: { path: string; note: string | null }[] = [];
+        let pathname = () => '';
+        jest.mocked(AdManager.showIfReady).mockImplementation(() => {
+            atAd.push({ path: pathname(), note: useLoveNoteSheet.getState().note });
+            return false;
+        });
+        const result = await completeFocusWith([
+            { id: 'n1', body: FIRST },
+            { id: 'n2', body: SECOND },
+        ]);
+        pathname = () => result.getPathname();
+        expect(screen.getByText(FIRST)).toBeOnTheScreen();
+
+        await close();
+        expect(result.getPathname()).toBe('/');
+        expect(screen.queryByText(SECOND)).toBeNull();
+        expect(usePartnerGlance.getState().notes).toEqual([{ id: 'n2', body: SECOND }]);
+        expect(atAd).toEqual([]);
+
+        await tick(INTERSTITIAL_SETTLE_MS);
+        expect(atAd).toEqual([{ path: '/', note: null }]);
+        await tick(30_000);
+        expect(atAd).toHaveLength(1);
+        expect(result.getPathname()).toBe('/');
+
+        // Their second note is the next focus's.
+        await act(async () => fireEvent.press(screen.getByText('Start break')));
+        await tick(5 * 60_000 + 1_000);
+        await act(async () => fireEvent.press(screen.getByText('Start focus')));
+        await tick(61_000);
+        expect(result.getPathname()).toBe('/love-note');
+        expect(screen.getByText(SECOND)).toBeOnTheScreen();
     });
 });
 

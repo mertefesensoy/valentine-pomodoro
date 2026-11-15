@@ -166,3 +166,68 @@ describe('the interstitial after B7 deferred the ads start', () => {
         expect(onClose).toHaveBeenCalledTimes(1); // the caller proceeds
     });
 });
+
+/** A launch whose first interstitial has loaded, and two completed sessions asking for it. */
+async function loadedAndAsked() {
+    const app = launch('eager');
+    await app.AdManager.init();
+    mockSdk.interstitials[0].emit('loaded');
+    const asked = await secondSessionAsksForAnAd(app);
+    expect(asked.shown).toBe(true);
+    expect(mockSdk.interstitials[0].show).toHaveBeenCalledTimes(1);
+    return { app, ...asked };
+}
+
+const listenerCount = (ad: MockInterstitial) => [...ad.listeners.values()].reduce((n, list) => n + list.length, 0);
+
+// covers: FR-ADS-001
+// DEF-011 (1.5.2): iOS refuses to present the ad while a sheet is still leaving. The SDK reports that as an error
+// event after show(), or a rejected show() promise. Either way the ad is spent: the next one loads at once, so a
+// refusal costs one chance, not two, and the policy isn't told an ad was seen.
+describe('an interstitial that fails to show', () => {
+    it('an error after show() ends it: onClose runs once, the next ad loads at once, and it is not counted as shown', async () => {
+        jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const { app, onClose } = await loadedAndAsked();
+
+        mockSdk.interstitials[0].emit('error');
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(mockSdk.interstitials).toHaveLength(2);
+        expect(mockSdk.interstitials[1].load).toHaveBeenCalledTimes(1);
+        expect(listenerCount(mockSdk.interstitials[0])).toBe(0);
+        // No ad was seen, so the policy still says yes, and the new ad shows once it has loaded.
+        expect(app.AdPolicy.shouldShowAd()).toBe(true);
+        mockSdk.interstitials[1].emit('loaded');
+        expect(app.AdManager.showIfReady(jest.fn())).toBe(true);
+        expect(mockSdk.interstitials[1].show).toHaveBeenCalledTimes(1);
+    });
+
+    it('a rejected show() is handled the same way, with nothing left unhandled', async () => {
+        jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const app = launch('eager');
+        await app.AdManager.init();
+        mockSdk.interstitials[0].emit('loaded');
+        mockSdk.interstitials[0].show.mockImplementation(() => Promise.reject(new Error('nil-vc')));
+        const { shown, onClose } = await secondSessionAsksForAnAd(app);
+        expect(shown).toBe(true);
+
+        await Promise.resolve();
+        await Promise.resolve();
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(mockSdk.interstitials).toHaveLength(2);
+        expect(app.AdPolicy.shouldShowAd()).toBe(true);
+    });
+
+    it('a closed ad counts as shown: onClose runs once, its listeners go, and the next loads a second later', async () => {
+        const { app, onClose } = await loadedAndAsked();
+
+        mockSdk.interstitials[0].emit('closed');
+        mockSdk.interstitials[0].emit('closed');
+        mockSdk.interstitials[0].emit('error');
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(listenerCount(mockSdk.interstitials[0])).toBe(0);
+        expect(app.AdPolicy.shouldShowAd()).toBe(false);
+        expect(mockSdk.interstitials).toHaveLength(1);
+        jest.advanceTimersByTime(1_000);
+        expect(mockSdk.interstitials).toHaveLength(2);
+    });
+});

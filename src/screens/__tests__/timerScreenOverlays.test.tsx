@@ -4,6 +4,7 @@ import { StoreGate } from '../../stores/StoreGate';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useStatsStore } from '../../stores/statsStore';
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
+import { INTERSTITIAL_SETTLE_MS } from '../../ads/AdConfig';
 import { AdManager } from '../../ads/AdManager';
 import { LoveNoteSheet } from '../../components/loveNote/LoveNoteSheet';
 import { useLoveNoteSheet } from '../../stores/loveNoteSheetStore';
@@ -125,6 +126,9 @@ describe('after a completed focus on Classic', () => {
 
         await press(LOVE_NOTE_CLOSE);
         expect(screen.queryByText(LOVE_NOTE_CLOSE)).toBeNull();
+        // The ad lets the sheet finish leaving first (DEF-011, 1.5.2).
+        expect(showAd).not.toHaveBeenCalled();
+        await tick(INTERSTITIAL_SETTLE_MS);
         expect(showAd).toHaveBeenCalledTimes(1);
 
         // Nothing more, however long the screen stays up.
@@ -146,6 +150,39 @@ describe('after a completed focus on Classic', () => {
 
         await press(LOVE_NOTE_CLOSE);
         expect(screen.queryByText(LOVE_NOTE_CLOSE)).toBeNull();
+        expect(showAd).not.toHaveBeenCalled();
+        await tick(INTERSTITIAL_SETTLE_MS - 1);
+        expect(showAd).not.toHaveBeenCalled();
+        await tick(1);
+        expect(showAd).toHaveBeenCalledTimes(1);
+    });
+
+    it('starting the next session before the ad holds it for the next calm moment', async () => {
+        await completeOneMinuteFocus({ goalMinutes: 600, showLoveNotes: true });
+        await press(LOVE_NOTE_CLOSE);
+        await tick(INTERSTITIAL_SETTLE_MS - 100);
+        await press('Start break');
+        await tick(60_000);
+        expect(showAd).not.toHaveBeenCalled();
+
+        // The break ends: the Timer is calm again, and the ad comes after the same wait.
+        await tick(4 * 60_000 + 1_000);
+        expect(showAd).toHaveBeenCalledTimes(1);
+    });
+
+    it('a session started, then paused, before the ad still holds it: paused is not calm', async () => {
+        await completeOneMinuteFocus({ goalMinutes: 600, showLoveNotes: true });
+        await press(LOVE_NOTE_CLOSE);
+        await tick(INTERSTITIAL_SETTLE_MS - 100);
+        await press('Start break');
+        await tick(1_000);
+        await press('Pause');
+        await tick(60_000);
+        expect(showAd).not.toHaveBeenCalled();
+
+        // Resumed and run to its end, the break leaves the Timer calm, and the ad follows the wait.
+        await press('Resume');
+        await tick(5 * 60_000);
         expect(showAd).toHaveBeenCalledTimes(1);
     });
 

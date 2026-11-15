@@ -7,6 +7,9 @@ import { router } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { resetStorage } from '../../__fixtures__/storage/resetStorage';
+import { INTERSTITIAL_SETTLE_MS } from '../../ads/AdConfig';
+import { AdManager } from '../../ads/AdManager';
+import { AdPolicy } from '../../ads/AdPolicy';
 import { LoveNoteSheet } from '../../components/loveNote/LoveNoteSheet';
 import { useAccountStore } from '../../server/account';
 import { usePartnerGlance } from '../../server/partnerGlance';
@@ -296,5 +299,29 @@ describe('on landing a flight', () => {
         await fly();
         expect(screen.queryByRole('header', { name: 'A note from Deniz' })).toBeNull();
         expect(screen.getByText('Close')).toBeOnTheScreen();
+    });
+
+    // covers: FR-ADS-001
+    // DEF-011 (1.5.2): their note is the same native sheet as on the Timer, so the ad lets it finish leaving first.
+    it('asks for the ad only once their note\'s sheet has had time to leave', async () => {
+        const showAd = jest.mocked(AdManager.showIfReady);
+        jest.mocked(AdPolicy.shouldShowAd).mockReturnValue(true);
+        try {
+            showAd.mockClear();
+            await setUp({ showLoveNotes: true });
+            await fly();
+            expect(screen.getByText(PARTNER_NOTE)).toBeOnTheScreen();
+            expect(showAd).not.toHaveBeenCalled();
+
+            await press('Close');
+            expect(screen.queryByText(PARTNER_NOTE)).toBeNull();
+            expect(showAd).not.toHaveBeenCalled();
+            await tick(INTERSTITIAL_SETTLE_MS - 1);
+            expect(showAd).not.toHaveBeenCalled();
+            await tick(1);
+            expect(showAd).toHaveBeenCalledTimes(1);
+        } finally {
+            jest.mocked(AdPolicy.shouldShowAd).mockReturnValue(false);
+        }
     });
 });

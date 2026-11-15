@@ -4,6 +4,15 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [Unreleased]
 
+## [1.5.2] - 2026-11-15
+
+*An iOS patch, dated by its EAS production build (UTC); the build number and the release are added here once known. Android stays on 1.3.1.*
+
+### Fixed
+
+- **One note after each focus.** Since 1.4.0, closing the love note could open a second one at once: your partner's next note, or one of your own straight after theirs, or your own note twice. Now a finished focus shows one note. If your partner has sent two, the second comes after your next focus (DEF-011).
+- **The ad after a note waits for the note to go.** It was asked for while the note was still sliding away, when iOS doesn't present another screen, which is the likely reason the owner saw it fail. Now it waits about a second after the note has gone, in Classic and in Fly, and an ad that fails to show loads the next one at once. The TestFlight device check confirms it (DEF-011).
+
 ## [1.5.1] - 2026-11-13
 
 *An iOS patch, dated by its EAS production build (UTC); the build number and the release are added here once known. Android stays on 1.3.1.*

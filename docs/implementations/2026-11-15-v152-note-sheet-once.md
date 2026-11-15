@@ -305,7 +305,7 @@ None of these has been run yet.
    - This record's hand-made lines are separate hunks.
    - The generated backlink lists in `RELEASE.md` and the SRS put this record's line right after the audit's.
    - So the commit's tree was built from `e1fcb1e` with this change's files and hunks alone, and `check-docs --write` ran there (§6.4). The audit's edits stay uncommitted in the working tree, on top of this commit.
-2. [ ] `CHANGELOG.md`: "Unreleased" becomes `## [1.5.2] - <the build date>`, the planned EAS production build date (RELEASE.md §3).
+2. [x] `CHANGELOG.md`: "Unreleased" became `## [1.5.2] - 2026-11-15`, the EAS production build's date (UTC), on the owner's "merge it and start the EAS build" (RELEASE.md §3). The italic line gets the build number and the release once they're known.
 3. [ ] **The build:** the EAS production build from `master` after the merge, with the owner's go-ahead. Then TestFlight, the device check in §6.2, and the tags `v1.5.2-tf.N`, `v1.5.2-submitted` and `v1.5.2` (RELEASE.md §2).
 4. [ ] **The owner:** in App Store Connect, the 1.5.2 version with the "What's New" text and the review notes below, then submit for review.
 5. [ ] `update.json` stays at 1.3.1, because Android reads it.

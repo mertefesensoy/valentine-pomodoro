@@ -46,6 +46,8 @@ describe('the hidden start-up panel', () => {
         expect(screen.getByText(/This launch:/)).toBeOnTheScreen();
         // The Stats banner's result (B6 fix): nothing opened Stats here.
         expect(screen.getByText('Stats banner (this launch): not requested (Stats not opened yet)')).toBeOnTheScreen();
+        // The Mac banner's line (1.5.2): Jest runs as an iPhone.
+        expect(screen.getByText('Mac banner (this launch): not a Mac')).toBeOnTheScreen();
         expect(readStartupMode()).toBe('deferred');
         expect(appStorage.getString(STARTUP_VARIANT_KEY)).toBeDefined();
 
@@ -86,6 +88,7 @@ describe('the hidden start-up panel', () => {
         expect(share).toHaveBeenCalledTimes(1);
         expect(JSON.parse(share.mock.calls[0][0].message as string).rows).toHaveLength(1);
         expect(JSON.parse(share.mock.calls[0][0].message as string).banner).toEqual({ state: 'not requested' });
+        expect(JSON.parse(share.mock.calls[0][0].message as string).macBanner).toEqual({ isMac: false, state: 'not requested' });
 
         await fireEvent.press(screen.getByText('Clear runs'));
         expect(screen.getByText(/Rows stored: 0/)).toBeOnTheScreen();

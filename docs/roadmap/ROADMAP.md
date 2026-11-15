@@ -152,6 +152,7 @@ Polish and harden passes, a Realtime load test, Maestro end-to-end tests, the re
 - [2026-10-29 — v2 Couples Rehaul: Plan](../implementations/2026-10-29-couples-rehaul-plan.md)
 - [Documentation system, release history and branch cleanup](../implementations/2026-10-30-documentation-system.md)
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)
+- [2026-11-13 — Mac version audit: can Valentine Pomodoro ship on the Mac?](../implementations/2026-11-13-mac-version-audit.md)
 - [Release process](../process/RELEASE.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Status snapshot 2026-10-30](../status/2026-10-30-status.md)

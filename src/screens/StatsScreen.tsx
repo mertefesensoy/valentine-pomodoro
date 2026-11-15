@@ -13,6 +13,7 @@ import { ButtonRow, ListGroup } from '../components/settings/SettingsList';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { StatusBarScrim } from '../components/ui/StatusBarScrim';
 import { useHasBeenFocused, useScreenFocused } from '../hooks/useScreenFocus';
+import { IS_MAC } from '../platform/isMac';
 import { formatNumber, t } from '../i18n';
 import { useSettingsFocus } from '../stores/settingsFocusStore';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -67,7 +68,10 @@ export default function StatsScreen() {
     // a screen nobody has looked at. Its container is there from the start, as
     // before. bannerStatus keeps the load result and where the container
     // landed, for B7's hidden panel: build 46 showed no banner, cause unknown.
-    const bannerAllowed = useHasBeenFocused();
+    // On a Mac (1.5.2, FR-ADS-003) the root layout's always-on banner replaces
+    // this one, so Stats renders neither the ad nor its slot there.
+    const statsBanner = !IS_MAC;
+    const bannerAllowed = useHasBeenFocused() && statsBanner;
     useEffect(() => {
         if (bannerAllowed) noteBannerRequested();
     }, [bannerAllowed]);
@@ -323,6 +327,7 @@ export default function StatsScreen() {
             )}
             {/* The bottom inset includes the native tab bar (Phase 1 B6); the slot sits above it,
                 with about 12 pt between the ad and the bar (its own padding plus this margin). */}
+            {statsBanner && (
             <View
                 ref={bannerBoxRef}
                 onLayout={(e) => {
@@ -357,6 +362,7 @@ export default function StatsScreen() {
                     />
                 )}
             </View>
+            )}
         </View>
     );
 }

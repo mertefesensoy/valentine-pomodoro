@@ -51,7 +51,52 @@ export function bannerStatus(): BannerStatus {
     return status;
 }
 
+/**
+ * What happened to the Mac's always-on banner on this launch (1.5.2,
+ * FR-ADS-003), for the same panel. On a Mac an empty bottom edge could mean no
+ * fill, a request error, or the Mac not being detected at all; this tells them
+ * apart without another build. In memory only, like the Stats banner's.
+ */
+export type MacBannerStatus = {
+    state: 'not requested' | 'requested' | 'loaded' | 'failed';
+    /** The width last passed to the SDK, pt. */
+    width?: number;
+    size?: { width: number; height: number };
+    error?: { code: string; message: string };
+};
+
+let macStatus: MacBannerStatus = { state: 'not requested' };
+
+/** A request with this width (the first, or a new width after a resize). */
+export function noteMacBannerRequested(width: number): void {
+    macStatus = { state: 'requested', width };
+}
+
+export function noteMacBannerLoaded(size: { width: number; height: number }): void {
+    macStatus = { ...macStatus, state: 'loaded', size: { width: size.width, height: size.height }, error: undefined };
+}
+
+export function noteMacBannerFailed(error: { code?: string; message?: string }): void {
+    macStatus = { ...macStatus, state: 'failed', error: { code: error.code ?? 'unknown', message: error.message ?? '' } };
+}
+
+export function macBannerStatus(): MacBannerStatus {
+    return macStatus;
+}
+
 const pt = (v: number) => `${Math.round(v)}`;
+
+/** One line for the panel. `isMac` is IS_MAC, passed in so this module stays free of platform reads. */
+export function macBannerStatusLine(isMac: boolean, s: MacBannerStatus = macStatus): string {
+    if (!isMac) return 'Mac banner (this launch): not a Mac';
+    let line = 'Mac banner (this launch): ';
+    if (s.state === 'not requested') line += 'on a Mac, not requested yet (waiting for the ads SDK)';
+    else if (s.state === 'requested') line += 'requested, no result yet';
+    else if (s.state === 'loaded') line += `loaded ${pt(s.size!.width)}×${pt(s.size!.height)}`;
+    else line += `failed: ${s.error!.code}${s.error!.message ? ` (${s.error!.message})` : ''}`;
+    if (s.width !== undefined) line += ` · asked ${pt(s.width)} pt`;
+    return line;
+}
 
 /** One line for the panel. */
 export function bannerStatusLine(s: BannerStatus = status): string {

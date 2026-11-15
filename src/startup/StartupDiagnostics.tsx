@@ -2,7 +2,8 @@ import { useState, type ReactNode } from 'react';
 import { Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import * as Application from 'expo-application';
 import { useTheme } from '../theme/useTheme';
-import { bannerStatus, bannerStatusLine } from '../ads/bannerStatus';
+import { bannerStatus, bannerStatusLine, macBannerStatus, macBannerStatusLine } from '../ads/bannerStatus';
+import { IS_MAC } from '../platform/isMac';
 import { hodgesLehmann, summarize, type Summary } from './probeStats';
 import { completionFramesLine } from './frameProbe';
 import {
@@ -132,6 +133,7 @@ function StartupDiagnosticsPanel() {
             rows: snap.rows,
             // This launch's Stats banner (B6 fix, B6 record §9).
             banner: bannerStatus(),
+            macBanner: { isMac: IS_MAC, ...macBannerStatus() },
         };
         void Share.share({ message: JSON.stringify(data) });
     };
@@ -142,6 +144,7 @@ function StartupDiagnosticsPanel() {
             <Text style={[styles.title, { color: tokens.ink }]}>Start-up probe (ms)</Text>
             <Text style={textStyle}>{thisLaunch}</Text>
             <Text style={textStyle}>{bannerStatusLine()}</Text>
+            <Text style={textStyle}>{macBannerStatusLine(IS_MAC)}</Text>
             {/* The sticker placement's frame times, this launch (Phase 1 D1, NFR-PERF-004). */}
             <Text style={textStyle}>{completionFramesLine()}</Text>
 

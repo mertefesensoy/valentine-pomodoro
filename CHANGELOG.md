@@ -6,9 +6,15 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [1.5.2] - 2026-11-15
 
-*An iOS patch, dated by its EAS production build (UTC); the build number and the release are added here once known. Android stays on 1.3.1.*
+*An iOS patch, dated by its EAS production build (UTC); the build number and the release are added here once known. TestFlight build 66 (`v1.5.2-tf.66`) had the note fix alone, and the Mac work holds it back. Android stays on 1.3.1.*
+
+### Added
+
+- **On a Mac,** a banner ad sits at the bottom of the window on every tab, sized to the window. Stats shows no second one there. This is the iPhone and iPad app running on a Mac with Apple silicon.
 
 ### Fixed
+
+- **On a Mac, the display should now stay on while a session runs,** as the screen does on an iPhone since 1.5.1. A Mac is reported to ignore the iPhone's way of keeping the screen on, so the app also asks the Mac's own way. The Mac check on TestFlight confirms it.
 
 - **One note after each focus.** Since 1.4.0, closing the love note could open a second one at once: your partner's next note, or one of your own straight after theirs, or your own note twice. Now a finished focus shows one note. If your partner has sent two, the second comes after your next focus (DEF-011).
 - **The ad after a note waits for the note to go.** It was asked for while the note was still sliding away, when iOS doesn't present another screen, which is the likely reason the owner saw it fail. Now it waits about a second after the note has gone, in Classic and in Fly, and an ad that fails to show loads the next one at once. The TestFlight device check confirms it (DEF-011).

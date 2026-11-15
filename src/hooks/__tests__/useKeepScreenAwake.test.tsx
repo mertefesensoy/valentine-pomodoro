@@ -26,6 +26,21 @@ jest.mock('expo-keep-awake', () => ({
     }),
 }));
 
+// 1.5.2: the Mac display module, as a stand-in that keeps whether the display
+// is held. The native side holds it only on a Mac; here it records the calls.
+let mockMacHeld = false;
+const mockMacCalls: string[] = [];
+jest.mock('../../../modules/mac-display-awake', () => ({
+    holdMacDisplay: jest.fn(() => {
+        mockMacCalls.push('hold');
+        mockMacHeld = true;
+    }),
+    releaseMacDisplay: jest.fn(() => {
+        mockMacCalls.push('release');
+        mockMacHeld = false;
+    }),
+}));
+
 // Modern fake timers also fake Date.now(), so sessions end on schedule.
 jest.useFakeTimers();
 
@@ -49,6 +64,8 @@ beforeEach(async () => {
     await resetStorage();
     mockHeldTags.clear();
     mockCalls.length = 0;
+    mockMacHeld = false;
+    mockMacCalls.length = 0;
     jest.mocked(activateKeepAwakeAsync).mockClear();
     jest.mocked(deactivateKeepAwake).mockClear();
 });
@@ -179,6 +196,55 @@ describe('keeping the screen on (DEF-010)', () => {
         await run(() => session().pause());
         await run(() => session().resume());
         expect(screenHeld()).toBe(true);
+    });
+});
+
+// The Mac display (1.5.2) is held at the same moments as the screen's tag, and
+// released at the same moments, including an unmount mid-session.
+// covers: FR-TMR-011
+describe('keeping a Mac display on (1.5.2)', () => {
+    it('holds it while a focus runs, and releases it when paused, resumed and stopped', async () => {
+        await mountGate();
+        expect(mockMacHeld).toBe(false);
+
+        await run(() => session().start({ kind: 'pomodoro', durationMs: 25 * 60_000, extras: { phase: 'focus' } }));
+        expect(mockMacHeld).toBe(true);
+        expect(screenHeld()).toBe(true);
+
+        await run(() => session().pause());
+        expect(mockMacHeld).toBe(false);
+
+        await run(() => session().resume());
+        expect(mockMacHeld).toBe(true);
+
+        await run(() => session().stop());
+        expect(mockMacHeld).toBe(false);
+        expect(mockMacCalls).toEqual(['hold', 'release', 'hold', 'release']);
+    });
+
+    it('holds it during a flight, and releases it once the session completes', async () => {
+        await mountGate();
+        await run(() => session().start({ kind: 'fly', durationMs: 60 * 60_000 }));
+        expect(mockMacHeld).toBe(true);
+        await run(() => session().switchTo('pomodoro'));
+        expect(mockMacHeld).toBe(false);
+
+        const unsubscribe = session().onComplete(() => {}, 'pomodoro');
+        await run(() => session().start({ kind: 'pomodoro', durationMs: 60_000 }));
+        expect(mockMacHeld).toBe(true);
+        await act(async () => jest.advanceTimersByTime(61_000));
+        await act(async () => {});
+        expect(mockMacHeld).toBe(false);
+        unsubscribe();
+    });
+
+    it('releases it when the gate unmounts mid-session', async () => {
+        const view = await mountGate();
+        await run(() => session().start({ kind: 'pomodoro', durationMs: 25 * 60_000 }));
+        expect(mockMacHeld).toBe(true);
+        await act(async () => view.unmount());
+        await act(async () => {});
+        expect(mockMacHeld).toBe(false);
     });
 });
 

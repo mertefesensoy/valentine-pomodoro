@@ -58,6 +58,7 @@ Start here. Every document in the repo is listed below. The rules for writing th
 | Date | Record |
 |------|--------|
 | 2026-11-15 | [The iPad 13" App Store set, redone for iPad and Mac visitors: five close-ups with the couple story](implementations/2026-11-15-ipad-store-set.md) |
+| 2026-11-15 | [Crash reports audit: how to get a stack trace without a Mac; the builds' dSYMs, MetricKit, and the routes ranked](implementations/2026-11-15-crash-reports-audit.md) |
 | 2026-11-15 | [1.5.2 on the Mac: an always-on banner, and the display kept on](implementations/2026-11-15-v152-mac.md) |
 | 2026-11-15 | [1.5.2: one note after each focus, and the ad that follows it (DEF-011)](implementations/2026-11-15-v152-note-sheet-once.md) |
 | 2026-11-13 | [Mac version audit: the app is already on the Mac App Store as "Designed for iPad"; the routes to a Mac version, ranked](implementations/2026-11-13-mac-version-audit.md) |

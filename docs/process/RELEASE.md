@@ -43,6 +43,10 @@ related: [BRANCHING, CHANGELOG, TEST-STRATEGY]
 **Build and test**
 
 5. [ ] **Owner's go-ahead:** `eas build --platform ios --profile production`.
+   - [ ] **Keep its dSYMs** (from the first build after 1.5.2; [keep-dsyms record](../implementations/2026-11-16-keep-dsyms.md)).
+     - `eas build:view <id> --json` should list a `buildArtifactsUrl`. That is the zip of `ios/build/*.dSYM.zip`, which `eas.json` uploads.
+     - Download it before EAS expires the build's files, 30 days after the build.
+     - Keep it outside EAS, named by version and build, for example `ValentinePomodoro-X.Y.Z-<build>.dSYM.zip`. A dSYM matches only its own build, and without it the app's frames in that release's crash logs stay bare addresses ([crash reports audit](../implementations/2026-11-15-crash-reports-audit.md)).
 6. [ ] **Owner's go-ahead:** `eas submit --platform ios --id <build-id>` to TestFlight.
 7. [ ] Tag `vX.Y.Z-tf.<build>` and push it.
 8. [ ] Device check on a physical iPhone, installed over the current store version ([test strategy §5](../testing/TEST-STRATEGY.md#5-device-check-protocol)).
@@ -93,6 +97,7 @@ When Android returns (the [roadmap Android track](../roadmap/ROADMAP.md#android-
 - [2026-11-13 — Mac version audit: can Valentine Pomodoro ship on the Mac?](../implementations/2026-11-13-mac-version-audit.md)
 - [2026-11-15 — Crash reports audit: how to get a stack trace without a Mac](../implementations/2026-11-15-crash-reports-audit.md)
 - [2026-11-15 — 1.5.2: one note after each focus, and the ad that follows it (DEF-011)](../implementations/2026-11-15-v152-note-sheet-once.md)
+- [2026-11-16 — Keep each production build's dSYMs](../implementations/2026-11-16-keep-dsyms.md)
 - [Branching model](BRANCHING.md)
 - [Evaluation — xtool (cross-platform Xcode replacement) vs staying on Expo/EAS](../proposals/xtool-evaluation.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)

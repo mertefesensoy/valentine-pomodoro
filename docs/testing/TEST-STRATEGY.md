@@ -110,6 +110,7 @@ node scripts/docs/check-docs.mjs  # docs links, IDs, backlinks, traceability
 - ["Phase 1 Stage E: verify and ship v1.4.0"](../implementations/2026-11-01-phase1-stage-e.md)
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)
 - [2026-11-13 — Mac version audit: can Valentine Pomodoro ship on the Mac?](../implementations/2026-11-13-mac-version-audit.md)
+- [2026-11-15 — Crash reports audit: how to get a stack trace without a Mac](../implementations/2026-11-15-crash-reports-audit.md)
 - [Design workflow — Impeccable, Apple HIG and Emil Kowalski skills](../process/DESIGN-WORKFLOW.md)
 - [Release process](../process/RELEASE.md)
 - [Evaluation — xtool (cross-platform Xcode replacement) vs staying on Expo/EAS](../proposals/xtool-evaluation.md)

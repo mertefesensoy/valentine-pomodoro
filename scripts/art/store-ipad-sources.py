@@ -36,9 +36,9 @@ f, LIGHT, DARK, TONES, tr_ = S.f, S.LIGHT, S.DARK, S.TONES, S.tr_
 # ---------------------------------------------------------------------------------------------
 # The drafts the owner reviews (record §9.3): the names, the code, the note, the captions.
 
-PARTNER, ME = 'Deniz', 'Ekin'
+PARTNER, ME = 'Mert', 'Ekin'  # the owner renamed the partner on 2026-11-16 (was Deniz)
 CODE = 'K7MP4Q'  # six characters from the pairing alphabet (no I, L or O)
-NOTE = {'en': "So proud of you. Dinner's on me.", 'tr': 'Gurur duyuyorum. Akşam yemeği benden.'}
+NOTE = {'en': "So proud of you. Dinner's on me.", 'tr': 'Seninle gurur duyuyorum. Akşam yemeği benden.'}
 CAPTIONS = {
     'en': [
         ('Two pages,|one diary', 'You on one, your partner on the other'),
@@ -117,8 +117,28 @@ S.inter, S.baloo = _rec_inter, _rec_baloo  # the Screen pieces call them through
 # The 1.5 screens, in the app's points, on the iPad's portrait screen.
 
 class Pad(S.Screen):
+    """The iPad's screen. A subclass for another device sets DEVICE and BOTTOM_INSET and overrides sheet_frame and
+    sheet_width (store-iphone-sources.py); the iPad's values are the record's (§9.4)."""
+    DEVICE = 'ipad'
+    BOTTOM_INSET = 20  # the window's bottom safe area, under a sheet's pinned actions
+
     def __init__(self, t, lang, hour):
-        super().__init__('ipad', t, lang, hour)
+        super().__init__(self.DEVICE, t, lang, hour)
+
+    def sheet_width(self):
+        return SHEET_W
+
+    def sheet_frame(self, h, full):
+        """Where a sheet with `h` of content sits: (x, y, width, height). On iPad every form sheet is centred, and the
+        full-height one (pairing) is a default form sheet, PAIR_SHEET_H tall."""
+        return (self.W - SHEET_W) / 2, (self.H - h) / 2, SHEET_W, h
+
+    def finish(self):
+        """Anything the system draws over the app's sheets; nothing on iPad."""
+
+    def note_lines(self, width):
+        """The love note's lines at 20 pt in `width` points."""
+        return S.wrap_inter(NOTE[self.lang], 20, 400, width)
 
     def block(self, x0, y0, x1, y1):
         REC.blocks.append((x0, y0, x1, y1))
@@ -153,15 +173,33 @@ class Pad(S.Screen):
         self.block(self.x0, y, self.x0 + self.pad, y + 72)
         self.add(f'<rect x="{f(self.x0 + 0.75)}" y="{f(y + 0.75)}" width="{f(self.pad - 1.5)}" height="70.5" rx="22" fill="{t["paper"]}" stroke="{t["edge"]}" stroke-width="1.5"/>')
 
-    def partner_day(self, x, cy, sessions, minutes, centered=False):
-        """PartnerDay: up to three stickers (22 pt, 2 apart), '+n' past three, then 'n min today', 8 apart."""
-        t = self.t
+    def day_parts(self, sessions, minutes):
         shown = min(sessions, 3)
         more = self.s('today.more', count=sessions - 3) if sessions > 3 else None
         chip_w = S.inter_width(more, 12, 600) + 2 * XS if more else 0
         group = shown * 22 + (shown - 1) * 2 + ((2 + chip_w) if more else 0)
         text = self.s('partner.minToday_other', n=minutes)
-        total = group + SM + S.inter_width(text, 14, 400)
+        return shown, more, chip_w, group, text, group + SM + S.inter_width(text, 14, 400)
+
+    def day_wraps(self, sessions, minutes, avail):
+        """Whether PartnerDay's row (flexWrap) breaks into the stickers over the line in `avail` points."""
+        return self.day_parts(sessions, minutes)[-1] > avail
+
+    def partner_day(self, x, cy, sessions, minutes, centered=False, avail=None):
+        """PartnerDay: up to three stickers (22 pt, 2 apart), '+n' past three, then 'n min today', 8 apart. Centred in
+        `avail` points too narrow for one row, it wraps: the stickers, then the line under them, 8 apart."""
+        t = self.t
+        shown, more, chip_w, group, text, total = self.day_parts(sessions, minutes)
+        if avail is not None and total > avail:
+            top = cy - (22 + SM + 19) / 2
+            gx = x - group / 2
+            for i in range(shown):
+                self.add(self.pose_sticker('doro' if i % 2 else 'pomo', 'celebrating', gx + i * 24 + 11, top + 11, 22))
+            if more:
+                self.add(f'<rect x="{f(gx + shown * 24)}" y="{f(top + 2.5)}" width="{f(chip_w)}" height="17" rx="8" fill="{t["primarySoft"]}"/>')
+                self.add(S.inter(more, gx + shown * 24 + chip_w / 2, top + 15.3, 12, t['primaryInk'], 600, 'middle'))
+            self.add(S.inter(text, x, top + 22 + SM + 14, 14, t['inkSoft'], 400, 'middle'))
+            return
         x0 = x - total / 2 if centered else x
         for i in range(shown):
             self.add(self.pose_sticker('doro' if i % 2 else 'pomo', 'celebrating', x0 + i * 24 + 11, cy, 22))
@@ -206,7 +244,8 @@ class Pad(S.Screen):
         frame_h = EDGE + MD + timer_line + XS + SM + 6 + LG + EDGE
         heads_h = SM + 13 * SF_LINE + SM + sticker
         frame_row_h = SM + XS + frame_h + XS
-        foot_h = SM + 44 + LG
+        day_h = 22 + SM + 19 if self.day_wraps(partner_sessions, partner_minutes, page_w - 2 * MD) else 22
+        foot_h = SM + max(44, day_h) + LG  # the paired foot is at least 44 tall, its day centred in it
         spread_h = heads_h + frame_row_h + foot_h
         centre_top, centre_bottom = self.top + SM + 44 + LG, (b - 196) - LG
         top = centre_top + (centre_bottom - centre_top - (spread_h + LG + 34)) / 2
@@ -227,28 +266,33 @@ class Pad(S.Screen):
         bar_y = fy + EDGE + MD + timer_line + XS + SM
         self.add(f'<rect x="{f(fx + EDGE + LG)}" y="{f(bar_y)}" width="{f(fw - 2 * EDGE - 2 * LG)}" height="6" rx="3" fill="{t["ringTrack"]}"/>')
         foot_y = top + heads_h + frame_row_h
-        self.partner_day(right + page_w / 2, foot_y + SM + 22, partner_sessions, partner_minutes, centered=True)
+        self.partner_day(right + page_w / 2, foot_y + SM + max(44, day_h) / 2, partner_sessions, partner_minutes, centered=True, avail=page_w - 2 * MD)
         self.today_row(top + spread_h + LG + 17, done, owed, goal=goal)
         self.controls_idle(start_key, b)
         self.tab_bar(0)
         self.home_indicator()
 
     # -- sheets ------------------------------------------------------------------------------------
-    def sheet(self, h, fill):
-        """A form sheet, centred and SHEET_W wide, over a dim (record §9.4). Returns its top-left corner."""
-        sx, sy = (self.W - SHEET_W) / 2, (self.H - h) / 2
+    def sheet(self, h, fill, full=False):
+        """A form sheet with `h` of content over a dim, where sheet_frame puts it (record §9.4). Returns its top-left
+        corner; self.sw and self.sh are its width and height. A sheet that reaches the screen's foot runs its corners
+        past it."""
+        sx, sy, sw, sh = self.sheet_frame(h, full)
+        self.sw, self.sh = sw, sh
+        drawn_h = sh + SHEET_R if sy + sh >= self.H else sh
         self.add(f'<rect width="{self.W}" height="{self.H}" fill="#000000" opacity="{DIM}"/>')
-        self.add(f'<rect x="{f(sx)}" y="{f(sy)}" width="{SHEET_W}" height="{f(h)}" rx="{SHEET_R}" fill="{fill}"/>')
+        self.add(f'<rect x="{f(sx)}" y="{f(sy)}" width="{f(sw)}" height="{f(drawn_h)}" rx="{SHEET_R}" fill="{fill}"/>')
         # What was drawn before it and lies inside it is hidden by it; what's drawn after is on it.
-        REC.covers.append(((sx, sy, sx + SHEET_W, sy + h), len(REC.texts), len(REC.blocks)))
-        self.block(sx, sy, sx + SHEET_W, sy + h)
+        REC.covers.append(((sx, sy, sx + sw, sy + sh), len(REC.texts), len(REC.blocks)))
+        # A full-height sheet's content ends above the window's bottom safe area; a window may crop that empty foot.
+        self.block(sx, sy, sx + sw, sy + sh - (self.BOTTOM_INSET if full else 0))
         return sx, sy
 
     def sheet_head(self, sx, sy, title):
         """PairScreen's and PartnerScreen's head: the title centred in 44 pt, the 36-pt close button at the right."""
         t = self.t
-        self.add(S.inter(title, sx + SHEET_W / 2, sy + MD + 22 + 6, 17, t['ink'], 600, 'middle'))
-        cx, cy = sx + SHEET_W - LG - 18, sy + MD + 4 + 18
+        self.add(S.inter(title, sx + self.sw / 2, sy + MD + 22 + 6, 17, t['ink'], 600, 'middle'))
+        cx, cy = sx + self.sw - LG - 18, sy + MD + 4 + 18
         self.add(f'<circle cx="{f(cx)}" cy="{f(cy)}" r="18" fill="{t["field"]}"/>')
         self.add(S.glyph('close', cx, cy, 20, t['inkSoft']))
 
@@ -270,9 +314,10 @@ class Pad(S.Screen):
         """PairScreen.tsx at its code step: the head, the two pages (Spread.tsx, 230 tall, leaning 1° to the spine) with
         your code and the partner's empty cells, the plane scene in the height left, and the pinned actions."""
         t = self.t
-        sx, sy = self.sheet(PAIR_SHEET_H, t['page'])
+        sx, sy = self.sheet(PAIR_SHEET_H, t['page'], full=True)
+        sw, sh = self.sw, self.sh
         self.sheet_head(sx, sy, self.s('pair.title'))
-        bx, by, pw, ph = sx + LG, sy + MD + 44 + MD, (SHEET_W - 2 * LG - SM) / 2, 230
+        bx, by, pw, ph = sx + LG, sy + MD + 44 + MD, (sw - 2 * LG - SM) / 2, 230
         pages = (
             (bx, -1, bx + pw, 'l', ME, CODE, self.s('pair.lasts')),
             (bx + pw + SM, 1, bx + pw + SM, 'r', self.s('pair.partner'), '', self.s('pair.tapToType')),
@@ -285,12 +330,12 @@ class Pad(S.Screen):
             self.code_cells(cx, by + MD + 13 * SF_LINE + SM, code)
             self.add(S.inter(mini, cx, by + MD + 13 * SF_LINE + SM + 102 + SM + 13.5, 13, t['inkSoft'], 400, 'middle'))
             self.add('</g>')
-        pinned = SM + 56 + SM + 44 + 20  # padding, the pill, the gap, the link, the window's bottom inset
+        pinned = SM + 56 + SM + 44 + self.BOTTOM_INSET  # padding, the pill, the gap, the link, the window's bottom inset
         slot_top = by + ph + MD
-        slot_h = PAIR_SHEET_H - pinned - (slot_top - sy) - XL
+        slot_h = sh - pinned - (slot_top - sy) - XL
         (aw, ah), art_paths = plane()
-        k = min((SHEET_W - 2 * LG) / aw, slot_h / ah, 1.3)
-        ax, ay = sx + LG + (SHEET_W - 2 * LG - aw * k) / 2, slot_top + slot_h - ah * k
+        k = min((sw - 2 * LG) / aw, slot_h / ah, 1.3)
+        ax, ay = sx + LG + (sw - 2 * LG - aw * k) / 2, slot_top + slot_h - ah * k
         stroke = f'stroke="{t["edgeStrong"]}" stroke-width="{f(EDGE / k)}" stroke-linejoin="round"'
         self.add(f'<g transform="translate({f(ax)} {f(ay)}) scale({f(k)})">'
                  f'<path d="{art_paths["route"]}" fill="{t["edgeStrong"]}"/><path d="{art_paths["heartBig"]}" fill="{t["accent"]}"/>'
@@ -298,9 +343,9 @@ class Pad(S.Screen):
                  f'<path d="{art_paths["planeTop"]}" fill="{t["paper"]}" {stroke}/></g>')
         for who, (mx, my) in (('pomo', (62, 226)), ('doro', (299, 226))):
             self.add(self.pose_sticker(who, 'idle', ax + mx * k, ay + my * k, 88 * k))
-        py = sy + PAIR_SHEET_H - pinned + SM
-        self.pill(self.s('pair.send'), py, w=SHEET_W - 2 * LG, cx=sx + SHEET_W / 2)
-        self.add(S.inter(self.s('pair.newCode'), sx + SHEET_W / 2, py + 56 + SM + 22 + 6, 16, t['primaryInk'], 600, 'middle'))
+        py = sy + sh - pinned + SM
+        self.pill(self.s('pair.send'), py, w=sw - 2 * LG, cx=sx + sw / 2)
+        self.add(S.inter(self.s('pair.newCode'), sx + sw / 2, py + 56 + SM + 22 + 6, 16, t['primaryInk'], 600, 'middle'))
 
     def partner_sheet(self, sessions, minutes, goal, updated_min):
         """PartnerScreen.tsx sized to its content: the head, PartnerCard.tsx (the date, a row of 40-pt cells, the line),
@@ -308,10 +353,11 @@ class Pad(S.Screen):
         t = self.t
         card_h = EDGE + MD + 13 * SF_LINE + SM + 40 + SM + 20 + MD + EDGE
         list_h = EDGE + 44 + EDGE
-        h = MD + 44 + MD + card_h + MD + 18 + MD + list_h + SM + 18 + LG
+        footer = S.wrap_inter(self.s('partner.noteFooter'), 13, 400, self.sheet_width() - 4 * LG)
+        h = MD + 44 + MD + card_h + MD + 18 + MD + list_h + SM + 18 * len(footer) + LG
         sx, sy = self.sheet(h, t['page'])
         self.sheet_head(sx, sy, PARTNER)
-        x, w, y = sx + LG, SHEET_W - 2 * LG, sy + MD + 44 + MD
+        x, w, y = sx + LG, self.sw - 2 * LG, sy + MD + 44 + MD
         self.add(f'<rect x="{f(x + 0.75)}" y="{f(y + 0.75)}" width="{f(w - 1.5)}" height="{f(card_h - 1.5)}" rx="22" fill="{t["paper"]}" stroke="{t["edge"]}" stroke-width="1.5"/>')
         ix, iy = x + EDGE + LG, y + EDGE + MD
         self.add(S.inter(TODAY_DATE[self.lang], ix, iy + 12.5, 13, t['inkSoft'], 600))
@@ -330,13 +376,14 @@ class Pad(S.Screen):
         ly = uy + 18 + MD
         self.add(f'<rect x="{f(x + 0.75)}" y="{f(ly + 0.75)}" width="{f(w - 1.5)}" height="{f(list_h - 1.5)}" rx="14" fill="{t["paper"]}" stroke="{t["edge"]}" stroke-width="1.5"/>')
         self.add(S.inter(self.s('partner.write', name=PARTNER), x + EDGE + LG, ly + list_h / 2 + 6, 17, t['primaryInk'], 400))
-        self.add(S.inter(self.s('partner.noteFooter'), x + LG, ly + list_h + SM + 13.5, 13, t['inkSoft'], 400))
+        for j, line in enumerate(footer):
+            self.add(S.inter(line, x + LG, ly + list_h + SM + 13.5 + j * 18, 13, t['inkSoft'], 400))
 
     def note_sheet(self):
         """LoveNoteSheet.tsx sized to its content, the partner's note: Pomo (44, no lift) beside 'A note from …' in
         Baloo 2 at 22, the note at 20/28, and Close (at least 160 x 44, page-coloured with the edge), 24 around, 16 apart."""
         t = self.t
-        lines = S.wrap_inter(NOTE[self.lang], 20, 400, SHEET_W - 2 * XL)
+        lines = self.note_lines(self.sheet_width() - 2 * XL)
         h = XL + 44 + LG + 28 * len(lines) + LG + 44 + XL
         sx, sy = self.sheet(h, t['paper'])
         self.add(S.sticker(S.pose('pomo', 'celebrating'), sx + XL + 22, sy + XL + 22, 44))
@@ -347,8 +394,8 @@ class Pad(S.Screen):
         cy = ny + 28 * len(lines) + LG
         label = self.s('loveNote.close')
         cw = max(160, S.inter_width(label, 17, 600) + 2 * XL)
-        self.add(f'<rect x="{f(sx + SHEET_W / 2 - cw / 2 + 0.75)}" y="{f(cy + 0.75)}" width="{f(cw - 1.5)}" height="42.5" rx="21.25" fill="{t["page"]}" stroke="{t["edge"]}" stroke-width="1.5"/>')
-        self.add(S.inter(label, sx + SHEET_W / 2, cy + 22 + 6, 17, t['ink'], 600, 'middle'))
+        self.add(f'<rect x="{f(sx + self.sw / 2 - cw / 2 + 0.75)}" y="{f(cy + 0.75)}" width="{f(cw - 1.5)}" height="42.5" rx="21.25" fill="{t["page"]}" stroke="{t["edge"]}" stroke-width="1.5"/>')
+        self.add(S.inter(label, sx + self.sw / 2, cy + 22 + 6, 17, t['ink'], 600, 'middle'))
 
     # -- the five screens ----------------------------------------------------------------------------
     def p1(self):
@@ -370,17 +417,18 @@ class Pad(S.Screen):
 
     def p5(self):
         # Facing pages at night: the note covers the spine's frame whole, so no timer shows half covered, and the pages'
-        # heads (you, Deniz) show above it and today's full row below it.
+        # heads (you, your partner) show above it and today's full row below it.
         self.spread_paired('longBreak', 4, '15:00', 4, 0, True, 4, 100, 'startBreak')
         self.note_sheet()
 
 
-def screen(panel, lang):
-    """Panel `panel`'s screen and what it recorded."""
+def screen(panel, lang, cls=Pad):
+    """Panel `panel`'s screen on the device `cls` draws, and what it recorded."""
     global REC
     REC = Recorder()
-    sc = Pad(DARK if panel == 4 else LIGHT, lang, HOURS[panel])
+    sc = cls(DARK if panel == 4 else LIGHT, lang, HOURS[panel])
     getattr(sc, f'p{panel + 1}')()
+    sc.finish()
     rec, REC = REC, None
     return ''.join(sc.out), rec
 
@@ -406,19 +454,43 @@ CAST = [
 ]
 
 
-def scale_of(rect):
-    return min(CARD_MAX_W / rect[2], (PH - CARD_TOP - CARD_FOOT) / rect[3])
+class Layout:
+    """One set's composition: the panel and its gutter, the page box below the captions, the captions' sizes, each
+    panel's window and cast, and the screen class that draws the device. IPAD is the approved iPad set's; the iPhone's
+    is in store-iphone-sources.py."""
+
+    def __init__(self, title, panel, gutter, card_top, card_foot, card_max_w, cap, windows, cast, screen_cls, corners=None):
+        self.title, (self.PW, self.PH), self.G = title, panel, gutter
+        self.SW = N * self.PW + (N - 1) * self.G
+        self.CARD_TOP, self.CARD_FOOT, self.CARD_MAX_W = card_top, card_foot, card_max_w
+        self.CAP, self.WINDOWS, self.CAST, self.screen_cls = cap, windows, cast, screen_cls
+        # Each page's corner radius in screen points: 22 (radius.l), unless a window is exactly a sheet's own rectangle.
+        self.CORNERS = corners or [22] * N
 
 
-def card_box(i):
+IPAD = Layout('App Store screenshots, iPad 13", {lang}: two pages, one diary (1.5)', (PW, PH), G,
+              CARD_TOP, CARD_FOOT, CARD_MAX_W, CAP, WINDOWS, CAST, Pad)
+
+
+def scale_of(rect, lay=IPAD):
+    return min(lay.CARD_MAX_W / rect[2], (lay.PH - lay.CARD_TOP - lay.CARD_FOOT) / rect[3])
+
+
+def window_of(i, lay, lang):
+    """Panel i's window: one for every language, or a {lang: window} where a sheet's height differs by language."""
+    w = lay.WINDOWS[i]
+    return w[lang] if isinstance(w, dict) else w
+
+
+def card_box(i, lay=IPAD, lang='en'):
     """The window's rectangle in the strip (px), and its scale: as wide as it can be, its top at CARD_TOP, or centred
     in the room below the captions when it's shorter than that room."""
-    rect = WINDOWS[i]
-    s = scale_of(rect)
+    rect = window_of(i, lay, lang)
+    s = scale_of(rect, lay)
     w, h = rect[2] * s, rect[3] * s
-    room = PH - CARD_TOP - CARD_FOOT
-    y = CARD_TOP + max(0, (room - h) / 2)
-    return i * (PW + G) + (PW - w) / 2, y, w, h, s
+    room = lay.PH - lay.CARD_TOP - lay.CARD_FOOT
+    y = lay.CARD_TOP + max(0, (room - h) / 2)
+    return i * (lay.PW + lay.G) + (lay.PW - w) / 2, y, w, h, s
 
 
 def look_paths(look, who):
@@ -443,8 +515,8 @@ def art_box(paths):
     return min(xs), min(ys), max(xs), max(ys)
 
 
-def caption_boxes(i, lang, cx):
-    head, sub, max_w, base = CAP
+def caption_boxes(i, lang, cx, lay=IPAD):
+    head, sub, max_w, base = lay.CAP
     h_text, s_text = CAPTIONS[lang][i]
     out = []
     lines = [l for part in h_text.split('|') for l in S.wrap_baloo(part, head, max_w, lang=lang)]
@@ -468,10 +540,12 @@ def inside(a, b):
     return a[0] >= b[0] and a[1] >= b[1] and a[2] <= b[2] and a[3] <= b[3]
 
 
-def strip_svg(lang, problems):
+def strip_svg(lang, problems, lay=IPAD):
+    PW, PH, G, SW, WINDOWS, CAST = lay.PW, lay.PH, lay.G, lay.SW, lay.WINDOWS, lay.CAST
+    margin = (PW - lay.CAP[2]) / 2  # the caption box's side margin
     ids = S.Ids('w')
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{SW}" height="{PH}" viewBox="0 0 {SW} {PH}">',
-           f'<title>App Store screenshots, iPad 13", {lang}: two pages, one diary (1.5)</title>']
+           f'<title>{lay.title.format(lang=lang)}</title>']
     k = PW / 1320
     out.append(f'<rect x="-40" y="-40" width="{SW + 80}" height="{PH + 80}" fill="{TONES[0]}"/>')
     for i in range(1, N):  # the day's grounds, each tone entering on the strip's sweeping cut (store-sources.py)
@@ -484,22 +558,24 @@ def strip_svg(lang, problems):
         x0 = i * (PW + G)
         night = i >= 3
         t = DARK if night else LIGHT
-        content, rec = screen(i, lang)
-        rect = WINDOWS[i]
-        cx_, cy_, w, h, s = card_box(i)
+        content, rec = screen(i, lang, lay.screen_cls)
+        rect = window_of(i, lay, lang)
+        cx_, cy_, w, h, s = card_box(i, lay, lang)
         win = (rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3])
 
         # Self-check: nothing visible is cut by the window's edge (wholly in, wholly out, or under a sheet).
         drawn = [(tx[0], tx[1:], ('t', n)) for n, tx in enumerate(rec.texts)] + [('a block', b_, ('b', n)) for n, b_ in enumerate(rec.blocks)]
         for name, box, (kind, n) in drawn:
-            covered = any(inside(box, c_) and n < (nt if kind == 't' else nb) for c_, nt, nb in rec.covers)
+            # What shows of it is the part inside the window, unless a sheet drawn after it hides that part.
+            seen = (max(box[0], win[0]), max(box[1], win[1]), min(box[2], win[2]), min(box[3], win[3]))
+            covered = any(inside(seen, c_) and n < (nt if kind == 't' else nb) for c_, nt, nb in rec.covers)
             if overlaps(box, win) and not inside(box, win) and not covered:
                 problems.append(f'{lang} panel {i + 1}: "{name}" is cut by the window ({", ".join(f(v) for v in box)})')
 
         # The page: the die-cut edge and the lift, then the window.
         colour, alpha = S.split_alpha(t['stickerShadow'])
         layer = 1 - (1 - alpha) ** (1 / 3)
-        r = 22 * s
+        r = lay.CORNERS[i] * s
         out.append('<g transform="translate(7 14)">')
         for reach in (0, 1, 2):
             stroke = f' stroke="{colour}" stroke-width="{f(reach * 14)}" stroke-linejoin="round"' if reach else ''
@@ -514,10 +590,10 @@ def strip_svg(lang, problems):
         centre = x0 + PW / 2
         ink = t['ink']
         soft = DARK['inkSoft'] if night else (LIGHT['ink'] if i == 2 else LIGHT['inkSoft'])
-        caps = caption_boxes(i, lang, centre)
+        caps = caption_boxes(i, lang, centre, lay)
         for line, y, size, weight, box in caps:
             out.append(_baloo(line, centre, y, size, ink if weight == 'SemiBold' else soft, 'middle', weight, lang))
-            if box[0] < x0 + 102 or box[2] > x0 + PW - 102:
+            if box[0] < x0 + margin or box[2] > x0 + PW - margin:
                 problems.append(f'{lang} panel {i + 1}: caption line "{line}" runs past its box')
 
         # Pomo & Doro, whole, on the page's top edge, in front of it.
@@ -543,8 +619,12 @@ def strip_svg(lang, problems):
             if overlaps(box, (cx_, cy_, cx_ + w, cy_ + h)):
                 bx = (max(box[0], cx_), max(box[1], cy_), min(box[2], cx_ + w), min(box[3], cy_ + h))
                 pt = ((bx[0] - cx_) / s + rect[0], (bx[1] - cy_) / s + rect[1], (bx[2] - cx_) / s + rect[0], (bx[3] - cy_) / s + rect[1])
-                for name, tb in [(tx[0], tx[1:]) for tx in rec.texts] + [('a block', b_) for b_ in rec.blocks]:
-                    if overlaps(pt, tb):
+                for name, tb, (kind, n) in drawn:
+                    seen = (max(tb[0], win[0]), max(tb[1], win[1]), min(tb[2], win[2]), min(tb[3], win[3]))
+                    hidden = any(inside(seen, c_) and n < (nt if kind == 't' else nb) for c_, nt, nb in rec.covers)
+                    # A sheet's own box is a container: its texts and rows are checked, not its paper.
+                    sheet = kind == 'b' and any(tb[:2] == c_[:2] for c_, _, _ in rec.covers)
+                    if overlaps(pt, tb) and not hidden and not sheet:  # what a sheet hides isn't content the mascot can cover
                         problems.append(f'{lang} panel {i + 1}: {who} covers "{name}"')
     out.append('</svg>')
     return ''.join(out) + '\n'

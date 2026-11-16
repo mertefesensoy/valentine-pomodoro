@@ -1,6 +1,6 @@
 # 2026-11-15 — The iPad 13" App Store set, redone for iPad and Mac visitors
 
-**Status:** Approved by the owner on 2026-11-16 ("okay i approve this", after the review sheets of §9.6), as drafted: the captions of §9.3, Deniz and Ekin, the note, the code, and five panels in this order (§9.8). The ten PNGs in `art/out/store-ipad/` are ready to upload. Uploading is the owner's step. Committed on `feat/ipad-shots` on the owner's "Commit and open PR" (2026-11-16), and the pull request is open. The review sheets in `.impeccable/review/ipad/` are git-ignored and not committed.
+**Status:** Approved by the owner on 2026-11-16 ("okay i approve this", after the review sheets of §9.6), as drafted (§9.8), and merged as PR #46 (`d793d6f`). The owner then renamed the partner to Mert and changed the Turkish note (§9.9), and approved the rebuilt set with the iPhone one ("Approve both sets", 2026-11-16). The current PNGs come from the iPhone set's branch, `feat/iphone-shots`. Uploading is the owner's step. The review sheets are git-ignored and not committed.
 **Branch:** `feat/ipad-shots`, worktree `C:\vp\ipad-shots`, cut from `origin/master` at `ad0832c`. Nothing is committed, pushed or uploaded without the owner's word; no App Store Connect action.
 **Parent:** [v1.4 App Store screenshots](2026-11-01-app-store-screenshots.md) (the "Morning to night" set this redoes for iPad).
 
@@ -318,3 +318,27 @@ The owner saw both review sheets (`review15-en.png`, `review15-tr.png`) and answ
    - **Turkish:** `store-ipad15-tr-0N-2064x2752.png`
 
 The `-2138.png` files are previews and not for upload. The iPhone sets stay 1.4's for now (§9.1).
+
+### 9.9 Two changes after approval (2026-11-16)
+
+Reviewing the iPhone set ([its record](2026-11-16-iphone-store-set.md)), the owner wrote: "can we change Deniz to Mert. And the last message should start with "Seninle gurur duyuyorum"". Both stores carry both changes.
+
+**The changes:**
+- **The partner is "Mert"** wherever "Deniz" was: the facing page, the partner strip, the partner sheet's title, "Write Mert a note" / "Mert için not yaz", and "A note from Mert" / "Mert sana yazdı".
+  - None of the Turkish strings drawn suffix the name: they use `için`, `sana` and `ile`.
+  - "Ekin" and the code K7MP4Q stay.
+- **The Turkish note is "Seninle gurur duyuyorum. Akşam yemeği benden."** VectorCraft's Inter draws it 468 pt wide, so it stays one line in the iPad sheet's 492 pt. The sheet and its Close button are unchanged in height. The English note is unchanged.
+
+**What changed:**
+- `PARTNER` and `NOTE['tr']` in `scripts/art/store-ipad-sources.py`.
+- `art/src/store-ipad/store-ipad15-{en,tr}.svg` and `art/vc/store-ipad15-{en,tr}.vectorcraft`.
+- `art/out/store-ipad/`:
+  - the strips' SVGs and `-2138.png` previews;
+  - panels 01, 03, 04 and 05 in both languages. Panel 02, the pairing sheet, shows no partner name and is byte-identical.
+- `art/steps/store-ipad15-{en,tr}.steps.json`: only their work-folder paths changed. They were rebuilt in `C:/vp/iphone-shots/.impeccable/review/iphone/vcwork`.
+
+**Checks:**
+- The self-checks pass.
+- All ten panels are 2064 × 2752, colour type 2.
+- The Turkish was checked at full size.
+- Review sheets: `.impeccable/review/iphone/review-ipad-{en,tr}.png`.

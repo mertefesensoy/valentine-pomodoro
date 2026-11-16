@@ -14,13 +14,13 @@
  {
   "command": "document.save",
   "params": {
-   "path": "C:/vp/ipad-shots/.impeccable/review/ipad/vcwork/art/vc/store-ipad15-en.vectorcraft"
+   "path": "C:/vp/iphone-shots/.impeccable/review/iphone/vcwork/art/vc/store-ipad15-en.vectorcraft"
   }
  },
  {
   "command": "document.export",
   "params": {
-   "path": "C:/vp/ipad-shots/.impeccable/review/ipad/vcwork/art/out/store-ipad/store-ipad15-en.svg",
+   "path": "C:/vp/iphone-shots/.impeccable/review/iphone/vcwork/art/out/store-ipad/store-ipad15-en.svg",
    "format": "svg",
    "decimals": 2,
    "outlineText": true,
@@ -32,7 +32,7 @@
  {
   "command": "document.export",
   "params": {
-   "path": "C:/vp/ipad-shots/.impeccable/review/ipad/vcwork/art/out/store-ipad/store-ipad15-en-2138.png",
+   "path": "C:/vp/iphone-shots/.impeccable/review/iphone/vcwork/art/out/store-ipad/store-ipad15-en-2138.png",
    "format": "png",
    "scale": 0.2000374251497006
   }
@@ -40,7 +40,7 @@
  {
   "command": "document.export",
   "params": {
-   "path": "C:/vp/ipad-shots/.impeccable/review/ipad/vcwork/art/out/store-ipad/store-ipad15-en-01-2064x2752.png",
+   "path": "C:/vp/iphone-shots/.impeccable/review/iphone/vcwork/art/out/store-ipad/store-ipad15-en-01-2064x2752.png",
    "format": "png",
    "rect": [
     0,
@@ -54,7 +54,7 @@
  {
   "command": "document.export",
   "params": {
-   "path": "C:/vp/ipad-shots/.impeccable/review/ipad/vcwork/art/out/store-ipad/store-ipad15-en-02-2064x2752.png",
+   "path": "C:/vp/iphone-shots/.impeccable/review/iphone/vcwork/art/out/store-ipad/store-ipad15-en-02-2064x2752.png",
    "format": "png",
    "rect": [
     2156,
@@ -68,7 +68,7 @@
  {
   "command": "document.export",
   "params": {
-   "path": "C:/vp/ipad-shots/.impeccable/review/ipad/vcwork/art/out/store-ipad/store-ipad15-en-03-2064x2752.png",
+   "path": "C:/vp/iphone-shots/.impeccable/review/iphone/vcwork/art/out/store-ipad/store-ipad15-en-03-2064x2752.png",
    "format": "png",
    "rect": [
     4312,
@@ -82,7 +82,7 @@
  {
   "command": "document.export",
   "params": {
-   "path": "C:/vp/ipad-shots/.impeccable/review/ipad/vcwork/art/out/store-ipad/store-ipad15-en-04-2064x2752.png",
+   "path": "C:/vp/iphone-shots/.impeccable/review/iphone/vcwork/art/out/store-ipad/store-ipad15-en-04-2064x2752.png",
    "format": "png",
    "rect": [
     6468,
@@ -96,7 +96,7 @@
  {
   "command": "document.export",
   "params": {
-   "path": "C:/vp/ipad-shots/.impeccable/review/ipad/vcwork/art/out/store-ipad/store-ipad15-en-05-2064x2752.png",
+   "path": "C:/vp/iphone-shots/.impeccable/review/iphone/vcwork/art/out/store-ipad/store-ipad15-en-05-2064x2752.png",
    "format": "png",
    "rect": [
     8624,

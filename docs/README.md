@@ -57,6 +57,7 @@ Start here. Every document in the repo is listed below. The rules for writing th
 
 | Date | Record |
 |------|--------|
+| 2026-11-16 | [The iPhone App Store set for 1.5: the iPad set's five close-ups, on iPhone](implementations/2026-11-16-iphone-store-set.md) |
 | 2026-11-16 | [Keep each production build's dSYMs: `buildArtifactPaths` in `eas.json`, and a release step to keep the zip](implementations/2026-11-16-keep-dsyms.md) |
 | 2026-11-15 | [The iPad 13" App Store set, redone for iPad and Mac visitors: five close-ups with the couple story](implementations/2026-11-15-ipad-store-set.md) |
 | 2026-11-15 | [Crash reports audit: how to get a stack trace without a Mac; the builds' dSYMs, MetricKit, and the routes ranked](implementations/2026-11-15-crash-reports-audit.md) |

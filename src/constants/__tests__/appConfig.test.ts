@@ -34,3 +34,35 @@ describe('app.json Android permissions', () => {
         );
     });
 });
+
+// Exact alarms, so a focus or a break ends on time with the phone locked (DEF-012; the owner, 2026-11-25:
+// USE_EXACT_ALARM). Its own commit, so it can be dropped if Google Play refuses the exact-alarm declaration.
+describe('exact alarms on Android', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- the plugin is CommonJS, as Expo loads it
+    const { addExactAlarmPermissions } = require('../../../plugins/withExactAlarms');
+    const names = (m: { manifest: { 'uses-permission': { $: Record<string, string> }[] } }) =>
+        m.manifest['uses-permission'].map((p) => p.$);
+
+    it('is in app.json', () => {
+        expect(appJson.expo.plugins).toContain('./plugins/withExactAlarms');
+    });
+
+    it('declares USE_EXACT_ALARM, and SCHEDULE_EXACT_ALARM only up to Android 12L', () => {
+        const manifest = addExactAlarmPermissions({ manifest: { 'uses-permission': [{ $: { 'android:name': 'android.permission.INTERNET' } }] } });
+        expect(names(manifest)).toEqual([
+            { 'android:name': 'android.permission.INTERNET' },
+            { 'android:name': 'android.permission.USE_EXACT_ALARM' },
+            { 'android:name': 'android.permission.SCHEDULE_EXACT_ALARM', 'android:maxSdkVersion': '32' },
+        ]);
+    });
+
+    it('updates an existing entry instead of adding a second one', () => {
+        const manifest = addExactAlarmPermissions({
+            manifest: { 'uses-permission': [{ $: { 'android:name': 'android.permission.SCHEDULE_EXACT_ALARM' } }] },
+        });
+        expect(names(manifest)).toEqual([
+            { 'android:name': 'android.permission.SCHEDULE_EXACT_ALARM', 'android:maxSdkVersion': '32' },
+            { 'android:name': 'android.permission.USE_EXACT_ALARM' },
+        ]);
+    });
+});

@@ -15,9 +15,13 @@ Both are checked in Jest only, and wait for a third preview build. DEF-014, the 
   - **DEF-016:** a font-size or display-size change crashes the next `router.push`. It's fixed in config by `plugins/withConfigChanges.js`, uncommitted, with Jest and the introspected manifest only so far.
   - **DEF-015:** the tour sometimes ends at Notes. Its cause isn't known yet.
 
+**Later the same day:**
+- **On the owner's "Yes, both",** the DEF-016 fix was committed as `8b79df8`.
+- **The fourth preview build (`e44c8a48`) verified it on the emulator,** and the English Play screenshots were taken with it (§6.5).
+
 **Not done yet:**
-- the commit of the DEF-016 fix and a fourth preview build, both the owner's go-ahead;
-- the Play screenshots;
+- the Turkish screenshots;
+- DEF-014 and DEF-015;
 - the production AAB;
 - the owner's Play Console steps (Stage 0 and Stage 2 of the [plan](2026-11-25-android-closed-test-plan.md)).
 
@@ -342,7 +346,28 @@ The first five items below were checked on 2026-11-25, after `adb uninstall`. Th
 - [x] **DEF-016 found, and fixed in config:**
   - changing the display density or the font size, then tapping Modes, crashed both `f912401f` and `master`'s `a5522c6f`, every time;
   - `plugins/withConfigChanges.js` is the fix. Its emulator check needs the next preview build.
-- [ ] **The Play phone screenshots:** one taken (Facing pages, 1080×1920, demo status bar, airplane mode, so no test ad). The rest wait for the next build, which has the DEF-016 fix: these captures need the density change that crashes this one.
+- [x] **The Play phone screenshots** were taken on the fourth build (§6.5).
+
+### 6.5 The fourth preview build (`e44c8a48`, from `8b79df8`)
+
+The run was on 2026-11-25, with the same emulator conditions as §6.4. Screenshots are in `build1-p3b\`, prefixed `p4`.
+- [x] **Install:** 60 64-bit libraries, 0 under 16 KB.
+- [x] **DEF-016, density:** after `wm density 360`, Modes opened. The app stayed alive and the crash buffer was empty.
+- [x] **DEF-016, font size:**
+  - after `settings put system font_scale 1.3`, the Timer re-laid out with larger text, without restarting: no second `Running "main"`;
+  - then Modes opened, with no crash.
+- [x] **Back out of the app, then reopen** (a fresh root in the same JavaScript runtime): Modes opened normally. So DEF-016's trigger is the configuration-change recreation the fix removes, not any remount.
+- [ ] **An observation for a closed-track update:** after that Back-and-reopen, the Timer's strip drew without its two small mascots, until the process was restarted. Cosmetic; cause not looked into.
+- [x] **The Play phone screenshots**, English, light (one dark), at 1080×1920 (9:16). The status bar is clean (Android's demo mode, the clock set to the device's time), and airplane mode is on so no test ad shows. They're saved as opaque RGB PNGs in `art/out/store-play/phone/en/`:
+  - `01-timer`;
+  - `02-focus` (running);
+  - `03-facing-pages`;
+  - `04-love-note`;
+  - `05-notes`;
+  - `06-stats`, empty on a fresh install, with the banner's reserved space showing;
+  - `07-dark`.
+
+  Animations were off, so the idle Ring shows its progress cap as a dot. A Turkish set isn't taken yet.
 
 ### 6.3 Left for the owner
 

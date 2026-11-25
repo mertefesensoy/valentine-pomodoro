@@ -182,7 +182,7 @@ The pairing section that 1.5 added on iOS stays out until Android has pairing.
 |-------|-------------|--------|
 | App icon | 512×512 PNG, up to 1 MB | `art/out/store-play/icon-512.png` (26 KB), scaled from `brand/png/valentine-pomodoro-app-icon-light-1024.png` by `scripts/design/play-feature-graphic.mjs` |
 | Feature graphic | 1024×500, JPEG or 24-bit PNG (no alpha) | `art/out/store-play/feature-graphic.jpg` (39 KB, a draft for the owner). The same script composes it from the brand kit: the horizontal colour logo, and Pomo & Doro celebrating, on the page colour. It has no words beyond the logo, so it serves both languages. |
-| Phone screenshots | 2–8; each side 320–3840 px; the long side at most twice the short | New: an Android set from the emulator, cropped or framed to 9:16 (1080×1920), in English and Turkish, with no Fly and no pairing |
+| Phone screenshots | 2–8; each side 320–3840 px; the long side at most twice the short | **English, taken 2026-11-25:** `art/out/store-play/phone/en/01-timer.png` … `07-dark.png`. They're seven 1080×1920 opaque PNGs from preview `e44c8a48` on the emulator, with a clean status bar, no test ad, no Fly and no pairing ([build 1's record §6.5](2026-11-25-android-build1.md#65-the-fourth-preview-build-e44c8a48-from-8b79df8)). The owner picks which to use; Stats is the weakest, being empty on a fresh install. **Turkish:** not taken yet. |
 
 ### 3.6 The privacy policy's Android paragraph (a draft; the owner approves, in this repository and on the website)
 

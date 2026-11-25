@@ -20,6 +20,7 @@ import { compareSemver } from '../utils/semver';
 import { runAfterFirstFrame } from '../startup/deferredStartup';
 import { useSessionStore } from '../stores/sessionStore';
 import { t } from '../i18n';
+import { platformKey } from '../i18n/platformKey';
 
 const HOUR_MS = 60 * 60 * 1000;
 /** How old the last answer must be before returning to the app checks again. */
@@ -146,7 +147,7 @@ export function useUpdateCheck(updateJsonUrl: string) {
 
             Alert.alert(
                 t('updates.availableTitle'),
-                t('updates.availableMessage', { version: latest.version }),
+                t(platformKey('updates.availableMessage'), { version: latest.version }),
                 [
                     { text: t('updates.notNow'), style: 'cancel' },
                     {

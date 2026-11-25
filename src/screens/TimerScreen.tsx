@@ -4,6 +4,7 @@ import { useAccountStore } from "../server/account";
 import { dismissGone, takePartnerNote, usePartnerGlance, wasCelebrated } from "../server/partnerGlance";
 import { PartnerDay, PartnerNotice, PartnerStrip, partnerLabel, partnerName } from "./classic/PartnerStrip";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTabPageHeight } from "../hooks/useTabPageHeight";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ComponentRef } from "react";
 import { router } from "expo-router";
 import * as Haptics from "expo-haptics";
@@ -102,6 +103,10 @@ function clockMinute(epochMs: number): string {
  */
 export default function TimerScreen() {
   const { width, height, fontScale } = useWindowDimensions();
+  // The height the page lays out in, for what's left of it after the insets: the window's on iOS, and on Android
+  // the tab's frame, which ends at the Material bar (useTabPageHeight). The thresholds and proportions keep the
+  // window's `height` they were tuned on, so a phone's layout doesn't switch with the bar.
+  const pageHeight = useTabPageHeight();
   const insets = useSafeAreaInsets();
   const settings = useSettingsStore((s) => s.settings);
   const updateSettings = useSettingsStore((s) => s.updateSettings);
@@ -440,7 +445,7 @@ export default function TimerScreen() {
   // padding; the phase line moves into the trailing column, so nothing sits above the face.
   const compactFace = {
     width: (pageWidth - space.xl) / 2,
-    height: height - insets.top - insets.bottom - space.s - space.l,
+    height: pageHeight - insets.top - insets.bottom - space.s - space.l,
   };
   const trailingWidth = pageWidth - compactFace.width - space.xl;
   const pose = poseFor(phase, isRunning);
@@ -509,7 +514,7 @@ export default function TimerScreen() {
     : ringFits
       ? Math.max(
           MIN_RING,
-          Math.min(ringCap, ringRoom ?? height - insets.top - insets.bottom - RING_PAGE_CHROME - RING_ROWS_ESTIMATE),
+          Math.min(ringCap, ringRoom ?? pageHeight - insets.top - insets.bottom - RING_PAGE_CHROME - RING_ROWS_ESTIMATE),
         )
       : Math.min(ringCap, height * 0.36);
 

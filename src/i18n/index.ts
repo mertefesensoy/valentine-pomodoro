@@ -123,6 +123,11 @@ export function t(key: string, options?: Options): string {
     return translate(language, key, options);
 }
 
+/** Whether English, which every language falls back to, has this key as a string. Pure. */
+export function hasKey(key: string): boolean {
+    return lookup(RESOURCES.en, key) !== undefined;
+}
+
 /** A translator fixed to one language, whatever the device's (tests, previews). */
 export const fixedT =
     (lng: Language) =>

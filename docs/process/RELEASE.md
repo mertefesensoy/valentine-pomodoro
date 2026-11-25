@@ -69,13 +69,32 @@ related: [BRANCHING, CHANGELOG, TEST-STRATEGY]
 | iOS distribution certificate | **7 Jan 2027** | Renew before any later submission (an interactive Apple sign-in, yours) |
 | Apple agreements | When Apple updates them | Accept them in App Store Connect → Business; an unaccepted agreement blocks uploads (seen 2026-10-29) |
 
-## 5. Android (deferred)
+## 5. Android
 
-When Android returns (the [roadmap Android track](../roadmap/ROADMAP.md#android-track--deferred)):
-- the same version numbers
-- `versionCode` from EAS
-- a Play closed test of at least 12 testers for 14 days before production
-- a staged rollout
+Android returned on 2026-11-25 with 1.5.2's closed test ([the plan](../implementations/2026-11-25-android-closed-test-plan.md); the [roadmap Android track](../roadmap/ROADMAP.md#android-track--in-progress)).
+
+**The rules:**
+- **The same version numbers** as iOS.
+- **`versionCode` comes from EAS** (remote, `autoIncrement`). 1.0.1 used 2, 5 and 6, and the next production build is 7.
+- **Google Play's closed test before production:** at least 12 testers opted in for 14 consecutive days. Internal testing doesn't count. Then the owner applies for production access, and the release is staged.
+
+**Before building**
+1. [ ] CI is green on the commit, as for iOS.
+2. [ ] **An EAS preview build (APK) runs on the emulator** (`C:\Android`, AVD `vp_api35`), installed fresh with `adb uninstall com.bengisu.valentinepomodoro` first, as a tester's would be.
+   - `adb shell dumpsys package com.bengisu.valentinepomodoro` shows `targetSdk=36`, `USE_EXACT_ALARM`, and none of `RECORD_AUDIO`, `SYSTEM_ALERT_WINDOW` or the storage permissions.
+   - `adb shell dumpsys alarm` shows a running session's end alarm with no window (exact, DEF-012).
+
+**Build and check**
+
+3. [ ] **Owner's go-ahead:** `eas build --platform android --profile production`, which gives an AAB.
+4. [ ] `node scripts/android/check-16k.mjs <the .aab>` exits 0: every 64-bit native library is aligned to 16 KB.
+5. [ ] **Owner:** upload the AAB to the closed track in Play Console, by hand (there's no Android `submit` profile), and send it for review.
+6. [ ] Tag the build's commit `vX.Y.Z-ct.<versionCode>` and push it. This name is proposed and waits for the owner's answer (the plan's Q4).
+
+**Release (after the 14 days)**
+
+7. [ ] **Owner:** apply for production access, then release on a staged rollout.
+8. [ ] Tag the released commit. When Android's build comes from a different commit than the iOS release of the same version, as 1.5.2's does, the tag is `vX.Y.Z-android` (§2), and CHANGELOG gets an `[X.Y.Z-android]` section, as `[1.0.1-android]` did. Otherwise it's `vX.Y.Z`, if iOS hasn't already tagged it. Then `update.json` (§3, step 12), since Android now has the version.
 
 ## Backlinks
 <!-- backlinks:start -->
@@ -98,6 +117,7 @@ When Android returns (the [roadmap Android track](../roadmap/ROADMAP.md#android-
 - [2026-11-15 — Crash reports audit: how to get a stack trace without a Mac](../implementations/2026-11-15-crash-reports-audit.md)
 - [2026-11-15 — 1.5.2: one note after each focus, and the ad that follows it (DEF-011)](../implementations/2026-11-15-v152-note-sheet-once.md)
 - [2026-11-16 — Keep each production build's dSYMs](../implementations/2026-11-16-keep-dsyms.md)
+- [2026-11-25 — 1.5.2 on Android: the Play closed test, plan](../implementations/2026-11-25-android-closed-test-plan.md)
 - [Branching model](BRANCHING.md)
 - [Evaluation — xtool (cross-platform Xcode replacement) vs staying on Expo/EAS](../proposals/xtool-evaluation.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)

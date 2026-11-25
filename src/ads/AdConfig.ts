@@ -4,15 +4,27 @@ import { Platform } from 'react-native';
 
 const extra = Constants.expoConfig?.extra ?? {};
 
+/** An AdMob ad unit id: `ca-app-pub-<publisher>/<unit>`. */
+const AD_UNIT_ID_SHAPE = /^ca-app-pub-\d+\/\d+$/;
+
+/**
+ * The ad unit id to ask with: the configured one when it has an ad unit id's shape, otherwise Google's test id.
+ * A missing id and a placeholder are treated alike, so neither can reach the SDK: until the Android closed test,
+ * app.json's Android banner id was the string REPLACE_WITH_ANDROID_BANNER_UNIT_ID, which isn't null, so a `??`
+ * fallback let it through and every banner request failed (the Android closed-test plan, finding A2). Pure.
+ */
+export function adUnitIdOr(configured: unknown, testId: string): string {
+    return typeof configured === 'string' && AD_UNIT_ID_SHAPE.test(configured) ? configured : testId;
+}
+
 const productionInterstitialId = Platform.select({
     ios: extra.admobInterstitialIdIos,
     android: extra.admobInterstitialIdAndroid,
 });
 
-// Fallback to TestIds.INTERSTITIAL if production ID is missing
 export const INTERSTITIAL_ID = __DEV__
     ? TestIds.INTERSTITIAL
-    : (productionInterstitialId ?? TestIds.INTERSTITIAL);
+    : adUnitIdOr(productionInterstitialId, TestIds.INTERSTITIAL);
 
 /**
  * How long the Timer, or Fly, must be calm (in front, idle, no note or goal moment due) before it asks for the
@@ -28,10 +40,9 @@ const productionBannerId = Platform.select({
     android: extra.admobBannerIdAndroid,
 });
 
-// Fallback to TestIds.BANNER if production ID is missing
 export const BANNER_ID = __DEV__
     ? TestIds.BANNER
-    : (productionBannerId ?? TestIds.BANNER);
+    : adUnitIdOr(productionBannerId, TestIds.BANNER);
 
 /**
  * How long a Mac window must keep its width before the Mac banner asks for an ad of that width, in ms (1.5.2). A

@@ -13,6 +13,7 @@ import { ButtonRow, ListGroup } from '../components/settings/SettingsList';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { StatusBarScrim } from '../components/ui/StatusBarScrim';
 import { useHasBeenFocused, useScreenFocused } from '../hooks/useScreenFocus';
+import { useTabPageHeight } from '../hooks/useTabPageHeight';
 import { IS_MAC } from '../platform/isMac';
 import { formatNumber, t } from '../i18n';
 import { useSettingsFocus } from '../stores/settingsFocusStore';
@@ -61,6 +62,9 @@ export default function StatsScreen() {
     const { today, totals, last7Days, streak } = useStatsViews();
     const { tokens } = useTheme();
     const { width, height, fontScale } = useWindowDimensions();
+    // The bar's top in the window, for the banner's distance from it: on Android the tab's frame ends at the Material
+    // bar (useTabPageHeight). The compact and short thresholds keep the window's `height` they were tuned on.
+    const pageHeight = useTabPageHeight();
     const insets = useSafeAreaInsets();
 
     // The banner (B6 fix, record §9). The tab is rendered before it is first
@@ -92,8 +96,8 @@ export default function StatsScreen() {
     const { track: trackScroll, scrollBy } = useTourScroll(tourHere, (y) => scrollRef.current?.scrollTo({ y, animated: true }));
     const measureBannerBox = useCallback(() => {
         if (!focused) return;
-        bannerBoxRef.current?.measureInWindow((_x, y, _w, h) => noteBannerLayout(y + h, height - insets.bottom, h));
-    }, [focused, height, insets.bottom]);
+        bannerBoxRef.current?.measureInWindow((_x, y, _w, h) => noteBannerLayout(y + h, pageHeight - insets.bottom, h));
+    }, [focused, pageHeight, insets.bottom]);
     useEffect(() => {
         if (bannerAllowed) measureBannerBox();
     }, [bannerAllowed, measureBannerBox]);

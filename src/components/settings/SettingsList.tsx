@@ -1,8 +1,9 @@
 import { Children, Fragment, useMemo, type ReactNode } from 'react';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { Platform, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 
+import { language } from '../../i18n';
 import { useTheme } from '../../theme/useTheme';
 import { edgeWidth, minTarget, radius, space } from '../../theme/layout';
 
@@ -58,12 +59,17 @@ export function SwitchRow({ label, value, onValueChange, disabled }: {
                 value={value}
                 onValueChange={onValueChange}
                 disabled={disabled}
-                trackColor={{ true: tokens.primary }}
+                trackColor={ANDROID ? { true: tokens.primary, false: tokens.edgeStrong } : { true: tokens.primary }}
+                // Android draws Material's teal knob otherwise (the closed-test plan, Stage 1). Cocoa on the pink
+                // track when on and paper on edgeStrong when off, each over 3:1 in both themes; iOS keeps its own.
+                thumbColor={ANDROID ? (value ? tokens.onPrimary : tokens.paper) : undefined}
                 accessibilityLabel={label}
             />
         </View>
     );
 }
+
+const ANDROID = Platform.OS === 'android';
 
 /**
  * A label and its value; tapping opens the control in `children` (a wheel) under the row. The
@@ -151,6 +157,7 @@ function hhmmOf(d: Date): string {
 /** A label and the native compact time picker: the system's time chip, which opens its own popover. */
 export function TimeRow({ label, hhmm, onChange }: { label: string; hhmm: string; onChange: (hhmm: string) => void }) {
     const { tokens, isDark } = useTheme();
+    if (Platform.OS === 'android') return <AndroidTimeRow label={label} hhmm={hhmm} onChange={onChange} />;
     return (
         <View style={styles.row}>
             <Text style={[styles.label, { color: tokens.ink }]}>{label}</Text>
@@ -166,6 +173,41 @@ export function TimeRow({ label, hhmm, onChange }: { label: string; hhmm: string
                 }}
             />
         </View>
+    );
+}
+
+/**
+ * TimeRow on Android (the Android closed-test plan, build 1). There the picker component has no compact chip: it
+ * opens Android's time dialog the moment it mounts and draws nothing in the row. So turning on the daily reminder,
+ * which shows the reminder's time and the quiet hours' start and end, popped three dialogs at once, and the rows
+ * were left with no time in them and nothing to tap. Here the row shows its time, as the Timer writes a clock time
+ * in the app's language, and a tap opens the dialog through the library's imperative API: 24-hour in Turkish, as
+ * the row shows it. Only a "set" changes the value; a dismissed dialog leaves it.
+ */
+function AndroidTimeRow({ label, hhmm, onChange }: { label: string; hhmm: string; onChange: (hhmm: string) => void }) {
+    const { tokens } = useTheme();
+    const turkish = language === 'tr';
+    const shown = dateOf(hhmm).toLocaleTimeString(turkish ? 'tr-TR' : 'en-US', { hour: 'numeric', minute: '2-digit' });
+    const open = () =>
+        DateTimePickerAndroid.open({
+            value: dateOf(hhmm),
+            mode: 'time',
+            is24Hour: turkish,
+            onChange: (event, date) => {
+                if (event.type === 'set' && date) onChange(hhmmOf(date));
+            },
+        });
+    return (
+        <Pressable
+            onPress={open}
+            style={({ pressed }) => [styles.row, pressed && { backgroundColor: tokens.field }]}
+            accessibilityRole="button"
+            accessibilityLabel={label}
+            accessibilityValue={{ text: shown }}
+        >
+            <Text style={[styles.label, { color: tokens.ink }]}>{label}</Text>
+            <Text style={[styles.value, { color: tokens.inkSoft }]}>{shown}</Text>
+        </Pressable>
     );
 }
 

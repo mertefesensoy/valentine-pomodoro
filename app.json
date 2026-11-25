@@ -144,7 +144,8 @@
       "expo-localization",
       "expo-router",
       "expo-secure-store",
-      "./plugins/withExactAlarms"
+      "./plugins/withExactAlarms",
+      "./plugins/withConfigChanges"
     ],
     "extra": {
       "eas": {

@@ -8,13 +8,18 @@
 
 Both are checked in Jest only, and wait for a third preview build. DEF-014, the tour scrim's undimmed sides, is an older Android bug, cosmetic, and left for a closed-track update.
 
+**Update, 2026-11-25:**
+- **Committed and in review.** `9065fc7` (build 1) and `d1b822a` (exact alarms, on its own) are in PR #49, with CI green.
+- **The third preview build (`f912401f`) verified DEF-013 and E11** on the emulator (§6.4).
+- **It also found two Android bugs, both in `master` too:**
+  - **DEF-016:** a font-size or display-size change crashes the next `router.push`. It's fixed in config by `plugins/withConfigChanges.js`, uncommitted, with Jest and the introspected manifest only so far.
+  - **DEF-015:** the tour sometimes ends at Notes. Its cause isn't known yet.
+
 **Not done yet:**
-- the third preview build;
-- the commit and pull request;
+- the commit of the DEF-016 fix and a fourth preview build, both the owner's go-ahead;
+- the Play screenshots;
 - the production AAB;
 - the owner's Play Console steps (Stage 0 and Stage 2 of the [plan](2026-11-25-android-closed-test-plan.md)).
-
-All but the Play Console steps wait for the owner's go-ahead.
 
 **Branch:** `feat/1.5.2-android`, cut from `5114cc7` (`master`, the merge of PR #48). The app code there is iOS 1.5.2's (`ad0832c`).
 **Plan:** [the closed-test plan](2026-11-25-android-closed-test-plan.md), Stage 1. The owner's answers (2026-11-25):
@@ -70,6 +75,7 @@ Build 1 is what testers install on day 0 of Google Play's 14-day closed test.
 | `src/screens/__tests__/settingsAndroid.test.tsx` | New. With pairing, reports and Fly off, Settings still opens the privacy policy, and shows no timings switch, no Fly group and no pairing row. Both tests fail on `master`'s screen. |
 | `app.json` | The changes below. |
 | `plugins/withExactAlarms.js` | New. A config plugin that declares `USE_EXACT_ALARM`, and `SCHEDULE_EXACT_ALARM` with `maxSdkVersion="32"`. |
+| `plugins/withConfigChanges.js` | New. Adds `fontScale`, `density` and `fontWeightAdjustment` to the main activity's `android:configChanges`, so those settings no longer recreate it and crash the next `router.push` (DEF-016). |
 | `src/constants/__tests__/appConfig.test.ts` | DEF-009's `expo-audio` entry now also pins `recordAudioAndroid: false`. New: the blocked permissions, the plugin in `app.json`, and its manifest output. |
 | `src/i18n/index.ts` | `hasKey(key)`: whether English has the key. |
 | `src/i18n/platformKey.ts` | New. `platformKey(key, os)`: `<key>Android` on Android when it exists, otherwise `key`. |
@@ -306,11 +312,37 @@ The first five items below were checked on 2026-11-25, after `adb uninstall`. Th
   - the paper tab bar with the pink pill, and the cocoa and paper switch knobs, in light and in dark (Midnight Plum);
   - Turkish throughout, after the relaunch the language change asks for;
   - the Focus wheel is Android's dropdown, and it set 1 minute.
-- [ ] **DEF-013 and E11**, after the third preview build:
-  - turning on the daily reminder opens no dialog;
-  - each time row shows its time, and a tap opens one dialog;
-  - in landscape, the Ring, Start and Skip are clear of the bar, and Facing pages is too.
+- [x] **DEF-013 and E11, on the third preview build** (see §6.4).
 - [ ] DEF-014 (the tour scrim) is open for a closed-track update.
+
+### 6.4 The third preview build (`f912401f`, from `d1b822a`, the PR's head)
+
+**Conditions.** The run is from 2026-11-25. Screenshots are in `C:\Android\devicecheck\2026-11-25-v152\build1-p3b\`.
+- The emulator's host-GPU rendering crashed after two hours. The PC had 2.5–4.5 GB free, and host-GPU boots then segfaulted.
+- So this pass ran with software rendering (`-gpu swiftshader_indirect`) and Android's animation scales at 0. The app takes that as Reduce Motion.
+
+**Checks:**
+- [x] **Install:** 60 64-bit libraries, 0 under 16 KB; `targetSdk=36`; `USE_EXACT_ALARM` granted; none of the blocked permissions.
+- [x] **DEF-013:**
+  - turning on the daily reminder brought Android's notification prompt, then the rows, with **no time dialog**;
+  - "Reminder time" reads 7:00 PM;
+  - a tap opened **one** dialog, and choosing 8 and OK made the row read 8:00 PM.
+- [x] **E11, landscape:**
+  - the Ring's face fits above the bar, and the right column scrolls to Start and Skip;
+  - Facing pages scrolls to the pages' foot and to Start and Skip.
+- [x] **Facing pages in portrait** (its first Android run): both pages, the solo line on the partner's page, and Start and Skip clear of the bar.
+- [x] **A small phone** (`wm size 720x1280`, `wm density 320`, so 360×640 dp):
+  - the Timer scrolls to Start and Skip;
+  - Settings reaches Reset settings;
+  - Stats scrolls.
+- [x] **The whole tour with Next:** presets, Today, Modes (Ring and Facing pages, with no Fly on Android), the Stats lead, Stats, the Notes lead, Notes, as in `master`.
+  - The tab leads' ribbon hangs from the top rather than at the tab, in `master` too.
+  - The test banner isn't dimmed on Stats during the tour.
+- [ ] **DEF-015, open:** in 4 of 7 runs the tour ended as it reached Notes (SRS §3.4).
+- [x] **DEF-016 found, and fixed in config:**
+  - changing the display density or the font size, then tapping Modes, crashed both `f912401f` and `master`'s `a5522c6f`, every time;
+  - `plugins/withConfigChanges.js` is the fix. Its emulator check needs the next preview build.
+- [ ] **The Play phone screenshots:** one taken (Facing pages, 1080×1920, demo status bar, airplane mode, so no test ad). The rest wait for the next build, which has the DEF-016 fix: these captures need the density change that crashes this one.
 
 ### 6.3 Left for the owner
 

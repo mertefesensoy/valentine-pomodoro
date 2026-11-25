@@ -35,6 +35,44 @@ describe('app.json Android permissions', () => {
     });
 });
 
+// The font size, the display size and bold text don't recreate the activity (DEF-016): when they did, Expo Router's
+// imperative API didn't come back with the new root, and the next router.push crashed the app.
+describe('Android config changes', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- the plugin is CommonJS, as Expo loads it
+    const { addConfigChanges } = require('../../../plugins/withConfigChanges');
+    const manifest = (configChanges?: string) => ({
+        manifest: {
+            application: [
+                {
+                    $: { 'android:name': '.MainApplication' },
+                    activity: [
+                        {
+                            $: { 'android:name': '.MainActivity', ...(configChanges ? { 'android:configChanges': configChanges } : {}) },
+                            'intent-filter': [{ action: [{ $: { 'android:name': 'android.intent.action.MAIN' } }], category: [{ $: { 'android:name': 'android.intent.category.LAUNCHER' } }] }],
+                        },
+                    ],
+                },
+            ],
+        },
+    });
+    const changesOf = (m: ReturnType<typeof manifest>) => m.manifest.application[0].activity[0].$['android:configChanges'];
+
+    it('is in app.json', () => {
+        expect(appJson.expo.plugins).toContain('./plugins/withConfigChanges');
+    });
+
+    it('adds the font scale, the density and bold text to what the activity already keeps', () => {
+        expect(changesOf(addConfigChanges(manifest('keyboard|orientation|uiMode')))).toBe(
+            'keyboard|orientation|uiMode|fontScale|density|fontWeightAdjustment',
+        );
+    });
+
+    it('adds each once, even when run twice or when one is there already', () => {
+        const once = addConfigChanges(manifest('orientation|density'));
+        expect(changesOf(addConfigChanges(once))).toBe('orientation|density|fontScale|fontWeightAdjustment');
+    });
+});
+
 // Exact alarms, so a focus or a break ends on time with the phone locked (DEF-012; the owner, 2026-11-25:
 // USE_EXACT_ALARM). Its own commit, so it can be dropped if Google Play refuses the exact-alarm declaration.
 describe('exact alarms on Android', () => {

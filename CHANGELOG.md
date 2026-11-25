@@ -17,6 +17,7 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 - **On Android, Settings speaks of your phone, not an iPhone,** and the update message names Google Play. The Privacy group keeps its link to the privacy policy.
 - **On Android, the Stats banner shows** (a test ad during the closed test). Its id was a placeholder.
 - **On Android, the app asks for nothing it doesn't use:** no microphone, no drawing over other apps and no storage.
+- **On Android, changing the font size, the display size or bold text no longer crashes the app** the next time it opens a sheet, such as Modes or a love note (DEF-016).
 - **On Android, the tab bar, the switches and the notification icon** take the app's own colours and mark, instead of the system's grey-blue, teal and a grey circle.
 
 ## [1.5.2] - 2026-11-15

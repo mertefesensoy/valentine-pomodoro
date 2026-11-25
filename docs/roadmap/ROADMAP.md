@@ -29,7 +29,7 @@ This page is the **single status board**. Each phase links to its plan, which ho
 | M5 Plus | 1.10 (proposed) | iOS | Phase 5 | Planned |
 | M6 Web | 1.11 (proposed) | iOS + web | Phase 6 | Planned |
 | **M7 Public launch** | **2.0.0** | iOS + web | Phase 7: rename, rebrand, store listing | Planned |
-| MA Android return | TBD | Android | The Android track (below) | Deferred |
+| MA Android return | 1.5.2 (Android build 1) | Android | The Android track (below) | In progress (closed test) |
 
 The version numbers after 1.4.0 are a proposal. Each phase's plan confirms its version before the phase starts.
 
@@ -121,11 +121,11 @@ Requirements: FR-WEB-*, FR-MON-005 (web), NFR-PERF-007. The Expo web build, Web 
 
 Polish and harden passes, a Realtime load test, Maestro end-to-end tests, the rename and rebrand, the store listing and a staged rollout. Widgets and Live Activity if time allows.
 
-### Android track · Deferred
+### Android track · In progress
 
-**Waits for:** Google Play's closed test (at least 12 testers for 14 consecutive days), which is yours to run.
+**Started 2026-11-25:** the owner has the testers for Google Play's closed test (at least 12, opted in for 14 consecutive days), and answered [the closed-test plan](../implementations/2026-11-25-android-closed-test-plan.md)'s questions the same day. Build 1 of 1.5.2 is in [its record](../implementations/2026-11-25-android-build1.md), and the Play Console sheet is in [the listing record](../implementations/2026-11-25-android-play-listing.md).
 
-**Tasks AN0–AN6** are in the [Phase 1 plan §3b](../implementations/2026-10-29-phase1-plan.md#3b-deferred-android-after-v14).
+**Tasks AN0–AN6** are in the [Phase 1 plan §3b](../implementations/2026-10-29-phase1-plan.md#3b-deferred-android-after-v14). The closed-test plan orders them around the 14 days.
 
 **Kept so it can resume:** the R8 keep rules, the Fly guard, the emulator setup, and the `v1.0.1-android` and `archive/release-android-1.0.1` tags.
 
@@ -153,6 +153,7 @@ Polish and harden passes, a Realtime load test, Maestro end-to-end tests, the re
 - [Documentation system, release history and branch cleanup](../implementations/2026-10-30-documentation-system.md)
 - ["Phase 2 (v1.5.0): accounts, pairing by code, your partner's day and notes to them, plan"](../implementations/2026-11-05-phase2-plan.md)
 - [2026-11-13 — Mac version audit: can Valentine Pomodoro ship on the Mac?](../implementations/2026-11-13-mac-version-audit.md)
+- [2026-11-25 — 1.5.2 on Android: the Play closed test, plan](../implementations/2026-11-25-android-closed-test-plan.md)
 - [Release process](../process/RELEASE.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Status snapshot 2026-10-30](../status/2026-10-30-status.md)

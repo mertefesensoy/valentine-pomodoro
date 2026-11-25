@@ -4,6 +4,22 @@ All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.
 
 ## [Unreleased]
 
+*Android build 1 of 1.5.2, for Google Play's closed test (versionCode 7 when it's built). These changes do nothing on iOS, and the next iOS version carries them unchanged. The [build 1 record](docs/implementations/2026-11-25-android-build1.md) has the detail.*
+
+### Added
+
+- **Android gets 1.4's and 1.5's diary**, its first update since 1.0.1: Pomo & Doro, the stickers, the postcard stats, the love streak and the tour. Fly Mode and pairing aren't on Android yet. Pairing needs Sign in with Google, which comes during the test.
+
+### Fixed
+
+- **On Android, the alert when a focus or a break ends comes on time.** Android was free to deliver it late, by up to three quarters of the session's length. The app now uses an exact alarm (DEF-012).
+- **On Android, the bottom of every tab clears the tab bar.** Before, the Timer's Start button sat half under it, and Settings' last button couldn't be reached.
+- **On Android, Settings speaks of your phone, not an iPhone,** and the update message names Google Play. The Privacy group keeps its link to the privacy policy.
+- **On Android, the Stats banner shows** (a test ad during the closed test). Its id was a placeholder.
+- **On Android, the app asks for nothing it doesn't use:** no microphone, no drawing over other apps and no storage.
+- **On Android, changing the font size, the display size or bold text no longer crashes the app** the next time it opens a sheet, such as Modes or a love note (DEF-016).
+- **On Android, the tab bar, the switches and the notification icon** take the app's own colours and mark, instead of the system's grey-blue, teal and a grey circle.
+
 ## [1.5.2] - 2026-11-15
 
 *An iOS patch, dated by its EAS production build (UTC); the build number and the release are added here once known. TestFlight build 66 (`v1.5.2-tf.66`) had the note fix alone, and the Mac work holds it back. Android stays on 1.3.1.*

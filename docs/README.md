@@ -57,6 +57,9 @@ Start here. Every document in the repo is listed below. The rules for writing th
 
 | Date | Record |
 |------|--------|
+| 2026-11-25 | [The Play listing and App content for Android build 1: the owner's fill-in sheet (Data safety, exact alarms, store text, testers' message, the policy's Android paragraph)](implementations/2026-11-25-android-play-listing.md) |
+| 2026-11-25 | [Android build 1 for the Play closed test: pairing off on Android, exact alarms (DEF-012), tab insets, ad ids, permissions, and the emulator checks](implementations/2026-11-25-android-build1.md) |
+| 2026-11-25 | [1.5.2 on Android: the Play closed test, plan (AN0–AN6): what blocks build 1, and the owner's questions](implementations/2026-11-25-android-closed-test-plan.md) |
 | 2026-11-16 | [The iPhone App Store set for 1.5: the iPad set's five close-ups, on iPhone](implementations/2026-11-16-iphone-store-set.md) |
 | 2026-11-16 | [Keep each production build's dSYMs: `buildArtifactPaths` in `eas.json`, and a release step to keep the zip](implementations/2026-11-16-keep-dsyms.md) |
 | 2026-11-15 | [The iPad 13" App Store set, redone for iPad and Mac visitors: five close-ups with the couple story](implementations/2026-11-15-ipad-store-set.md) |

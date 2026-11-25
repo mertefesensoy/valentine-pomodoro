@@ -818,6 +818,7 @@ Tabs are still loaded only when first opened or once start-up has gone idle, and
 - ["Settings: the number pad can be dismissed (DEF-008)"](2026-10-30-settings-keyboard-dismiss.md)
 - [2026-11-12 — Screen sleep audit: why the phone locks itself during a session (DEF-010)](2026-11-12-screen-sleep-audit.md)
 - [2026-11-15 — 1.5.2: one note after each focus, and the ad that follows it (DEF-011)](2026-11-15-v152-note-sheet-once.md)
+- [2026-11-25 — Android build 1 for the Play closed test: what changed, and the emulator checks](2026-11-25-android-build1.md)
 - [Roadmap — Valentine Pomodoro v2](../roadmap/ROADMAP.md)
 - [Software Requirements Specification — Valentine Pomodoro v2 (couples rehaul)](../srs/SRS.md)
 - [Requirements traceability (generated)](../testing/TRACEABILITY.md)

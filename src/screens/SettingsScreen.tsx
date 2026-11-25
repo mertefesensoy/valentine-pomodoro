@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState, type ComponentRef } from 'react';
-import { PAIRING_ENABLED, STARTUP_REPORTS_ENABLED } from '../constants/features';
+import { isFlyModeAvailable, PAIRING_ENABLED, STARTUP_REPORTS_ENABLED } from '../constants/features';
+import { platformKey } from '../i18n/platformKey';
 import { useAccountStore } from '../server/account';
 import { usePartnerGlance } from '../server/partnerGlance';
 import {
@@ -198,7 +199,7 @@ export default function SettingsScreen() {
                   const why = granted ? 'failed' : 'denied';
                   setNotice(why);
                   // accessibilityLiveRegion is Android-only; iOS hears why from an announcement.
-                  AccessibilityInfo.announceForAccessibility(t(`settings.notifications.${why}`));
+                  AccessibilityInfo.announceForAccessibility(t(platformKey(`settings.notifications.${why}`)));
               })
             : disableDailyReminder().then(() => setNotice(null));
         return change.finally(() => setReminderBusy(false));
@@ -345,7 +346,7 @@ export default function SettingsScreen() {
                     action (HIG T-4). When iOS denied it, the "Open iOS Settings" row carries what to do. */}
                 <ListGroup
                     header={t('settings.notifications.header')}
-                    footer={notice ? t(`settings.notifications.${notice}`) : t('settings.notifications.footer')}
+                    footer={notice ? t(platformKey(`settings.notifications.${notice}`)) : t('settings.notifications.footer')}
                 >
                     <SwitchRow
                         label={t('settings.notifications.sessionAlerts')}
@@ -383,7 +384,7 @@ export default function SettingsScreen() {
                         />
                     )}
                     {notice === 'denied' && (
-                        <ButtonRow label={t('settings.notifications.openSettings')} onPress={() => Linking.openSettings().catch(() => {})} />
+                        <ButtonRow label={t(platformKey('settings.notifications.openSettings'))} onPress={() => Linking.openSettings().catch(() => {})} />
                     )}
                 </ListGroup>
 
@@ -413,7 +414,7 @@ export default function SettingsScreen() {
                 )}
 
                 {/* Classic's layout (D1 brief §3): the same choice as the Modes sheet's. */}
-                <ListGroup header={t('settings.appearance.header')} footer={t('settings.appearance.footer')}>
+                <ListGroup header={t('settings.appearance.header')} footer={t(platformKey('settings.appearance.footer'))}>
                     <View style={styles.segmentRow}>
                         <Text style={[styles.caption, { color: tokens.inkSoft }]}>{t('modes.layout')}</Text>
                         <SegmentedControl<ClassicLayout>
@@ -443,24 +444,29 @@ export default function SettingsScreen() {
                     </View>
                 </ListGroup>
 
-                <ListGroup header={t('modes.fly')}>
-                    <SwitchRow
-                        label={t('settings.fly.ambient')}
-                        value={settings.flyModeSound}
-                        onValueChange={(on) => updateSettings({ flyModeSound: on })}
-                    />
-                </ListGroup>
+                {/* Only where Fly can open: on Android its one setting would be for a mode that isn't there. */}
+                {isFlyModeAvailable() && (
+                    <ListGroup header={t('modes.fly')}>
+                        <SwitchRow
+                            label={t('settings.fly.ambient')}
+                            value={settings.flyModeSound}
+                            onValueChange={(on) => updateSettings({ flyModeSound: on })}
+                        />
+                    </ListGroup>
+                )}
 
-                {STARTUP_REPORTS_ENABLED && (
-                    <ListGroup header={t('settings.privacy.header')} footer={t('settings.privacy.footer')}>
+                {/* The policy link stays where there are no start-up reports (Android): Google Play wants the
+                    privacy policy inside the app as well as on the listing. */}
+                <ListGroup header={t('settings.privacy.header')} footer={STARTUP_REPORTS_ENABLED ? t('settings.privacy.footer') : undefined}>
+                    {STARTUP_REPORTS_ENABLED && (
                         <SwitchRow
                             label={t('settings.privacy.timings')}
                             value={settings.shareStartupTimings}
                             onValueChange={(on) => updateSettings({ shareStartupTimings: on })}
                         />
-                        <ButtonRow label={t('settings.privacy.policy')} onPress={() => Linking.openURL(PRIVACY_URL).catch(() => {})} />
-                    </ListGroup>
-                )}
+                    )}
+                    <ButtonRow label={t('settings.privacy.policy')} onPress={() => Linking.openURL(PRIVACY_URL).catch(() => {})} />
+                </ListGroup>
 
                 <ListGroup
                     header={t('settings.about.header')}

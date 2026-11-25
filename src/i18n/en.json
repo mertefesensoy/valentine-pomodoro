@@ -167,8 +167,10 @@
       "quietEnd": "Ends",
       "footer": "Session alerts tell you when a focus or a break ends, even with your phone locked. Quiet hours move the daily reminder out of them.",
       "denied": "Notifications are off for this app in iOS Settings, so the reminder can't be set.",
+      "deniedAndroid": "Notifications are off for this app in your phone's settings, so the reminder can't be set.",
       "failed": "The reminder couldn't be set. Try again in a moment.",
-      "openSettings": "Open iOS Settings"
+      "openSettings": "Open iOS Settings",
+      "openSettingsAndroid": "Open app settings"
     },
     "feel": {
       "header": "Sound and haptics",
@@ -181,7 +183,8 @@
     },
     "appearance": {
       "header": "Appearance",
-      "footer": "Light or dark follows your iPhone."
+      "footer": "Light or dark follows your iPhone.",
+      "footerAndroid": "Light or dark follows your phone."
     },
     "language": {
       "header": "Language",
@@ -298,6 +301,7 @@
     "upToDateMessage": "You have the latest version ({{version}}).",
     "availableTitle": "Update available",
     "availableMessage": "Version {{version}} is available on the App Store with the latest improvements and fixes.",
+    "availableMessageAndroid": "Version {{version}} is available on Google Play with the latest improvements and fixes.",
     "notNow": "Not now",
     "update": "Update"
   },

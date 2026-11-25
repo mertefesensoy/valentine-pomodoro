@@ -1,4 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { Platform } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useHasBeenFocused } from '../hooks/useScreenFocus';
 import { runAfterInteractive } from '../startup/deferredStartup';
 
@@ -21,6 +23,14 @@ import { runAfterInteractive } from '../startup/deferredStartup';
  *
  * `name` labels the pre-render in the start-up probe (`tab.<name>`). Outside a
  * navigator (tests) it renders at once.
+ *
+ * On Android it also measures the safe area again (the closed-test plan,
+ * Stage 1). There expo-router pads a tab clear of its bar (app/(tabs)/_layout),
+ * but the app's root SafeAreaProvider still reports the window's bottom inset,
+ * the gesture strip, so each screen would add it a second time above the bar.
+ * A provider of its own reports the insets of the padded frame: the status bar
+ * at the top, nothing at the bottom. On iOS the native bar is in the safe area
+ * already, and nothing changes.
  */
 export function LazyTab({ name, children }: { name: string; children: ReactNode }) {
     const seen = useHasBeenFocused();
@@ -31,5 +41,6 @@ export function LazyTab({ name, children }: { name: string; children: ReactNode 
         return runAfterInteractive(`tab.${name}`, () => setIdle(true));
     }, [seen, idle, name]);
 
-    return seen || idle ? children : null;
+    if (!(seen || idle)) return null;
+    return Platform.OS === 'android' ? <SafeAreaProvider>{children}</SafeAreaProvider> : children;
 }

@@ -34,6 +34,12 @@
     "android": {
       "package": "com.bengisu.valentinepomodoro",
       "versionCode": 2,
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FFF8F0"
@@ -43,7 +49,13 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#B03158"
+        }
+      ],
       "expo-asset",
       "@react-native-community/datetimepicker",
       [
@@ -111,7 +123,8 @@
       [
         "expo-audio",
         {
-          "enableBackgroundPlayback": false
+          "enableBackgroundPlayback": false,
+          "recordAudioAndroid": false
         }
       ],
       "expo-splash-screen",
@@ -130,7 +143,9 @@
       ],
       "expo-localization",
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      "./plugins/withExactAlarms",
+      "./plugins/withConfigChanges"
     ],
     "extra": {
       "eas": {
@@ -141,7 +156,7 @@
       "admobInterstitialIdIos": "ca-app-pub-9990246025309322/6160253938",
       "admobInterstitialIdAndroid": "ca-app-pub-3940256099942544/1033173712",
       "admobBannerIdIos": "ca-app-pub-9990246025309322/9961240442",
-      "admobBannerIdAndroid": "REPLACE_WITH_ANDROID_BANNER_UNIT_ID"
+      "admobBannerIdAndroid": "ca-app-pub-3940256099942544/9214589741"
     }
   }
 }

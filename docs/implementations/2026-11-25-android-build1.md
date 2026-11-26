@@ -28,8 +28,20 @@ Both are checked in Jest only, and wait for a third preview build. DEF-014, the 
 - The app's manifest is the one checked on preview `e44c8a48` (§6.5): `8160119` changes no app code after `8b79df8`.
 - **Tagged `v1.5.2-ct.7`** on `8160119` and pushed, on 2026-11-26 (the owner's answer to the plan's Q4). The tag is annotated, and was made before the upload, so its annotation says the build wasn't on the track yet.
 
+**Sent for review (2026-11-26):**
+- The owner uploaded the AAB to the closed track "Alpha" as the release "1.5.2 (7)". The release reuses the draft the owner had started.
+- **Sent for review together with three declarations:**
+  - exact alarms, declared as "Alarm clock";
+  - the advertising ID, changed from "No" to "Yes";
+  - the app-level trader status.
+  - Their answers are in [the Play listing record](2026-11-25-android-play-listing.md#31-app-content-policy--app-content).
+- Managed publishing is off, so the release reaches Alpha's testers on approval.
+- **Data safety** answered "No" to collecting or sharing any data, from before. On the same day it was changed to the listing record's §3.2: the ads SDK collects the IP address (approximate location), app interactions, diagnostics and the advertising ID. Claude filled it in, and the owner saved it.
+- The testers are being added to the email list "Team (Expo)", which Alpha already uses. The opt-in link goes out once the release is live, so new testers get 1.5.2 rather than 1.0.1.
+
 **Not done yet:**
-- the owner uploads the AAB to the closed track and sends it for review (RELEASE §5, step 5);
+- Google's review of the release and the exact-alarm declaration (if refused: drop `d1b822a`'s plugin, build 8, DEF-012 reopens);
+- the store listing and the privacy policy's Android paragraph. Play Console links the repository's `privacy-policy.md`, which still describes Android as 1.3.1;
 - the Turkish screenshots;
 - DEF-014 and DEF-015;
 - the owner's Play Console steps (Stage 0 and Stage 2 of the [plan](2026-11-25-android-closed-test-plan.md)).

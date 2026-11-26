@@ -1,6 +1,18 @@
 # 2026-11-25 — The Play listing and App content for Android build 1: the owner's fill-in sheet
 
-**Status:** Drafted for the owner. Nothing here is entered anywhere yet: every Play Console field, the testers' invitation and the privacy policy change are the owner's to approve and do. The answers fit Android build 1 as [its record](2026-11-25-android-build1.md) describes it: no accounts, pairing or start-up reports on Android, Google's test ads, and exact alarms. When Sign in with Google arrives (the plan's Stage 3), the Data safety form, the content rating and the policy change with it (§5).
+**Status:** Drafted for the owner. Every Play Console field, the testers' invitation and the privacy policy change are the owner's to approve and do.
+- **Entered on 2026-11-26**, by the owner, while sending build 1 for review: the exact-alarm declaration, the Advertising ID declaration and the app-level trader status (§3.1).
+- **Also entered on 2026-11-26:** Data safety (§3.2), below.
+- **Not entered yet:** the rest of §3.1, the store listing (§3.3), the privacy policy's Android paragraph (§3.6).
+- **Data safety as it stands (read on 2026-11-26):** "Does your app collect or share any of the required user data types?" is answered **No**, from before. Play's listing therefore says nothing is collected, which isn't true of a build with the ads SDK. It has to become §3.2's answers.
+- **Data safety filled in (2026-11-26).** At the owner's request, Claude filled in the form in the owner's Chrome, exactly as §3.2, and left it on the preview. The owner reviewed it and saved it:
+  - collects or shares data: yes;
+  - encrypted in transit: yes;
+  - no account creation, no sign-in with outside accounts;
+  - deletion requests: no;
+  - four types, each collected and shared, required, not ephemeral, for analytics, advertising or marketing, and fraud prevention, security and compliance: approximate location, diagnostics, app interactions ("Uygulama işlemleri"), device or other IDs.
+  - Play's preview reads back the same.
+- **The privacy policy link in Play Console** is `github.com/mertefesensoy/valentine-pomodoro/blob/master/privacy-policy.md`, not the website page §3.1 names. That file still describes Android as 1.3.1, so it changes along with §3.6. The answers fit Android build 1 as [its record](2026-11-25-android-build1.md) describes it: no accounts, pairing or start-up reports on Android, Google's test ads, and exact alarms. When Sign in with Google arrives (the plan's Stage 3), the Data safety form, the content rating and the policy change with it (§5).
 **Branch:** `feat/1.5.2-android`
 **Plan:** [the closed-test plan](2026-11-25-android-closed-test-plan.md), Stage 0. This follows F4, [the App Store listing](2026-11-06-phase2-f4-listing.md), for Google Play.
 
@@ -41,9 +53,10 @@ Each day these take is a day before the 14 days start. This sheet drafts every a
 | **Target audience** | 18 and over | The primary user is university-age couples (`PRODUCT.md`), and the policy says the app isn't meant for children under 13. Adding 13–17 is possible, but it brings Play's teen-ads rules, so it's the owner's call. |
 | **News app** | No | — |
 | **Data safety** | §3.2 | — |
-| **Advertising ID** | Yes, it uses the advertising ID: advertising or marketing, analytics, fraud prevention | The ads SDK adds `com.google.android.gms.permission.AD_ID` (seen in `dumpsys package` on the emulator). |
+| **Advertising ID** | Yes, it uses the advertising ID: advertising or marketing, analytics, fraud prevention. **Declared on 2026-11-26.** The form had "No" from before, and was changed. Its release-errors opt-out stays unticked. | The ads SDK adds `com.google.android.gms.permission.AD_ID` (seen in `dumpsys package` on the emulator). These three purposes are what [AdMob's Play data disclosure](https://developers.google.com/admob/android/privacy/play-data-disclosure) lists. |
+| **Trader status (app level)** | Yes, the trader status applies to this app. No Terms of Service URL. **Declared on 2026-11-26.** | The EU's trader rules: the app earns from ads, and the developer account is already a trader account. The URL is optional, and the app has no terms page. |
 | **Government apps / Financial features / Health** | None | — |
-| **Exact alarm** (sensitive permissions) | Core functionality: **timer**. Description below. | `USE_EXACT_ALARM` (DEF-012). [Play's policy](https://support.google.com/googleplay/android-developer/answer/16558241), read on 2026-11-25, lists "The app is an alarm or timer app" as an accepted case and asks for the Play Console declaration. Apps that don't qualify "will be disallowed from publishing on Google Play". One line of the same page's key considerations says "alarm or calendar". If the declaration is refused, the plugin's commit is dropped and alerts go back to inexact alarms (DEF-012 reopens). |
+| **Exact alarm** (sensitive permissions) | Core functionality: **timer**. Description below. **Declared on 2026-11-26** as "Alarm clock" (Çalar saat). The form offers only "Alarm clock" or "Calendar", and a timer belongs with the alarm clock. | `USE_EXACT_ALARM` (DEF-012). [Play's policy](https://support.google.com/googleplay/android-developer/answer/16558241), read on 2026-11-25, lists "The app is an alarm or timer app" as an accepted case and asks for the Play Console declaration. Apps that don't qualify "will be disallowed from publishing on Google Play". One line of the same page's key considerations says "alarm or calendar". If the declaration is refused, the plugin's commit is dropped and alerts go back to inexact alarms (DEF-012 reopens). |
 
 **The exact-alarm description**, ready to paste:
 
@@ -51,7 +64,7 @@ Each day these take is a day before the 14 days start. This sheet drafts every a
 
 ### 3.2 Data safety
 
-**The answers**, from Google's [data disclosure for the Mobile Ads SDK](https://developers.google.com/admob/android/privacy/play-data-disclosure) (it describes SDK 25.5.0) and from the code:
+**The answers**, from Google's [data disclosure for the Mobile Ads SDK](https://developers.google.com/admob/android/privacy/play-data-disclosure) (it describes SDK 25.5.0; read again on 2026-11-26, unchanged) and from the code:
 - **Does the app collect or share any of the required user data types?** Yes. Only through the ads SDK: the app itself sends nothing on Android, because pairing and the start-up reports are off and the Supabase client is never loaded.
 - **Is all user data encrypted in transit?** Yes. Google: the SDK's data is "encrypted in transit using the Transport Layer Security (TLS) protocol".
 - **Can users request deletion?** No. The developer keeps no data from Android, and the device's own data is deleted with the app. This becomes yes, with an account-deletion link, when Android gets accounts (§5).

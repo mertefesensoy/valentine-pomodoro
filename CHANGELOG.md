@@ -1,10 +1,10 @@
 # Changelog
 
-All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/) format with [Semantic Versioning](https://semver.org/spec/v2.0.0.html): each version is its annotated git tag, dated by the EAS production build (UTC) the tag points at; the italic line under each heading gives the build number, the source commit and what is known about its release; `-android` marks the Android build and `-tf.N` a TestFlight pre-release; short SHAs in parentheses are the commits behind each bullet.
+All notable changes to Valentine Pomodoro, newest first, in [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/) format with [Semantic Versioning](https://semver.org/spec/v2.0.0.html): each version is its annotated git tag, dated by the EAS production build (UTC) the tag points at; the italic line under each heading gives the build number, the source commit and what is known about its release; `-android` marks the Android build, `-tf.N` a TestFlight pre-release and `-ct.N` an Android build for Google Play's closed test; short SHAs in parentheses are the commits behind each bullet.
 
 ## [Unreleased]
 
-*Android build 1 of 1.5.2, for Google Play's closed test (versionCode 7 when it's built). These changes do nothing on iOS, and the next iOS version carries them unchanged. The [build 1 record](docs/implementations/2026-11-25-android-build1.md) has the detail.*
+*Android build 1 of 1.5.2, for Google Play's closed test: versionCode 7, from `8160119`, the merge of PR #49. EAS production build `bf3cfc1e` finished on 2026-11-25; tagged `v1.5.2-ct.7`. These changes do nothing on iOS, and the next iOS version carries them unchanged. The [build 1 record](docs/implementations/2026-11-25-android-build1.md) has the detail.*
 
 ### Added
 

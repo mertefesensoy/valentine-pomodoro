@@ -19,10 +19,19 @@ Both are checked in Jest only, and wait for a third preview build. DEF-014, the 
 - **On the owner's "Yes, both",** the DEF-016 fix was committed as `8b79df8`.
 - **The fourth preview build (`e44c8a48`) verified it on the emulator,** and the English Play screenshots were taken with it (§6.5).
 
+**Merged and built (2026-11-25, on the owner's "Yes, merge and build"):**
+- PR #49 was merged with a merge commit as `8160119`, once CI was green on `5e54b0c`. The repository doesn't allow auto-merge, so it was merged by hand.
+- **The production AAB:** EAS build `bf3cfc1e`, 1.5.2, **versionCode 7**, from `8160119`.
+  - It's 83,407,143 bytes, SHA-256 `dba4affd331496b87a36bd9a7deed32d52f9f9e280c1c55c641019f89090a92d`.
+  - It's saved as `C:\Android\apks\ValentinePomodoro-1.5.2-7.aab`.
+  - `scripts/android/check-16k.mjs` on it: all 60 64-bit libraries are aligned to 16 KB.
+- The app's manifest is the one checked on preview `e44c8a48` (§6.5): `8160119` changes no app code after `8b79df8`.
+- **Tagged `v1.5.2-ct.7`** on `8160119` and pushed, on 2026-11-26 (the owner's answer to the plan's Q4). The tag is annotated, and was made before the upload, so its annotation says the build wasn't on the track yet.
+
 **Not done yet:**
+- the owner uploads the AAB to the closed track and sends it for review (RELEASE §5, step 5);
 - the Turkish screenshots;
 - DEF-014 and DEF-015;
-- the production AAB;
 - the owner's Play Console steps (Stage 0 and Stage 2 of the [plan](2026-11-25-android-closed-test-plan.md)).
 
 **Branch:** `feat/1.5.2-android`, cut from `5114cc7` (`master`, the merge of PR #48). The app code there is iOS 1.5.2's (`ad0832c`).

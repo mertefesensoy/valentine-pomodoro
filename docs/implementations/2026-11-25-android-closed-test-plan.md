@@ -98,7 +98,7 @@ Only what build 1 can't go without.
    - Check the sheets and the back button, the timer through a phase end with the app in the background, notifications, the tutorials, and the Stats banner.
    - **Fixed in build 1:** anything that crashes, hides content or puts a control out of reach.
    - **Left for Stage 3:** cosmetic findings (AN4).
-5. **Version.** It stays **1.5.2**, as versionName, which matches iOS. The versionCode, 7, comes from EAS. The tag for a closed-test build is Q4.
+5. **Version.** It stays **1.5.2**, as versionName, which matches iOS. The versionCode, 7, comes from EAS. A closed-test build is tagged `v1.5.2-ct.<versionCode>` (Q4).
 
 ### Stage 2 — build 1 on the closed track
 
@@ -134,7 +134,7 @@ Each update is its own pull request, build and upload, and each is named in the 
 2. **A staged rollout:** a percentage first, then a full release.
 3. **After the release:**
    - `update.json`'s `latestVersion` (owner's go-ahead);
-   - the tag `v1.5.2-android` (or by Q4);
+   - the tag `v1.5.2-android` (RELEASE §5, step 8; the `-ct.N` tags mark the closed-test builds);
    - CHANGELOG;
    - the roadmap's Android track closed;
    - `PRODUCT.md`'s platform back to `adaptive`;
@@ -200,7 +200,8 @@ If a tester drops out, the fix is to add a replacement at once. But that tester'
 - **Q2:** test ads.
 - **Q3:** yes, build now. That gave EAS preview `a5522c6f`.
 - **Q5:** `USE_EXACT_ALARM`.
-- **Q4** isn't answered yet. Asked about Play Console, the owner answered with the package name `com.bengisu.valentinepomodoro`, which this record reads as "the app exists there". Its tracks and signing are still to be confirmed.
+- **Q4** was answered on 2026-11-26: `v1.5.2-ct.7`, on `8160119`, build 1's commit.
+- Asked about Play Console, the owner answered with the package name `com.bengisu.valentinepomodoro`, which this record reads as "the app exists there". Its tracks and signing are still to be confirmed.
 
 **Facts only Play Console has:**
 - Does the app `com.bengisu.valentinepomodoro` exist there?

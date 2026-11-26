@@ -26,6 +26,7 @@ related: [BRANCHING, CHANGELOG, TEST-STRATEGY]
 | `vX.Y.Z-android` | An Android build when it came from a different commit than iOS (history only) | `v1.0.1-android` |
 | `vX.Y.Z-tf.N` | A TestFlight pre-release, build number N; a SemVer pre-release, so it sorts before `vX.Y.Z` | `v1.4.0-tf.42` |
 | `vX.Y.Z-submitted` | The commit of the build submitted for App Store review (from 1.4.0). The release still gets `vX.Y.Z` on approval, on the commit that ships | `v1.4.0-submitted` |
+| `vX.Y.Z-ct.N` | An Android build for Google Play's closed test, versionCode N (from 1.5.2); a SemVer pre-release like `-tf.N`. The release still gets its own tag (§5, step 8) | `v1.5.2-ct.7` |
 | `archive/<slug>` | Preserved commits of a deleted branch; not a version | `archive/ios-ads-consent-1.2.3` |
 
 - Tags are **annotated**, and the annotation records: platform, build number, EAS build id or date, source commit, and what is known about release to users.
@@ -89,7 +90,7 @@ Android returned on 2026-11-25 with 1.5.2's closed test ([the plan](../implement
 3. [ ] **Owner's go-ahead:** `eas build --platform android --profile production`, which gives an AAB.
 4. [ ] `node scripts/android/check-16k.mjs <the .aab>` exits 0: every 64-bit native library is aligned to 16 KB.
 5. [ ] **Owner:** upload the AAB to the closed track in Play Console, by hand (there's no Android `submit` profile), and send it for review.
-6. [ ] Tag the build's commit `vX.Y.Z-ct.<versionCode>` and push it. This name is proposed and waits for the owner's answer (the plan's Q4).
+6. [ ] Tag the build's commit `vX.Y.Z-ct.<versionCode>` and push it (§2; the owner's answer to the plan's Q4, 2026-11-26). It can go before the upload: it marks the commit the build came from, and its annotation says whether the build is on the track yet.
 
 **Release (after the 14 days)**
 

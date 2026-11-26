@@ -203,13 +203,27 @@ If a tester drops out, the fix is to add a replacement at once. But that tester'
 - **Q4** was answered on 2026-11-26: `v1.5.2-ct.7`, on `8160119`, build 1's commit.
 - Asked about Play Console, the owner answered with the package name `com.bengisu.valentinepomodoro`, which this record reads as "the app exists there". Its tracks and signing are still to be confirmed.
 
-**Facts only Play Console has:**
-- Does the app `com.bengisu.valentinepomodoro` exist there?
-- Which versionCodes (2, 5, 6) reached which track?
-- Is Play App Signing on?
-- Does a closed track exist?
-- What does the dashboard say this account still has to do?
-- How many testers are there, and do they all have Google accounts?
+**Facts only Play Console has.** They were read in the owner's Play Console on 2026-11-26, at the owner's request, without changing anything:
+- **The app exists.** `com.bengisu.valentinepomodoro` is on a personal developer account, with nothing in production.
+- **Each versionCode's track:**
+  - **2** (1.0.1) is on the internal test track, from 2026-01-09.
+  - **5** (1.0.1) is inactive.
+  - **6** (1.0.1) is on the closed track "Alpha". Its release is named "6 (1.0.2)", it was rolled out on 2026-01-10, and it covers 178 of 178 countries.
+  - The highest is 6, so build 1's 7 is free.
+- **Play App Signing is on.** The upload key's certificate in Play Console matches the one that signed `ValentinePomodoro-1.5.2-7.aab`:
+  - SHA-1 `18:93:11:0E:6F:57:32:88:E4:D2:7A:96:C5:DA:DE:9C:B0:EF:0F:43`;
+  - SHA-256 `0E:C8:B4:6B:59:7D:0F:04:6E:F2:AE:CD:67:FE:97:3F:B1:3C:AB:0F:C9:7A:81:33:11:B9:3C:42:B4:C1:6B:B6`.
+  - On the AAB's side, `keytool -printcert -jarfile` read them. That's EAS's keystore, made 2026-01-09.
+  - Play signs what it delivers with its own app-signing key (SHA-256 `DB:47:EC:CE:…:F6:19`).
+- **The closed track "Alpha" exists and is active.** Build 1 goes there as a new release, and no new track is needed.
+- **The dashboard's steps for production access:**
+  - "Publish a closed test release" is done, by versionCode 6 in January.
+  - "At least 12 testers opted in": 2 are opted in.
+  - The 14 days haven't started.
+- **Testers:** the track's only tester list is the email list "Team (Expo)", with 2 addresses.
+  - The testers the owner gathered aren't on it yet. They need adding, to that list or to a new one, or through a Google Group, before the opt-in link means anything to them.
+  - The feedback URL or email is empty.
+  - Whether every tester has a Google account is the owner's to confirm.
 
 ## 8. Related Docs
 
